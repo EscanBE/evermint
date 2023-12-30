@@ -2,7 +2,7 @@ package app
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/app/upgrades/v3_sample"
+	"github.com/VictorTrustyDev/nevermind/v12/app/upgrades/v3_sample"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
@@ -15,7 +15,7 @@ import (
 //
 //  1. Release a non-breaking patch version so that the chain can set the scheduled upgrade plan at upgrade-height.
 //  2. Release the software defined in the upgrade-info
-func (app *Evermint) ScheduleForkUpgrade(ctx sdk.Context) {
+func (app *Nevermind) ScheduleForkUpgrade(ctx sdk.Context) {
 	upgradePlan := upgradetypes.Plan{
 		Height: ctx.BlockHeight(),
 	}

@@ -8,8 +8,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	sdkmath "cosmossdk.io/math"
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	rpctypes "github.com/VictorTrustyDev/nevermind/v12/rpc/types"
+	evmtypes "github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -114,7 +114,7 @@ func (b *Backend) GetProof(address common.Address, storageKeys []string, blockNr
 		Balance:      (*hexutil.Big)(balance.BigInt()),
 		CodeHash:     common.HexToHash(res.CodeHash),
 		Nonce:        hexutil.Uint64(res.Nonce),
-		StorageHash:  common.Hash{}, // NOTE: Evermint doesn't have a storage hash. TODO: implement?
+		StorageHash:  common.Hash{}, // NOTE: Nevermind doesn't have a storage hash. TODO: implement?
 		StorageProof: storageProofs,
 	}, nil
 }

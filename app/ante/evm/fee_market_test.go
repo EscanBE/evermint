@@ -1,8 +1,8 @@
 package evm_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
+	
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
@@ -10,11 +10,11 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/EscanBE/evermint/v12/app/ante/evm"
-	"github.com/EscanBE/evermint/v12/testutil"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/VictorTrustyDev/nevermind/v12/app/ante/evm"
+	"github.com/VictorTrustyDev/nevermind/v12/testutil"
+	utiltx "github.com/VictorTrustyDev/nevermind/v12/testutil/tx"
+	"github.com/VictorTrustyDev/nevermind/v12/types"
+	evmtypes "github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
 )
 
 func (suite *AnteTestSuite) TestGasWantedDecorator() {
@@ -36,8 +36,8 @@ func (suite *AnteTestSuite) TestGasWantedDecorator() {
 			func() sdk.Tx {
 				denom := evmtypes.DefaultEVMDenom
 				testMsg := banktypes.MsgSend{
-					FromAddress: marker.ReplaceAbleAddress("evm1x8fhpj9nmhqk8z9kpgjt95ck2xwyue0ppeqynn"),
-					ToAddress:   marker.ReplaceAbleAddress("evm1dx67l23hz9l0k9hcher8xz04uj7wf3yuqpfj0p"),
+					FromAddress: "ever1x8fhpj9nmhqk8z9kpgjt95ck2xwyue0pdz47ur",
+					ToAddress:   "ever1dx67l23hz9l0k9hcher8xz04uj7wf3yuv6ugq3",
 					Amount:      sdk.Coins{sdk.Coin{Amount: sdkmath.NewInt(10), Denom: denom}},
 				}
 				txBuilder := suite.CreateTestCosmosTxBuilder(sdkmath.NewInt(10), constants.BaseDenom, &testMsg)
@@ -95,8 +95,8 @@ func (suite *AnteTestSuite) TestGasWantedDecorator() {
 			func() sdk.Tx {
 				denom := evmtypes.DefaultEVMDenom
 				testMsg := banktypes.MsgSend{
-					FromAddress: marker.ReplaceAbleAddress("evm1x8fhpj9nmhqk8z9kpgjt95ck2xwyue0ppeqynn"),
-					ToAddress:   marker.ReplaceAbleAddress("evm1dx67l23hz9l0k9hcher8xz04uj7wf3yuqpfj0p"),
+					FromAddress: "ever1x8fhpj9nmhqk8z9kpgjt95ck2xwyue0pdz47ur",
+					ToAddress:   "ever1dx67l23hz9l0k9hcher8xz04uj7wf3yuv6ugq3",
 					Amount:      sdk.Coins{sdk.Coin{Amount: sdkmath.NewInt(10), Denom: denom}},
 				}
 				txBuilder := suite.CreateTestCosmosTxBuilder(sdkmath.NewInt(10), constants.BaseDenom, &testMsg)

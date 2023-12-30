@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
 	"math/big"
 	"time"
 
@@ -16,10 +16,10 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/testutil"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	"github.com/VictorTrustyDev/nevermind/v12/app"
+	"github.com/VictorTrustyDev/nevermind/v12/crypto/ethsecp256k1"
+	"github.com/VictorTrustyDev/nevermind/v12/testutil"
+	"github.com/VictorTrustyDev/nevermind/v12/x/erc20/types"
 )
 
 var _ = Describe("Performing EVM transactions", Ordered, func() {
@@ -364,17 +364,17 @@ var _ = Describe("ERC20:", Ordered, func() {
 	})
 })
 
-func submitRegisterCoinProposal(ctx sdk.Context, chainApp *app.Evermint, pk *ethsecp256k1.PrivKey, metadata []banktypes.Metadata) (id uint64, err error) {
+func submitRegisterCoinProposal(ctx sdk.Context, chainApp *app.Nevermind, pk *ethsecp256k1.PrivKey, metadata []banktypes.Metadata) (id uint64, err error) {
 	content := types.NewRegisterCoinProposal("test Coin", "foo", metadata...)
 	return testutil.SubmitProposal(ctx, chainApp, pk, content, 8)
 }
 
-func submitRegisterERC20Proposal(ctx sdk.Context, chainApp *app.Evermint, pk *ethsecp256k1.PrivKey, addrs []string) (id uint64, err error) {
+func submitRegisterERC20Proposal(ctx sdk.Context, chainApp *app.Nevermind, pk *ethsecp256k1.PrivKey, addrs []string) (id uint64, err error) {
 	content := types.NewRegisterERC20Proposal("test token", "foo", addrs...)
 	return testutil.SubmitProposal(ctx, chainApp, pk, content, 8)
 }
 
-func convertCoin(ctx sdk.Context, chainApp *app.Evermint, pk *ethsecp256k1.PrivKey, coin sdk.Coin) {
+func convertCoin(ctx sdk.Context, chainApp *app.Nevermind, pk *ethsecp256k1.PrivKey, coin sdk.Coin) {
 	addrBz := pk.PubKey().Address().Bytes()
 
 	convertCoinMsg := types.NewMsgConvertCoin(coin, common.BytesToAddress(addrBz), sdk.AccAddress(addrBz))
@@ -384,7 +384,7 @@ func convertCoin(ctx sdk.Context, chainApp *app.Evermint, pk *ethsecp256k1.PrivK
 	Expect(res.IsOK()).To(BeTrue(), "failed to convert coin: %s", res.Log)
 }
 
-func convertERC20(ctx sdk.Context, chainApp *app.Evermint, pk *ethsecp256k1.PrivKey, amt math.Int, contract common.Address) {
+func convertERC20(ctx sdk.Context, chainApp *app.Nevermind, pk *ethsecp256k1.PrivKey, amt math.Int, contract common.Address) {
 	addrBz := pk.PubKey().Address().Bytes()
 
 	convertERC20Msg := types.NewMsgConvertERC20(amt, sdk.AccAddress(addrBz), contract, common.BytesToAddress(addrBz))

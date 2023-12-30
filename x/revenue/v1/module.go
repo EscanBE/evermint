@@ -20,9 +20,9 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/EscanBE/evermint/v12/x/revenue/v1/client/cli"
-	"github.com/EscanBE/evermint/v12/x/revenue/v1/keeper"
-	"github.com/EscanBE/evermint/v12/x/revenue/v1/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/revenue/v1/client/cli"
+	"github.com/VictorTrustyDev/nevermind/v12/x/revenue/v1/keeper"
+	"github.com/VictorTrustyDev/nevermind/v12/x/revenue/v1/types"
 )
 
 // type check to ensure the interface is properly implemented
@@ -209,7 +209,7 @@ func (am AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
 func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {
 }
 
-// WeightedOperations returns fees module weighted operations
+// WeightedOperations returns fees module ueverghted operations
 func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return []simtypes.WeightedOperation{}
 }

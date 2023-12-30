@@ -8,7 +8,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 
-	"github.com/EscanBE/evermint/v12/utils"
+	"github.com/VictorTrustyDev/nevermind/v12/utils"
 )
 
 // GetTransferSenderRecipient returns the sender and recipient sdk.AccAddresses
@@ -30,14 +30,14 @@ func GetTransferSenderRecipient(packet channeltypes.Packet) (
 
 	// validate the sender bech32 address from the counterparty chain
 	// and change the bech32 human readable prefix (HRP) of the sender to bech32-style address of this chain
-	sender, err = utils.GetEvermintAddressFromBech32(data.Sender)
+	sender, err = utils.GetNevermindAddressFromBech32(data.Sender)
 	if err != nil {
 		return nil, nil, "", "", errorsmod.Wrap(err, "invalid sender")
 	}
 
 	// validate the recipient bech32 address from the counterparty chain
 	// and change the bech32 human readable prefix (HRP) of the recipient to bech32-style address of this chain
-	recipient, err = utils.GetEvermintAddressFromBech32(data.Receiver)
+	recipient, err = utils.GetNevermindAddressFromBech32(data.Receiver)
 	if err != nil {
 		return nil, nil, "", "", errorsmod.Wrap(err, "invalid recipient")
 	}

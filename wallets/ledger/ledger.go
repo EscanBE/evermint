@@ -11,15 +11,15 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 
-	"github.com/EscanBE/evermint/v12/ethereum/eip712"
-	"github.com/EscanBE/evermint/v12/wallets/accounts"
-	"github.com/EscanBE/evermint/v12/wallets/usbwallet"
+	"github.com/VictorTrustyDev/nevermind/v12/ethereum/eip712"
+	"github.com/VictorTrustyDev/nevermind/v12/wallets/accounts"
+	"github.com/VictorTrustyDev/nevermind/v12/wallets/usbwallet"
 )
 
 // Secp256k1DerivationFn defines the derivation function used on the Cosmos SDK Keyring.
 type Secp256k1DerivationFn func() (sdkledger.SECP256K1, error)
 
-func EvermintLedgerDerivation() Secp256k1DerivationFn {
+func NevermindLedgerDerivation() Secp256k1DerivationFn {
 	SECP256K1 := new(EvmosSECP256K1)
 
 	return func() (sdkledger.SECP256K1, error) {

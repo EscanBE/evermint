@@ -3,7 +3,7 @@ package types
 import (
 	"testing"
 
-	epochstypes "github.com/EscanBE/evermint/v12/x/epochs/types"
+	epochstypes "github.com/VictorTrustyDev/nevermind/v12/x/epochs/types"
 	"github.com/stretchr/testify/suite"
 )
 

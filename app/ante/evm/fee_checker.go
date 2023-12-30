@@ -6,9 +6,9 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
-	anteutils "github.com/EscanBE/evermint/v12/app/ante/utils"
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	anteutils "github.com/VictorTrustyDev/nevermind/v12/app/ante/utils"
+	evertypes "github.com/VictorTrustyDev/nevermind/v12/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"

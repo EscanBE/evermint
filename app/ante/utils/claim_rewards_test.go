@@ -1,12 +1,12 @@
 package utils_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
 	"time"
 
-	anteutils "github.com/EscanBE/evermint/v12/app/ante/utils"
-	"github.com/EscanBE/evermint/v12/testutil"
-	testutiltx "github.com/EscanBE/evermint/v12/testutil/tx"
+	anteutils "github.com/VictorTrustyDev/nevermind/v12/app/ante/utils"
+	"github.com/VictorTrustyDev/nevermind/v12/testutil"
+	testutiltx "github.com/VictorTrustyDev/nevermind/v12/testutil/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

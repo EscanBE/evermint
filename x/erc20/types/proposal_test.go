@@ -9,8 +9,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	length "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	utiltx "github.com/VictorTrustyDev/nevermind/v12/testutil/tx"
+	"github.com/VictorTrustyDev/nevermind/v12/x/erc20/types"
 )
 
 type ProposalTestSuite struct {

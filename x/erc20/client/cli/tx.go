@@ -2,7 +2,7 @@ package cli
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -15,9 +15,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/VictorTrustyDev/nevermind/v12/types"
 
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/erc20/types"
 )
 
 // NewTxCmd returns a root CLI command handler for erc20 transaction commands

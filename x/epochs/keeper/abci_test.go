@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/EscanBE/evermint/v12/x/epochs"
-	"github.com/EscanBE/evermint/v12/x/epochs/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/epochs"
+	"github.com/VictorTrustyDev/nevermind/v12/x/epochs/types"
 )
 
 func (suite *KeeperTestSuite) TestEpochInfoChangesBeginBlockerAndInitGenesis() {

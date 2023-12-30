@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	utiltx "github.com/VictorTrustyDev/nevermind/v12/testutil/tx"
+	"github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
 
 	"github.com/ethereum/go-ethereum/common"
 )

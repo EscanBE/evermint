@@ -1,13 +1,13 @@
 package v5
 
 import (
-	"github.com/EscanBE/evermint/v12/utils"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/VictorTrustyDev/nevermind/v12/utils"
+	"github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v5types "github.com/EscanBE/evermint/v12/x/evm/migrations/v5/types"
+	v5types "github.com/VictorTrustyDev/nevermind/v12/x/evm/migrations/v5/types"
 )
 
 // MigrateStore migrates the x/evm module state from the consensus version 4 to

@@ -5,8 +5,8 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v2types "github.com/EscanBE/evermint/v12/x/recovery/migrations/v2/types"
-	"github.com/EscanBE/evermint/v12/x/recovery/types"
+	v2types "github.com/VictorTrustyDev/nevermind/v12/x/recovery/migrations/v2/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/recovery/types"
 )
 
 // MigrateStore migrates the x/recovery module state from the consensus version 1 to

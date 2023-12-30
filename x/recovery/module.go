@@ -19,9 +19,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/EscanBE/evermint/v12/x/recovery/client/cli"
-	"github.com/EscanBE/evermint/v12/x/recovery/keeper"
-	"github.com/EscanBE/evermint/v12/x/recovery/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/recovery/client/cli"
+	"github.com/VictorTrustyDev/nevermind/v12/x/recovery/keeper"
+	"github.com/VictorTrustyDev/nevermind/v12/x/recovery/types"
 )
 
 // type check to ensure the interface is properly implemented

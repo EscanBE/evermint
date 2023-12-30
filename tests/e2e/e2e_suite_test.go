@@ -4,19 +4,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/EscanBE/evermint/v12/tests/e2e/upgrade"
+	"github.com/VictorTrustyDev/nevermind/v12/tests/e2e/upgrade"
 )
 
 const (
 	// defaultManagerNetwork defines the network used by the upgrade manager
-	defaultManagerNetwork = "evermint-local"
+	defaultManagerNetwork = "nevermind-local"
 
 	// blocksAfterUpgrade defines how many blocks must be produced after an upgrade is
 	// considered successful
@@ -94,13 +94,13 @@ func (s *IntegrationTestSuite) runInitialNode(version upgrade.VersionConfig) {
 	s.T().Logf("successfully started node with version: [%s]", version.ImageTag)
 }
 
-// runNodeWithCurrentChanges builds a docker image using the current branch of the Evermint repository.
+// runNodeWithCurrentChanges builds a docker image using the current branch of the Nevermind repository.
 // Before running the node, runs a script to modify some configurations for the tests
 // (e.g.: gov proposal voting period, setup accounts, balances, etc..)
 // After a successful build, runs the container.
 func (s *IntegrationTestSuite) runNodeWithCurrentChanges() {
 	const (
-		name    = "e2e-test/evermint"
+		name    = "e2e-test/nevermind"
 		version = "latest"
 	)
 	// get the current branch name
@@ -135,7 +135,7 @@ func (s *IntegrationTestSuite) proposeUpgrade(name, target string) {
 	s.Require().NoError(err, "can't get block height from running node")
 	s.upgradeManager.UpgradeHeight = uint(nodeHeight + upgradeHeightDelta)
 
-	// if Evermint is based on Evmos lower than v10.x.x no need to use the legacy proposal
+	// if Nevermind is based on Evmos lower than v10.x.x no need to use the legacy proposal
 	currentVersion, err := s.upgradeManager.GetNodeVersion(ctx)
 	s.Require().NoErrorf(err, "can't get current %s version", constants.ApplicationName)
 	isLegacyProposal := upgrade.CheckLegacyProposal(currentVersion)

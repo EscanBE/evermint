@@ -3,7 +3,7 @@ package keeper
 import (
 	"context"
 
-	"github.com/EscanBE/evermint/v12/x/inflation/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/inflation/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

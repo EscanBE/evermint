@@ -5,7 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/EscanBE/evermint/v12/x/revenue/v1/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/revenue/v1/types"
 )
 
 // GetRevenues returns all registered Revenues.

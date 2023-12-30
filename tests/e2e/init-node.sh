@@ -1,11 +1,11 @@
 #!/bin/bash
 
 KEY="mykey"
-CHAINID="${CHAIN_ID:-evermint_80808-1}"
+CHAINID="${CHAIN_ID:-nevermind_80808-1}"
 MONIKER="localtestnet"
 KEYRING="test" # remember to change to other types of keyring like 'file' in-case exposing to outside world, otherwise your balance will be wiped quickly. The keyring test does not require private key to steal tokens from you
-BINARY="evmd"
-MIN_DENOM="wei"
+BINARY="nvmd"
+MIN_DENOM="uever"
 KEYALGO="eth_secp256k1" #gitleaks:allow
 LOGLEVEL="info"
 # to trace evm
@@ -14,7 +14,7 @@ TRACE=""
 PRUNING="default"
 #PRUNING="custom"
 
-CHAINDIR="$HOME/.evermint"
+CHAINDIR="$HOME/.nevermind"
 GENESIS="$CHAINDIR/config/genesis.json"
 TMP_GENESIS="$CHAINDIR/config/tmp_genesis.json"
 APP_TOML="$CHAINDIR/config/app.toml"
@@ -64,8 +64,8 @@ jq '.app_state.claims.params.duration_of_decay="1000000s"' "$GENESIS" > "$TMP_GE
 jq '.app_state.claims.params.duration_until_decay="100000s"' "$GENESIS" > "$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 
 # Claim module account:
-# 0xA61808Fe40fEb8B3433778BBC2ecECCAA47c8c47 || evm15cvq3ljql6utxseh0zau9m8ve2j8erz80qzkas
-jq -r --arg amount_to_claim "$amount_to_claim" '.app_state.bank.balances += [{"address":"evm15cvq3ljql6utxseh0zau9m8ve2j8erz80qzkas","coins":[{"denom":"'$MIN_DENOM'", "amount":$amount_to_claim}]}]' "$GENESIS" > "$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
+# 0xA61808Fe40fEb8B3433778BBC2ecECCAA47c8c47 || ever15cvq3ljql6utxseh0zau9m8ve2j8erz8rmhvjq
+jq -r --arg amount_to_claim "$amount_to_claim" '.app_state.bank.balances += [{"address":"ever15cvq3ljql6utxseh0zau9m8ve2j8erz8rmhvjq","coins":[{"denom":"'$MIN_DENOM'", "amount":$amount_to_claim}]}]' "$GENESIS" > "$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 
 # disable produce empty block
 sed -i 's/create_empty_blocks = true/create_empty_blocks = false/g' "$CONFIG_TOML"
@@ -95,9 +95,9 @@ sed -i 's/127.0.0.1/0.0.0.0/g' "$APP_TOML"
 ## In case you want to create multiple validators at genesis
 ## 1. Back to `"$BINARY" keys add` step, init more keys
 ## 2. Back to `"$BINARY" add-genesis-account` step, add balance for those
-## 3. Clone this ~/.evermint home directory into some others, let's say `~/.clonedHome`
+## 3. Clone this ~/.nevermind home directory into some others, let's say `~/.clonedHome`
 ## 4. Run `gentx` in each of those folders
-## 5. Copy the `gentx-*` folders under `~/.clonedHome/config/gentx/` folders into the original `~/.evermint/config/gentx`
+## 5. Copy the `gentx-*` folders under `~/.clonedHome/config/gentx/` folders into the original `~/.nevermind/config/gentx`
 
 # Collect genesis tx
 "$BINARY" collect-gentxs

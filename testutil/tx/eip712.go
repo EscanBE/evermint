@@ -13,10 +13,10 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 
-	"github.com/EscanBE/evermint/v12/app"
-	cryptocodec "github.com/EscanBE/evermint/v12/crypto/codec"
-	"github.com/EscanBE/evermint/v12/ethereum/eip712"
-	"github.com/EscanBE/evermint/v12/types"
+	"github.com/VictorTrustyDev/nevermind/v12/app"
+	cryptocodec "github.com/VictorTrustyDev/nevermind/v12/crypto/codec"
+	"github.com/VictorTrustyDev/nevermind/v12/ethereum/eip712"
+	"github.com/VictorTrustyDev/nevermind/v12/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 )
 
@@ -50,7 +50,7 @@ type legacyWeb3ExtensionArgs struct {
 // It returns the signed transaction and an error
 func CreateEIP712CosmosTx(
 	ctx sdk.Context,
-	chainApp *app.Evermint,
+	chainApp *app.Nevermind,
 	args EIP712TxArgs,
 ) (sdk.Tx, error) {
 	builder, err := PrepareEIP712CosmosTx(
@@ -66,7 +66,7 @@ func CreateEIP712CosmosTx(
 // It returns the tx builder with the signed transaction and an error
 func PrepareEIP712CosmosTx(
 	ctx sdk.Context,
-	chainApp *app.Evermint,
+	chainApp *app.Nevermind,
 	args EIP712TxArgs,
 ) (client.TxBuilder, error) {
 	txArgs := args.CosmosTxArgs
@@ -129,7 +129,7 @@ func PrepareEIP712CosmosTx(
 // the provided private key and the typed data
 func signCosmosEIP712Tx(
 	ctx sdk.Context,
-	chainApp *app.Evermint,
+	chainApp *app.Nevermind,
 	args EIP712TxArgs,
 	builder authtx.ExtensionOptionsTxBuilder,
 	chainID uint64,

@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/EscanBE/evermint/v12/x/vesting/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/vesting/types"
 )
 
 var _ types.QueryServer = Keeper{}

@@ -1,16 +1,16 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+	
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/EscanBE/evermint/v12/x/claims/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/claims/types"
 )
 
 func (suite *KeeperTestSuite) TestsClaimsRecords() {
-	addr1, err := sdk.AccAddressFromBech32(marker.ReplaceAbleAddress("evm1hf0468jjpe6m6vx38s97z2qqe8ldu0nj8llzpx"))
+	addr1, err := sdk.AccAddressFromBech32("ever1hf0468jjpe6m6vx38s97z2qqe8ldu0njty2cwk")
 	suite.Require().NoError(err)
-	addr2, err := sdk.AccAddressFromBech32(marker.ReplaceAbleAddress("evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz"))
+	addr2, err := sdk.AccAddressFromBech32("ever1sv9m0g7ycejwr3s369km58h5qe7xj77h2c9plj")
 	suite.Require().NoError(err)
 
 	cr1 := types.NewClaimsRecord(sdk.NewInt(1000))

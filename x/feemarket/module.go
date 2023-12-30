@@ -19,9 +19,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/EscanBE/evermint/v12/x/feemarket/client/cli"
-	"github.com/EscanBE/evermint/v12/x/feemarket/keeper"
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/feemarket/client/cli"
+	"github.com/VictorTrustyDev/nevermind/v12/x/feemarket/keeper"
+	"github.com/VictorTrustyDev/nevermind/v12/x/feemarket/types"
 )
 
 var (
@@ -189,7 +189,7 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedP
 func (AppModule) GenerateGenesisState(_ *module.SimulationState) {
 }
 
-// WeightedOperations returns the all the fee market module operations with their respective weights.
+// WeightedOperations returns the all the fee market module operations with their respective ueverghts.
 func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return nil
 }

@@ -1,12 +1,12 @@
 package ante_test
 
 import (
-	ethante "github.com/EscanBE/evermint/v12/app/ante/evm"
-	"github.com/EscanBE/evermint/v12/encoding"
-	"github.com/EscanBE/evermint/v12/types"
+	ethante "github.com/VictorTrustyDev/nevermind/v12/app/ante/evm"
+	"github.com/VictorTrustyDev/nevermind/v12/encoding"
+	"github.com/VictorTrustyDev/nevermind/v12/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/app/ante"
+	"github.com/VictorTrustyDev/nevermind/v12/app"
+	"github.com/VictorTrustyDev/nevermind/v12/app/ante"
 )
 
 func (suite *AnteTestSuite) TestValidateHandlerOptions() {

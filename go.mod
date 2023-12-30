@@ -1,4 +1,4 @@
-module github.com/EscanBE/evermint/v12
+module github.com/VictorTrustyDev/nevermind/v12
 
 go 1.20
 

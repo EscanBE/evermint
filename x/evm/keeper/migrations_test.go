@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evmkeeper "github.com/VictorTrustyDev/nevermind/v12/x/evm/keeper"
+	"github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

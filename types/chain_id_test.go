@@ -2,7 +2,7 @@ package types
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
 	"math/big"
 	"strings"
 	"testing"
@@ -42,7 +42,7 @@ func TestParseChainID(t *testing.T) {
 			"invalid chain-id, uppercases", "EVRMINT_1-1", true, nil,
 		},
 		{
-			"invalid chain-id, mixed cases", "Evermint_1-1", true, nil,
+			"invalid chain-id, mixed cases", "Nevermind_1-1", true, nil,
 		},
 		{
 			"invalid chain-id, special chars", "$&*#!_1-1", true, nil,

@@ -2,10 +2,10 @@ package types
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
 	"time"
 
-	"github.com/EscanBE/evermint/v12/x/claims/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/claims/types"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"

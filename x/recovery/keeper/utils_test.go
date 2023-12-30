@@ -1,14 +1,14 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
 	"strconv"
 
-	"github.com/EscanBE/evermint/v12/app"
-	ibctesting "github.com/EscanBE/evermint/v12/ibc/testing"
-	claimstypes "github.com/EscanBE/evermint/v12/x/claims/types"
-	inflationtypes "github.com/EscanBE/evermint/v12/x/inflation/types"
-	"github.com/EscanBE/evermint/v12/x/recovery/types"
+	"github.com/VictorTrustyDev/nevermind/v12/app"
+	ibctesting "github.com/VictorTrustyDev/nevermind/v12/ibc/testing"
+	claimstypes "github.com/VictorTrustyDev/nevermind/v12/x/claims/types"
+	inflationtypes "github.com/VictorTrustyDev/nevermind/v12/x/inflation/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/recovery/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -39,30 +39,30 @@ func CreatePacket(amount, denom, sender, receiver, srcPort, srcChannel, dstPort,
 func (suite *IBCTestingSuite) SetupTest() {
 	// initializes 3 test chains
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1, 2)
-	suite.EvermintChain = suite.coordinator.GetChain(ibcgotesting.GetChainID(1))
+	suite.NevermindChain = suite.coordinator.GetChain(ibcgotesting.GetChainID(1))
 	suite.IBCOsmosisChain = suite.coordinator.GetChain(ibcgotesting.GetChainID(2))
 	suite.IBCCosmosChain = suite.coordinator.GetChain(ibcgotesting.GetChainID(3))
-	suite.coordinator.CommitNBlocks(suite.EvermintChain, 2)
+	suite.coordinator.CommitNBlocks(suite.NevermindChain, 2)
 	suite.coordinator.CommitNBlocks(suite.IBCOsmosisChain, 2)
 	suite.coordinator.CommitNBlocks(suite.IBCCosmosChain, 2)
 
-	// Mint coins locked on the evermint account generated with secp.
+	// Mint coins locked on the nevermind account generated with secp.
 	amt, ok := sdk.NewIntFromString("1000000000000000000000")
 	suite.Require().True(ok)
 	nativeCoin := sdk.NewCoin(constants.BaseDenom, amt)
 	coins := sdk.NewCoins(nativeCoin)
-	err := suite.EvermintChain.App.(*app.Evermint).BankKeeper.MintCoins(suite.EvermintChain.GetContext(), inflationtypes.ModuleName, coins)
+	err := suite.NevermindChain.App.(*app.Nevermind).BankKeeper.MintCoins(suite.NevermindChain.GetContext(), inflationtypes.ModuleName, coins)
 	suite.Require().NoError(err)
 
 	// Fund sender address to pay fees
-	err = suite.EvermintChain.App.(*app.Evermint).BankKeeper.SendCoinsFromModuleToAccount(suite.EvermintChain.GetContext(), inflationtypes.ModuleName, suite.EvermintChain.SenderAccount.GetAddress(), coins)
+	err = suite.NevermindChain.App.(*app.Nevermind).BankKeeper.SendCoinsFromModuleToAccount(suite.NevermindChain.GetContext(), inflationtypes.ModuleName, suite.NevermindChain.SenderAccount.GetAddress(), coins)
 	suite.Require().NoError(err)
 
 	nativeCoin = sdk.NewCoin(constants.BaseDenom, sdk.NewInt(10000))
 	coins = sdk.NewCoins(nativeCoin)
-	err = suite.EvermintChain.App.(*app.Evermint).BankKeeper.MintCoins(suite.EvermintChain.GetContext(), inflationtypes.ModuleName, coins)
+	err = suite.NevermindChain.App.(*app.Nevermind).BankKeeper.MintCoins(suite.NevermindChain.GetContext(), inflationtypes.ModuleName, coins)
 	suite.Require().NoError(err)
-	err = suite.EvermintChain.App.(*app.Evermint).BankKeeper.SendCoinsFromModuleToAccount(suite.EvermintChain.GetContext(), inflationtypes.ModuleName, suite.IBCOsmosisChain.SenderAccount.GetAddress(), coins)
+	err = suite.NevermindChain.App.(*app.Nevermind).BankKeeper.SendCoinsFromModuleToAccount(suite.NevermindChain.GetContext(), inflationtypes.ModuleName, suite.IBCOsmosisChain.SenderAccount.GetAddress(), coins)
 	suite.Require().NoError(err)
 
 	// Mint coins on the osmosis side which we'll use to unlock our native coin
@@ -95,30 +95,30 @@ func (suite *IBCTestingSuite) SetupTest() {
 	suite.Require().NoError(err)
 
 	claimparams := claimstypes.DefaultParams()
-	claimparams.AirdropStartTime = suite.EvermintChain.GetContext().BlockTime()
+	claimparams.AirdropStartTime = suite.NevermindChain.GetContext().BlockTime()
 	claimparams.EnableClaims = true
-	err = suite.EvermintChain.App.(*app.Evermint).ClaimsKeeper.SetParams(suite.EvermintChain.GetContext(), claimparams)
+	err = suite.NevermindChain.App.(*app.Nevermind).ClaimsKeeper.SetParams(suite.NevermindChain.GetContext(), claimparams)
 	suite.Require().NoError(err)
 
 	params := types.DefaultParams()
 	params.EnableRecovery = true
-	err = suite.EvermintChain.App.(*app.Evermint).RecoveryKeeper.SetParams(suite.EvermintChain.GetContext(), params)
+	err = suite.NevermindChain.App.(*app.Nevermind).RecoveryKeeper.SetParams(suite.NevermindChain.GetContext(), params)
 	suite.Require().NoError(err)
 
-	evmParams := suite.EvermintChain.App.(*app.Evermint).EvmKeeper.GetParams(s.EvermintChain.GetContext())
+	evmParams := suite.NevermindChain.App.(*app.Nevermind).EvmKeeper.GetParams(s.NevermindChain.GetContext())
 	evmParams.EvmDenom = constants.BaseDenom
-	err = suite.EvermintChain.App.(*app.Evermint).EvmKeeper.SetParams(s.EvermintChain.GetContext(), evmParams)
+	err = suite.NevermindChain.App.(*app.Nevermind).EvmKeeper.SetParams(s.NevermindChain.GetContext(), evmParams)
 	suite.Require().NoError(err)
 
-	suite.pathOsmosisEvermint = ibctesting.NewTransferPath(suite.IBCOsmosisChain, suite.EvermintChain) // clientID, connectionID, channelID empty
-	suite.pathCosmosEvermint = ibctesting.NewTransferPath(suite.IBCCosmosChain, suite.EvermintChain)
+	suite.pathOsmosisNevermind = ibctesting.NewTransferPath(suite.IBCOsmosisChain, suite.NevermindChain) // clientID, connectionID, channelID empty
+	suite.pathCosmosNevermind = ibctesting.NewTransferPath(suite.IBCCosmosChain, suite.NevermindChain)
 	suite.pathOsmosisCosmos = ibctesting.NewTransferPath(suite.IBCCosmosChain, suite.IBCOsmosisChain)
-	ibctesting.SetupPath(suite.coordinator, suite.pathOsmosisEvermint) // clientID, connectionID, channelID filled
-	ibctesting.SetupPath(suite.coordinator, suite.pathCosmosEvermint)
+	ibctesting.SetupPath(suite.coordinator, suite.pathOsmosisNevermind) // clientID, connectionID, channelID filled
+	ibctesting.SetupPath(suite.coordinator, suite.pathCosmosNevermind)
 	ibctesting.SetupPath(suite.coordinator, suite.pathOsmosisCosmos)
-	suite.Require().Equal("07-tendermint-0", suite.pathOsmosisEvermint.EndpointA.ClientID)
-	suite.Require().Equal("connection-0", suite.pathOsmosisEvermint.EndpointA.ConnectionID)
-	suite.Require().Equal("channel-0", suite.pathOsmosisEvermint.EndpointA.ChannelID)
+	suite.Require().Equal("07-tendermint-0", suite.pathOsmosisNevermind.EndpointA.ClientID)
+	suite.Require().Equal("connection-0", suite.pathOsmosisNevermind.EndpointA.ConnectionID)
+	suite.Require().Equal("channel-0", suite.pathOsmosisNevermind.EndpointA.ChannelID)
 }
 
 var timeoutHeight = clienttypes.NewHeight(1000, 1000)

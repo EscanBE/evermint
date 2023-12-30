@@ -3,11 +3,11 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/VictorTrustyDev/nevermind/v12/types"
 
-	"github.com/EscanBE/evermint/v12/utils"
-	incentivestypes "github.com/EscanBE/evermint/v12/x/incentives/types"
-	"github.com/EscanBE/evermint/v12/x/inflation/types"
+	"github.com/VictorTrustyDev/nevermind/v12/utils"
+	incentivestypes "github.com/VictorTrustyDev/nevermind/v12/x/incentives/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/inflation/types"
 )
 
 // 200M token at year 4 allocated to the team

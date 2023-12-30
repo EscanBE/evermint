@@ -6,7 +6,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
 	"net"
 	"os"
 	"path/filepath"
@@ -39,13 +39,13 @@ import (
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/EscanBE/evermint/v12/crypto/hd"
-	"github.com/EscanBE/evermint/v12/server/config"
-	srvflags "github.com/EscanBE/evermint/v12/server/flags"
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/VictorTrustyDev/nevermind/v12/crypto/hd"
+	"github.com/VictorTrustyDev/nevermind/v12/server/config"
+	srvflags "github.com/VictorTrustyDev/nevermind/v12/server/flags"
+	evertypes "github.com/VictorTrustyDev/nevermind/v12/types"
+	evmtypes "github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
 
-	"github.com/EscanBE/evermint/v12/testutil/network"
+	"github.com/VictorTrustyDev/nevermind/v12/testutil/network"
 )
 
 var (

@@ -2,15 +2,15 @@ package keeper_test
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+	
 	"time"
 
 	"cosmossdk.io/math"
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/testutil"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	inflationtypes "github.com/EscanBE/evermint/v12/x/inflation/types"
+	"github.com/VictorTrustyDev/nevermind/v12/crypto/ethsecp256k1"
+	"github.com/VictorTrustyDev/nevermind/v12/testutil"
+	utiltx "github.com/VictorTrustyDev/nevermind/v12/testutil/tx"
+	evertypes "github.com/VictorTrustyDev/nevermind/v12/types"
+	inflationtypes "github.com/VictorTrustyDev/nevermind/v12/x/inflation/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -19,7 +19,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/EscanBE/evermint/v12/x/claims/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/claims/types"
 )
 
 func (suite *KeeperTestSuite) TestGetClaimableAmountForAction() {
@@ -1054,7 +1054,7 @@ func (suite *KeeperTestSuite) TestClawbackEmptyAccountsAirdrop() {
 	}{
 		{
 			name:           "address active",
-			address:        marker.ReplaceAbleAddress("evm1qql8ag4cluz6r4dz28p3w00dnc9w8ueuhjd72z"),
+			address:        "ever1qql8ag4cluz6r4dz28p3w00dnc9w8ueumfcy9j",
 			sequence:       1,
 			expectClawback: false,
 			claimsRecord: types.ClaimsRecord{
@@ -1064,7 +1064,7 @@ func (suite *KeeperTestSuite) TestClawbackEmptyAccountsAirdrop() {
 		},
 		{
 			name:           "address inactive",
-			address:        marker.ReplaceAbleAddress("evm1x2w87cvt5mqjncav4lxy8yfreynn273xe08fl7"),
+			address:        "ever1x2w87cvt5mqjncav4lxy8yfreynn273x45jnsw",
 			sequence:       0,
 			expectClawback: true,
 			claimsRecord: types.ClaimsRecord{

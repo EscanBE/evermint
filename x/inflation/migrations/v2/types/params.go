@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	evm "github.com/EscanBE/evermint/v12/x/evm/types"
-	"github.com/EscanBE/evermint/v12/x/inflation/types"
+	evm "github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/inflation/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )

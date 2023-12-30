@@ -1,8 +1,8 @@
 package keeper
 
 import (
-	v2 "github.com/EscanBE/evermint/v12/x/incentives/migrations/v2"
-	"github.com/EscanBE/evermint/v12/x/incentives/types"
+	v2 "github.com/VictorTrustyDev/nevermind/v12/x/incentives/migrations/v2"
+	"github.com/VictorTrustyDev/nevermind/v12/x/incentives/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

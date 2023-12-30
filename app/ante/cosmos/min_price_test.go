@@ -2,11 +2,11 @@ package cosmos_test
 
 import (
 	sdkmath "cosmossdk.io/math"
-	cosmosante "github.com/EscanBE/evermint/v12/app/ante/cosmos"
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
-	"github.com/EscanBE/evermint/v12/testutil"
-	testutiltx "github.com/EscanBE/evermint/v12/testutil/tx"
+	cosmosante "github.com/VictorTrustyDev/nevermind/v12/app/ante/cosmos"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
+	
+	"github.com/VictorTrustyDev/nevermind/v12/testutil"
+	testutiltx "github.com/VictorTrustyDev/nevermind/v12/testutil/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
@@ -23,8 +23,8 @@ var execTypes = []struct {
 func (suite *AnteTestSuite) TestMinGasPriceDecorator() {
 	denom := constants.BaseDenom
 	testMsg := banktypes.MsgSend{
-		FromAddress: marker.ReplaceAbleAddress("evm1x8fhpj9nmhqk8z9kpgjt95ck2xwyue0ppeqynn"),
-		ToAddress:   marker.ReplaceAbleAddress("evm1dx67l23hz9l0k9hcher8xz04uj7wf3yuqpfj0p"),
+		FromAddress: "ever1x8fhpj9nmhqk8z9kpgjt95ck2xwyue0pdz47ur",
+		ToAddress:   "ever1dx67l23hz9l0k9hcher8xz04uj7wf3yuv6ugq3",
 		Amount:      sdk.Coins{sdk.Coin{Amount: sdkmath.NewInt(10), Denom: denom}},
 	}
 

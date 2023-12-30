@@ -3,7 +3,7 @@ package hd
 import (
 	"testing"
 
-	"github.com/EscanBE/evermint/v12/types"
+	"github.com/VictorTrustyDev/nevermind/v12/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 )
 

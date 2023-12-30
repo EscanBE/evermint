@@ -1,8 +1,8 @@
 package keeper
 
 import (
-	v3 "github.com/EscanBE/evermint/v12/x/claims/migrations/v3"
-	"github.com/EscanBE/evermint/v12/x/claims/types"
+	v3 "github.com/VictorTrustyDev/nevermind/v12/x/claims/migrations/v3"
+	"github.com/VictorTrustyDev/nevermind/v12/x/claims/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

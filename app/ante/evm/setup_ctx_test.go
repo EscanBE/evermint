@@ -3,11 +3,11 @@ package evm_test
 import (
 	"math/big"
 
-	evmante "github.com/EscanBE/evermint/v12/app/ante/evm"
-	"github.com/EscanBE/evermint/v12/testutil"
+	evmante "github.com/VictorTrustyDev/nevermind/v12/app/ante/evm"
+	"github.com/VictorTrustyDev/nevermind/v12/testutil"
 
-	testutiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	testutiltx "github.com/VictorTrustyDev/nevermind/v12/testutil/tx"
+	evmtypes "github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

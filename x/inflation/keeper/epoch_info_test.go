@@ -3,8 +3,8 @@ package keeper_test
 import (
 	"fmt"
 
-	epochstypes "github.com/EscanBE/evermint/v12/x/epochs/types"
-	"github.com/EscanBE/evermint/v12/x/inflation/types"
+	epochstypes "github.com/VictorTrustyDev/nevermind/v12/x/epochs/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/inflation/types"
 )
 
 func (suite *KeeperTestSuite) TestSetGetEpochIdentifier() {

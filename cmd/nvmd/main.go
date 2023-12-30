@@ -1,15 +1,15 @@
 package main
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
 	"os"
 
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+	"github.com/VictorTrustyDev/nevermind/v12/app"
+	cmdcfg "github.com/VictorTrustyDev/nevermind/v12/cmd/config"
 )
 
 func main() {

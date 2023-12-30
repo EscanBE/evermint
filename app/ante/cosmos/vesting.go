@@ -2,8 +2,8 @@ package cosmos
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	vestingtypes "github.com/EscanBE/evermint/v12/x/vesting/types"
+	evmtypes "github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
+	vestingtypes "github.com/VictorTrustyDev/nevermind/v12/x/vesting/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"

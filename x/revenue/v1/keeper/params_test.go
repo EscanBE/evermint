@@ -1,6 +1,6 @@
 package keeper_test
 
-import "github.com/EscanBE/evermint/v12/x/revenue/v1/types"
+import "github.com/VictorTrustyDev/nevermind/v12/x/revenue/v1/types"
 
 func (suite *KeeperTestSuite) TestParams() {
 	params := suite.app.RevenueKeeper.GetParams(suite.ctx)

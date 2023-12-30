@@ -2,53 +2,53 @@ version: '3'
 
 services:
   node0:
-    container_name: evermintnode0
-    image: "evermint/node"
+    container_name: nevermindnode0
+    image: "nevermind/node"
     ports:
       - "26656-26657:26656-26657"
     volumes:
-      - ./build/node0/evmd:/evermint:Z
+      - ./build/node0/nvmd:/nevermind:Z
     command:
-      - /evmd start --home /evermint
+      - /nvmd start --home /nevermind
     networks:
       localnet:
         ipv4_address: 192.167.10.2
 
   node1:
-    container_name: evermintnode1
-    image: "evermint/node"
+    container_name: nevermindnode1
+    image: "nevermind/node"
     ports:
       - "26659-26660:26656-26657"
     volumes:
-      - ./build/node1/evmd:/evermint:Z
+      - ./build/node1/nvmd:/nevermind:Z
     command:
-      - /evmd start --home /evermint
+      - /nvmd start --home /nevermind
     networks:
       localnet:
         ipv4_address: 192.167.10.3
 
   node2:
-    container_name: evermintnode2
-    image: "evermint/node"
+    container_name: nevermindnode2
+    image: "nevermind/node"
     ports:
       - "26661-26662:26656-26657"
     volumes:
-      - ./build/node2/evmd:/evermint:Z
+      - ./build/node2/nvmd:/nevermind:Z
     command:
-      - /evmd start --home /evermint
+      - /nvmd start --home /nevermind
     networks:
       localnet:
         ipv4_address: 192.167.10.4
 
   node3:
-    container_name: evermintnode3
-    image: "evermint/node"
+    container_name: nevermindnode3
+    image: "nevermind/node"
     ports:
       - "26663-26664:26656-26657"
     volumes:
-      - ./build/node3/evmd:/evermint:Z
+      - ./build/node3/nvmd:/nevermind:Z
     command:
-      - /evmd start --home /evermint
+      - /nvmd start --home /nevermind
     networks:
       localnet:
         ipv4_address: 192.167.10.5

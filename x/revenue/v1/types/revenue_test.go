@@ -1,15 +1,15 @@
 package types_test
 
 import (
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+	
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/ethereum/go-ethereum/common"
 
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/revenue/v1/types"
+	utiltx "github.com/VictorTrustyDev/nevermind/v12/testutil/tx"
+	"github.com/VictorTrustyDev/nevermind/v12/x/revenue/v1/types"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -125,7 +125,7 @@ func (suite *RevenueTestSuite) TestFee() {
 			"Create revenue- invalid deployer address",
 			types.Revenue{
 				utiltx.GenerateAddress().String(),
-				marker.ReplaceAbleWithBadChecksum("evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsX"),
+				"ever1hcg0q3e2tag0wysfa90cstz9st9f3686aaaaaa",
 				suite.address2.String(),
 			},
 			false,
@@ -135,7 +135,7 @@ func (suite *RevenueTestSuite) TestFee() {
 			types.Revenue{
 				utiltx.GenerateAddress().String(),
 				suite.address1.String(),
-				marker.ReplaceAbleWithBadChecksum("evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsX"),
+				"ever1hcg0q3e2tag0wysfa90cstz9st9f3686aaaaaa",
 			},
 			false,
 		},

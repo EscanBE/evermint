@@ -12,7 +12,7 @@ import (
 
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 
-	"github.com/EscanBE/evermint/v12/x/recovery/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/recovery/types"
 )
 
 var _ types.TransferKeeper = &MockTransferKeeper{}

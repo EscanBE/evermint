@@ -7,7 +7,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/feemarket/types"
 )
 
 var _ types.QueryServer = Keeper{}

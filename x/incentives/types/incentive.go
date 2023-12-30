@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/VictorTrustyDev/nevermind/v12/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 )

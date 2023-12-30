@@ -1,9 +1,9 @@
 package keeper
 
 import (
-	v2 "github.com/EscanBE/evermint/v12/x/inflation/migrations/v2"
-	v3 "github.com/EscanBE/evermint/v12/x/inflation/migrations/v3"
-	"github.com/EscanBE/evermint/v12/x/inflation/types"
+	v2 "github.com/VictorTrustyDev/nevermind/v12/x/inflation/migrations/v2"
+	v3 "github.com/VictorTrustyDev/nevermind/v12/x/inflation/migrations/v3"
+	"github.com/VictorTrustyDev/nevermind/v12/x/inflation/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

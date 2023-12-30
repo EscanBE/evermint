@@ -2,19 +2,19 @@ package keeper
 
 import (
 	"context"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
 	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/VictorTrustyDev/nevermind/v12/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/EscanBE/evermint/v12/x/revenue/v1/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/revenue/v1/types"
 )
 
 var _ types.QueryServer = Keeper{}

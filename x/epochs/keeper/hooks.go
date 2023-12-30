@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/EscanBE/evermint/v12/x/epochs/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/epochs/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

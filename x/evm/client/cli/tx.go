@@ -12,8 +12,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	rpctypes "github.com/VictorTrustyDev/nevermind/v12/rpc/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
 )
 
 // GetTxCmd returns the transaction commands for this module

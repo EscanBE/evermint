@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	evm "github.com/EscanBE/evermint/v12/x/evm/types"
+	evm "github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

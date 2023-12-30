@@ -3,7 +3,7 @@ package types_test
 import (
 	"math/big"
 
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 

@@ -1,7 +1,7 @@
 package tx
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
 	"math"
 
 	sdkmath "cosmossdk.io/math"
@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 
-	"github.com/EscanBE/evermint/v12/app"
+	"github.com/VictorTrustyDev/nevermind/v12/app"
 )
 
 var (
@@ -28,7 +28,7 @@ type CosmosTxArgs struct {
 	TxCfg client.TxConfig
 	// Priv is the private key that will be used to sign the tx
 	Priv cryptotypes.PrivKey
-	// ChainID is the chain's id on cosmos format, e.g. 'evermint_80808-1'
+	// ChainID is the chain's id on cosmos format, e.g. 'nevermind_80808-1'
 	ChainID string
 	// Gas to be used on the tx
 	Gas uint64
@@ -46,7 +46,7 @@ type CosmosTxArgs struct {
 // It returns the signed transaction and an error
 func PrepareCosmosTx(
 	ctx sdk.Context,
-	chainApp *app.Evermint,
+	chainApp *app.Nevermind,
 	args CosmosTxArgs,
 ) (authsigning.Tx, error) {
 	txBuilder := args.TxCfg.NewTxBuilder()
@@ -79,7 +79,7 @@ func PrepareCosmosTx(
 // the provided private key
 func signCosmosTx(
 	ctx sdk.Context,
-	chainApp *app.Evermint,
+	chainApp *app.Nevermind,
 	args CosmosTxArgs,
 	txBuilder client.TxBuilder,
 ) (authsigning.Tx, error) {

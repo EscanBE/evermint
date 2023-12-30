@@ -1,13 +1,13 @@
 package keyring
 
 import (
-	"github.com/EscanBE/evermint/v12/wallets/ledger"
+	"github.com/VictorTrustyDev/nevermind/v12/wallets/ledger"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cosmosLedger "github.com/cosmos/cosmos-sdk/crypto/ledger"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/crypto/hd"
+	"github.com/VictorTrustyDev/nevermind/v12/crypto/ethsecp256k1"
+	"github.com/VictorTrustyDev/nevermind/v12/crypto/hd"
 )
 
 // AppName defines the Ledger app used for signing. Our chain uses the Ethereum app
@@ -22,7 +22,7 @@ var (
 	// The Ledger derivation function is responsible for all signing and address generation.
 	SupportedAlgorithmsLedger = keyring.SigningAlgoList{hd.EthSecp256k1}
 	// LedgerDerivation defines our Ledger Go derivation (Ethereum app with EIP-712 signing)
-	LedgerDerivation = ledger.EvermintLedgerDerivation()
+	LedgerDerivation = ledger.NevermindLedgerDerivation()
 	// CreatePubkey uses the ethsecp256k1 pubkey with Ethereum address generation and keccak hashing
 	CreatePubkey = func(key []byte) types.PubKey { return &ethsecp256k1.PubKey{Key: key} }
 	// SkipDERConversion represents whether the signed Ledger output should skip conversion from DER to BER.

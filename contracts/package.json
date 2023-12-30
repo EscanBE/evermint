@@ -1,5 +1,5 @@
 {
-  "name": "evermint",
+  "name": "nevermind",
   "version": "1.0.0",
   "description": "<!-- parent:   order: false -->",
   "main": "index.js",
@@ -15,12 +15,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/EscanBE/evermint.git"
+    "url": "git+https://github.com/VictorTrustyDev/nevermind.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/EscanBE/evermint/issues"
+    "url": "https://github.com/VictorTrustyDev/nevermind/issues"
   },
-  "homepage": "https://github.com/EscanBE/evermint#readme"
+  "homepage": "https://github.com/VictorTrustyDev/nevermind#readme"
 }

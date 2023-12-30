@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
-	"github.com/EscanBE/evermint/v12/x/incentives/keeper"
-	"github.com/EscanBE/evermint/v12/x/incentives/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/incentives/keeper"
+	"github.com/VictorTrustyDev/nevermind/v12/x/incentives/types"
 )
 
 // InitGenesis import module genesis

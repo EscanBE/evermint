@@ -20,9 +20,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/EscanBE/evermint/v12/x/epochs/client/cli"
-	"github.com/EscanBE/evermint/v12/x/epochs/keeper"
-	"github.com/EscanBE/evermint/v12/x/epochs/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/epochs/client/cli"
+	"github.com/VictorTrustyDev/nevermind/v12/x/epochs/keeper"
+	"github.com/VictorTrustyDev/nevermind/v12/x/epochs/types"
 )
 
 var (
@@ -190,7 +190,7 @@ func (AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
 func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {
 }
 
-// WeightedOperations returns the all the gov module operations with their respective weights.
+// WeightedOperations returns the all the gov module operations with their respective ueverghts.
 func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return []simtypes.WeightedOperation{}
 }

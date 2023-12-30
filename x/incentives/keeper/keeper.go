@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/EscanBE/evermint/v12/x/incentives/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/incentives/types"
 )
 
 // Keeper of this module maintains collections of incentives.

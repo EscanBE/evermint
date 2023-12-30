@@ -4,18 +4,18 @@
       "description": 1,
       "denom_units": [
         {
-          "denom": "wei",
+          "denom": "uever",
           "exponent": 0
         },
         {
-          "denom": "ether",
+          "denom": "ever",
           "exponent": 18
         }
       ],
-      "base": "wei",
-      "display": "wei",
-      "name": "wei",
-      "symbol": "ETH"
+      "base": "uever",
+      "display": "uever",
+      "name": "uever",
+      "symbol": "EVER"
     }
   ]
 }

@@ -2,7 +2,7 @@ package keeper_test
 
 import (
 	"encoding/json"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
 	"math/big"
 	"time"
 
@@ -20,14 +20,14 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/encoding"
-	"github.com/EscanBE/evermint/v12/testutil"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	chainapp "github.com/VictorTrustyDev/nevermind/v12/app"
+	"github.com/VictorTrustyDev/nevermind/v12/crypto/ethsecp256k1"
+	"github.com/VictorTrustyDev/nevermind/v12/encoding"
+	"github.com/VictorTrustyDev/nevermind/v12/testutil"
+	utiltx "github.com/VictorTrustyDev/nevermind/v12/testutil/tx"
+	evertypes "github.com/VictorTrustyDev/nevermind/v12/types"
+	evmtypes "github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/feemarket/types"
 
 	"github.com/stretchr/testify/require"
 
@@ -146,7 +146,7 @@ func setupChain(localMinGasPricesStr string) {
 	// Initialize the app, so we can use SetMinGasPrices to set the
 	// validator-specific min-gas-prices setting
 	db := dbm.NewMemDB()
-	chainApp := chainapp.NewEvermint(
+	chainApp := chainapp.NewNevermind(
 		log.NewNopLogger(),
 		db,
 		nil,

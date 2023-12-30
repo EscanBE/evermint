@@ -3,7 +3,7 @@
 The End-to-End (E2E) testing suite provides an environment
 for running end-to-end tests on our chain.
 It is used for testing chain upgrades,
-as it allows for initializing multiple Evermint chains with different versions.
+as it allows for initializing multiple Nevermind chains with different versions.
 
 - [End-to-End Testing Suite](#end-to-end-testing-suite)
     - [Quick Start](#quick-start)
@@ -44,13 +44,13 @@ INITIAL_VERSION
 TARGET_VERSION
 
 # mount point for the upgraded node container, to mount new node version to
-# previous node state folder. By default this is './build/.evermint:/root/.evermint'
+# previous node state folder. By default this is './build/.nevermind:/root/.nevermind'
 # More info at https://docs.docker.com/engine/reference/builder/#volume
 MOUNT_PATH
 
 # '--chain-id' our chain's cli parameter, used to start nodes with a specific
 # chain-id and submit proposals
-# By default this is 'evermint_80808-1'
+# By default this is 'nevermind_80808-1'
 CHAIN_ID
 ```
 
@@ -73,7 +73,7 @@ Testing a chain upgrade is a multi-step process:
 4. The node will submit, deposit and vote for an upgrade proposal
 for upgrading to the `TARGET_VERSION`.
 5. After block `50` is reached,
-the test suite exports `/.evermint` folder from the docker container
+the test suite exports `/.nevermind` folder from the docker container
 to the local `build/` folder and then purges the container.
 6. Suite will mount the node with `TARGET_VERSION`
 to the local `build/` dir and start the node.
@@ -86,7 +86,7 @@ and will execute the upgrade.
 
 The `e2e` package defines an integration testing suite
 used for full end-to-end testing functionality.
-This package is decoupled from depending on the Evermint codebase.
+This package is decoupled from depending on the Nevermind codebase.
 It initializes the chains for testing via Docker.  
 As a result, the test suite may provide the
 desired version to Docker containers during the initialization.
@@ -126,16 +126,16 @@ responsible for setting node container parameters before run.
 
 If `INITIAL_VERSION` is provided as an argument,
 node container(s) with the corresponding version(s)
-will be pulled from [DockerHub](https://hub.docker.com/r/EscanBE/evermint/tags).
+will be pulled from [DockerHub](https://hub.docker.com/r/VictorTrustyDev/nevermind/tags).
 If it is not specified,
 the test suite retrieves the second-to-last upgrade version
-from the local codebase (in the `evermint/app/upgrades` folder)
+from the local codebase (in the `nevermind/app/upgrades` folder)
 according to [Semantic Versioning](https://semver.org/).
 
 If `TARGET_VERSION` is specified,
 the corresponding container will also be pulled from DockerHub.
 When not specified, the test suite will retrieve the latest upgrade version
-from `evermint/app/upgrades`.
+from `nevermind/app/upgrades`.
 
 ### Testing Results
 
@@ -145,7 +145,7 @@ In case of a successful upgrade,
 the script will print the following output (example):
 
 ```log
-ok  	github.com/EscanBE/evermint/v12/tests/e2e	174.137s.
+ok  	github.com/VictorTrustyDev/nevermind/v12/tests/e2e	174.137s.
 ```
 
 If the target node version fails to start,
@@ -165,7 +165,7 @@ Error:  Received unexpected error:
         github.com/cosmos/cosmos-sdk/baseapp.SetMinGasPrices({0xc0013563e7?, ...
             github.com/cosmos/cosmos-sdk@v0.46.16/baseapp/options.go:29 +0xd9
         main.appCreator.newApp({{{0x3399b40, 0xc000ec1db8}, {0x33ac0f8, 0xc00...
-            github.com/EscanBE/evermint/v12/cmd/evmd/root.go:243 +0x2ca
+            github.com/VictorTrustyDev/nevermind/v12/cmd/nvmd/root.go:243 +0x2ca
 
         [output stream]:
 
@@ -184,8 +184,8 @@ Container names will be listed as follows:
 
 ```log
 CONTAINER ID   IMAGE
-9307f5485323   evermint:local    <-- upgraded node
-f41c97d6ca21   evermint:v12.0.0   <-- initial node
+9307f5485323   nevermind:local    <-- upgraded node
+f41c97d6ca21   nevermind:v12.0.0   <-- initial node
 ```
 
 To access containers logs directly, run:

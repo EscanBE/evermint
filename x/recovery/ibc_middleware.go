@@ -9,8 +9,8 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 
-	"github.com/EscanBE/evermint/v12/ibc"
-	"github.com/EscanBE/evermint/v12/x/recovery/keeper"
+	"github.com/VictorTrustyDev/nevermind/v12/ibc"
+	"github.com/VictorTrustyDev/nevermind/v12/x/recovery/keeper"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}

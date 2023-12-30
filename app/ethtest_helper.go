@@ -2,7 +2,7 @@ package app
 
 import (
 	"encoding/json"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -15,7 +15,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/EscanBE/evermint/v12/encoding"
+	"github.com/VictorTrustyDev/nevermind/v12/encoding"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -25,7 +25,7 @@ import (
 )
 
 // EthDefaultConsensusParams defines the default Tendermint consensus params used in
-// Evermint app testing.
+// Nevermind app testing.
 var EthDefaultConsensusParams = &abci.ConsensusParams{
 	Block: &abci.BlockParams{
 		MaxBytes: 200000,
@@ -43,14 +43,14 @@ var EthDefaultConsensusParams = &abci.ConsensusParams{
 	},
 }
 
-// EthSetup initializes a new Evermint app. A Nop logger is set in Evermint app.
-func EthSetup(isCheckTx bool, patchGenesis func(*Evermint, simapp.GenesisState) simapp.GenesisState) *Evermint {
+// EthSetup initializes a new Nevermind app. A Nop logger is set in Nevermind app.
+func EthSetup(isCheckTx bool, patchGenesis func(*Nevermind, simapp.GenesisState) simapp.GenesisState) *Nevermind {
 	return EthSetupWithDB(isCheckTx, patchGenesis, dbm.NewMemDB())
 }
 
-// EthSetupWithDB initializes a new Evermint app. A Nop logger is set in Evermint app.
-func EthSetupWithDB(isCheckTx bool, patchGenesis func(*Evermint, simapp.GenesisState) simapp.GenesisState, db dbm.DB) *Evermint {
-	chainApp := NewEvermint(log.NewNopLogger(),
+// EthSetupWithDB initializes a new Nevermind app. A Nop logger is set in Nevermind app.
+func EthSetupWithDB(isCheckTx bool, patchGenesis func(*Nevermind, simapp.GenesisState) simapp.GenesisState, db dbm.DB) *Nevermind {
+	chainApp := NewNevermind(log.NewNopLogger(),
 		db,
 		nil,
 		true,

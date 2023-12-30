@@ -11,8 +11,8 @@ import (
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/ethereum/go-ethereum/common"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evertypes "github.com/VictorTrustyDev/nevermind/v12/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 

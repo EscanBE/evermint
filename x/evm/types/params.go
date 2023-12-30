@@ -2,7 +2,7 @@ package types
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/core/vm"

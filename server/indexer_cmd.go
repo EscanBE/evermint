@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/EscanBE/evermint/v12/indexer"
+	"github.com/VictorTrustyDev/nevermind/v12/indexer"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	tmnode "github.com/tendermint/tendermint/node"

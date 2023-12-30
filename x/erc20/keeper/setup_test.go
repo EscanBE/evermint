@@ -6,10 +6,10 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/EscanBE/evermint/v12/app"
-	ibctesting "github.com/EscanBE/evermint/v12/ibc/testing"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
-	evm "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/VictorTrustyDev/nevermind/v12/app"
+	ibctesting "github.com/VictorTrustyDev/nevermind/v12/ibc/testing"
+	"github.com/VictorTrustyDev/nevermind/v12/x/erc20/types"
+	evm "github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -25,7 +25,7 @@ type KeeperTestSuite struct {
 	suite.Suite
 
 	ctx              sdk.Context
-	app              *app.Evermint
+	app              *app.Nevermind
 	queryClientEvm   evm.QueryClient
 	queryClient      types.QueryClient
 	address          common.Address
@@ -40,12 +40,12 @@ type KeeperTestSuite struct {
 	coordinator *ibcgotesting.Coordinator
 
 	// testing chains used for convenience and readability
-	EvermintChain   *ibcgotesting.TestChain
+	NevermindChain   *ibcgotesting.TestChain
 	IBCOsmosisChain *ibcgotesting.TestChain
 	IBCCosmosChain  *ibcgotesting.TestChain
 
-	pathOsmosisEvermint *ibctesting.Path
-	pathCosmosEvermint  *ibctesting.Path
+	pathOsmosisNevermind *ibctesting.Path
+	pathCosmosNevermind  *ibctesting.Path
 	pathOsmosisCosmos   *ibctesting.Path
 
 	suiteIBCTesting bool
@@ -53,11 +53,11 @@ type KeeperTestSuite struct {
 
 var (
 	s *KeeperTestSuite
-	// sendAndReceiveMsgFee corresponds to the fees paid on Evermint chain when calling the SendAndReceive function
+	// sendAndReceiveMsgFee corresponds to the fees paid on Nevermind chain when calling the SendAndReceive function
 	// This function makes 3 cosmos txs under the hood
 	sendAndReceiveMsgFee = sdk.NewInt(ibctesting.DefaultFeeAmt * 3)
-	// sendBackCoinsFee corresponds to the fees paid on Evermint chain when calling the SendBackCoins function
-	// or calling the SendAndReceive from another chain to Evermint
+	// sendBackCoinsFee corresponds to the fees paid on Nevermind chain when calling the SendBackCoins function
+	// or calling the SendAndReceive from another chain to Nevermind
 	// This function makes 2 cosmos txs under the hood
 	sendBackCoinsFee = sdk.NewInt(ibctesting.DefaultFeeAmt * 2)
 )

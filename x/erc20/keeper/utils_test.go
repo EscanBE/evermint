@@ -2,26 +2,26 @@ package keeper_test
 
 import (
 	"encoding/json"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
 	"math"
 	"math/big"
 	"strconv"
 	"time"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/contracts"
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	ibctesting "github.com/EscanBE/evermint/v12/ibc/testing"
-	"github.com/EscanBE/evermint/v12/server/config"
-	"github.com/EscanBE/evermint/v12/testutil"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	teststypes "github.com/EscanBE/evermint/v12/types/tests"
-	claimstypes "github.com/EscanBE/evermint/v12/x/claims/types"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	evm "github.com/EscanBE/evermint/v12/x/evm/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	inflationtypes "github.com/EscanBE/evermint/v12/x/inflation/types"
+	"github.com/VictorTrustyDev/nevermind/v12/app"
+	"github.com/VictorTrustyDev/nevermind/v12/contracts"
+	"github.com/VictorTrustyDev/nevermind/v12/crypto/ethsecp256k1"
+	ibctesting "github.com/VictorTrustyDev/nevermind/v12/ibc/testing"
+	"github.com/VictorTrustyDev/nevermind/v12/server/config"
+	"github.com/VictorTrustyDev/nevermind/v12/testutil"
+	utiltx "github.com/VictorTrustyDev/nevermind/v12/testutil/tx"
+	teststypes "github.com/VictorTrustyDev/nevermind/v12/types/tests"
+	claimstypes "github.com/VictorTrustyDev/nevermind/v12/x/claims/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/erc20/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/evm/statedb"
+	evm "github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
+	feemarkettypes "github.com/VictorTrustyDev/nevermind/v12/x/feemarket/types"
+	inflationtypes "github.com/VictorTrustyDev/nevermind/v12/x/inflation/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -137,51 +137,51 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 func (suite *KeeperTestSuite) SetupIBCTest() {
 	// initializes 3 test chains
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1, 2)
-	suite.EvermintChain = suite.coordinator.GetChain(ibcgotesting.GetChainID(1))
+	suite.NevermindChain = suite.coordinator.GetChain(ibcgotesting.GetChainID(1))
 	suite.IBCOsmosisChain = suite.coordinator.GetChain(ibcgotesting.GetChainID(2))
 	suite.IBCCosmosChain = suite.coordinator.GetChain(ibcgotesting.GetChainID(3))
-	suite.coordinator.CommitNBlocks(suite.EvermintChain, 2)
+	suite.coordinator.CommitNBlocks(suite.NevermindChain, 2)
 	suite.coordinator.CommitNBlocks(suite.IBCOsmosisChain, 2)
 	suite.coordinator.CommitNBlocks(suite.IBCCosmosChain, 2)
 
-	s.app = suite.EvermintChain.App.(*app.Evermint)
-	evmParams := s.app.EvmKeeper.GetParams(s.EvermintChain.GetContext())
+	s.app = suite.NevermindChain.App.(*app.Nevermind)
+	evmParams := s.app.EvmKeeper.GetParams(s.NevermindChain.GetContext())
 	evmParams.EvmDenom = constants.BaseDenom
-	err := s.app.EvmKeeper.SetParams(s.EvermintChain.GetContext(), evmParams)
+	err := s.app.EvmKeeper.SetParams(s.NevermindChain.GetContext(), evmParams)
 	suite.Require().NoError(err)
 
-	// s.app.FeeMarketKeeper.SetBaseFee(s.EvermintChain.GetContext(), big.NewInt(1))
+	// s.app.FeeMarketKeeper.SetBaseFee(s.NevermindChain.GetContext(), big.NewInt(1))
 
 	// Increase max gas
 	ibcgotestinghelpers.DefaultGenTxGas = uint64(1_000_000_000)
 
 	// Set block proposer once, so its carried over on the ibc-go-testing suite
-	validators := s.app.StakingKeeper.GetValidators(suite.EvermintChain.GetContext(), 2)
+	validators := s.app.StakingKeeper.GetValidators(suite.NevermindChain.GetContext(), 2)
 	cons, err := validators[0].GetConsAddr()
 	suite.Require().NoError(err)
-	suite.EvermintChain.CurrentHeader.ProposerAddress = cons.Bytes()
+	suite.NevermindChain.CurrentHeader.ProposerAddress = cons.Bytes()
 
-	err = s.app.StakingKeeper.SetValidatorByConsAddr(suite.EvermintChain.GetContext(), validators[0])
+	err = s.app.StakingKeeper.SetValidatorByConsAddr(suite.NevermindChain.GetContext(), validators[0])
 	suite.Require().NoError(err)
 
-	_, err = s.app.EvmKeeper.GetCoinbaseAddress(suite.EvermintChain.GetContext(), sdk.ConsAddress(suite.EvermintChain.CurrentHeader.ProposerAddress))
+	_, err = s.app.EvmKeeper.GetCoinbaseAddress(suite.NevermindChain.GetContext(), sdk.ConsAddress(suite.NevermindChain.CurrentHeader.ProposerAddress))
 	suite.Require().NoError(err)
 	// Mint coins locked on the account generated with secp.
 	amt, ok := sdk.NewIntFromString("1000000000000000000000")
 	suite.Require().True(ok)
 	nativeCoin := sdk.NewCoin(constants.BaseDenom, amt)
 	coins := sdk.NewCoins(nativeCoin)
-	err = s.app.BankKeeper.MintCoins(suite.EvermintChain.GetContext(), inflationtypes.ModuleName, coins)
+	err = s.app.BankKeeper.MintCoins(suite.NevermindChain.GetContext(), inflationtypes.ModuleName, coins)
 	suite.Require().NoError(err)
-	err = s.app.BankKeeper.SendCoinsFromModuleToAccount(suite.EvermintChain.GetContext(), inflationtypes.ModuleName, suite.EvermintChain.SenderAccount.GetAddress(), coins)
+	err = s.app.BankKeeper.SendCoinsFromModuleToAccount(suite.NevermindChain.GetContext(), inflationtypes.ModuleName, suite.NevermindChain.SenderAccount.GetAddress(), coins)
 	suite.Require().NoError(err)
 
 	// we need some coins in the bankkeeper to be able to register the coins later
 	coins = sdk.NewCoins(sdk.NewCoin(teststypes.UosmoIbcdenom, sdk.NewInt(100)))
-	err = s.app.BankKeeper.MintCoins(s.EvermintChain.GetContext(), types.ModuleName, coins)
+	err = s.app.BankKeeper.MintCoins(s.NevermindChain.GetContext(), types.ModuleName, coins)
 	s.Require().NoError(err)
 	coins = sdk.NewCoins(sdk.NewCoin(teststypes.UatomIbcdenom, sdk.NewInt(100)))
-	err = s.app.BankKeeper.MintCoins(s.EvermintChain.GetContext(), types.ModuleName, coins)
+	err = s.app.BankKeeper.MintCoins(s.NevermindChain.GetContext(), types.ModuleName, coins)
 	s.Require().NoError(err)
 
 	// Mint coins on the osmosis side which we'll use to unlock our native coin
@@ -214,31 +214,31 @@ func (suite *KeeperTestSuite) SetupIBCTest() {
 	suite.Require().NoError(err)
 
 	claimparams := claimstypes.DefaultParams()
-	claimparams.AirdropStartTime = suite.EvermintChain.GetContext().BlockTime()
+	claimparams.AirdropStartTime = suite.NevermindChain.GetContext().BlockTime()
 	claimparams.EnableClaims = true
-	err = s.app.ClaimsKeeper.SetParams(suite.EvermintChain.GetContext(), claimparams)
+	err = s.app.ClaimsKeeper.SetParams(suite.NevermindChain.GetContext(), claimparams)
 	suite.Require().NoError(err)
 
 	params := types.DefaultParams()
 	params.EnableErc20 = true
-	err = s.app.Erc20Keeper.SetParams(suite.EvermintChain.GetContext(), params)
+	err = s.app.Erc20Keeper.SetParams(suite.NevermindChain.GetContext(), params)
 	suite.Require().NoError(err)
 
-	suite.pathOsmosisEvermint = ibctesting.NewTransferPath(suite.IBCOsmosisChain, suite.EvermintChain) // clientID, connectionID, channelID empty
-	suite.pathCosmosEvermint = ibctesting.NewTransferPath(suite.IBCCosmosChain, suite.EvermintChain)
+	suite.pathOsmosisNevermind = ibctesting.NewTransferPath(suite.IBCOsmosisChain, suite.NevermindChain) // clientID, connectionID, channelID empty
+	suite.pathCosmosNevermind = ibctesting.NewTransferPath(suite.IBCCosmosChain, suite.NevermindChain)
 	suite.pathOsmosisCosmos = ibctesting.NewTransferPath(suite.IBCCosmosChain, suite.IBCOsmosisChain)
-	ibctesting.SetupPath(suite.coordinator, suite.pathOsmosisEvermint) // clientID, connectionID, channelID filled
-	ibctesting.SetupPath(suite.coordinator, suite.pathCosmosEvermint)
+	ibctesting.SetupPath(suite.coordinator, suite.pathOsmosisNevermind) // clientID, connectionID, channelID filled
+	ibctesting.SetupPath(suite.coordinator, suite.pathCosmosNevermind)
 	ibctesting.SetupPath(suite.coordinator, suite.pathOsmosisCosmos)
-	suite.Require().Equal("07-tendermint-0", suite.pathOsmosisEvermint.EndpointA.ClientID)
-	suite.Require().Equal("connection-0", suite.pathOsmosisEvermint.EndpointA.ConnectionID)
-	suite.Require().Equal("channel-0", suite.pathOsmosisEvermint.EndpointA.ChannelID)
+	suite.Require().Equal("07-tendermint-0", suite.pathOsmosisNevermind.EndpointA.ClientID)
+	suite.Require().Equal("connection-0", suite.pathOsmosisNevermind.EndpointA.ConnectionID)
+	suite.Require().Equal("channel-0", suite.pathOsmosisNevermind.EndpointA.ChannelID)
 
 	nativeCoin = sdk.NewCoin(constants.BaseDenom, sdk.NewInt(1000000000000000000))
 	coins = sdk.NewCoins(nativeCoin)
-	err = s.app.BankKeeper.MintCoins(suite.EvermintChain.GetContext(), types.ModuleName, coins)
+	err = s.app.BankKeeper.MintCoins(suite.NevermindChain.GetContext(), types.ModuleName, coins)
 	suite.Require().NoError(err)
-	err = s.app.BankKeeper.SendCoinsFromModuleToModule(suite.EvermintChain.GetContext(), types.ModuleName, authtypes.FeeCollectorName, coins)
+	err = s.app.BankKeeper.SendCoinsFromModuleToModule(suite.NevermindChain.GetContext(), types.ModuleName, authtypes.FeeCollectorName, coins)
 	suite.Require().NoError(err)
 }
 
@@ -358,12 +358,12 @@ func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation() (common.
 }
 
 // DeployContractToChain deploys the ERC20MinterBurnerDecimalsContract
-// to the Evermint chain (used on IBC tests)
+// to the Nevermind chain (used on IBC tests)
 func (suite *KeeperTestSuite) DeployContractToChain(name, symbol string, decimals uint8) (common.Address, error) {
 	return testutil.DeployContract(
-		s.EvermintChain.GetContext(),
-		s.EvermintChain.App.(*app.Evermint),
-		suite.EvermintChain.SenderPrivKey,
+		s.NevermindChain.GetContext(),
+		s.NevermindChain.App.(*app.Nevermind),
+		suite.NevermindChain.SenderPrivKey,
 		suite.queryClientEvm,
 		contracts.ERC20MinterBurnerDecimalsContract,
 		name, symbol, decimals,
@@ -402,7 +402,7 @@ func (suite *KeeperTestSuite) SendAndReceiveMessage(path *ibctesting.Path, origi
 	suite.sendAndReceiveMessage(path, path.EndpointA, path.EndpointB, origin, coin, amount, sender, receiver, seq, ibcCoinMetadata)
 }
 
-// Send back coins (from path endpoint B to A). In case of IBC coins need to provide ibcCoinMetadata (<port>/<channel>/<denom>, e.g.: "transfer/channel-0/wei") as input parameter.
+// Send back coins (from path endpoint B to A). In case of IBC coins need to provide ibcCoinMetadata (<port>/<channel>/<denom>, e.g.: "transfer/channel-0/uever") as input parameter.
 // We need this to instantiate properly a FungibleTokenPacketData https://github.com/cosmos/ibc-go/blob/main/docs/architecture/adr-001-coin-source-tracing.md
 func (suite *KeeperTestSuite) SendBackCoins(path *ibctesting.Path, origin *ibcgotesting.TestChain, coin string, amount int64, sender, receiver string, seq uint64, ibcCoinMetadata string) {
 	// Send coin from B to A

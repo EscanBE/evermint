@@ -1,21 +1,21 @@
 {
   "metadata": [
     {
-      "description": "The native staking and governance token of the Evermint chain",
+      "description": "The native staking and governance token of the Nevermind chain",
       "denom_units": [
         {
-          "denom": "wei",
+          "denom": "uever",
           "exponent": 0
         },
         {
-          "denom": "ether",
+          "denom": "ever",
           "exponent": 18
         }
       ],
-      "base": "wei",
-      "display": "ether",
-      "name": "wei",
-      "symbol": "ETH"
+      "base": "uever",
+      "display": "ever",
+      "name": "uever",
+      "symbol": "EVER"
     }
   ]
 }

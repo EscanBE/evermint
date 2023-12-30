@@ -1,4 +1,4 @@
 all:
-	docker build --tag evermint/node ../.. -f chain/Dockerfile
+	docker build --tag nevermind/node ../.. -f chain/Dockerfile
 
 .PHONY: all

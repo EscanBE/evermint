@@ -12,11 +12,11 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evm "github.com/EscanBE/evermint/v12/x/evm/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	"github.com/EscanBE/evermint/v12/x/revenue/v1/types"
+	"github.com/VictorTrustyDev/nevermind/v12/app"
+	utiltx "github.com/VictorTrustyDev/nevermind/v12/testutil/tx"
+	evm "github.com/VictorTrustyDev/nevermind/v12/x/evm/types"
+	feemarkettypes "github.com/VictorTrustyDev/nevermind/v12/x/feemarket/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/revenue/v1/types"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -26,7 +26,7 @@ type KeeperTestSuite struct {
 
 	ctx sdk.Context
 
-	app            *app.Evermint
+	app            *app.Nevermind
 	queryClient    types.QueryClient
 	queryClientEvm evm.QueryClient
 	address        common.Address

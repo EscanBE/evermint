@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/EscanBE/evermint/v12/x/recovery/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/recovery/types"
 )
 
 // UpdateParams implements the gRPC MsgServer interface. When an UpdateParams

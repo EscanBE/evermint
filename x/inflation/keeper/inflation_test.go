@@ -3,10 +3,10 @@ package keeper_test
 import (
 	sdkmath "cosmossdk.io/math"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	incentivestypes "github.com/EscanBE/evermint/v12/x/incentives/types"
-	"github.com/EscanBE/evermint/v12/x/inflation/types"
+	"github.com/VictorTrustyDev/nevermind/v12/constants"
+	evertypes "github.com/VictorTrustyDev/nevermind/v12/types"
+	incentivestypes "github.com/VictorTrustyDev/nevermind/v12/x/incentives/types"
+	"github.com/VictorTrustyDev/nevermind/v12/x/inflation/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
