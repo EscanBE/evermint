@@ -15,7 +15,6 @@ import (
 	"github.com/EscanBE/evermint/v12/server/config"
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	epochstypes "github.com/EscanBE/evermint/v12/x/epochs/types"
 	evm "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/EscanBE/evermint/v12/x/incentives/types"
@@ -104,10 +103,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		suite.app.EpochsKeeper.SetEpochInfo(suite.ctx, epoch)
 	}
 
-	acc := &evertypes.EthAccount{
-		BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(suite.address.Bytes()), nil, 0, 0),
-		CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
-	}
+	acc := authtypes.NewBaseAccount(sdk.AccAddress(suite.address.Bytes()), nil, 0, 0)
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 	// fund signer acc to pay for tx fees

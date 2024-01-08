@@ -1,10 +1,10 @@
 package keeper
 
 import (
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 
@@ -117,8 +117,8 @@ func (k Keeper) ClawbackEmptyAccounts(ctx sdk.Context, claimsDenom string) {
 			return false
 		}
 
-		// ignore non ETH accounts
-		if _, isEthAccount := acc.(evertypes.EthAccountI); !isEthAccount {
+		// ignore module accounts
+		if _, isModuleAccount := acc.(authtypes.ModuleAccountI); isModuleAccount {
 			return false
 		}
 

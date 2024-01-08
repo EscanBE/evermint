@@ -7,7 +7,6 @@ import (
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/x/evm/keeper"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
@@ -111,17 +110,17 @@ func (suite *KeeperTestSuite) TestGetAccountStorage() {
 		expRes   []int
 	}{
 		{
-			"Only one account that's not a contract (no storage)",
-			func() {},
-			[]int{0},
+			name:     "Only one account that's not a contract (no storage)",
+			malleate: func() {},
+			expRes:   nil, // no contract, not any res
 		},
 		{
-			"Two accounts - one contract (with storage), one wallet",
-			func() {
+			name: "Two accounts - one contract (with storage), one wallet",
+			malleate: func() {
 				supply := big.NewInt(100)
 				suite.DeployTestContract(suite.T(), suite.address, supply)
 			},
-			[]int{2, 0},
+			expRes: []int{2}, // the only contract
 		},
 	}
 
@@ -130,20 +129,22 @@ func (suite *KeeperTestSuite) TestGetAccountStorage() {
 			suite.SetupTest()
 			tc.malleate()
 			i := 0
+			countContracts := 0
 			suite.app.AccountKeeper.IterateAccounts(suite.ctx, func(account authtypes.AccountI) bool {
-				ethAccount, ok := account.(evertypes.EthAccountI)
-				if !ok {
-					// ignore non EthAccounts
+				if !suite.app.EvmKeeper.IsAccountIContractAccount(suite.ctx, account) {
+					// skip all non-contract accounts because the number of compatible accounts is now kinda unpredictable
 					return false
 				}
 
-				addr := ethAccount.EthAddress()
+				addr := common.BytesToAddress(account.GetAddress())
 				storage := suite.app.EvmKeeper.GetAccountStorage(suite.ctx, addr)
 
-				suite.Require().Equal(tc.expRes[i], len(storage))
+				suite.Equal(tc.expRes[i], len(storage))
 				i++
+				countContracts++
 				return false
 			})
+			suite.Equal(len(tc.expRes), countContracts)
 		})
 	}
 }

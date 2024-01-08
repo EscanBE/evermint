@@ -15,8 +15,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/common"
-
 	tmconfig "github.com/cometbft/cometbft/config"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	"github.com/cometbft/cometbft/types"
@@ -341,10 +339,7 @@ func initTestnetFiles(
 		}
 
 		genBalances = append(genBalances, banktypes.Balance{Address: addr.String(), Coins: coins.Sort()})
-		genAccounts = append(genAccounts, &evertypes.EthAccount{
-			BaseAccount: authtypes.NewBaseAccount(addr, nil, 0, 0),
-			CodeHash:    common.BytesToHash(evmtypes.EmptyCodeHash).Hex(),
-		})
+		genAccounts = append(genAccounts, authtypes.NewBaseAccount(addr, nil, 0, 0))
 
 		valTokens := sdk.TokensFromConsensusPower(100, evertypes.PowerReduction)
 		createValMsg, err := stakingtypes.NewMsgCreateValidator(
@@ -417,10 +412,7 @@ func initTestnetFiles(
 			sdk.NewCoin(constants.BaseDenom, sdk.TokensFromConsensusPower(1000, evertypes.PowerReduction)),
 		}
 		genBalances = append(genBalances, banktypes.Balance{Address: normalAccountAddr.String(), Coins: coins.Sort()})
-		genAccounts = append(genAccounts, &evertypes.EthAccount{
-			BaseAccount: authtypes.NewBaseAccount(normalAccountAddr, nil, 0, 0),
-			CodeHash:    common.BytesToHash(evmtypes.EmptyCodeHash).Hex(),
-		})
+		genAccounts = append(genAccounts, authtypes.NewBaseAccount(normalAccountAddr, nil, 0, 0))
 	}
 
 	if err := initGenFiles(clientCtx, mbm, args.chainID, constants.BaseDenom, genAccounts, genBalances, genFiles, args.numValidators); err != nil {

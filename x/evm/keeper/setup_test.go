@@ -16,7 +16,6 @@ import (
 	"github.com/EscanBE/evermint/v12/encoding"
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -172,10 +171,7 @@ func (suite *KeeperTestSuite) SetupAppWithT(checkTx bool, t require.TestingT) {
 	evmtypes.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
 	suite.queryClient = evmtypes.NewQueryClient(queryHelper)
 
-	acc := &evertypes.EthAccount{
-		BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(suite.address.Bytes()), nil, 0, 0),
-		CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
-	}
+	acc := authtypes.NewBaseAccount(suite.address.Bytes(), nil, 0, 0)
 
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 

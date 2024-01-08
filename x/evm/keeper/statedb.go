@@ -7,7 +7,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	errorsmod "cosmossdk.io/errors"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	"github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -21,7 +20,7 @@ var _ statedb.Keeper = &Keeper{}
 // StateDB Keeper implementation
 // ----------------------------------------------------------------------------
 
-// GetAccount returns nil if account is not exist, returns error if it's not `EthAccountI`
+// GetAccount returns nil if account is not exist
 func (k *Keeper) GetAccount(ctx sdk.Context, addr common.Address) *statedb.Account {
 	acct := k.GetAccountWithoutBalance(ctx, addr)
 	if acct == nil {
@@ -115,13 +114,7 @@ func (k *Keeper) SetAccount(ctx sdk.Context, addr common.Address, account stated
 		return err
 	}
 
-	codeHash := common.BytesToHash(account.CodeHash)
-
-	if ethAcct, ok := acct.(evertypes.EthAccountI); ok {
-		if err := ethAcct.SetCodeHash(codeHash); err != nil {
-			return err
-		}
-	}
+	k.SetAccountICodeHash(ctx, acct, account.CodeHash)
 
 	k.accountKeeper.SetAccount(ctx, acct)
 
@@ -133,7 +126,7 @@ func (k *Keeper) SetAccount(ctx sdk.Context, addr common.Address, account stated
 		"account updated",
 		"ethereum-address", addr.Hex(),
 		"nonce", account.Nonce,
-		"codeHash", codeHash.Hex(),
+		"codeHash", common.BytesToHash(account.CodeHash).Hex(),
 		"balance", account.Balance,
 	)
 	return nil
@@ -186,16 +179,18 @@ func (k *Keeper) DeleteAccount(ctx sdk.Context, addr common.Address) error {
 		return nil
 	}
 
-	// NOTE: only Ethereum accounts (contracts) can be selfdestructed
-	_, ok := acct.(evertypes.EthAccountI)
-	if !ok {
-		return errorsmod.Wrapf(types.ErrInvalidAccount, "type %T, address %s", acct, addr)
+	// NOTE: only Ethereum contracts can be self-destructed
+	if !k.IsAccountIContractAccount(ctx, acct) {
+		return errorsmod.Wrapf(types.ErrInvalidAccount, "type %T, address %s is not a contract", acct, addr)
 	}
 
 	// clear balance
 	if err := k.SetBalance(ctx, addr, new(big.Int)); err != nil {
 		return err
 	}
+
+	// clear code hash
+	k.SetAccountICodeHash(ctx, acct, types.EmptyCodeHash)
 
 	// clear storage
 	k.ForEachStorage(ctx, addr, func(key, _ common.Hash) bool {

@@ -945,9 +945,9 @@ func (suite *KeeperTestSuite) TestDeleteAccount() {
 		expErr bool
 	}{
 		{
-			"remove address",
-			suite.address,
-			false,
+			name:   "remove address",
+			addr:   suite.address,
+			expErr: true, // it is not a contract so an error should be returned
 		},
 		{
 			"remove unexistent address - returns nil error",
@@ -964,6 +964,9 @@ func (suite *KeeperTestSuite) TestDeleteAccount() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+
+			acct := suite.app.AccountKeeper.GetAccount(suite.ctx, tc.addr.Bytes())
+
 			err := suite.app.EvmKeeper.DeleteAccount(suite.ctx, tc.addr)
 			if tc.expErr {
 				suite.Require().Error(err)
@@ -971,6 +974,10 @@ func (suite *KeeperTestSuite) TestDeleteAccount() {
 				suite.Require().NoError(err)
 				balance := suite.app.EvmKeeper.GetBalance(suite.ctx, tc.addr)
 				suite.Require().Equal(new(big.Int), balance)
+
+				if acct != nil {
+					suite.True(suite.app.EvmKeeper.GetAccountICodeHash(suite.ctx, acct).IsEmptyCodeHash(), "code hash must be removed")
+				}
 			}
 		})
 	}

@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
-
 	"github.com/armon/go-metrics"
 
 	errorsmod "cosmossdk.io/errors"
@@ -302,9 +300,7 @@ func (k Keeper) ConvertVestingAccount(
 		return nil, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "vesting coins still left in account: %s", msg.VestingAddress)
 	}
 
-	ethAccount := evertypes.ProtoAccount().(*evertypes.EthAccount)
-	ethAccount.BaseAccount = vestingAcc.BaseAccount
-	k.accountKeeper.SetAccount(ctx, ethAccount)
+	k.accountKeeper.SetAccount(ctx, vestingAcc.BaseAccount)
 
 	return &types.MsgConvertVestingAccountResponse{}, nil
 }

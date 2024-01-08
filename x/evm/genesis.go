@@ -1,7 +1,6 @@
 package evm
 
 import (
-	"bytes"
 	"fmt"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -10,7 +9,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/x/evm/keeper"
 	"github.com/EscanBE/evermint/v12/x/evm/types"
 )
@@ -35,36 +33,31 @@ func InitGenesis(
 	}
 
 	for _, account := range data.Accounts {
+		code := common.Hex2Bytes(account.Code)
+		storage := account.Storage
+
+		if len(code) < 1 && len(storage) < 1 {
+			continue
+		}
+
 		address := common.HexToAddress(account.Address)
 		accAddress := sdk.AccAddress(address.Bytes())
-		// check that the EVM balance the matches the account balance
+
 		acc := accountKeeper.GetAccount(ctx, accAddress)
 		if acc == nil {
 			panic(fmt.Errorf("account not found for address %s", account.Address))
 		}
 
-		ethAcct, ok := acc.(evertypes.EthAccountI)
-		if !ok {
-			panic(
-				fmt.Errorf("account %s must be an EthAccount interface, got %T",
-					account.Address, acc,
-				),
-			)
-		}
-		code := common.Hex2Bytes(account.Code)
-		codeHash := crypto.Keccak256Hash(code)
-
-		// we ignore the empty Code hash checking, see ethermint PR#1234
-		if len(account.Code) != 0 && !bytes.Equal(ethAcct.GetCodeHash().Bytes(), codeHash.Bytes()) {
-			s := "the evm state code doesn't match with the codehash\n"
-			panic(fmt.Sprintf("%s account: %s , evm state codehash: %v, ethAccount codehash: %v, evm state code: %s\n",
-				s, account.Address, codeHash, ethAcct.GetCodeHash(), account.Code))
+		if len(code) > 0 {
+			codeHash := crypto.Keccak256Hash(code)
+			k.SetAccountICodeHash(ctx, acc, codeHash.Bytes())
+			k.SetCode(ctx, codeHash.Bytes(), code)
 		}
 
-		k.SetCode(ctx, codeHash.Bytes(), code)
-
-		for _, storage := range account.Storage {
-			k.SetState(ctx, address, common.HexToHash(storage.Key), common.HexToHash(storage.Value).Bytes())
+		if len(account.Storage) > 0 {
+			for _, storage := range account.Storage {
+				k.SetState(ctx, address, common.HexToHash(storage.Key), common.HexToHash(storage.Value).Bytes())
+			}
 		}
 	}
 
@@ -75,19 +68,26 @@ func InitGenesis(
 func ExportGenesis(ctx sdk.Context, k *keeper.Keeper, ak types.AccountKeeper) *types.GenesisState {
 	var ethGenAccounts []types.GenesisAccount
 	ak.IterateAccounts(ctx, func(account authtypes.AccountI) bool {
-		ethAccount, ok := account.(evertypes.EthAccountI)
-		if !ok {
-			// ignore non EthAccounts
+		codeHash := k.GetAccountICodeHash(ctx, account)
+		contractAddr := common.BytesToAddress(account.GetAddress().Bytes())
+		storage := k.GetAccountStorage(ctx, contractAddr)
+
+		if codeHash.IsEmptyCodeHash() && len(storage) < 1 {
 			return false
 		}
 
-		addr := ethAccount.EthAddress()
-
-		storage := k.GetAccountStorage(ctx, addr)
-
 		genAccount := types.GenesisAccount{
-			Address: addr.String(),
-			Code:    common.Bytes2Hex(k.GetCode(ctx, ethAccount.GetCodeHash())),
+			Address: contractAddr.String(),
+			Code: func(codeHash types.CodeHash) string {
+				if codeHash.IsEmptyCodeHash() {
+					return ""
+				}
+				code := k.GetCode(ctx, common.BytesToHash(codeHash.Bytes()))
+				if len(code) < 1 {
+					return ""
+				}
+				return common.Bytes2Hex(code)
+			}(codeHash),
 			Storage: storage,
 		}
 

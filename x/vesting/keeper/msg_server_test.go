@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"fmt"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	vestingexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	"time"
 
@@ -578,7 +577,7 @@ func (suite *KeeperTestSuite) TestConvertVestingAccount() {
 				_, ok := account.(vestingexported.VestingAccount)
 				suite.Require().False(ok)
 
-				_, ok = account.(evertypes.EthAccountI)
+				_, ok = account.(*authtypes.BaseAccount)
 				suite.Require().True(ok)
 
 			} else {

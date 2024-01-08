@@ -10,16 +10,13 @@ import (
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evertypes "github.com/EscanBE/evermint/v12/types"
+	"github.com/EscanBE/evermint/v12/x/claims/types"
 	inflationtypes "github.com/EscanBE/evermint/v12/x/inflation/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-
-	"github.com/EscanBE/evermint/v12/x/claims/types"
 )
 
 func (suite *KeeperTestSuite) TestGetClaimableAmountForAction() {
@@ -1078,10 +1075,7 @@ func (suite *KeeperTestSuite) TestClawbackEmptyAccountsAirdrop() {
 		addr, err := sdk.AccAddressFromBech32(tc.address)
 		suite.Require().NoError(err, tc.name)
 
-		acc := &evertypes.EthAccount{
-			BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(addr.Bytes()), nil, 0, 0),
-			CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
-		}
+		acc := authtypes.NewBaseAccount(sdk.AccAddress(addr.Bytes()), nil, 0, 0)
 
 		err = acc.SetSequence(tc.sequence)
 		suite.Require().NoError(err, tc.name)

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -19,9 +18,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-
-	"github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
 	appkeyring "github.com/EscanBE/evermint/v12/crypto/keyring"
 
@@ -202,10 +198,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				)
 
 			default:
-				genAccount = &types.EthAccount{
-					BaseAccount: baseAccount,
-					CodeHash:    common.BytesToHash(evmtypes.EmptyCodeHash).Hex(),
-				}
+				genAccount = baseAccount
 			}
 
 			if err := genAccount.Validate(); err != nil {

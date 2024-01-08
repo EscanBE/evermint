@@ -6,14 +6,11 @@ import (
 
 	testutil "github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/x/claims/types"
 	vestingtypes "github.com/EscanBE/evermint/v12/x/vesting/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 )
 
 func (suite *KeeperTestSuite) TestEndBlock() {
@@ -116,8 +113,8 @@ func (suite *KeeperTestSuite) TestClawbackEmptyAccounts() {
 			},
 		},
 		{
-			"balance non zero, base account is ignored",
-			0,
+			"balance non zero, base account is accepted",
+			types.GenesisDust,
 			func() {
 				suite.app.AccountKeeper.SetAccount(suite.ctx, authtypes.NewBaseAccount(addr, nil, 0, 0))
 
@@ -145,11 +142,7 @@ func (suite *KeeperTestSuite) TestClawbackEmptyAccounts() {
 			types.GenesisDust,
 			func() {
 				baseAccount := authtypes.NewBaseAccount(addr, nil, 0, 0)
-				ethAccount := evertypes.EthAccount{
-					BaseAccount: baseAccount,
-					CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
-				}
-				suite.app.AccountKeeper.SetAccount(suite.ctx, &ethAccount)
+				suite.app.AccountKeeper.SetAccount(suite.ctx, baseAccount)
 
 				coins := sdk.NewCoins(sdk.NewCoin(types.DefaultClaimsDenom, sdk.NewInt(types.GenesisDust)))
 				err := testutil.FundAccount(suite.ctx, suite.app.BankKeeper, addr, coins)
@@ -185,8 +178,7 @@ func (suite *KeeperTestSuite) TestClawbackEmptyAccounts() {
 			"multiple denoms, only claims denom is clawed back",
 			types.GenesisDust,
 			func() {
-				ethAccount := newEthAccount(authtypes.NewBaseAccount(addr, nil, 0, 0))
-				suite.app.AccountKeeper.SetAccount(suite.ctx, &ethAccount)
+				suite.app.AccountKeeper.SetAccount(suite.ctx, authtypes.NewBaseAccount(addr, nil, 0, 0))
 
 				coin1 := sdk.NewCoin("testcoin", sdk.NewInt(types.GenesisDust))
 				coin2 := sdk.NewCoin("testcoin1", sdk.NewInt(types.GenesisDust))
@@ -204,12 +196,9 @@ func (suite *KeeperTestSuite) TestClawbackEmptyAccounts() {
 			"multiple accounts, all clawed back",
 			types.GenesisDust * 3,
 			func() {
-				ethAccount1 := newEthAccount(authtypes.NewBaseAccount(addr, nil, 0, 0))
-				ethAccount2 := newEthAccount(authtypes.NewBaseAccount(addr, nil, 0, 0))
-				ethAccount3 := newEthAccount(authtypes.NewBaseAccount(addr, nil, 0, 0))
-				suite.app.AccountKeeper.SetAccount(suite.ctx, &ethAccount1)
-				suite.app.AccountKeeper.SetAccount(suite.ctx, &ethAccount2)
-				suite.app.AccountKeeper.SetAccount(suite.ctx, &ethAccount3)
+				suite.app.AccountKeeper.SetAccount(suite.ctx, newEthAccount(authtypes.NewBaseAccount(addr, nil, 0, 0)))
+				suite.app.AccountKeeper.SetAccount(suite.ctx, newEthAccount(authtypes.NewBaseAccount(addr2, nil, 0, 0)))
+				suite.app.AccountKeeper.SetAccount(suite.ctx, newEthAccount(authtypes.NewBaseAccount(addr3, nil, 0, 0)))
 
 				coins := sdk.NewCoins(sdk.NewCoin(types.DefaultClaimsDenom, sdk.NewInt(types.GenesisDust)))
 				err := testutil.FundAccount(suite.ctx, suite.app.BankKeeper, addr, coins)

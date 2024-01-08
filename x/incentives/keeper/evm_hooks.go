@@ -8,7 +8,6 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
 	"github.com/EscanBE/evermint/v12/x/incentives/types"
@@ -46,8 +45,7 @@ func (k Keeper) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *eth
 		return nil
 	}
 
-	ethAccount, ok := acc.(evertypes.EthAccountI)
-	if ok && ethAccount.Type() == evertypes.AccountTypeContract {
+	if k.evmKeeper.IsAccountIContractAccount(ctx, acc) {
 		return nil
 	}
 

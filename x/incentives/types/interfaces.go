@@ -58,6 +58,7 @@ type InflationKeeper interface {
 type EVMKeeper interface {
 	GetParams(ctx sdk.Context) evmtypes.Params
 	GetAccountWithoutBalance(ctx sdk.Context, addr common.Address) *statedb.Account
+	IsAccountIContractAccount(ctx sdk.Context, account authtypes.AccountI) bool
 }
 
 // Stakekeeper defines the expected staking keeper interface used on incentives

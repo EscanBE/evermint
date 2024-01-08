@@ -12,9 +12,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-
 	"github.com/EscanBE/evermint/v12/x/incentives/types"
 )
 
@@ -70,19 +67,14 @@ var _ = Describe("Distribution", Ordered, func() {
 		s.Require().NoError(err)
 
 		// set a EOA account for the address
-		eoa := &evertypes.EthAccount{
-			BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(s.address.Bytes()), nil, 0, 0),
-			CodeHash:    common.BytesToHash(evmtypes.EmptyCodeHash).String(),
-		}
+		eoa := authtypes.NewBaseAccount(sdk.AccAddress(s.address.Bytes()), nil, 0, 0)
 		s.app.AccountKeeper.RemoveAccount(s.ctx, eoa)
 		s.app.AccountKeeper.SetAccount(s.ctx, eoa)
 
 		acc := s.app.AccountKeeper.GetAccount(s.ctx, s.address.Bytes())
 		s.Require().NotNil(acc)
 
-		ethAccount, ok := acc.(evertypes.EthAccountI)
-		s.Require().True(ok)
-		s.Require().Equal(evertypes.AccountTypeEOA, ethAccount.Type())
+		s.Require().False(s.app.EvmKeeper.IsContractAccount(s.ctx, s.address))
 
 		contractAddr = contract
 		moduleAcc = s.app.AccountKeeper.GetModuleAddress(types.ModuleName)

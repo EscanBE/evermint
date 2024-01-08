@@ -17,10 +17,6 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
-
 	"github.com/EscanBE/evermint/v12/app"
 	cosmosante "github.com/EscanBE/evermint/v12/app/ante/cosmos"
 	evmante "github.com/EscanBE/evermint/v12/app/ante/evm"
@@ -29,10 +25,11 @@ import (
 	"github.com/EscanBE/evermint/v12/encoding"
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	epochstypes "github.com/EscanBE/evermint/v12/x/epochs/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/EscanBE/evermint/v12/x/vesting/types"
+	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/stretchr/testify/require"
 )
@@ -82,10 +79,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 		suite.app.EpochsKeeper.SetEpochInfo(suite.ctx, epoch)
 	}
 
-	acc := &evertypes.EthAccount{
-		BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(suite.address.Bytes()), nil, 0, 0),
-		CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
-	}
+	acc := authtypes.NewBaseAccount(sdk.AccAddress(suite.address.Bytes()), nil, 0, 0)
 
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 

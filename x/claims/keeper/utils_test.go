@@ -11,7 +11,6 @@ import (
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/x/claims/types"
 	evm "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
@@ -23,7 +22,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 )
 
@@ -108,11 +106,8 @@ func (suite *KeeperTestSuite) CommitAfter(t time.Duration) {
 	suite.queryClientEvm = evm.NewQueryClient(queryHelperEvm)
 }
 
-func newEthAccount(baseAccount *authtypes.BaseAccount) evertypes.EthAccount {
-	return evertypes.EthAccount{
-		BaseAccount: baseAccount,
-		CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
-	}
+func newEthAccount(baseAccount *authtypes.BaseAccount) *authtypes.BaseAccount {
+	return baseAccount
 }
 
 func getAddr(priv *ethsecp256k1.PrivKey) sdk.AccAddress {

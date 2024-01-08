@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -26,6 +27,7 @@ const (
 	prefixCode = iota + 1
 	prefixStorage
 	prefixParams
+	prefixCodeHash
 )
 
 // prefix bytes for the EVM transient store
@@ -38,9 +40,10 @@ const (
 
 // KVStore key prefixes
 var (
-	KeyPrefixCode    = []byte{prefixCode}
-	KeyPrefixStorage = []byte{prefixStorage}
-	KeyPrefixParams  = []byte{prefixParams}
+	KeyPrefixCode     = []byte{prefixCode}
+	KeyPrefixStorage  = []byte{prefixStorage}
+	KeyPrefixParams   = []byte{prefixParams}
+	KeyPrefixCodeHash = []byte{prefixCodeHash}
 )
 
 // Transient Store key prefixes
@@ -59,4 +62,14 @@ func AddressStoragePrefix(address common.Address) []byte {
 // StateKey defines the full key under which an account state is stored.
 func StateKey(address common.Address, key []byte) []byte {
 	return append(AddressStoragePrefix(address), key...)
+}
+
+// AddressCodeHashKey defines the full key under which an account code hash is stored.
+func AddressCodeHashKey(address common.Address, accountNumber uint64) []byte {
+	bz := append(KeyPrefixCodeHash, address.Bytes()...)
+	bzAccountNumber := sdk.Uint64ToBigEndian(accountNumber)
+	if len(bzAccountNumber) < 8 {
+		bzAccountNumber = append(make([]byte, 8-len(bzAccountNumber)), bzAccountNumber...)
+	}
+	return append(bz, bzAccountNumber...)
 }

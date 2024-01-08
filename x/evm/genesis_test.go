@@ -1,12 +1,12 @@
 package evm_test
 
 import (
+	"encoding/hex"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/x/evm"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	"github.com/EscanBE/evermint/v12/x/evm/types"
@@ -52,7 +52,7 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 			false,
 		},
 		{
-			"account not found",
+			"account without code will be ignored, no matter account exists in auth store or not",
 			func() {},
 			&types.GenesisState{
 				Params: types.DefaultParams(),
@@ -62,10 +62,10 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 					},
 				},
 			},
-			true,
+			false,
 		},
 		{
-			"invalid account type",
+			"accept account type BaseAccount, no code, no storage",
 			func() {
 				acc := authtypes.NewBaseAccountWithAddress(address.Bytes())
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
@@ -78,59 +78,73 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 					},
 				},
 			},
-			true,
+			false,
 		},
 		{
-			"invalid code hash",
+			"accept account type BaseAccount, with code and storage",
 			func() {
-				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, address.Bytes())
-				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
+				vmdb.AddBalance(address, big.NewInt(1))
 			},
 			&types.GenesisState{
 				Params: types.DefaultParams(),
 				Accounts: []types.GenesisAccount{
 					{
 						Address: address.String(),
-						Code:    "ffffffff",
-					},
-				},
-			},
-			true,
-		},
-		{
-			"ignore empty account code checking",
-			func() {
-				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, address.Bytes())
-
-				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
-			},
-			&types.GenesisState{
-				Params: types.DefaultParams(),
-				Accounts: []types.GenesisAccount{
-					{
-						Address: address.String(),
-						Code:    "",
+						Code:    "12345678",
+						Storage: types.Storage{
+							{Key: common.BytesToHash([]byte("key")).String(), Value: common.BytesToHash([]byte("value")).String()},
+						},
 					},
 				},
 			},
 			false,
 		},
 		{
-			"ignore empty account code checking with non-empty codehash",
+			"accept account type BaseAccount, with only code and no storage",
 			func() {
-				ethAcc := &evertypes.EthAccount{
-					BaseAccount: authtypes.NewBaseAccount(address.Bytes(), nil, 0, 0),
-					CodeHash:    common.BytesToHash([]byte{1, 2, 3}).Hex(),
-				}
-
-				suite.app.AccountKeeper.SetAccount(suite.ctx, ethAcc)
+				vmdb.AddBalance(address, big.NewInt(1))
 			},
 			&types.GenesisState{
 				Params: types.DefaultParams(),
 				Accounts: []types.GenesisAccount{
 					{
 						Address: address.String(),
-						Code:    "",
+						Code:    "12345678",
+					},
+				},
+			},
+			false,
+		},
+		{
+			"accept account type BaseAccount, with storage and no code",
+			func() {
+				vmdb.AddBalance(address, big.NewInt(1))
+			},
+			&types.GenesisState{
+				Params: types.DefaultParams(),
+				Accounts: []types.GenesisAccount{
+					{
+						Address: address.String(),
+						Storage: types.Storage{
+							{Key: common.BytesToHash([]byte("key")).String(), Value: common.BytesToHash([]byte("value")).String()},
+						},
+					},
+				},
+			},
+			false,
+		},
+		{
+			"ignore empty account code & storage checking",
+			func() {
+				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, address.Bytes())
+
+				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
+			},
+			&types.GenesisState{
+				Params: types.DefaultParams(),
+				Accounts: []types.GenesisAccount{
+					{
+						Address: address.String(),
 					},
 				},
 			},
@@ -154,11 +168,32 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 					},
 				)
 			} else {
+				genesisState := tc.genState
 				suite.Require().NotPanics(
 					func() {
-						_ = evm.InitGenesis(suite.ctx, suite.app.EvmKeeper, suite.app.AccountKeeper, *tc.genState)
+						_ = evm.InitGenesis(suite.ctx, suite.app.EvmKeeper, suite.app.AccountKeeper, *genesisState)
 					},
 				)
+
+				for _, account := range tc.genState.Accounts {
+					if len(account.Code) > 0 {
+						address := common.HexToAddress(account.Address)
+						acct := suite.app.AccountKeeper.GetAccount(suite.ctx, address.Bytes())
+						suite.Require().NotNilf(acct, "account not found: %s", account.Address)
+
+						codeHash := suite.app.EvmKeeper.GetAccountICodeHash(suite.ctx, acct)
+						suite.Falsef(codeHash.IsEmptyCodeHash(), "code hash of account %s is empty", account.Address)
+
+						suite.Equalf(account.Code, hex.EncodeToString(suite.app.EvmKeeper.GetCode(suite.ctx, common.BytesToHash(codeHash.Bytes()))), "code of account %s is not equal", account.Address)
+					}
+
+					if len(account.Storage) > 0 {
+						address := common.HexToAddress(account.Address)
+						storage := suite.app.EvmKeeper.GetAccountStorage(suite.ctx, address)
+
+						suite.Require().Len(storage, len(account.Storage), "storage of account %s is not equal", account.Address)
+					}
+				}
 			}
 		})
 	}

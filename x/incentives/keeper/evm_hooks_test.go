@@ -12,7 +12,6 @@ import (
 
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	evm "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/EscanBE/evermint/v12/x/incentives/types"
 	vestingtypes "github.com/EscanBE/evermint/v12/x/vesting/types"
@@ -40,10 +39,8 @@ func (suite *KeeperTestSuite) TestEvmHooksStoreTxGasUsed() {
 			"from address is not an EOA",
 			func(contractAddr common.Address) {
 				// set a contract account for the address
-				contract := &evertypes.EthAccount{
-					BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(suite.address.Bytes()), nil, 0, 0),
-					CodeHash:    common.BytesToHash(crypto.Keccak256([]byte{0, 1, 2, 2})).String(),
-				}
+				contract := authtypes.NewBaseAccount(sdk.AccAddress(suite.address.Bytes()), nil, 0, 0)
+				suite.app.EvmKeeper.SetAccountICodeHash(suite.ctx, contract, crypto.Keccak256([]byte{0, 1, 2, 2}))
 
 				suite.app.AccountKeeper.SetAccount(suite.ctx, contract)
 				res := suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(1000))
@@ -54,10 +51,7 @@ func (suite *KeeperTestSuite) TestEvmHooksStoreTxGasUsed() {
 		{
 			"correct execution - one tx",
 			func(contractAddr common.Address) {
-				acc := &evertypes.EthAccount{
-					BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(suite.address.Bytes()), nil, 0, 0),
-					CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
-				}
+				acc := authtypes.NewBaseAccount(sdk.AccAddress(suite.address.Bytes()), nil, 0, 0)
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 				res := suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(1000))
@@ -94,10 +88,7 @@ func (suite *KeeperTestSuite) TestEvmHooksStoreTxGasUsed() {
 		{
 			"correct execution - two tx",
 			func(contractAddr common.Address) {
-				acc := &evertypes.EthAccount{
-					BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(suite.address.Bytes()), nil, 0, 0),
-					CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
-				}
+				acc := authtypes.NewBaseAccount(sdk.AccAddress(suite.address.Bytes()), nil, 0, 0)
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 				res := suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(500))
