@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"github.com/EscanBE/evermint/v12/constants"
 	"math/big"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -628,7 +629,7 @@ func (suite *KeeperTestSuite) CreateTestTx(msg *types.MsgEthereumTx, priv crypto
 func (suite *KeeperTestSuite) TestAddLog() {
 	addr, privKey := utiltx.NewAddrKey()
 	ethTxParams := &types.EvmTxArgs{
-		ChainID:  big.NewInt(1),
+		ChainID:  big.NewInt(constants.TestnetEIP155ChainId),
 		Nonce:    0,
 		To:       &suite.address,
 		Amount:   big.NewInt(1),
@@ -644,7 +645,7 @@ func (suite *KeeperTestSuite) TestAddLog() {
 	txHash := msg.AsTransaction().Hash()
 
 	ethTx2Params := &types.EvmTxArgs{
-		ChainID:  big.NewInt(1),
+		ChainID:  big.NewInt(constants.TestnetEIP155ChainId),
 		Nonce:    2,
 		To:       &suite.address,
 		Amount:   big.NewInt(1),
@@ -656,7 +657,7 @@ func (suite *KeeperTestSuite) TestAddLog() {
 	msg2.From = addr.Hex()
 
 	ethTx3Params := &types.EvmTxArgs{
-		ChainID:   big.NewInt(1),
+		ChainID:   big.NewInt(constants.TestnetEIP155ChainId),
 		Nonce:     0,
 		To:        &suite.address,
 		Amount:    big.NewInt(1),
@@ -673,7 +674,7 @@ func (suite *KeeperTestSuite) TestAddLog() {
 	txHash3 := msg3.AsTransaction().Hash()
 
 	ethTx4Params := &types.EvmTxArgs{
-		ChainID:   big.NewInt(1),
+		ChainID:   big.NewInt(constants.TestnetEIP155ChainId),
 		Nonce:     1,
 		To:        &suite.address,
 		Amount:    big.NewInt(1),
