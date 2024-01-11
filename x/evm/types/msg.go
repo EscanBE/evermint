@@ -75,30 +75,23 @@ func newMsgEthereumTx(
 	}
 
 	switch {
-	case tx.Accesses == nil:
-		txData = &LegacyTx{
-			To:       toAddr,
-			Amount:   amt,
-			GasPrice: gp,
-			Nonce:    tx.Nonce,
-			GasLimit: tx.GasLimit,
-			Data:     tx.Input,
-		}
-	case tx.Accesses != nil && tx.GasFeeCap != nil && tx.GasTipCap != nil:
-		gtc := sdkmath.NewIntFromBigInt(tx.GasTipCap)
-		gfc := sdkmath.NewIntFromBigInt(tx.GasFeeCap)
+	case tx.GasTipCap != nil && tx.GasFeeCap != nil:
+		gasTipCap := sdkmath.NewIntFromBigInt(tx.GasTipCap)
+		gasFeeCap := sdkmath.NewIntFromBigInt(tx.GasFeeCap)
 
 		txData = &DynamicFeeTx{
 			ChainID:   cid,
 			Amount:    amt,
 			To:        toAddr,
-			GasTipCap: &gtc,
-			GasFeeCap: &gfc,
+			GasTipCap: &gasTipCap,
+			GasFeeCap: &gasFeeCap,
 			Nonce:     tx.Nonce,
 			GasLimit:  tx.GasLimit,
 			Data:      tx.Input,
 			Accesses:  NewAccessList(tx.Accesses),
 		}
+
+		break
 	case tx.Accesses != nil:
 		txData = &AccessListTx{
 			ChainID:  cid,
@@ -110,7 +103,19 @@ func newMsgEthereumTx(
 			Data:     tx.Input,
 			Accesses: NewAccessList(tx.Accesses),
 		}
+
+		break
 	default:
+		txData = &LegacyTx{
+			To:       toAddr,
+			Amount:   amt,
+			GasPrice: gp,
+			Nonce:    tx.Nonce,
+			GasLimit: tx.GasLimit,
+			Data:     tx.Input,
+		}
+
+		break
 	}
 
 	dataAny, err := PackTxData(txData)
