@@ -35,6 +35,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Unreleased
 
+### Improvements
+
+- (rename-chain) [#81](https://github.com/EscanBE/evermint/pull/81) Sync new changes of function `rename-chain` from `main` branch
+
 # Evermint changelog
 
 #### Note: Evermint was born for development and research purpose so maintainers do not support migration for new upgrade/breaking changes.
