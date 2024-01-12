@@ -53,11 +53,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 - (ante) [#60](https://github.com/EscanBE/evermint/pull/60) Prevent panic when building error message of fee which overflow int64 (backport #59)
-- (evm) [#77](https://github.com/EscanBE/evermint/pull/77) Fix wrong Ethereum Tx type when convert to `MsgEthereumTx` (backport #76)
 
 ### State Machine Breaking
 
 - (ante) [#63](https://github.com/EscanBE/evermint/pull/63) Disable more authz msgs + refactor optimize AuthzLimiterDecorator (backport #62)
+- (evm) [#77](https://github.com/EscanBE/evermint/pull/77) Fix wrong Ethereum Tx type when convert to `MsgEthereumTx` (backport #76)
 
 ## [v12.2.2] - 2024-01-03
 
