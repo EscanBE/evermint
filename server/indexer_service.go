@@ -53,7 +53,8 @@ func (eis *EVMIndexerService) OnStart() error {
 		ctx,
 		ServiceName,
 		types.QueryForEvent(types.EventNewBlockHeader).String(),
-		0)
+		0,
+	)
 	if err != nil {
 		return err
 	}
@@ -73,37 +74,80 @@ func (eis *EVMIndexerService) OnStart() error {
 		}
 	}()
 
-	lastBlock, err := eis.txIdxr.LastIndexedBlock()
+	lastIndexedBlock, err := eis.txIdxr.LastIndexedBlock()
 	if err != nil {
 		return err
 	}
-	if lastBlock == -1 {
-		lastBlock = latestBlock
+	if lastIndexedBlock == -1 {
+		lastIndexedBlock = latestBlock
+	} else if lastIndexedBlock < status.SyncInfo.EarliestBlockHeight {
+		lastIndexedBlock = status.SyncInfo.EarliestBlockHeight
+		// Kinda unsafe, but we don't have a better way to do this.
+		// In-case `EarliestBlockHeight` is zero one some nodes, it will be handled by the failure tracker with threshold.
 	}
+
+	var isIndexerMarkedReady bool
+	startupIndexBlockFailureTracker := make(map[int64]int)
+	const startupIndexBlockFailureThreshold = 10
+	markFailedToIndexBlock := func(h int64) (shouldSkip bool) {
+		if cnt, found := startupIndexBlockFailureTracker[h]; found {
+			cnt++
+			startupIndexBlockFailureTracker[h] = cnt
+			if cnt > startupIndexBlockFailureThreshold {
+				shouldSkip = true
+			}
+		} else {
+			startupIndexBlockFailureTracker[h] = 1
+		}
+
+		return
+	}
+
 	for {
-		if latestBlock <= lastBlock {
+		if lastIndexedBlock >= latestBlock {
 			// nothing to index. wait for signal of new block
+
+			// mark indexer ready if not yet
+			if !isIndexerMarkedReady {
+				isIndexerMarkedReady = true
+
+				for h, _ := range startupIndexBlockFailureTracker {
+					eis.Logger.Error("skipped indexing block after multiple retries", "height", h)
+				}
+			}
+
+			// wait
 			select {
 			case <-newBlockSignal:
 			case <-time.After(NewBlockWaitTimeout):
 			}
 			continue
 		}
-		for i := lastBlock + 1; i <= latestBlock; i++ {
+		for i := lastIndexedBlock + 1; i <= latestBlock; i++ {
 			block, err := eis.client.Block(ctx, &i)
 			if err != nil {
+				if !isIndexerMarkedReady && markFailedToIndexBlock(i) {
+					lastIndexedBlock = i
+				}
 				eis.Logger.Error("failed to fetch block", "height", i, "err", err)
 				break
 			}
 			blockResult, err := eis.client.BlockResults(ctx, &i)
 			if err != nil {
+				if !isIndexerMarkedReady && markFailedToIndexBlock(i) {
+					lastIndexedBlock = i
+				}
 				eis.Logger.Error("failed to fetch block result", "height", i, "err", err)
 				break
 			}
 			if err := eis.txIdxr.IndexBlock(block.Block, blockResult.TxsResults); err != nil {
 				eis.Logger.Error("failed to index block", "height", i, "err", err)
+			} else if !isIndexerMarkedReady {
+				delete(startupIndexBlockFailureTracker, i)
+
+				eis.Logger.Info("indexed block", "height", i)
 			}
-			lastBlock = blockResult.Height
+			lastIndexedBlock = i
 		}
 	}
 }

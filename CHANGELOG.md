@@ -38,6 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 - (rename-chain) [#81](https://github.com/EscanBE/evermint/pull/81) Sync new changes of function `rename-chain` from `main` branch
+- (indexer) [#98](https://github.com/EscanBE/evermint/pull/98) Skip pruned blocks & drop multiple failed-to-index blocks during indexer boot-up process (cherry-pick partially #96)
 
 # Evermint changelog
 
