@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/EscanBE/evermint/v12/utils"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"math/big"
 	"time"
@@ -217,6 +218,7 @@ func (k Keeper) EthCall(c context.Context, req *types.EthCallRequest) (*types.Ms
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
+	ctx = utils.UseZeroGasConfig(ctx)
 
 	var args types.TransactionArgs
 	err := json.Unmarshal(req.Args, &args)
@@ -259,6 +261,7 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
+	ctx = utils.UseZeroGasConfig(ctx)
 	chainID, err := getChainID(ctx, req.ChainId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -400,6 +403,7 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 	ctx = ctx.WithBlockHeight(contextHeight)
 	ctx = ctx.WithBlockTime(req.BlockTime)
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
+	ctx = utils.UseZeroGasConfig(ctx)
 
 	// Only the block max gas from the consensus params is needed to calculate base fee
 	ctx = ctx.WithConsensusParams(&abci.ConsensusParams{
@@ -439,6 +443,7 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 		if err != nil {
 			continue
 		}
+		k.ResetGasMeterAndConsumeGas(ctx, rsp.GasUsed)
 		txConfig.LogIndex += uint(len(rsp.Logs))
 	}
 
@@ -493,6 +498,7 @@ func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest)
 	ctx = ctx.WithBlockHeight(contextHeight)
 	ctx = ctx.WithBlockTime(req.BlockTime)
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
+	ctx = utils.UseZeroGasConfig(ctx)
 
 	// Only the block max gas from the consensus params is needed to calculate base fee
 	ctx = ctx.WithConsensusParams(&abci.ConsensusParams{
@@ -618,12 +624,15 @@ func (k *Keeper) traceTx(
 		}
 	}()
 
+	ctx = utils.UseZeroGasConfig(ctx)
+
 	// reset gas meter per transaction to avoid stacking the gas used of every predecessor in the same gas meter
 	ctx = ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(msg.Gas()))
 	res, err := k.ApplyMessageWithConfig(ctx, msg, tracer, commitMessage, cfg, txConfig)
 	if err != nil {
 		return nil, 0, status.Error(codes.Internal, err.Error())
 	}
+	k.ResetGasMeterAndConsumeGas(ctx, res.GasUsed)
 
 	var result interface{}
 	result, err = tracer.GetResult()

@@ -2,12 +2,12 @@ package keeper
 
 import (
 	"context"
+	"github.com/EscanBE/evermint/v12/utils"
 	"strings"
 
 	"github.com/armon/go-metrics"
 	"github.com/ethereum/go-ethereum/common"
 
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -31,9 +31,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	transientKVGasCfg := ctx.TransientKVGasConfig()
 
 	// use a zero gas config to avoid extra costs for the relayers
-	ctx = ctx.
-		WithKVGasConfig(storetypes.GasConfig{}).
-		WithTransientKVGasConfig(storetypes.GasConfig{})
+	ctx = utils.UseZeroGasConfig(ctx)
 
 	defer func() {
 		// return the KV gas config to initial values
