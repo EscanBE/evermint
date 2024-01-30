@@ -2,8 +2,8 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	"github.com/EscanBE/evermint/v12/utils"
 	"github.com/armon/go-metrics"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -43,9 +43,7 @@ func (k Keeper) OnRecvPacket(
 	}
 
 	// use a zero gas config to avoid extra costs for the relayers
-	ctx = ctx.
-		WithKVGasConfig(storetypes.GasConfig{}).
-		WithTransientKVGasConfig(storetypes.GasConfig{})
+	ctx = utils.UseZeroGasConfig(ctx)
 
 	if !k.IsERC20Enabled(ctx) {
 		return ack
@@ -162,9 +160,7 @@ func (k Keeper) ConvertCoinToERC20FromPacket(ctx sdk.Context, data transfertypes
 	}
 
 	// use a zero gas config to avoid extra costs for the relayers
-	ctx = ctx.
-		WithKVGasConfig(storetypes.GasConfig{}).
-		WithTransientKVGasConfig(storetypes.GasConfig{})
+	ctx = utils.UseZeroGasConfig(ctx)
 
 	// assume that all module accounts on this chain need to have their tokens in the
 	// IBC representation as opposed to ERC20
