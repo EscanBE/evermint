@@ -1,14 +1,14 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/x/feemarket/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -22,7 +22,7 @@ type KeeperTestSuite struct {
 	suite.Suite
 
 	ctx         sdk.Context
-	app         *app.Evermint
+	app         *app.Europa
 	queryClient types.QueryClient
 	address     common.Address
 	consAddress sdk.ConsAddress

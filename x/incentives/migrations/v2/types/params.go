@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/EscanBE/evermint/v12/x/incentives/types"
+	"github.com/europa/europa/v12/x/incentives/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	epochstypes "github.com/EscanBE/evermint/v12/x/epochs/types"
+	epochstypes "github.com/europa/europa/v12/x/epochs/types"
 )
 
 var _ types.LegacyParams = &V2Params{}

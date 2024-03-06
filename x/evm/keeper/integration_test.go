@@ -2,25 +2,25 @@ package keeper_test
 
 import (
 	"encoding/json"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"math/big"
 
 	"cosmossdk.io/math"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/encoding"
-	"github.com/EscanBE/evermint/v12/testutil"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	chainapp "github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/crypto/ethsecp256k1"
+	"github.com/europa/europa/v12/encoding"
+	"github.com/europa/europa/v12/testutil"
+	utiltx "github.com/europa/europa/v12/testutil/tx"
+	"github.com/europa/europa/v12/x/feemarket/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -174,7 +174,7 @@ func setupChain(localMinGasPricesStr string) {
 	// Initialize the app, so we can use SetMinGasPrices to set the
 	// validator-specific min-gas-prices setting
 	db := dbm.NewMemDB()
-	chainApp := chainapp.NewEvermint(
+	chainApp := chainapp.NewEuropa(
 		log.NewNopLogger(),
 		db,
 		nil,

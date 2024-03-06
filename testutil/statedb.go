@@ -1,8 +1,8 @@
 package testutil
 
 import (
-	"github.com/EscanBE/evermint/v12/app/ante/evm"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
+	"github.com/europa/europa/v12/app/ante/evm"
+	"github.com/europa/europa/v12/x/evm/statedb"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 )

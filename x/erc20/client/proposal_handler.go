@@ -3,7 +3,7 @@ package client
 import (
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 
-	"github.com/EscanBE/evermint/v12/x/erc20/client/cli"
+	"github.com/europa/europa/v12/x/erc20/client/cli"
 )
 
 var (

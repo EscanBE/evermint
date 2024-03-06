@@ -1,11 +1,11 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/encoding"
-	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
-	v3types "github.com/EscanBE/evermint/v12/x/erc20/migrations/v3/types"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/encoding"
+	erc20keeper "github.com/europa/europa/v12/x/erc20/keeper"
+	v3types "github.com/europa/europa/v12/x/erc20/migrations/v3/types"
+	"github.com/europa/europa/v12/x/erc20/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"

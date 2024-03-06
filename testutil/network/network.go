@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"net/http"
 	"net/url"
 	"os"
@@ -29,8 +29,8 @@ import (
 	dbm "github.com/tendermint/tm-db"
 	"google.golang.org/grpc"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/crypto/hd"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -52,10 +52,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/EscanBE/evermint/v12/encoding"
-	"github.com/EscanBE/evermint/v12/server/config"
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/encoding"
+	"github.com/europa/europa/v12/server/config"
+	evertypes "github.com/europa/europa/v12/types"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 )
 
 // package-wide network lock to only allow one test network at a time
@@ -124,10 +124,10 @@ func DefaultConfig() Config {
 	}
 }
 
-// NewAppConstructor returns a new Evermint AppConstructor
+// NewAppConstructor returns a new Europa AppConstructor
 func NewAppConstructor(encodingCfg params.EncodingConfig) AppConstructor {
 	return func(val Validator) servertypes.Application {
-		return app.NewEvermint(
+		return app.NewEuropa(
 			val.Ctx.Logger, dbm.NewMemDB(), nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
 			encodingCfg,
 			simapp.EmptyAppOptions{},
@@ -334,7 +334,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 
 		nodeDirName := fmt.Sprintf("node%d", i)
 		nodeDir := filepath.Join(network.BaseDir, nodeDirName, constants.ApplicationHome)
-		clientDir := filepath.Join(network.BaseDir, nodeDirName, "evermintcli")
+		clientDir := filepath.Join(network.BaseDir, nodeDirName, "europacli")
 		gentxsDir := filepath.Join(network.BaseDir, "gentxs")
 
 		err := os.MkdirAll(filepath.Join(nodeDir, "config"), 0o750)

@@ -3,8 +3,8 @@ package v3
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	v3types "github.com/EscanBE/evermint/v12/x/claims/migrations/v3/types"
-	"github.com/EscanBE/evermint/v12/x/claims/types"
+	v3types "github.com/europa/europa/v12/x/claims/migrations/v3/types"
+	"github.com/europa/europa/v12/x/claims/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

@@ -2,11 +2,11 @@ FROM golang:1.20.0-bullseye AS build-env
 
 ARG BRANCH_NAME
 
-WORKDIR /go/src/github.com/EscanBE/
+WORKDIR /go/src/github.com/europa/
 
-RUN git clone "https://github.com/EscanBE/evermint.git"
+RUN git clone "https://github.com/europa/europa.git"
 
-WORKDIR /go/src/github.com/EscanBE/evermint
+WORKDIR /go/src/github.com/europa/europa
 
 RUN apt-get update -y
 
@@ -21,14 +21,14 @@ RUN apt-get update \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /go/src/github.com/EscanBE/evermint
+WORKDIR /go/src/github.com/europa/europa
 
 COPY ./init-node.sh .
 
 # perms to make init-node.sh executable
 RUN chmod +x init-node.sh
 
-COPY --from=build-env /go/src/github.com/EscanBE/evermint/build/evmd /usr/bin/evmd
+COPY --from=build-env /go/src/github.com/europa/europa/build/euscd /usr/bin/euscd
 
 EXPOSE 26656 26657 1317 9090 8545 8546
 

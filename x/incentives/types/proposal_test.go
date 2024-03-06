@@ -1,15 +1,15 @@
 package types_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/incentives/types"
+	utiltx "github.com/europa/europa/v12/testutil/tx"
+	"github.com/europa/europa/v12/x/incentives/types"
 )
 
 type ProposalTestSuite struct {

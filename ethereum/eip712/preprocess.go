@@ -3,7 +3,7 @@ package eip712
 import (
 	"fmt"
 
-	"github.com/EscanBE/evermint/v12/types"
+	"github.com/europa/europa/v12/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cosmoskr "github.com/cosmos/cosmos-sdk/crypto/keyring"

@@ -3,11 +3,11 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/EscanBE/evermint/v12/x/claims/types"
+	"github.com/europa/europa/v12/x/claims/types"
 )
 
 // ClaimCoinsForAction removes the claimable amount entry from a claims record

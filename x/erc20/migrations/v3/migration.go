@@ -1,8 +1,8 @@
 package v3
 
 import (
-	v3types "github.com/EscanBE/evermint/v12/x/erc20/migrations/v3/types"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	v3types "github.com/europa/europa/v12/x/erc20/migrations/v3/types"
+	"github.com/europa/europa/v12/x/erc20/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

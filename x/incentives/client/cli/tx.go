@@ -2,7 +2,7 @@ package cli
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -15,7 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	"github.com/EscanBE/evermint/v12/x/incentives/types"
+	"github.com/europa/europa/v12/x/incentives/types"
 )
 
 // NewRegisterIncentiveProposalCmd implements the command to submit a register

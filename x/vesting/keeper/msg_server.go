@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/europa/europa/v12/types"
 
 	"github.com/armon/go-metrics"
 
@@ -17,7 +17,7 @@ import (
 	vestingexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	sdkvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
-	"github.com/EscanBE/evermint/v12/x/vesting/types"
+	"github.com/europa/europa/v12/x/vesting/types"
 )
 
 var _ types.MsgServer = &Keeper{}

@@ -9,8 +9,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/x/evm/statedb"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 )
 
 // AccountKeeper defines the expected interface needed to retrieve account info.

@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	utiltx "github.com/europa/europa/v12/testutil/tx"
+	"github.com/europa/europa/v12/x/erc20/types"
 )
 
 func (suite *KeeperTestSuite) TestMintingEnabled() {

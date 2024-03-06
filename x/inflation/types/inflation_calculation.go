@@ -3,7 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/europa/europa/v12/types"
 )
 
 // CalculateEpochMintProvision returns mint provision per epoch
@@ -39,9 +39,9 @@ func CalculateEpochMintProvision(
 	// epochProvision = periodProvision / epochsPerPeriod
 	epochProvision := periodProvision.Quo(sdk.NewDec(epochsPerPeriod))
 
-	// Multiply epochMintProvision with power reduction (10^18 for wei) as the
+	// Multiply epochMintProvision with power reduction (10^18 for aeuropa) as the
 	// calculation is based on `ether` and the issued tokens need to be given in
-	// `wei`
+	// `aeuropa`
 	epochProvision = epochProvision.Mul(sdk.NewDecFromInt(evertypes.PowerReduction))
 	return epochProvision
 }

@@ -1,11 +1,11 @@
 #!/bin/bash
 
 KEY="dev0"
-CHAINID="evermint_80808-1"
+CHAINID="europa_80808-1"
 MONIKER="mymoniker"
-BINARY="./evmd"
-MIN_DENOM="wei"
-DATA_DIR=$(mktemp -d -t evermint-datadir.XXXXX)
+BINARY="./euscd"
+MIN_DENOM="aeuropa"
+DATA_DIR=$(mktemp -d -t europa-datadir.XXXXX)
 
 echo "create and add new keys"
 "$BINARY" keys add $KEY --home $DATA_DIR --no-backup --chain-id $CHAINID --algo "eth_secp256k1" --keyring-backend test

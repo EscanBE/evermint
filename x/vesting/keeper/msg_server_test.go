@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/europa/europa/v12/types"
 	vestingexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,9 +12,9 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	sdkvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
-	"github.com/EscanBE/evermint/v12/testutil"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/vesting/types"
+	"github.com/europa/europa/v12/testutil"
+	utiltx "github.com/europa/europa/v12/testutil/tx"
+	"github.com/europa/europa/v12/x/vesting/types"
 )
 
 var (

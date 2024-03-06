@@ -1,13 +1,13 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"time"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/testutil"
-	"github.com/EscanBE/evermint/v12/x/epochs/types"
-	evm "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/testutil"
+	"github.com/europa/europa/v12/x/epochs/types"
+	evm "github.com/europa/europa/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 )
 

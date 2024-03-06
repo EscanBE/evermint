@@ -25,7 +25,7 @@ func EnableObservability() error {
 	// mux := http.NewServeMux()
 	// mux.Handle("/metrics", pe)
 
-	// // TODO: Derive the Prometheus observability exporter from the Evermint config.
+	// // TODO: Derive the Prometheus observability exporter from the Europa config.
 	// addr := ":8877"
 	// go func() {
 	// 	println("Serving the Prometheus observability exporter at", addr)

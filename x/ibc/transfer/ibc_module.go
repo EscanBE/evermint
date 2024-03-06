@@ -1,7 +1,7 @@
 package transfer
 
 import (
-	"github.com/EscanBE/evermint/v12/x/ibc/transfer/keeper"
+	"github.com/europa/europa/v12/x/ibc/transfer/keeper"
 	ibctransfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 )

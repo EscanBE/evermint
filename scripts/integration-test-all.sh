@@ -17,10 +17,10 @@ RPC_PORT="854"
 IP_ADDR="0.0.0.0"
 
 KEY="dev0"
-CHAINID="evermint_80808-1"
+CHAINID="europa_80808-1"
 MONIKER="mymoniker"
-BINARY="evmd"
-MIN_DENOM="wei"
+BINARY="euscd"
+MIN_DENOM="aeuropa"
 
 ## default port prefixes for node
 NODE_P2P_PORT="2660"
@@ -54,14 +54,14 @@ done
 
 set -euxo pipefail
 
-DATA_DIR=$(mktemp -d -t evermint-datadir.XXXXX)
+DATA_DIR=$(mktemp -d -t europa-datadir.XXXXX)
 
 if [[ ! "$DATA_DIR" ]]; then
     echo "Could not create $DATA_DIR"
     exit 1
 fi
 
-# Compile evermint
+# Compile europa
 echo "compiling binary"
 make build
 

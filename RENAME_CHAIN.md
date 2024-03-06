@@ -8,13 +8,13 @@ Step 2: Run `./rename-chain.sh`
 
 Done, you have your own chain now. Try running tests to make sure everything is working fine.
 
-[View example after rename](https://github.com/EscanBE/evermint/pull/1)
+[View example after rename](https://github.com/europa/europa/pull/1)
 ___
 Cleanup notes to be checked after running script:
 - Directory `./rename_chain` is deleted.
 - Script `./rename-chain.sh` is deleted.
-- Make sure the following words, which belong to definition of evermint, are no longer exists:
-  - evmd (binary name)
-  - evermint (git repo + application name)
+- Make sure the following words, which belong to definition of europa, are no longer exists:
+  - euscd (binary name)
+  - europa (git repo + application name)
   - evm1 (bech32 prefix)
   - EscanBE (git owner name)

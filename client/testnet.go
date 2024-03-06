@@ -7,7 +7,7 @@ import (
 	"cosmossdk.io/errors"
 	"encoding/json"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	clientconfig "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/spf13/viper"
 	"net"
@@ -43,13 +43,13 @@ import (
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/EscanBE/evermint/v12/crypto/hd"
-	"github.com/EscanBE/evermint/v12/server/config"
-	srvflags "github.com/EscanBE/evermint/v12/server/flags"
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/crypto/hd"
+	"github.com/europa/europa/v12/server/config"
+	srvflags "github.com/europa/europa/v12/server/flags"
+	evertypes "github.com/europa/europa/v12/types"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 
-	"github.com/EscanBE/evermint/v12/testutil/network"
+	"github.com/europa/europa/v12/testutil/network"
 )
 
 var (

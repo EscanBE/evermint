@@ -1,14 +1,14 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"strconv"
 
-	"github.com/EscanBE/evermint/v12/app"
-	ibctesting "github.com/EscanBE/evermint/v12/ibc/testing"
-	claimstypes "github.com/EscanBE/evermint/v12/x/claims/types"
-	inflationtypes "github.com/EscanBE/evermint/v12/x/inflation/types"
-	"github.com/EscanBE/evermint/v12/x/recovery/types"
+	"github.com/europa/europa/v12/app"
+	ibctesting "github.com/europa/europa/v12/ibc/testing"
+	claimstypes "github.com/europa/europa/v12/x/claims/types"
+	inflationtypes "github.com/europa/europa/v12/x/inflation/types"
+	"github.com/europa/europa/v12/x/recovery/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -39,30 +39,30 @@ func CreatePacket(amount, denom, sender, receiver, srcPort, srcChannel, dstPort,
 func (suite *IBCTestingSuite) SetupTest() {
 	// initializes 3 test chains
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1, 2)
-	suite.EvermintChain = suite.coordinator.GetChain(ibcgotesting.GetChainID(1))
+	suite.EuropaChain = suite.coordinator.GetChain(ibcgotesting.GetChainID(1))
 	suite.IBCOsmosisChain = suite.coordinator.GetChain(ibcgotesting.GetChainID(2))
 	suite.IBCCosmosChain = suite.coordinator.GetChain(ibcgotesting.GetChainID(3))
-	suite.coordinator.CommitNBlocks(suite.EvermintChain, 2)
+	suite.coordinator.CommitNBlocks(suite.EuropaChain, 2)
 	suite.coordinator.CommitNBlocks(suite.IBCOsmosisChain, 2)
 	suite.coordinator.CommitNBlocks(suite.IBCCosmosChain, 2)
 
-	// Mint coins locked on the evermint account generated with secp.
+	// Mint coins locked on the europa account generated with secp.
 	amt, ok := sdk.NewIntFromString("1000000000000000000000")
 	suite.Require().True(ok)
 	nativeCoin := sdk.NewCoin(constants.BaseDenom, amt)
 	coins := sdk.NewCoins(nativeCoin)
-	err := suite.EvermintChain.App.(*app.Evermint).BankKeeper.MintCoins(suite.EvermintChain.GetContext(), inflationtypes.ModuleName, coins)
+	err := suite.EuropaChain.App.(*app.Europa).BankKeeper.MintCoins(suite.EuropaChain.GetContext(), inflationtypes.ModuleName, coins)
 	suite.Require().NoError(err)
 
 	// Fund sender address to pay fees
-	err = suite.EvermintChain.App.(*app.Evermint).BankKeeper.SendCoinsFromModuleToAccount(suite.EvermintChain.GetContext(), inflationtypes.ModuleName, suite.EvermintChain.SenderAccount.GetAddress(), coins)
+	err = suite.EuropaChain.App.(*app.Europa).BankKeeper.SendCoinsFromModuleToAccount(suite.EuropaChain.GetContext(), inflationtypes.ModuleName, suite.EuropaChain.SenderAccount.GetAddress(), coins)
 	suite.Require().NoError(err)
 
 	nativeCoin = sdk.NewCoin(constants.BaseDenom, sdk.NewInt(10000))
 	coins = sdk.NewCoins(nativeCoin)
-	err = suite.EvermintChain.App.(*app.Evermint).BankKeeper.MintCoins(suite.EvermintChain.GetContext(), inflationtypes.ModuleName, coins)
+	err = suite.EuropaChain.App.(*app.Europa).BankKeeper.MintCoins(suite.EuropaChain.GetContext(), inflationtypes.ModuleName, coins)
 	suite.Require().NoError(err)
-	err = suite.EvermintChain.App.(*app.Evermint).BankKeeper.SendCoinsFromModuleToAccount(suite.EvermintChain.GetContext(), inflationtypes.ModuleName, suite.IBCOsmosisChain.SenderAccount.GetAddress(), coins)
+	err = suite.EuropaChain.App.(*app.Europa).BankKeeper.SendCoinsFromModuleToAccount(suite.EuropaChain.GetContext(), inflationtypes.ModuleName, suite.IBCOsmosisChain.SenderAccount.GetAddress(), coins)
 	suite.Require().NoError(err)
 
 	// Mint coins on the osmosis side which we'll use to unlock our native coin
@@ -95,30 +95,30 @@ func (suite *IBCTestingSuite) SetupTest() {
 	suite.Require().NoError(err)
 
 	claimparams := claimstypes.DefaultParams()
-	claimparams.AirdropStartTime = suite.EvermintChain.GetContext().BlockTime()
+	claimparams.AirdropStartTime = suite.EuropaChain.GetContext().BlockTime()
 	claimparams.EnableClaims = true
-	err = suite.EvermintChain.App.(*app.Evermint).ClaimsKeeper.SetParams(suite.EvermintChain.GetContext(), claimparams)
+	err = suite.EuropaChain.App.(*app.Europa).ClaimsKeeper.SetParams(suite.EuropaChain.GetContext(), claimparams)
 	suite.Require().NoError(err)
 
 	params := types.DefaultParams()
 	params.EnableRecovery = true
-	err = suite.EvermintChain.App.(*app.Evermint).RecoveryKeeper.SetParams(suite.EvermintChain.GetContext(), params)
+	err = suite.EuropaChain.App.(*app.Europa).RecoveryKeeper.SetParams(suite.EuropaChain.GetContext(), params)
 	suite.Require().NoError(err)
 
-	evmParams := suite.EvermintChain.App.(*app.Evermint).EvmKeeper.GetParams(s.EvermintChain.GetContext())
+	evmParams := suite.EuropaChain.App.(*app.Europa).EvmKeeper.GetParams(s.EuropaChain.GetContext())
 	evmParams.EvmDenom = constants.BaseDenom
-	err = suite.EvermintChain.App.(*app.Evermint).EvmKeeper.SetParams(s.EvermintChain.GetContext(), evmParams)
+	err = suite.EuropaChain.App.(*app.Europa).EvmKeeper.SetParams(s.EuropaChain.GetContext(), evmParams)
 	suite.Require().NoError(err)
 
-	suite.pathOsmosisEvermint = ibctesting.NewTransferPath(suite.IBCOsmosisChain, suite.EvermintChain) // clientID, connectionID, channelID empty
-	suite.pathCosmosEvermint = ibctesting.NewTransferPath(suite.IBCCosmosChain, suite.EvermintChain)
+	suite.pathOsmosisEuropa = ibctesting.NewTransferPath(suite.IBCOsmosisChain, suite.EuropaChain) // clientID, connectionID, channelID empty
+	suite.pathCosmosEuropa = ibctesting.NewTransferPath(suite.IBCCosmosChain, suite.EuropaChain)
 	suite.pathOsmosisCosmos = ibctesting.NewTransferPath(suite.IBCCosmosChain, suite.IBCOsmosisChain)
-	ibctesting.SetupPath(suite.coordinator, suite.pathOsmosisEvermint) // clientID, connectionID, channelID filled
-	ibctesting.SetupPath(suite.coordinator, suite.pathCosmosEvermint)
+	ibctesting.SetupPath(suite.coordinator, suite.pathOsmosisEuropa) // clientID, connectionID, channelID filled
+	ibctesting.SetupPath(suite.coordinator, suite.pathCosmosEuropa)
 	ibctesting.SetupPath(suite.coordinator, suite.pathOsmosisCosmos)
-	suite.Require().Equal("07-tendermint-0", suite.pathOsmosisEvermint.EndpointA.ClientID)
-	suite.Require().Equal("connection-0", suite.pathOsmosisEvermint.EndpointA.ConnectionID)
-	suite.Require().Equal("channel-0", suite.pathOsmosisEvermint.EndpointA.ChannelID)
+	suite.Require().Equal("07-tendermint-0", suite.pathOsmosisEuropa.EndpointA.ClientID)
+	suite.Require().Equal("connection-0", suite.pathOsmosisEuropa.EndpointA.ConnectionID)
+	suite.Require().Equal("channel-0", suite.pathOsmosisEuropa.EndpointA.ChannelID)
 }
 
 var timeoutHeight = clienttypes.NewHeight(1000, 1000)

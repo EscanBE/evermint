@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	"github.com/europa/europa/v12/x/feemarket/types"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"

@@ -1,7 +1,7 @@
 package upgrade
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"os"
 	"testing"
 
@@ -43,10 +43,10 @@ func TestLoadUpgradeParams(t *testing.T) {
 				targetVersion:  "v0.2.0",
 				chainID:        constants.DevnetChainID,
 				skipCleanup:    "true",
-				mountPath:      "/tmp/evermint",
+				mountPath:      "/tmp/europa",
 			},
 			want: Params{
-				MountPath: "/tmp/evermint",
+				MountPath: "/tmp/europa",
 				Versions: []VersionConfig{
 					{"v0.1.0", "v0.1.0", dockerRepo},
 					{"v0.2.0", "v0.2.0", dockerRepo},

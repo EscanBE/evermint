@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
 

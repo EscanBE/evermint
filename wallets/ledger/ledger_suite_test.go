@@ -3,7 +3,7 @@ package ledger_test
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"regexp"
 	"testing"
 
@@ -19,9 +19,9 @@ import (
 	auxTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/EscanBE/evermint/v12/wallets/ledger"
-	"github.com/EscanBE/evermint/v12/wallets/ledger/mocks"
-	"github.com/EscanBE/evermint/v12/wallets/usbwallet"
+	"github.com/europa/europa/v12/wallets/ledger"
+	"github.com/europa/europa/v12/wallets/ledger/mocks"
+	"github.com/europa/europa/v12/wallets/usbwallet"
 )
 
 type LedgerTestSuite struct {

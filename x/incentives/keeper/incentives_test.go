@@ -5,7 +5,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/EscanBE/evermint/v12/x/incentives/types"
+	"github.com/europa/europa/v12/x/incentives/types"
 )
 
 func (suite *KeeperTestSuite) TestGetAllIncentives() {

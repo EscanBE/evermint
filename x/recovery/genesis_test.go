@@ -2,7 +2,7 @@ package recovery_test
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"testing"
 	"time"
 
@@ -13,12 +13,12 @@ import (
 	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
 	"github.com/tendermint/tendermint/version"
 
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	utiltx "github.com/europa/europa/v12/testutil/tx"
+	feemarkettypes "github.com/europa/europa/v12/x/feemarket/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/x/recovery"
-	"github.com/EscanBE/evermint/v12/x/recovery/types"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/x/recovery"
+	"github.com/europa/europa/v12/x/recovery/types"
 )
 
 type GenesisTestSuite struct {
@@ -26,7 +26,7 @@ type GenesisTestSuite struct {
 
 	ctx sdk.Context
 
-	app     *app.Evermint
+	app     *app.Europa
 	genesis types.GenesisState
 }
 

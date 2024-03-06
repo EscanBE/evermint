@@ -4,8 +4,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/EscanBE/evermint/v12/x/revenue/v1/keeper"
-	"github.com/EscanBE/evermint/v12/x/revenue/v1/types"
+	"github.com/europa/europa/v12/x/revenue/v1/keeper"
+	"github.com/europa/europa/v12/x/revenue/v1/types"
 )
 
 // InitGenesis import module genesis

@@ -2,7 +2,7 @@ package types_test
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"math"
 	"math/big"
 	"reflect"
@@ -12,8 +12,8 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
+	"github.com/europa/europa/v12/crypto/ethsecp256k1"
+	utiltx "github.com/europa/europa/v12/testutil/tx"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,9 +21,9 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/encoding"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/encoding"
+	"github.com/europa/europa/v12/x/evm/types"
 )
 
 const invalidAddress = "0x0000"

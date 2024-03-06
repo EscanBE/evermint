@@ -4,7 +4,7 @@ import (
 	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
-	evmante "github.com/EscanBE/evermint/v12/app/ante/evm"
+	evmante "github.com/europa/europa/v12/app/ante/evm"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 )

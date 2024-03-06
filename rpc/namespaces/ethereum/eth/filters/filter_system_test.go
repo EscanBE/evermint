@@ -3,7 +3,7 @@ package filters
 import (
 	"context"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/rpc/ethereum/pubsub"
+	"github.com/europa/europa/v12/rpc/ethereum/pubsub"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/eth/filters"

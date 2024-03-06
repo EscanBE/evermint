@@ -2,7 +2,7 @@ package backend
 
 import (
 	"bufio"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -19,14 +19,14 @@ import (
 	"github.com/stretchr/testify/suite"
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/crypto/hd"
-	"github.com/EscanBE/evermint/v12/encoding"
-	"github.com/EscanBE/evermint/v12/indexer"
-	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/crypto/hd"
+	"github.com/europa/europa/v12/encoding"
+	"github.com/europa/europa/v12/indexer"
+	"github.com/europa/europa/v12/rpc/backend/mocks"
+	rpctypes "github.com/europa/europa/v12/rpc/types"
+	utiltx "github.com/europa/europa/v12/testutil/tx"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 )
 
 type BackendTestSuite struct {
@@ -51,7 +51,7 @@ func (suite *BackendTestSuite) SetupTest() {
 
 	baseDir := suite.T().TempDir()
 	nodeDirName := "node"
-	clientDir := filepath.Join(baseDir, nodeDirName, "evermintcli")
+	clientDir := filepath.Join(baseDir, nodeDirName, "europacli")
 	keyRing, err := suite.generateTestKeyring(clientDir)
 	if err != nil {
 		panic(err)

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
+	"github.com/europa/europa/v12/x/evm/statedb"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"

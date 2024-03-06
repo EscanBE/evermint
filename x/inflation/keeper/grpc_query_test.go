@@ -3,11 +3,11 @@ package keeper_test
 import (
 	"cosmossdk.io/math"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	"github.com/EscanBE/evermint/v12/x/inflation/types"
+	evertypes "github.com/europa/europa/v12/types"
+	"github.com/europa/europa/v12/x/inflation/types"
 )
 
 func (suite *KeeperTestSuite) TestPeriod() { //nolint:dupl

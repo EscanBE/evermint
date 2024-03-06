@@ -2,8 +2,7 @@ package claims_test
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+	"github.com/europa/europa/v12/constants"
 	"testing"
 	"time"
 
@@ -14,12 +13,12 @@ import (
 	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
 	"github.com/tendermint/tendermint/version"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/testutil"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/claims"
-	"github.com/EscanBE/evermint/v12/x/claims/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/testutil"
+	utiltx "github.com/europa/europa/v12/testutil/tx"
+	"github.com/europa/europa/v12/x/claims"
+	"github.com/europa/europa/v12/x/claims/types"
+	feemarkettypes "github.com/europa/europa/v12/x/feemarket/types"
 )
 
 type GenesisTestSuite struct {
@@ -27,7 +26,7 @@ type GenesisTestSuite struct {
 
 	ctx sdk.Context
 
-	app     *app.Evermint
+	app     *app.Europa
 	genesis types.GenesisState
 }
 
@@ -80,8 +79,8 @@ func TestGenesisTestSuite(t *testing.T) {
 }
 
 var (
-	acc1 = sdk.MustAccAddressFromBech32(marker.ReplaceAbleAddress("evm1qxx0fdsmruzuar2fay88lfw6sce6emamyuyrg4vf"))
-	acc2 = sdk.MustAccAddressFromBech32(marker.ReplaceAbleAddress("evm1nsrs4t7dngkdltehkm3p6n8dp22sz3mcp720n4"))
+	acc1 = sdk.MustAccAddressFromBech32("europa1qxx0fdsmruzuar2fay88lfw6sce6emamyun9pzr0")
+	acc2 = sdk.MustAccAddressFromBech32("europa1nsrs4t7dngkdltehkm3p6n8dp22sz3mckhulg3")
 )
 
 func (suite *GenesisTestSuite) TestClaimInitGenesis() {

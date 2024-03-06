@@ -1,9 +1,9 @@
 package keeper
 
 import (
-	v4 "github.com/EscanBE/evermint/v12/x/evm/migrations/v4"
-	v5 "github.com/EscanBE/evermint/v12/x/evm/migrations/v5"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	v4 "github.com/europa/europa/v12/x/evm/migrations/v4"
+	v5 "github.com/europa/europa/v12/x/evm/migrations/v5"
+	"github.com/europa/europa/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

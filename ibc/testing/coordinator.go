@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/EscanBE/evermint/v12/app"
+	"github.com/europa/europa/v12/app"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -18,7 +18,7 @@ const DefaultFeeAmt = int64(150_000_000_000_000_000) // 0.15 EVMOS
 
 var globalStartTime = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 
-// NewCoordinator initializes Coordinator with N EVM TestChain's (Evermint apps) and M Cosmos chains (Simulation Apps)
+// NewCoordinator initializes Coordinator with N EVM TestChain's (Europa apps) and M Cosmos chains (Simulation Apps)
 func NewCoordinator(t *testing.T, nEVMChains, mCosmosChains int) *ibctesting.Coordinator {
 	chains := make(map[string]*ibctesting.TestChain)
 	coord := &ibctesting.Coordinator{
@@ -124,8 +124,8 @@ func SendMsgs(chain *ibctesting.TestChain, feeAmt int64, msgs ...sdk.Msg) (*sdk.
 	// ensure the chain has the latest time
 	chain.Coordinator.UpdateTimeForChain(chain)
 
-	if evermintChain, ok := chain.App.(*app.Evermint); ok {
-		bondDenom = evermintChain.StakingKeeper.BondDenom(chain.GetContext())
+	if europaChain, ok := chain.App.(*app.Europa); ok {
+		bondDenom = europaChain.StakingKeeper.BondDenom(chain.GetContext())
 	} else {
 		bondDenom = chain.GetSimApp().StakingKeeper.BondDenom(chain.GetContext())
 	}

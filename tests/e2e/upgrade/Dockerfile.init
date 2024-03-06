@@ -1,6 +1,6 @@
 # argument to provide specific version of node
 ARG INITIAL_VERSION
-FROM EscanBE/evermint:$INITIAL_VERSION
+FROM europa/europa:$INITIAL_VERSION
 
 # jq needs to perform changes of node parameters
 RUN apt-get update \ 
@@ -9,7 +9,7 @@ RUN apt-get update \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /go/src/github.com/EscanBE/evermint
+WORKDIR /go/src/github.com/europa/europa
 
 COPY ./init-node.sh .
 

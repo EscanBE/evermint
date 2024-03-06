@@ -7,9 +7,9 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	"github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	rpctypes "github.com/europa/europa/v12/rpc/types"
+	"github.com/europa/europa/v12/types"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"

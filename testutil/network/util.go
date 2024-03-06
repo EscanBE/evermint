@@ -3,7 +3,7 @@ package network
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"path/filepath"
 	"time"
 
@@ -17,7 +17,7 @@ import (
 	"github.com/tendermint/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
-	inflationtypes "github.com/EscanBE/evermint/v12/x/inflation/types"
+	inflationtypes "github.com/europa/europa/v12/x/inflation/types"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	servergrpc "github.com/cosmos/cosmos-sdk/server/grpc"
 	srvtypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -30,8 +30,8 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/EscanBE/evermint/v12/server"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/server"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 )
 
 func startInProcess(cfg Config, val *Validator) error {

@@ -1,16 +1,16 @@
 package indexer_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"math/big"
 	"testing"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	evmenc "github.com/EscanBE/evermint/v12/encoding"
-	"github.com/EscanBE/evermint/v12/indexer"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/crypto/ethsecp256k1"
+	evmenc "github.com/europa/europa/v12/encoding"
+	"github.com/europa/europa/v12/indexer"
+	utiltx "github.com/europa/europa/v12/testutil/tx"
+	"github.com/europa/europa/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/ethereum/go-ethereum/common"

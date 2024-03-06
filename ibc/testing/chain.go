@@ -2,7 +2,7 @@ package ibctesting
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -20,9 +20,9 @@ import (
 	ibcgotesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/cosmos/ibc-go/v6/testing/mock"
 
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/crypto/ethsecp256k1"
+	evertypes "github.com/europa/europa/v12/types"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 )
 
 // ChainIDPrefix defines the default chain ID prefix for our test chains

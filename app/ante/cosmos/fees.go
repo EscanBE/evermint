@@ -5,7 +5,7 @@ import (
 	"math"
 
 	errorsmod "cosmossdk.io/errors"
-	anteutils "github.com/EscanBE/evermint/v12/app/ante/utils"
+	anteutils "github.com/europa/europa/v12/app/ante/utils"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"

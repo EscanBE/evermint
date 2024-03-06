@@ -1,11 +1,11 @@
 package types_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"strings"
 	"testing"
 
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	"github.com/europa/europa/v12/x/erc20/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/require"
@@ -57,12 +57,12 @@ func TestEqualMetadata(t *testing.T) {
 		Display:     constants.DisplayDenom,
 		Name:        "Ether",
 		Symbol:      constants.SymbolDenom,
-		Description: "EVM, staking and governance denom of Evermint",
+		Description: "EVM, staking and governance denom of Europa",
 		DenomUnits: []*banktypes.DenomUnit{
 			{
 				Denom:    constants.BaseDenom,
 				Exponent: 0,
-				Aliases:  []string{"micro wei"},
+				Aliases:  []string{"micro aeuropa"},
 			},
 			{
 				Denom:    constants.DisplayDenom,
@@ -101,12 +101,12 @@ func TestEqualMetadata(t *testing.T) {
 				Display:     constants.DisplayDenom,
 				Name:        "Ether",
 				Symbol:      constants.SymbolDenom,
-				Description: "EVM, staking and governance denom of Evermint",
+				Description: "EVM, staking and governance denom of Europa",
 				DenomUnits: []*banktypes.DenomUnit{
 					{
 						Denom:    constants.BaseDenom,
 						Exponent: 0,
-						Aliases:  []string{"micro wei"},
+						Aliases:  []string{"micro aeuropa"},
 					},
 				},
 			},
@@ -119,17 +119,17 @@ func TestEqualMetadata(t *testing.T) {
 				Display:     constants.DisplayDenom,
 				Name:        "Ether",
 				Symbol:      constants.SymbolDenom,
-				Description: "EVM, staking and governance denom of Evermint",
+				Description: "EVM, staking and governance denom of Europa",
 				DenomUnits: []*banktypes.DenomUnit{
 					{
 						Denom:    constants.BaseDenom,
 						Exponent: 0,
-						Aliases:  []string{"micro wei"},
+						Aliases:  []string{"micro aeuropa"},
 					},
 					{
 						Denom:    "g" + constants.BaseDenom[1:],
 						Exponent: 12,
-						Aliases:  []string{"gas wei"},
+						Aliases:  []string{"gas aeuropa"},
 					},
 					{
 						Denom:    constants.DisplayDenom,
@@ -142,17 +142,17 @@ func TestEqualMetadata(t *testing.T) {
 				Display:     constants.DisplayDenom,
 				Name:        "Ether",
 				Symbol:      constants.SymbolDenom,
-				Description: "EVM, staking and governance denom of Evermint",
+				Description: "EVM, staking and governance denom of Europa",
 				DenomUnits: []*banktypes.DenomUnit{
 					{
 						Denom:    constants.BaseDenom,
 						Exponent: 0,
-						Aliases:  []string{"micro wei"},
+						Aliases:  []string{"micro aeuropa"},
 					},
 					{
 						Denom:    "m" + constants.BaseDenom[1:],
 						Exponent: 12,
-						Aliases:  []string{"milli wei"},
+						Aliases:  []string{"milli aeuropa"},
 					},
 					{
 						Denom:    constants.DisplayDenom,
@@ -190,25 +190,25 @@ func TestEqualAliases(t *testing.T) {
 		{
 			"different lengths",
 			[]string{},
-			[]string{"micro wei"},
+			[]string{"micro aeuropa"},
 			false,
 		},
 		{
 			"different values",
-			[]string{"microwei"},
-			[]string{"micro wei"},
+			[]string{"microaeuropa"},
+			[]string{"micro aeuropa"},
 			false,
 		},
 		{
 			"same values, unsorted",
-			[]string{"micro wei", constants.BaseDenom},
-			[]string{constants.BaseDenom, "micro wei"},
+			[]string{"micro aeuropa", constants.BaseDenom},
+			[]string{constants.BaseDenom, "micro aeuropa"},
 			false,
 		},
 		{
 			"same values, sorted",
-			[]string{constants.BaseDenom, "micro wei"},
-			[]string{constants.BaseDenom, "micro wei"},
+			[]string{constants.BaseDenom, "micro aeuropa"},
+			[]string{constants.BaseDenom, "micro aeuropa"},
 			true,
 		},
 	}

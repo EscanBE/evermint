@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"math/big"
 
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/EscanBE/evermint/v12/contracts"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	"github.com/europa/europa/v12/contracts"
+	"github.com/europa/europa/v12/x/erc20/types"
 )
 
 var _ evmtypes.EvmHooks = Hooks{}

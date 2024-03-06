@@ -8,7 +8,7 @@ import (
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 	"github.com/tendermint/tendermint/types"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/europa/europa/v12/types"
 )
 
 const (

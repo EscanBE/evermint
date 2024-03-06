@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
+	"github.com/europa/europa/v12/crypto/ethsecp256k1"
 )
 
 const (
@@ -25,7 +25,7 @@ var (
 	//  - eth_secp256k1 (Ethereum)
 	//  - secp256k1 (Tendermint)
 	SupportedAlgorithms = keyring.SigningAlgoList{EthSecp256k1, hd.Secp256k1}
-	// SupportedAlgorithmsLedger defines the list of signing algorithms used on Evermint for the Ledger device:
+	// SupportedAlgorithmsLedger defines the list of signing algorithms used on Europa for the Ledger device:
 	//  - eth_secp256k1 (Ethereum)
 	//  - secp256k1 (Tendermint)
 	SupportedAlgorithmsLedger = keyring.SigningAlgoList{EthSecp256k1, hd.Secp256k1}

@@ -12,10 +12,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evertypes "github.com/europa/europa/v12/types"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 
-	"github.com/EscanBE/evermint/v12/x/incentives/types"
+	"github.com/europa/europa/v12/x/incentives/types"
 )
 
 var _ = Describe("Performing EVM transactions", Ordered, func() {

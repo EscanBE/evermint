@@ -3,12 +3,12 @@ package eip712_test
 import (
 	"bytes"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"testing"
 
 	"cosmossdk.io/math"
 
-	"github.com/EscanBE/evermint/v12/ethereum/eip712"
+	"github.com/europa/europa/v12/ethereum/eip712"
 	"github.com/cosmos/cosmos-sdk/client"
 	chainparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -16,12 +16,12 @@ import (
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
+	"github.com/europa/europa/v12/crypto/ethsecp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/encoding"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/encoding"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"

@@ -14,10 +14,10 @@ import (
 
 	proto "github.com/gogo/protobuf/proto"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/encoding"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/encoding"
+	utiltx "github.com/europa/europa/v12/testutil/tx"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 
 	"github.com/stretchr/testify/require"
 )

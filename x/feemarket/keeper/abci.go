@@ -3,7 +3,7 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	"github.com/europa/europa/v12/x/feemarket/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdkmath "cosmossdk.io/math"

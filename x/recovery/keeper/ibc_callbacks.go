@@ -16,9 +16,9 @@ import (
 	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 
-	"github.com/EscanBE/evermint/v12/ibc"
-	"github.com/EscanBE/evermint/v12/utils"
-	"github.com/EscanBE/evermint/v12/x/recovery/types"
+	"github.com/europa/europa/v12/ibc"
+	"github.com/europa/europa/v12/utils"
+	"github.com/europa/europa/v12/x/recovery/types"
 )
 
 // OnRecvPacket performs an IBC receive callback. It returns the tokens that
@@ -222,7 +222,7 @@ func (k Keeper) OnRecvPacket(
 }
 
 // GetIBCDenomDestinationIdentifiers returns the destination port and channel of
-// the IBC denomination, i.e port and channel on Evermint for the voucher. It
+// the IBC denomination, i.e port and channel on Europa for the voucher. It
 // returns an error if:
 //   - the denomination is invalid
 //   - the denom trace is not found on the store

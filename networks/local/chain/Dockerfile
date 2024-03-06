@@ -6,7 +6,7 @@ RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y $PACKAGES
 
 # Set working directory for the build
-WORKDIR /go/src/github.com/EscanBE/evermint
+WORKDIR /go/src/github.com/europa/europa
 
 # Add source files
 COPY . .
@@ -22,8 +22,8 @@ WORKDIR /
 RUN apt-get update
 
 # Copy over binaries from the build-env
-COPY --from=build-env /go/src/github.com/EscanBE/evermint/build/evmd /
-COPY --from=build-env /go/src/github.com/EscanBE/evermint/scripts/start-docker.sh /
+COPY --from=build-env /go/src/github.com/europa/europa/build/euscd /
+COPY --from=build-env /go/src/github.com/europa/europa/scripts/start-docker.sh /
 
 EXPOSE 26656 26657 1317 9090 8545 8546
 

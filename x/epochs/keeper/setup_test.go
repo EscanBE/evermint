@@ -9,17 +9,17 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
-	evm "github.com/EscanBE/evermint/v12/x/evm/types"
+	evm "github.com/europa/europa/v12/x/evm/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/x/epochs/types"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/x/epochs/types"
 )
 
 type KeeperTestSuite struct {
 	suite.Suite
 
 	ctx            sdk.Context
-	app            *app.Evermint
+	app            *app.Europa
 	queryClientEvm evm.QueryClient
 	queryClient    types.QueryClient
 	consAddress    sdk.ConsAddress

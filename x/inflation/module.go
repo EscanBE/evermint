@@ -19,9 +19,9 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/EscanBE/evermint/v12/x/inflation/client/cli"
-	"github.com/EscanBE/evermint/v12/x/inflation/keeper"
-	"github.com/EscanBE/evermint/v12/x/inflation/types"
+	"github.com/europa/europa/v12/x/inflation/client/cli"
+	"github.com/europa/europa/v12/x/inflation/keeper"
+	"github.com/europa/europa/v12/x/inflation/types"
 )
 
 // type check to ensure the interface is properly implemented

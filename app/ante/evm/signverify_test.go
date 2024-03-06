@@ -3,10 +3,10 @@ package evm_test
 import (
 	"math/big"
 
-	ethante "github.com/EscanBE/evermint/v12/app/ante/evm"
-	"github.com/EscanBE/evermint/v12/testutil"
-	testutiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	ethante "github.com/europa/europa/v12/app/ante/evm"
+	"github.com/europa/europa/v12/testutil"
+	testutiltx "github.com/europa/europa/v12/testutil/tx"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )

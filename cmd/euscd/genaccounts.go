@@ -20,13 +20,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
-	"github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/types"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 
-	appkeyring "github.com/EscanBE/evermint/v12/crypto/keyring"
+	appkeyring "github.com/europa/europa/v12/crypto/keyring"
 
-	vestingcli "github.com/EscanBE/evermint/v12/x/vesting/client/cli"
-	vestingtypes "github.com/EscanBE/evermint/v12/x/vesting/types"
+	vestingcli "github.com/europa/europa/v12/x/vesting/client/cli"
+	vestingtypes "github.com/europa/europa/v12/x/vesting/types"
 )
 
 const (

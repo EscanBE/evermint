@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	feemarketkeeper "github.com/EscanBE/evermint/v12/x/feemarket/keeper"
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarketkeeper "github.com/europa/europa/v12/x/feemarket/keeper"
+	"github.com/europa/europa/v12/x/feemarket/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

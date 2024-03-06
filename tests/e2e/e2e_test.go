@@ -2,7 +2,7 @@ package e2e
 
 import (
 	"context"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"strings"
 )
 

@@ -22,8 +22,8 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 
-	"github.com/EscanBE/evermint/v12/rpc/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/rpc/types"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 	"github.com/tendermint/tendermint/proto/tendermint/crypto"
 )
 

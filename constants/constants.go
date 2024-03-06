@@ -9,13 +9,13 @@ import (
 // App
 
 const (
-	ApplicationName = "evermint"
+	ApplicationName = "europa"
 
-	ApplicationBinaryName = "evmd"
+	ApplicationBinaryName = "euscd"
 
-	ApplicationHome = ".evermint"
+	ApplicationHome = ".euscd"
 
-	GitHubRepo = "https://github.com/EscanBE/evermint" // must be well-formed url pattern: "https://github.com/owner/repo"
+	GitHubRepo = "https://github.com/europa/europa"
 )
 
 // Denom
@@ -31,11 +31,11 @@ const (
 	//
 	// During code, we will use the term 'native coin' for this denomination
 	// so other developers can take advantage of renaming constants when forking this project.
-	BaseDenom = "wei"
+	BaseDenom = "aeuropa"
 
-	DisplayDenom = "ether"
+	DisplayDenom = "europa"
 
-	SymbolDenom = "ETH"
+	SymbolDenom = "EUROPA"
 
 	BaseDenomExponent = 18
 )
@@ -44,7 +44,7 @@ const (
 
 const (
 	// Bech32Prefix is the HRP (human-readable part) of the Bech32 encoded address of this chain
-	Bech32Prefix = "evm"
+	Bech32Prefix = "europa"
 
 	// Bech32PrefixAccAddr defines the Bech32 prefix of an account's address
 	Bech32PrefixAccAddr = Bech32Prefix
@@ -68,20 +68,20 @@ const (
 // Chain ID
 
 const (
-	ChainIdPrefix = "evermint"
+	ChainIdPrefix = "eusc"
 
 	// MainnetChainID defines the Cosmos-style EIP155 chain ID for mainnet
-	MainnetChainID = ChainIdPrefix + "_90909"
+	MainnetChainID = ChainIdPrefix + "_3333"
 	// TestnetChainID defines the Cosmos-style EIP155 chain ID for testnet
-	TestnetChainID = ChainIdPrefix + "_80808"
+	TestnetChainID = ChainIdPrefix + "_2222"
 	// DevnetChainID defines the Cosmos-style EIP155 chain ID for devnet
-	DevnetChainID = ChainIdPrefix + "_70707"
+	DevnetChainID = ChainIdPrefix + "_1111"
 
 	MainnetFullChainId = MainnetChainID + "-1"
 	TestnetFullChainId = TestnetChainID + "-1"
-	DevnetFullChainId  = DevnetChainID + "-1"
+	DevnetFullChainId  = DevnetChainID + "-4"
 
-	MainnetEIP155ChainId = 90909
-	TestnetEIP155ChainId = 80808
-	DevnetEIP155ChainId  = 70707
+	MainnetEIP155ChainId = 3333
+	TestnetEIP155ChainId = 2222
+	DevnetEIP155ChainId  = 1111
 )

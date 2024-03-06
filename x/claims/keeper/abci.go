@@ -4,11 +4,11 @@ import (
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/europa/europa/v12/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 
-	"github.com/EscanBE/evermint/v12/x/claims/types"
+	"github.com/europa/europa/v12/x/claims/types"
 )
 
 // EndBlocker checks if the airdrop claiming period has ended in order to

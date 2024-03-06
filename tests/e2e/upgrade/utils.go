@@ -2,7 +2,7 @@ package upgrade
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"log"
 	"os"
 	"os/exec"
@@ -13,17 +13,17 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
-// EvermintVersion is a custom comparator for sorting semver version strings.
-type EvermintVersion []string
+// EuropaVersion is a custom comparator for sorting semver version strings.
+type EuropaVersion []string
 
 // Len is the number of stored versions..
-func (v EvermintVersion) Len() int { return len(v) }
+func (v EuropaVersion) Len() int { return len(v) }
 
 // Swap swaps the elements with indexes i and j. It is needed to sort the slice.
-func (v EvermintVersion) Swap(i, j int) { v[i], v[j] = v[j], v[i] }
+func (v EuropaVersion) Swap(i, j int) { v[i], v[j] = v[j], v[i] }
 
 // Less compares semver versions strings properly
-func (v EvermintVersion) Less(i, j int) bool {
+func (v EuropaVersion) Less(i, j int) bool {
 	v1, err := version.NewVersion(v[i])
 	if err != nil {
 		log.Fatalf("couldn't interpret version as SemVer string: %s: %s", v[i], err.Error())
@@ -43,7 +43,7 @@ func CheckLegacyProposal(version string) bool {
 	}
 
 	// check if the version is lower than v10.x.x
-	cmp := EvermintVersion([]string{version, "v10.0.0"})
+	cmp := EuropaVersion([]string{version, "v10.0.0"})
 	isLegacyProposal := !cmp.Less(0, 1)
 
 	return isLegacyProposal
@@ -75,7 +75,7 @@ func RetrieveUpgradesList(upgradesPath string) ([]string, error) {
 		versions[i] = v[1 : len(v)-1]
 	}
 
-	sort.Sort(EvermintVersion(versions))
+	sort.Sort(EuropaVersion(versions))
 
 	return versions, nil
 }

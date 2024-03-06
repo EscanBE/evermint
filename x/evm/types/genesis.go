@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/EscanBE/evermint/v12/types"
+	"github.com/europa/europa/v12/types"
 )
 
 // Validate performs a basic validation of a GenesisAccount fields.

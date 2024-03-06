@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"testing"
 	"time"
 

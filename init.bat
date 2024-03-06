@@ -9,17 +9,17 @@ rem 3. add path C:\msys64\mingw64\bin
 rem             C:\msys64\usr\bin
 
 set KEY="dev0"
-set CHAINID="evermint_80808-1"
+set CHAINID="europa_80808-1"
 set MONIKER="localtestnet"
-set BINARY="evmd"
+set BINARY="euscd"
 set KEYRING="test"
 set KEYALGO="eth_secp256k1"
 set LOGLEVEL="info"
-set MIN_DENOM="wei"
+set MIN_DENOM="aeuropa"
 # to trace evm
 #TRACE="--trace"
 set TRACE=""
-set HOME=%USERPROFILE%\.evermint
+set HOME=%USERPROFILE%\.euscd
 echo %HOME%
 set ETHCONFIG=%HOME%\config\config.toml
 set GENESIS=%HOME%\config\genesis.json

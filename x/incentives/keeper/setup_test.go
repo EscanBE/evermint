@@ -13,18 +13,18 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 
-	evm "github.com/EscanBE/evermint/v12/x/evm/types"
+	evm "github.com/europa/europa/v12/x/evm/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/x/incentives/types"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/x/incentives/types"
 )
 
 type KeeperTestSuite struct {
 	suite.Suite
 
 	ctx              sdk.Context
-	app              *app.Evermint
+	app              *app.Europa
 	queryClientEvm   evm.QueryClient
 	queryClient      types.QueryClient
 	address          common.Address

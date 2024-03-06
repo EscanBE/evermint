@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"testing"
 	"time"
 
@@ -10,18 +10,18 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	ibctesting "github.com/EscanBE/evermint/v12/ibc/testing"
-	"github.com/EscanBE/evermint/v12/testutil"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	ibctesting "github.com/europa/europa/v12/ibc/testing"
+	"github.com/europa/europa/v12/testutil"
+	utiltx "github.com/europa/europa/v12/testutil/tx"
+	feemarkettypes "github.com/europa/europa/v12/x/feemarket/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcgotesting "github.com/cosmos/ibc-go/v6/testing"
 
-	"github.com/EscanBE/evermint/v12/app"
-	claimstypes "github.com/EscanBE/evermint/v12/x/claims/types"
-	"github.com/EscanBE/evermint/v12/x/recovery/types"
+	"github.com/europa/europa/v12/app"
+	claimstypes "github.com/europa/europa/v12/x/claims/types"
+	"github.com/europa/europa/v12/x/recovery/types"
 )
 
 var (
@@ -35,7 +35,7 @@ type KeeperTestSuite struct {
 
 	ctx sdk.Context
 
-	app         *app.Evermint
+	app         *app.Europa
 	queryClient types.QueryClient
 }
 
@@ -73,12 +73,12 @@ type IBCTestingSuite struct {
 	coordinator *ibcgotesting.Coordinator
 
 	// testing chains used for convenience and readability
-	EvermintChain   *ibcgotesting.TestChain
+	EuropaChain   *ibcgotesting.TestChain
 	IBCOsmosisChain *ibcgotesting.TestChain
 	IBCCosmosChain  *ibcgotesting.TestChain
 
-	pathOsmosisEvermint *ibctesting.Path
-	pathCosmosEvermint  *ibctesting.Path
+	pathOsmosisEuropa *ibctesting.Path
+	pathCosmosEuropa  *ibctesting.Path
 	pathOsmosisCosmos   *ibctesting.Path
 }
 

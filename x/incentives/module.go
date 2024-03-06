@@ -18,9 +18,9 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/EscanBE/evermint/v12/x/incentives/client/cli"
-	"github.com/EscanBE/evermint/v12/x/incentives/keeper"
-	"github.com/EscanBE/evermint/v12/x/incentives/types"
+	"github.com/europa/europa/v12/x/incentives/client/cli"
+	"github.com/europa/europa/v12/x/incentives/keeper"
+	"github.com/europa/europa/v12/x/incentives/types"
 )
 
 // type check to ensure the interface is properly implemented

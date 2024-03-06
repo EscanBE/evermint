@@ -2,7 +2,7 @@ package main_test
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -10,8 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/stretchr/testify/require"
 
-	"github.com/EscanBE/evermint/v12/app"
-	main "github.com/EscanBE/evermint/v12/cmd/evmd"
+	"github.com/europa/europa/v12/app"
+	main "github.com/europa/europa/v12/cmd/euscd"
 )
 
 func TestInitCmd(t *testing.T) {

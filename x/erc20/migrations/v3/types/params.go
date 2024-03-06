@@ -3,7 +3,7 @@ package v3types
 import (
 	"fmt"
 
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	"github.com/europa/europa/v12/x/erc20/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 

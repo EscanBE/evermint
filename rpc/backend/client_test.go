@@ -8,9 +8,9 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
-	rpc "github.com/EscanBE/evermint/v12/rpc/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/rpc/backend/mocks"
+	rpc "github.com/europa/europa/v12/rpc/types"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	mock "github.com/stretchr/testify/mock"

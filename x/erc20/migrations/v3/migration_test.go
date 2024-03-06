@@ -3,17 +3,17 @@ package v3_test
 import (
 	"testing"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/encoding"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/encoding"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	v3types "github.com/EscanBE/evermint/v12/x/erc20/migrations/v3/types"
+	v3types "github.com/europa/europa/v12/x/erc20/migrations/v3/types"
 
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	"github.com/europa/europa/v12/x/erc20/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/EscanBE/evermint/v12/x/erc20/migrations/v3"
+	"github.com/europa/europa/v12/x/erc20/migrations/v3"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

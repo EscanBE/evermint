@@ -2,7 +2,7 @@ package backend
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -15,11 +15,11 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 
-	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
-	rpc "github.com/EscanBE/evermint/v12/rpc/types"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	"github.com/europa/europa/v12/rpc/backend/mocks"
+	rpc "github.com/europa/europa/v12/rpc/types"
+	utiltx "github.com/europa/europa/v12/testutil/tx"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
+	feemarkettypes "github.com/europa/europa/v12/x/feemarket/types"
 )
 
 func (suite *BackendTestSuite) TestBaseFee() {

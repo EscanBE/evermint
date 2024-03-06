@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/EscanBE/evermint/v12/rpc/types"
+	"github.com/europa/europa/v12/rpc/types"
 	"github.com/cosmos/cosmos-sdk/client"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -20,7 +20,7 @@ import (
 	"github.com/ethereum/go-ethereum/eth/filters"
 	"github.com/ethereum/go-ethereum/rpc"
 
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 )
 
 // FilterAPI gathers

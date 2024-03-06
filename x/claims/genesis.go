@@ -7,8 +7,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/EscanBE/evermint/v12/x/claims/keeper"
-	"github.com/EscanBE/evermint/v12/x/claims/types"
+	"github.com/europa/europa/v12/x/claims/keeper"
+	"github.com/europa/europa/v12/x/claims/types"
 )
 
 // InitGenesis initializes the claim module's state from a provided genesis

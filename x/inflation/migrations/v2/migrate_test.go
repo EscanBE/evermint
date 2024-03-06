@@ -6,12 +6,12 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	v2 "github.com/EscanBE/evermint/v12/x/inflation/migrations/v2"
-	"github.com/EscanBE/evermint/v12/x/inflation/types"
+	v2 "github.com/europa/europa/v12/x/inflation/migrations/v2"
+	"github.com/europa/europa/v12/x/inflation/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/encoding"
-	v2types "github.com/EscanBE/evermint/v12/x/inflation/migrations/v2/types"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/encoding"
+	v2types "github.com/europa/europa/v12/x/inflation/migrations/v2/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"

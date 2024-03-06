@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"io"
 	"testing"
 	"time"
@@ -19,17 +19,17 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/crypto/hd"
-	"github.com/EscanBE/evermint/v12/tests/integration/ledger/mocks"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/crypto/hd"
+	"github.com/europa/europa/v12/tests/integration/ledger/mocks"
+	utiltx "github.com/europa/europa/v12/testutil/tx"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/version"
 
-	clientkeys "github.com/EscanBE/evermint/v12/client/keys"
-	appkeyring "github.com/EscanBE/evermint/v12/crypto/keyring"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	clientkeys "github.com/europa/europa/v12/client/keys"
+	appkeyring "github.com/europa/europa/v12/crypto/keyring"
+	feemarkettypes "github.com/europa/europa/v12/x/feemarket/types"
 	cosmosledger "github.com/cosmos/cosmos-sdk/crypto/ledger"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -45,7 +45,7 @@ var s *LedgerTestSuite
 type LedgerTestSuite struct {
 	suite.Suite
 
-	app *app.Evermint
+	app *app.Europa
 	ctx sdk.Context
 
 	ledger       *mocks.SECP256K1

@@ -1,11 +1,11 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/encoding"
-	inflationkeeper "github.com/EscanBE/evermint/v12/x/inflation/keeper"
-	v2types "github.com/EscanBE/evermint/v12/x/inflation/migrations/v2/types"
-	"github.com/EscanBE/evermint/v12/x/inflation/types"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/encoding"
+	inflationkeeper "github.com/europa/europa/v12/x/inflation/keeper"
+	v2types "github.com/europa/europa/v12/x/inflation/migrations/v2/types"
+	"github.com/europa/europa/v12/x/inflation/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"

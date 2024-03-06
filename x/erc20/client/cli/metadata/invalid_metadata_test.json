@@ -4,18 +4,18 @@
       "description": 1,
       "denom_units": [
         {
-          "denom": "wei",
+          "denom": "aeuropa",
           "exponent": 0
         },
         {
-          "denom": "ether",
+          "denom": "europa",
           "exponent": 18
         }
       ],
-      "base": "wei",
-      "display": "wei",
-      "name": "wei",
-      "symbol": "ETH"
+      "base": "aeuropa",
+      "display": "aeuropa",
+      "name": "aeuropa",
+      "symbol": "EUROPA"
     }
   ]
 }

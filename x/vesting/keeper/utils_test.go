@@ -1,8 +1,7 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+	"github.com/europa/europa/v12/constants"
 	"math"
 	"strings"
 	"time"
@@ -21,18 +20,18 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/EscanBE/evermint/v12/app"
-	cosmosante "github.com/EscanBE/evermint/v12/app/ante/cosmos"
-	evmante "github.com/EscanBE/evermint/v12/app/ante/evm"
-	"github.com/EscanBE/evermint/v12/contracts"
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/encoding"
-	"github.com/EscanBE/evermint/v12/testutil"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	epochstypes "github.com/EscanBE/evermint/v12/x/epochs/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	"github.com/EscanBE/evermint/v12/x/vesting/types"
+	"github.com/europa/europa/v12/app"
+	cosmosante "github.com/europa/europa/v12/app/ante/cosmos"
+	evmante "github.com/europa/europa/v12/app/ante/evm"
+	"github.com/europa/europa/v12/contracts"
+	"github.com/europa/europa/v12/crypto/ethsecp256k1"
+	"github.com/europa/europa/v12/encoding"
+	"github.com/europa/europa/v12/testutil"
+	utiltx "github.com/europa/europa/v12/testutil/tx"
+	evertypes "github.com/europa/europa/v12/types"
+	epochstypes "github.com/europa/europa/v12/x/epochs/types"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
+	"github.com/europa/europa/v12/x/vesting/types"
 
 	"github.com/stretchr/testify/require"
 )
@@ -221,7 +220,7 @@ func delegate(clawbackAccount *types.ClawbackVestingAccount, amount sdkmath.Int)
 	addr, err := sdk.AccAddressFromBech32(clawbackAccount.Address)
 	s.Require().NoError(err)
 
-	val, err := sdk.ValAddressFromBech32(marker.ReplaceAbleAddress("evmvaloper1z3t55m0l9h0eupuz3dp5t5cypyv674jjjtazjl"))
+	val, err := sdk.ValAddressFromBech32("europavaloper1z3t55m0l9h0eupuz3dp5t5cypyv674jjjt248n")
 	s.Require().NoError(err)
 	delegateMsg := stakingtypes.NewMsgDelegate(addr, val, sdk.NewCoin(constants.BaseDenom, amount))
 

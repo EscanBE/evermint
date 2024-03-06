@@ -1,7 +1,7 @@
 package hd
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"os"
 	"strings"
 	"testing"
@@ -16,9 +16,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 
-	cryptocodec "github.com/EscanBE/evermint/v12/crypto/codec"
-	enccodec "github.com/EscanBE/evermint/v12/encoding/codec"
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	cryptocodec "github.com/europa/europa/v12/crypto/codec"
+	enccodec "github.com/europa/europa/v12/encoding/codec"
+	evertypes "github.com/europa/europa/v12/types"
 )
 
 var TestCodec amino.Codec
@@ -119,15 +119,15 @@ func TestDerivation(t *testing.T) {
 	require.Equal(t, badAccount.Address.String(), "0xF8D6FDf2B8b488ea37e54903750dcd13F67E71cb")
 	// Inequality of wrong derivation path address
 	require.NotEqual(t, account.Address.String(), badAccount.Address.String())
-	// Equality of Evermint implementation
+	// Equality of Europa implementation
 	require.Equal(t, common.BytesToAddress(privkey.PubKey().Address().Bytes()).String(), "0xA588C66983a81e800Db4dF74564F09f91c026351")
 	require.Equal(t, common.BytesToAddress(badPrivKey.PubKey().Address().Bytes()).String(), "0xF8D6FDf2B8b488ea37e54903750dcd13F67E71cb")
 
-	// Equality of Eth and Evermint implementation
+	// Equality of Eth and Europa implementation
 	require.Equal(t, common.BytesToAddress(privkey.PubKey().Address()).String(), account.Address.String())
 	require.Equal(t, common.BytesToAddress(badPrivKey.PubKey().Address()).String(), badAccount.Address.String())
 
-	// Inequality of wrong derivation path of Eth and Evermint implementation
+	// Inequality of wrong derivation path of Eth and Europa implementation
 	require.NotEqual(t, common.BytesToAddress(privkey.PubKey().Address()).String(), badAccount.Address.String())
 	require.NotEqual(t, common.BytesToAddress(badPrivKey.PubKey().Address()).String(), account.Address.Hex())
 }

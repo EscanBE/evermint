@@ -10,11 +10,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
-	anteutils "github.com/EscanBE/evermint/v12/app/ante/utils"
-	"github.com/EscanBE/evermint/v12/types"
-	"github.com/EscanBE/evermint/v12/x/evm/keeper"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	anteutils "github.com/europa/europa/v12/app/ante/utils"
+	"github.com/europa/europa/v12/types"
+	"github.com/europa/europa/v12/x/evm/keeper"
+	"github.com/europa/europa/v12/x/evm/statedb"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"

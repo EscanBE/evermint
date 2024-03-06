@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	epochstypes "github.com/EscanBE/evermint/v12/x/epochs/types"
+	epochstypes "github.com/europa/europa/v12/x/epochs/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

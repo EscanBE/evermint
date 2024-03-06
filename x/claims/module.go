@@ -17,9 +17,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/EscanBE/evermint/v12/x/claims/client/cli"
-	"github.com/EscanBE/evermint/v12/x/claims/keeper"
-	"github.com/EscanBE/evermint/v12/x/claims/types"
+	"github.com/europa/europa/v12/x/claims/client/cli"
+	"github.com/europa/europa/v12/x/claims/keeper"
+	"github.com/europa/europa/v12/x/claims/types"
 )
 
 var (

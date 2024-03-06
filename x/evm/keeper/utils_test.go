@@ -2,14 +2,14 @@ package keeper_test
 
 import (
 	"encoding/json"
-	cointypes "github.com/EscanBE/evermint/v12/types"
+	cointypes "github.com/europa/europa/v12/types"
 	"math/big"
 	"time"
 
-	"github.com/EscanBE/evermint/v12/server/config"
-	"github.com/EscanBE/evermint/v12/testutil"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/server/config"
+	"github.com/europa/europa/v12/testutil"
+	"github.com/europa/europa/v12/x/evm/statedb"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"

@@ -1,17 +1,17 @@
 package epochs_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"testing"
 	"time"
 
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarkettypes "github.com/europa/europa/v12/x/feemarket/types"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/x/epochs"
-	"github.com/EscanBE/evermint/v12/x/epochs/types"
+	chainapp "github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/x/epochs"
+	"github.com/europa/europa/v12/x/epochs/types"
 )
 
 func TestEpochsExportGenesis(t *testing.T) {

@@ -9,8 +9,8 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 
-	"github.com/EscanBE/evermint/v12/ibc"
-	"github.com/EscanBE/evermint/v12/x/erc20/keeper"
+	"github.com/europa/europa/v12/ibc"
+	"github.com/europa/europa/v12/x/erc20/keeper"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 )
 

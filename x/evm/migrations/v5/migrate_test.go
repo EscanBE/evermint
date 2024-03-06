@@ -7,11 +7,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/encoding"
-	v5 "github.com/EscanBE/evermint/v12/x/evm/migrations/v5"
-	v5types "github.com/EscanBE/evermint/v12/x/evm/migrations/v5/types"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/encoding"
+	v5 "github.com/europa/europa/v12/x/evm/migrations/v5"
+	v5types "github.com/europa/europa/v12/x/evm/migrations/v5/types"
+	"github.com/europa/europa/v12/x/evm/types"
 )
 
 // availableExtraEIPs define the list of all EIPs that can be enabled by the

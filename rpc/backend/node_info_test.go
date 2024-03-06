@@ -2,12 +2,12 @@ package backend
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"math/big"
 
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
-	"github.com/EscanBE/evermint/v12/types"
+	"github.com/europa/europa/v12/crypto/ethsecp256k1"
+	"github.com/europa/europa/v12/rpc/backend/mocks"
+	"github.com/europa/europa/v12/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"

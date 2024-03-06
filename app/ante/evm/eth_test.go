@@ -1,19 +1,19 @@
 package evm_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"math"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ethante "github.com/EscanBE/evermint/v12/app/ante/evm"
-	"github.com/EscanBE/evermint/v12/server/config"
-	"github.com/EscanBE/evermint/v12/testutil"
-	testutiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/types"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	ethante "github.com/europa/europa/v12/app/ante/evm"
+	"github.com/europa/europa/v12/server/config"
+	"github.com/europa/europa/v12/testutil"
+	testutiltx "github.com/europa/europa/v12/testutil/tx"
+	"github.com/europa/europa/v12/types"
+	"github.com/europa/europa/v12/x/evm/statedb"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )

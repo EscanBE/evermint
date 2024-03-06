@@ -2,7 +2,7 @@ package types
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"

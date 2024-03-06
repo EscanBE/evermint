@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -13,11 +13,11 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evm "github.com/EscanBE/evermint/v12/x/evm/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	"github.com/EscanBE/evermint/v12/x/revenue/v1/types"
+	"github.com/europa/europa/v12/app"
+	utiltx "github.com/europa/europa/v12/testutil/tx"
+	evm "github.com/europa/europa/v12/x/evm/types"
+	feemarkettypes "github.com/europa/europa/v12/x/feemarket/types"
+	"github.com/europa/europa/v12/x/revenue/v1/types"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -27,7 +27,7 @@ type KeeperTestSuite struct {
 
 	ctx sdk.Context
 
-	app            *app.Evermint
+	app            *app.Europa
 	queryClient    types.QueryClient
 	queryClientEvm evm.QueryClient
 	address        common.Address

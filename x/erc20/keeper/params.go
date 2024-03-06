@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	"github.com/europa/europa/v12/x/erc20/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

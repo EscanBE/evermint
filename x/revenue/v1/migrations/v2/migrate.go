@@ -1,8 +1,8 @@
 package v2
 
 import (
-	v2types "github.com/EscanBE/evermint/v12/x/revenue/v1/migrations/v2/types"
-	"github.com/EscanBE/evermint/v12/x/revenue/v1/types"
+	v2types "github.com/europa/europa/v12/x/revenue/v1/migrations/v2/types"
+	"github.com/europa/europa/v12/x/revenue/v1/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"

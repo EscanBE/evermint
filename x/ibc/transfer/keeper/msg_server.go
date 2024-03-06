@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"context"
-	"github.com/EscanBE/evermint/v12/utils"
+	"github.com/europa/europa/v12/utils"
 	"strings"
 
 	"github.com/armon/go-metrics"
@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
+	erc20types "github.com/europa/europa/v12/x/erc20/types"
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
 

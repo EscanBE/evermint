@@ -1,18 +1,17 @@
 package evm_test
 
 import (
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
 	"math"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
-	evmante "github.com/EscanBE/evermint/v12/app/ante/evm"
-	"github.com/EscanBE/evermint/v12/testutil"
-	testutiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	evmante "github.com/europa/europa/v12/app/ante/evm"
+	"github.com/europa/europa/v12/testutil"
+	testutiltx "github.com/europa/europa/v12/testutil/tx"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 )
 
 var execTypes = []struct {
@@ -57,8 +56,8 @@ func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 				testMsg := banktypes.MsgSend{
-					FromAddress: marker.ReplaceAbleAddress("evm1x8fhpj9nmhqk8z9kpgjt95ck2xwyue0ppeqynn"),
-					ToAddress:   marker.ReplaceAbleAddress("evm1dx67l23hz9l0k9hcher8xz04uj7wf3yuqpfj0p"),
+					FromAddress: "europa1x8fhpj9nmhqk8z9kpgjt95ck2xwyue0pksk5gh",
+					ToAddress:   "europa1dx67l23hz9l0k9hcher8xz04uj7wf3yuhglz59",
 					Amount:      sdk.Coins{sdk.Coin{Amount: sdkmath.NewInt(10), Denom: denom}},
 				}
 				txBuilder := suite.CreateTestCosmosTxBuilder(sdkmath.NewInt(0), denom, &testMsg)

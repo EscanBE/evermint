@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"time"
 
-	"github.com/EscanBE/evermint/v12/x/epochs/types"
+	"github.com/europa/europa/v12/x/epochs/types"
 )
 
 func (suite *KeeperTestSuite) TestEpochLifeCycle() {

@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -17,7 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
-	"github.com/EscanBE/evermint/v12/utils"
+	"github.com/europa/europa/v12/utils"
 )
 
 // FlagGenesisTime defines the genesis time in string format

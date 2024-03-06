@@ -5,12 +5,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/x/evm/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/encoding"
-	v4 "github.com/EscanBE/evermint/v12/x/evm/migrations/v4"
-	v4types "github.com/EscanBE/evermint/v12/x/evm/migrations/v4/types"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/encoding"
+	v4 "github.com/europa/europa/v12/x/evm/migrations/v4"
+	v4types "github.com/europa/europa/v12/x/evm/migrations/v4/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

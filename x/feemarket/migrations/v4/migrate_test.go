@@ -3,10 +3,10 @@ package v4_test
 import (
 	"testing"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/encoding"
-	v4 "github.com/EscanBE/evermint/v12/x/feemarket/migrations/v4"
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	"github.com/europa/europa/v12/app"
+	"github.com/europa/europa/v12/encoding"
+	v4 "github.com/europa/europa/v12/x/feemarket/migrations/v4"
+	"github.com/europa/europa/v12/x/feemarket/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"

@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/europa/europa/v12/constants"
 	"os"
 	"path/filepath"
 	"strings"
@@ -85,9 +85,9 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 			// Set default seeds
 			// TODO add seeds here
 			seeds := []string{
-				//"40f4fac63da8b1ce8f850b0fa0f79b2699d2ce72@seed1.evermint.example.com:26656",
-				//"e3e11fca4ecf4035a751f3fea90e3a821e274487@seed2.evermint.example.com:26656",
-				//"fc86e7e75c5d2e4699535e1b1bec98ae55b16826@seed3.evermint.example.com:26656",
+				//"40f4fac63da8b1ce8f850b0fa0f79b2699d2ce72@seed1.euscd.example.com:26656",
+				//"e3e11fca4ecf4035a751f3fea90e3a821e274487@seed2.euscd.example.com:26656",
+				//"fc86e7e75c5d2e4699535e1b1bec98ae55b16826@seed3.euscd.example.com:26656",
 			}
 			config.P2P.Seeds = strings.Join(seeds, ",")
 

@@ -3,10 +3,10 @@ package backend
 import (
 	"fmt"
 
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/indexer"
-	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/europa/europa/v12/crypto/ethsecp256k1"
+	"github.com/europa/europa/v12/indexer"
+	"github.com/europa/europa/v12/rpc/backend/mocks"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/crypto"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"

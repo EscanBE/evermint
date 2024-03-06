@@ -1,21 +1,21 @@
 {
   "metadata": [
     {
-      "description": "The native staking and governance token of the Evermint chain",
+      "description": "The native staking and governance token of the Europa chain",
       "denom_units": [
         {
-          "denom": "wei",
+          "denom": "aeuropa",
           "exponent": 0
         },
         {
-          "denom": "ether",
+          "denom": "europa",
           "exponent": 18
         }
       ],
-      "base": "wei",
-      "display": "ether",
-      "name": "wei",
-      "symbol": "ETH"
+      "base": "aeuropa",
+      "display": "europa",
+      "name": "aeuropa",
+      "symbol": "EUROPA"
     }
   ]
 }

@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	"github.com/europa/europa/v12/x/erc20/types"
 	"github.com/stretchr/testify/require"
 )
 

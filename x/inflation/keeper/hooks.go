@@ -3,8 +3,8 @@ package keeper
 import (
 	"fmt"
 
-	epochstypes "github.com/EscanBE/evermint/v12/x/epochs/types"
-	"github.com/EscanBE/evermint/v12/x/inflation/types"
+	epochstypes "github.com/europa/europa/v12/x/epochs/types"
+	"github.com/europa/europa/v12/x/inflation/types"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"

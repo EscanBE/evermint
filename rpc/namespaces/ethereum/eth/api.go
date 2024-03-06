@@ -13,15 +13,15 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/EscanBE/evermint/v12/rpc/backend"
+	"github.com/europa/europa/v12/rpc/backend"
 
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	"github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	rpctypes "github.com/europa/europa/v12/rpc/types"
+	"github.com/europa/europa/v12/types"
+	evmtypes "github.com/europa/europa/v12/x/evm/types"
 )
 
-// EthereumAPI allows applications to connect to an Evermint node that is
-// part of the Evermint blockchain. Developers can interact with on-chain EVM data
+// EthereumAPI allows applications to connect to an Europa node that is
+// part of the Europa blockchain. Developers can interact with on-chain EVM data
 // and send different types of transactions to the network by utilizing the
 // endpoints provided by the API. The API follows a JSON-RPC standard. If not
 // otherwise specified, the interface is derived from the Alchemy Ethereum API:
