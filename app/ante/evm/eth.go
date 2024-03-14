@@ -403,9 +403,43 @@ func (bvd EthBasicValidationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, si
 		}
 
 		value := txData.GetValue()
+		if value != nil {
+			if value.Sign() < 0 {
+				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidAmount, "tx value cannot be negative")
+			} else if value.BitLen() > 256 {
+				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidAmount, "tx value excess 256 bits")
+			}
+		}
 
-		if value != nil && value.Sign() < 0 {
-			return ctx, errorsmod.Wrap(evmtypes.ErrInvalidAmount, "tx value cannot be negative")
+		gasPrice := txData.GetGasPrice()
+		if gasPrice != nil {
+			if gasPrice.Sign() < 0 {
+				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidGasPrice, "gas price cannot be negative")
+			} else if gasPrice.BitLen() > 256 {
+				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidGasPrice, "gas price excess 256 bits")
+			} else if new(big.Int).Mul(gasPrice, new(big.Int).SetUint64(txData.GetGas())).BitLen() > 256 {
+				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidGasPrice, "gas * gas price exceeds 256 bits")
+			}
+		}
+
+		gasFeeCap := txData.GetGasFeeCap()
+		if gasFeeCap != nil {
+			if gasFeeCap.Sign() < 0 {
+				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidGasFee, "gas fee cap cannot be negative")
+			} else if gasFeeCap.BitLen() > 256 {
+				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidGasFee, "gas fee cap excess 256 bits")
+			} else if new(big.Int).Mul(gasFeeCap, new(big.Int).SetUint64(txData.GetGas())).BitLen() > 256 {
+				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidGasFee, "gas * gas fee cap exceeds 256 bits")
+			}
+		}
+
+		gasTipCap := txData.GetGasTipCap()
+		if gasTipCap != nil {
+			if gasTipCap.Sign() < 0 {
+				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidGasFee, "gas tip cap cannot be negative")
+			} else if gasTipCap.BitLen() > 256 {
+				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidGasFee, "gas tip cap excess 256 bits")
+			}
 		}
 	}
 
