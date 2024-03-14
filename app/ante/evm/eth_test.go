@@ -700,3 +700,74 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		})
 	}
 }
+
+func (suite *AnteTestSuite) TestValidateBasicDecorator() {
+	dec := ethante.NewEthBasicValidationDecorator()
+
+	getTx := func(f func(args *evmtypes.EvmTxArgs)) *evmtypes.MsgEthereumTx {
+		evmTxArgs := &evmtypes.EvmTxArgs{
+			ChainID:   suite.app.EvmKeeper.ChainID(),
+			Nonce:     1,
+			Amount:    nil,
+			GasLimit:  1000,
+			GasPrice:  big.NewInt(1),
+			GasFeeCap: big.NewInt(150),
+			GasTipCap: big.NewInt(200),
+			Accesses:  &ethtypes.AccessList{},
+		}
+		f(evmTxArgs)
+		return evmtypes.NewTx(evmTxArgs)
+	}
+
+	testCases := []struct {
+		name    string
+		tx      sdk.Tx
+		expPass bool
+	}{
+		{
+			name:    "invalid transaction type",
+			tx:      &testutiltx.InvalidTx{},
+			expPass: false,
+		},
+		{
+			name: "accept positive value",
+			tx: getTx(func(args *evmtypes.EvmTxArgs) {
+				args.Amount = big.NewInt(10)
+			}),
+			expPass: true,
+		},
+		{
+			name: "accept zero value",
+			tx: getTx(func(args *evmtypes.EvmTxArgs) {
+				args.Amount = big.NewInt(0)
+			}),
+			expPass: true,
+		},
+		{
+			name: "accept nil value",
+			tx: getTx(func(args *evmtypes.EvmTxArgs) {
+				args.Amount = nil
+			}),
+			expPass: true,
+		},
+		{
+			name: "reject negative value",
+			tx: getTx(func(args *evmtypes.EvmTxArgs) {
+				args.Amount = big.NewInt(-10)
+			}),
+			expPass: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			_, err := dec.AnteHandle(suite.ctx, tc.tx, false, testutil.NextFn)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
