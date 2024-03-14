@@ -35,6 +35,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Unreleased
 
+# Evermint changelog
+
+#### Note: Evermint was born for development and research purpose so maintainers do not support migration for new upgrade/breaking changes.
+
+## [v12.2.5] - 2024-03-14
+
 ### Improvements
 
 - (ante) [#111](https://github.com/EscanBE/evermint/pull/111) Reject EVM txs which having negative value (backport #110)
@@ -43,10 +49,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 - (rename-chain) [#109](https://github.com/EscanBE/evermint/pull/109) Resolve compile error `*_test.go` after run rename chain (backport #108)
-
-# Evermint changelog
-
-#### Note: Evermint was born for development and research purpose so maintainers do not support migration for new upgrade/breaking changes.
 
 ## [v12.2.4] - 2024-01-31
 
