@@ -720,48 +720,240 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 	}
 
 	testCases := []struct {
-		name    string
-		tx      sdk.Tx
-		expPass bool
+		name     string
+		tx       func() sdk.Tx
+		expPass  bool
+		expPanic bool
 	}{
 		{
-			name:    "invalid transaction type",
-			tx:      &testutiltx.InvalidTx{},
+			name: "invalid transaction type",
+			tx: func() sdk.Tx {
+				return &testutiltx.InvalidTx{}
+			},
 			expPass: false,
 		},
 		{
 			name: "accept positive value",
-			tx: getTx(func(args *evmtypes.EvmTxArgs) {
-				args.Amount = big.NewInt(10)
-			}),
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.Amount = big.NewInt(10)
+				})
+			},
 			expPass: true,
 		},
 		{
 			name: "accept zero value",
-			tx: getTx(func(args *evmtypes.EvmTxArgs) {
-				args.Amount = big.NewInt(0)
-			}),
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.Amount = big.NewInt(0)
+				})
+			},
 			expPass: true,
 		},
 		{
 			name: "accept nil value",
-			tx: getTx(func(args *evmtypes.EvmTxArgs) {
-				args.Amount = nil
-			}),
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.Amount = nil
+				})
+			},
 			expPass: true,
 		},
 		{
 			name: "reject negative value",
-			tx: getTx(func(args *evmtypes.EvmTxArgs) {
-				args.Amount = big.NewInt(-10)
-			}),
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.Amount = big.NewInt(-10)
+				})
+			},
 			expPass: false,
+		},
+		{
+			name: "reject value which more than 256 bits",
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					bz := make([]byte, 257)
+					bz[0] = 0xFF
+					args.Amount = new(big.Int).SetBytes(bz)
+				})
+			},
+			expPanic: true,
+		},
+		{
+			name: "accept positive gas price",
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.GasPrice = big.NewInt(10)
+				})
+			},
+			expPass: true,
+		},
+		{
+			name: "not reject zero gas price",
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.GasPrice = big.NewInt(0)
+				})
+			},
+			expPass: true,
+		},
+		{
+			name: "not reject nil gas price",
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.GasPrice = nil
+				})
+			},
+			expPass: true,
+		},
+		{
+			name: "reject negative gas price",
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.GasPrice = big.NewInt(-10)
+					args.GasFeeCap = nil
+					args.GasTipCap = nil
+				})
+			},
+			expPass: false,
+		},
+		{
+			name: "reject gas price which more than 256 bits",
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					bz := make([]byte, 257)
+					bz[0] = 0xFF
+					args.GasPrice = new(big.Int).SetBytes(bz)
+				})
+			},
+			expPanic: true,
+		},
+		{
+			name: "accept positive gas fee cap",
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.GasPrice = nil
+
+					args.GasFeeCap = big.NewInt(10)
+				})
+			},
+			expPass: true,
+		},
+		{
+			name: "not reject zero gas fee cap",
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.GasPrice = nil
+
+					args.GasFeeCap = big.NewInt(0)
+				})
+			},
+			expPass: true,
+		},
+		{
+			name: "not reject nil gas fee cap",
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.GasPrice = nil
+
+					args.GasFeeCap = nil
+				})
+			},
+			expPass: true,
+		},
+		{
+			name: "reject negative gas fee cap",
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.GasPrice = nil
+
+					args.GasFeeCap = big.NewInt(-10)
+				})
+			},
+			expPass: false,
+		},
+		{
+			name: "reject gas fee cap which more than 256 bits",
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.GasPrice = nil
+
+					bz := make([]byte, 257)
+					bz[0] = 0xFF
+					args.GasFeeCap = new(big.Int).SetBytes(bz)
+				})
+			},
+			expPanic: true,
+		},
+		{
+			name: "accept positive gas tip cap",
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.GasPrice = nil
+
+					args.GasTipCap = big.NewInt(10)
+				})
+			},
+			expPass: true,
+		},
+		{
+			name: "not reject zero gas tip cap",
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.GasPrice = nil
+
+					args.GasTipCap = big.NewInt(0)
+				})
+			},
+			expPass: true,
+		},
+		{
+			name: "not reject nil gas tip cap",
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.GasPrice = nil
+
+					args.GasTipCap = nil
+				})
+			},
+			expPass: true,
+		},
+		{
+			name: "reject negative gas tip cap",
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.GasPrice = nil
+
+					args.GasTipCap = big.NewInt(-10)
+				})
+			},
+			expPass: false,
+		},
+		{
+			name: "reject gas tip cap which more than 256 bits",
+			tx: func() sdk.Tx {
+				return getTx(func(args *evmtypes.EvmTxArgs) {
+					args.GasPrice = nil
+
+					bz := make([]byte, 257)
+					bz[0] = 0xFF
+					args.GasTipCap = new(big.Int).SetBytes(bz)
+				})
+			},
+			expPanic: true,
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			_, err := dec.AnteHandle(suite.ctx, tc.tx, false, testutil.NextFn)
+			if tc.expPanic {
+				suite.Require().Panics(func() {
+					_, _ = dec.AnteHandle(suite.ctx, tc.tx(), false, testutil.NextFn)
+				})
+				return
+			}
+
+			_, err := dec.AnteHandle(suite.ctx, tc.tx(), false, testutil.NextFn)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
