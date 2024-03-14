@@ -378,3 +378,36 @@ func (issd EthIncrementSenderSequenceDecorator) AnteHandle(ctx sdk.Context, tx s
 
 	return next(ctx, tx, simulate)
 }
+
+// EthBasicValidationDecorator performs some validation for Ethereum transaction
+type EthBasicValidationDecorator struct {
+}
+
+// NewEthBasicValidationDecorator creates a new EthBasicValidationDecorator.
+func NewEthBasicValidationDecorator() EthBasicValidationDecorator {
+	return EthBasicValidationDecorator{}
+}
+
+// AnteHandle handles basic validation for the Ethereum transaction:
+//  1. Value is not negative
+func (bvd EthBasicValidationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
+	for _, msg := range tx.GetMsgs() {
+		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
+		if !ok {
+			return ctx, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
+		}
+
+		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
+		if err != nil {
+			return ctx, errorsmod.Wrap(err, "failed to unpack tx data")
+		}
+
+		value := txData.GetValue()
+
+		if value != nil && value.Sign() < 0 {
+			return ctx, errorsmod.Wrap(evmtypes.ErrInvalidAmount, "tx value cannot be negative")
+		}
+	}
+
+	return next(ctx, tx, simulate)
+}
