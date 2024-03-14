@@ -37,6 +37,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 - (rename-chain) [#109](https://github.com/EscanBE/evermint/pull/109) Resolve compile error `*_test.go` after run rename chain (backport #108)
+- (ante) [#111](https://github.com/EscanBE/evermint/pull/111) Reject EVM txs which having negative value (backport #110)
 
 # Evermint changelog
 
