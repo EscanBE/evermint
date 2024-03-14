@@ -35,7 +35,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Unreleased
 
-### Improvements
+### Bug Fixes
+- (rename-chain) [#109](https://github.com/EscanBE/evermint/pull/109) Resolve compile error `*_test.go` after run rename chain (backport #108)
 
 # Evermint changelog
 
