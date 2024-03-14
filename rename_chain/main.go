@@ -273,7 +273,7 @@ func main() {
 			}
 		}
 
-		sed(goFile, "\"github.com/VictorTrustyDev/nevermind/v12/rename_chain/marker\"", "")
+		sed(goFile, "\""+newGoModule+"/rename_chain/marker\"", "")
 	}
 
 	launchAppWithDirectStd("mv", path.Join("cmd", EvermintOg_ApplicationBinaryName), path.Join("cmd", constants.ApplicationBinaryName))
