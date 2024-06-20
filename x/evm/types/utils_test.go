@@ -12,7 +12,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	proto "github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/encoding"
