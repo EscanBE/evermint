@@ -89,7 +89,7 @@ f_install_buf() {
 f_install_protoc_gen_gocosmos() {
     f_print_installing_with_padding protoc-gen-gocosmos
     
-    if ! grep "github.com/gogo/protobuf => github.com/regen-network/protobuf" go.mod &>/dev/null ; then
+    if ! grep "github.com/cosmos/gogoproto" go.mod &>/dev/null ; then
         echo -e "\tPlease run this command from somewhere inside the evmos folder."
         return 1
     fi
