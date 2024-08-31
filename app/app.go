@@ -506,6 +506,7 @@ func NewEvermint(
 		scopedICAHostKeeper,
 		baseApp.MsgServiceRouter(),
 	)
+	chainApp.ICAHostKeeper.WithQueryRouter(baseApp.GRPCQueryRouter())
 
 	// create host IBC module
 	icaHostIBCModule := icahost.NewIBCModule(chainApp.ICAHostKeeper)
