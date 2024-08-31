@@ -96,6 +96,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (deps) [#106](https://github.com/EscanBE/evermint/pull/106) Bump cosmos-sdk v0.47.8 and ibc v7.3.2
 - (deps) [#114](https://github.com/EscanBE/evermint/pull/114) Bump cosmos-sdk v0.47.10
 - (deps) [#117](https://github.com/EscanBE/evermint/pull/117) Bumps ibc-go to v7.4.0 which include patch for ASA-2024-007
+- (deps) [#120](https://github.com/EscanBE/evermint/pull/120) Bump cosmos-sdk v0.47.13, ibc-go v7.8.0, cometbft v0.37.5
 
 # Evermint changelog
 
