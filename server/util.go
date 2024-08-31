@@ -29,8 +29,9 @@ func AddCommands(
 	addStartFlags types.ModuleInitFlags,
 ) {
 	tendermintCmd := &cobra.Command{
-		Use:   "tendermint",
-		Short: "Tendermint subcommands",
+		Use:     "cometbft",
+		Aliases: []string{"tendermint", "comet"},
+		Short:   "Tendermint subcommands",
 	}
 
 	tendermintCmd.AddCommand(
