@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	ethparams "github.com/ethereum/go-ethereum/params"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,7 +13,7 @@ import (
 // CalculateBaseFee calculates the base fee for the current block. This is only calculated once per
 // block during BeginBlock. If the NoBaseFee parameter is enabled or below activation height, this function returns nil.
 // NOTE: This code is inspired from the go-ethereum EIP1559 implementation and adapted to Cosmos SDK-based
-// chains. For the canonical code refer to: https://github.com/ethereum/go-ethereum/blob/master/consensus/misc/eip1559.go
+// chains. For the canonical code refer to: https://github.com/ethereum/go-ethereum/blob/v1.10.26/consensus/misc/eip1559.go
 func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 	params := k.GetParams(ctx)
 
@@ -37,13 +38,13 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 
 	// CONTRACT: ElasticityMultiplier cannot be 0 as it's checked in the params
 	// validation
-	parentGasTargetBig := new(big.Int).Div(gasLimit, new(big.Int).SetUint64(uint64(params.ElasticityMultiplier)))
+	parentGasTargetBig := new(big.Int).Div(gasLimit, new(big.Int).SetUint64(uint64(ethparams.ElasticityMultiplier)))
 	if !parentGasTargetBig.IsUint64() {
 		return nil
 	}
 
 	parentGasTarget := parentGasTargetBig.Uint64()
-	baseFeeChangeDenominator := new(big.Int).SetUint64(uint64(params.BaseFeeChangeDenominator))
+	baseFeeChangeDenominator := new(big.Int).SetUint64(uint64(ethparams.BaseFeeChangeDenominator))
 
 	// If the parent gasUsed is the same as the target, the baseFee remains
 	// unchanged.

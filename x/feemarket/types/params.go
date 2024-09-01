@@ -6,7 +6,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/ethereum/go-ethereum/params"
+	ethparams "github.com/ethereum/go-ethereum/params"
 )
 
 var (
@@ -20,13 +20,11 @@ var (
 
 // Parameter keys
 var (
-	ParamsKey                             = []byte("Params")
-	ParamStoreKeyNoBaseFee                = []byte("NoBaseFee")
-	ParamStoreKeyBaseFeeChangeDenominator = []byte("BaseFeeChangeDenominator")
-	ParamStoreKeyElasticityMultiplier     = []byte("ElasticityMultiplier")
-	ParamStoreKeyBaseFee                  = []byte("BaseFee")
-	ParamStoreKeyMinGasPrice              = []byte("MinGasPrice")
-	ParamStoreKeyMinGasMultiplier         = []byte("MinGasMultiplier")
+	ParamsKey                     = []byte("Params")
+	ParamStoreKeyNoBaseFee        = []byte("NoBaseFee")
+	ParamStoreKeyBaseFee          = []byte("BaseFee")
+	ParamStoreKeyMinGasPrice      = []byte("MinGasPrice")
+	ParamStoreKeyMinGasMultiplier = []byte("MinGasMultiplier")
 )
 
 // ParamKeyTable returns the parameter key table.
@@ -38,8 +36,6 @@ func ParamKeyTable() paramtypes.KeyTable {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(ParamStoreKeyNoBaseFee, &p.NoBaseFee, validateBool),
-		paramtypes.NewParamSetPair(ParamStoreKeyBaseFeeChangeDenominator, &p.BaseFeeChangeDenominator, validateBaseFeeChangeDenominator),
-		paramtypes.NewParamSetPair(ParamStoreKeyElasticityMultiplier, &p.ElasticityMultiplier, validateElasticityMultiplier),
 		paramtypes.NewParamSetPair(ParamStoreKeyBaseFee, &p.BaseFee, validateBaseFee),
 		paramtypes.NewParamSetPair(ParamStoreKeyMinGasPrice, &p.MinGasPrice, validateMinGasPrice),
 		paramtypes.NewParamSetPair(ParamStoreKeyMinGasMultiplier, &p.MinGasMultiplier, validateMinGasPrice),
@@ -49,40 +45,30 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 // NewParams creates a new Params instance
 func NewParams(
 	noBaseFee bool,
-	baseFeeChangeDenom,
-	elasticityMultiplier uint32,
 	baseFee uint64,
 	minGasPrice sdk.Dec,
 	minGasPriceMultiplier sdk.Dec,
 ) Params {
 	return Params{
-		NoBaseFee:                noBaseFee,
-		BaseFeeChangeDenominator: baseFeeChangeDenom,
-		ElasticityMultiplier:     elasticityMultiplier,
-		BaseFee:                  sdkmath.NewIntFromUint64(baseFee),
-		MinGasPrice:              minGasPrice,
-		MinGasMultiplier:         minGasPriceMultiplier,
+		NoBaseFee:        noBaseFee,
+		BaseFee:          sdkmath.NewIntFromUint64(baseFee),
+		MinGasPrice:      minGasPrice,
+		MinGasMultiplier: minGasPriceMultiplier,
 	}
 }
 
 // DefaultParams returns default evm parameters
 func DefaultParams() Params {
 	return Params{
-		NoBaseFee:                DefaultNoBaseFee,
-		BaseFeeChangeDenominator: params.BaseFeeChangeDenominator,
-		ElasticityMultiplier:     params.ElasticityMultiplier,
-		BaseFee:                  sdkmath.NewIntFromUint64(params.InitialBaseFee),
-		MinGasPrice:              DefaultMinGasPrice,
-		MinGasMultiplier:         DefaultMinGasMultiplier,
+		NoBaseFee:        DefaultNoBaseFee,
+		BaseFee:          sdkmath.NewIntFromUint64(ethparams.InitialBaseFee),
+		MinGasPrice:      DefaultMinGasPrice,
+		MinGasMultiplier: DefaultMinGasMultiplier,
 	}
 }
 
 // Validate performs basic validation on fee market parameters.
 func (p Params) Validate() error {
-	if p.BaseFeeChangeDenominator == 0 {
-		return fmt.Errorf("base fee change denominator cannot be 0")
-	}
-
 	if p.BaseFee.IsNil() {
 		return fmt.Errorf("base fee cannot be nil")
 	} else if p.BaseFee.IsNegative() {
@@ -119,27 +105,6 @@ func validateMinGasPrice(i interface{}) error {
 		return fmt.Errorf("value cannot be negative: %s", i)
 	}
 
-	return nil
-}
-
-func validateBaseFeeChangeDenominator(i interface{}) error {
-	value, ok := i.(uint32)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if value == 0 {
-		return fmt.Errorf("base fee change denominator cannot be 0")
-	}
-
-	return nil
-}
-
-func validateElasticityMultiplier(i interface{}) error {
-	_, ok := i.(uint32)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
 	return nil
 }
 

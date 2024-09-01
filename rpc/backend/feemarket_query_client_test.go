@@ -11,8 +11,12 @@ var _ feemarkettypes.QueryClient = &mocks.FeeMarketQueryClient{}
 
 // Params
 func RegisterFeeMarketParams(feeMarketClient *mocks.FeeMarketQueryClient, height int64) {
+	RegisterFeeMarketParamsWithValue(feeMarketClient, height, feemarkettypes.DefaultParams())
+}
+
+func RegisterFeeMarketParamsWithValue(feeMarketClient *mocks.FeeMarketQueryClient, height int64, params feemarkettypes.Params) {
 	feeMarketClient.On("Params", rpc.ContextWithHeight(height), &feemarkettypes.QueryParamsRequest{}).
-		Return(&feemarkettypes.QueryParamsResponse{Params: feemarkettypes.DefaultParams()}, nil)
+		Return(&feemarkettypes.QueryParamsResponse{Params: params}, nil)
 }
 
 func RegisterFeeMarketParamsError(feeMarketClient *mocks.FeeMarketQueryClient, height int64) {
