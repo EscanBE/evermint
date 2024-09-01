@@ -387,34 +387,20 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 			func(ctx sdk.Context) {},
 		},
 		{
-			"success - legacy tx - insufficient funds but enough staking rewards",
+			"fail - legacy tx - insufficient funds",
 			tx2,
-			tx2GasLimit, // it's capped
+			math.MaxUint64,
 			func(ctx sdk.Context) sdk.Context {
-				ctx, err := testutil.PrepareAccountsForDelegationRewards(
-					suite.T(), ctx, suite.app, sdk.AccAddress(addr.Bytes()), sdk.ZeroInt(), sdk.NewInt(1e16),
-				)
-				suite.Require().NoError(err, "error while preparing accounts for delegation rewards")
 				return ctx.
 					WithBlockGasMeter(sdk.NewGasMeter(1e19)).
 					WithBlockHeight(ctx.BlockHeight() + 1)
 			},
-			true, false,
+			false, false,
 			tx2Priority,
-			func(ctx sdk.Context) {
-				balance := suite.app.BankKeeper.GetBalance(ctx, sdk.AccAddress(addr.Bytes()), constants.BaseDenom)
-				suite.Require().False(
-					balance.Amount.IsZero(),
-					"the fees are paid after withdrawing (a surplus amount of) staking rewards, so it should be higher than the initial balance",
-				)
-
-				rewards, err := testutil.GetTotalDelegationRewards(ctx, suite.app.DistrKeeper, sdk.AccAddress(addr.Bytes()))
-				suite.Require().NoError(err, "error while querying delegation total rewards")
-				suite.Require().Nil(rewards, "the total rewards should be nil after withdrawing all of them")
-			},
+			func(ctx sdk.Context) {},
 		},
 		{
-			"success - legacy tx - enough funds so no staking rewards should be used",
+			"success - legacy tx - enough funds",
 			tx2,
 			tx2GasLimit, // it's capped
 			func(ctx sdk.Context) sdk.Context {
@@ -433,17 +419,6 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 				suite.Require().True(
 					balance.Amount.LT(sdk.NewInt(1e16)),
 					"the fees are paid using the available balance, so it should be lower than the initial balance",
-				)
-
-				rewards, err := testutil.GetTotalDelegationRewards(ctx, suite.app.DistrKeeper, sdk.AccAddress(addr.Bytes()))
-				suite.Require().NoError(err, "error while querying delegation total rewards")
-
-				// NOTE: the total rewards should be the same as after the setup, since
-				// the fees are paid using the account balance
-				suite.Require().Equal(
-					sdk.NewDecCoins(sdk.NewDecCoin(constants.BaseDenom, sdk.NewInt(1e16))),
-					rewards,
-					"the total rewards should be the same as after the setup, since the fees are paid using the account balance",
 				)
 			},
 		},

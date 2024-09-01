@@ -116,8 +116,6 @@ func NewEthGasConsumeDecorator(
 
 // AnteHandle validates that the Ethereum tx message has enough to cover intrinsic gas
 // (during CheckTx only) and that the sender has enough balance to pay for the gas cost.
-// If the balance is not sufficient, it will be attempted to withdraw enough staking rewards
-// for the payment.
 //
 // Intrinsic gas for a transaction is the amount of gas that the transaction uses before the
 // transaction is executed. The gas is a constant value plus any cost incurred by additional bytes
@@ -127,7 +125,7 @@ func NewEthGasConsumeDecorator(
 // - the message is not a MsgEthereumTx
 // - sender account cannot be found
 // - transaction's gas limit is lower than the intrinsic gas
-// - user has neither enough balance nor staking rewards to deduct the transaction fees (gas_limit * gas_price)
+// - user has neither enough balance to deduct for the transaction fees (gas_limit * gas_price)
 // - transaction or block gas meter runs out of gas
 // - sets the gas meter limit
 // - gas limit is greater than the block gas meter limit
@@ -165,7 +163,6 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		if !ok {
 			return ctx, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
 		}
-		from := msgEthTx.GetFrom()
 
 		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
 		if err != nil {
@@ -186,12 +183,6 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		fees, err := keeper.VerifyFee(txData, evmDenom, baseFee, homestead, istanbul, ctx.IsCheckTx())
 		if err != nil {
 			return ctx, errorsmod.Wrapf(err, "failed to verify the fees")
-		}
-
-		// If the account balance is not sufficient, try to withdraw enough staking rewards
-		err = anteutils.ClaimStakingRewardsIfNecessary(ctx, egcd.bankKeeper, egcd.distributionKeeper, egcd.stakingKeeper, from, fees)
-		if err != nil {
-			return ctx, err
 		}
 
 		err = egcd.evmKeeper.DeductTxCostsFromUserBalance(ctx, fees, common.HexToAddress(msgEthTx.From))
