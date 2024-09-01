@@ -57,6 +57,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evm) [#103](https://github.com/EscanBE/evermint/pull/103) General use zero gas config for EVM exec
 - (ante) [#110](https://github.com/EscanBE/evermint/pull/110) Reject EVM txs which having negative value
 - (ante) [#112](https://github.com/EscanBE/evermint/pull/112) Add some validation relates to number range for EVM txs
+- (ante) [#121](https://github.com/EscanBE/evermint/pull/121) Remove logic automatically claims staking rewards
 
 ### Bug Fixes
 
