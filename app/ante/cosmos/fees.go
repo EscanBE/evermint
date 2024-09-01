@@ -89,7 +89,6 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 }
 
 // deductFee checks if the fee payer has enough funds to pay for the fees and deducts them.
-// If the spendable balance is not enough, it tries to claim enough staking rewards to cover the fees.
 func (dfd DeductFeeDecorator) deductFee(ctx sdk.Context, sdkTx sdk.Tx, fees sdk.Coins, feePayer, feeGranter sdk.AccAddress) error {
 	if fees.IsZero() {
 		return nil
@@ -125,8 +124,8 @@ func (dfd DeductFeeDecorator) deductFee(ctx sdk.Context, sdkTx sdk.Tx, fees sdk.
 	}
 
 	// deduct the fees
-	if err := deductFeesFromBalanceOrUnclaimedStakingRewards(ctx, dfd, deductFeesFromAcc, fees); err != nil {
-		return fmt.Errorf("insufficient funds and failed to claim sufficient staking rewards to pay for fees: %w", err)
+	if err := authante.DeductFees(dfd.bankKeeper, ctx, deductFeesFromAcc, fees); err != nil {
+		return errorsmod.Wrapf(err, "failed to deduct fees from: %s", deductFeesFromAcc)
 	}
 
 	events := sdk.Events{
@@ -139,20 +138,6 @@ func (dfd DeductFeeDecorator) deductFee(ctx sdk.Context, sdkTx sdk.Tx, fees sdk.
 	ctx.EventManager().EmitEvents(events)
 
 	return nil
-}
-
-// deductFeesFromBalanceOrUnclaimedStakingRewards tries to deduct the fees from the account balance.
-// If the account balance is not enough, it tries to claim enough staking rewards to cover the fees.
-func deductFeesFromBalanceOrUnclaimedStakingRewards(
-	ctx sdk.Context, dfd DeductFeeDecorator, deductFeesFromAcc authtypes.AccountI, fees sdk.Coins,
-) error {
-	if err := anteutils.ClaimStakingRewardsIfNecessary(
-		ctx, dfd.bankKeeper, dfd.distributionKeeper, dfd.stakingKeeper, deductFeesFromAcc.GetAddress(), fees,
-	); err != nil {
-		return err
-	}
-
-	return authante.DeductFees(dfd.bankKeeper, ctx, deductFeesFromAcc, fees)
 }
 
 // checkTxFeeWithValidatorMinGasPrices implements the default fee logic, where the minimum price per

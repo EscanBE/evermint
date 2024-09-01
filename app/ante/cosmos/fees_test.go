@@ -62,14 +62,14 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			errContains: "must provide positive gas",
 		},
 		{
-			name:        "fail - checkTx - insufficient funds and no staking rewards",
+			name:        "fail - checkTx - insufficient funds, no staking reward",
 			balance:     zero,
 			rewards:     zero,
 			gas:         10_000_000,
 			checkTx:     true,
 			simulate:    false,
 			expPass:     false,
-			errContains: "insufficient funds and failed to claim sufficient staking rewards",
+			errContains: "failed to deduct fees from",
 			postCheck: func() {
 				// the balance should not have changed
 				balance := suite.app.BankKeeper.GetBalance(suite.ctx, addr, constants.BaseDenom)
@@ -82,26 +82,26 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			},
 		},
 		{
-			name:        "pass - insufficient funds but sufficient staking rewards",
-			balance:     zero,
+			name:        "fail - insufficient funds, sufficient staking rewards",
+			balance:     sdk.NewInt(1e5),
 			rewards:     initBalance,
 			gas:         10_000_000,
 			checkTx:     false,
 			simulate:    false,
-			expPass:     true,
-			errContains: "",
+			expPass:     false,
+			errContains: "failed to deduct fees from",
 			postCheck: func() {
-				// the balance should have increased
+				// the balance should not have changed
 				balance := suite.app.BankKeeper.GetBalance(suite.ctx, addr, constants.BaseDenom)
-				suite.Require().False(
-					balance.Amount.IsZero(),
-					"expected balance to have increased after withdrawing a surplus amount of staking rewards",
-				)
+				suite.Require().Equal(sdk.NewInt(1e5), balance.Amount, "expected balance to be unchanged")
 
-				// the rewards should all have been withdrawn
+				// the rewards should not have changed
 				rewards, err := testutil.GetTotalDelegationRewards(suite.ctx, suite.app.DistrKeeper, addr)
 				suite.Require().NoError(err, "failed to get total delegation rewards")
-				suite.Require().Empty(rewards, "expected all rewards to be withdrawn")
+				suite.Require().Equal(
+					sdk.NewDecCoins(sdk.NewDecCoin(constants.BaseDenom, initBalance)),
+					rewards,
+					"expected rewards to be unchanged")
 			},
 		},
 		{
@@ -112,7 +112,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			checkTx:     false,
 			simulate:    false,
 			expPass:     false,
-			errContains: "insufficient funds and failed to claim sufficient staking rewards",
+			errContains: "failed to deduct fees from",
 			postCheck: func() {
 				// the balance should not have changed
 				balance := suite.app.BankKeeper.GetBalance(suite.ctx, addr, constants.BaseDenom)
