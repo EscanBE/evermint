@@ -82,7 +82,6 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	suite.app = app.EthSetup(checkTx, func(app *app.Evermint, genesis simapp.GenesisState) simapp.GenesisState {
 		if suite.dynamicTxFee {
 			feemarketGenesis := feemarkettypes.DefaultGenesisState()
-			feemarketGenesis.Params.EnableHeight = 1
 			feemarketGenesis.Params.NoBaseFee = false
 			genesis[feemarkettypes.ModuleName] = app.AppCodec().MustMarshalJSON(feemarketGenesis)
 		}

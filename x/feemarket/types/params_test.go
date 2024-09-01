@@ -26,7 +26,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		{"default", DefaultParams(), false},
 		{
 			"valid",
-			NewParams(true, 7, 3, 2000000000, int64(544435345345435345), sdk.NewDecWithPrec(20, 4), DefaultMinGasMultiplier),
+			NewParams(true, 2000000000, sdk.NewDecWithPrec(20, 4), DefaultMinGasMultiplier),
 			false,
 		},
 		{
@@ -35,28 +35,43 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			true,
 		},
 		{
-			"base fee change denominator is 0 ",
-			NewParams(true, 0, 3, 2000000000, int64(544435345345435345), sdk.NewDecWithPrec(20, 4), DefaultMinGasMultiplier),
+			"base fee cannot be nil",
+			Params{
+				NoBaseFee:        false,
+				BaseFee:          sdkmath.Int{},
+				MinGasPrice:      sdk.NewDecWithPrec(20, 4),
+				MinGasMultiplier: DefaultMinGasMultiplier,
+			},
+			true,
+		},
+		{
+			"base fee cannot be negative",
+			Params{
+				NoBaseFee:        false,
+				BaseFee:          sdkmath.NewInt(-1),
+				MinGasPrice:      sdk.NewDecWithPrec(20, 4),
+				MinGasMultiplier: DefaultMinGasMultiplier,
+			},
 			true,
 		},
 		{
 			"invalid: min gas price negative",
-			NewParams(true, 7, 3, 2000000000, int64(544435345345435345), sdk.NewDecFromInt(sdkmath.NewInt(-1)), DefaultMinGasMultiplier),
+			NewParams(true, 2000000000, sdk.NewDecFromInt(sdkmath.NewInt(-1)), DefaultMinGasMultiplier),
 			true,
 		},
 		{
 			"valid: min gas multiplier zero",
-			NewParams(true, 7, 3, 2000000000, int64(544435345345435345), DefaultMinGasPrice, sdk.ZeroDec()),
+			NewParams(true, 2000000000, DefaultMinGasPrice, sdk.ZeroDec()),
 			false,
 		},
 		{
 			"invalid: min gas multiplier is negative",
-			NewParams(true, 7, 3, 2000000000, int64(544435345345435345), DefaultMinGasPrice, sdk.NewDecWithPrec(-5, 1)),
+			NewParams(true, 2000000000, DefaultMinGasPrice, sdk.NewDecWithPrec(-5, 1)),
 			true,
 		},
 		{
 			"invalid: min gas multiplier bigger than 1",
-			NewParams(true, 7, 3, 2000000000, int64(544435345345435345), sdk.NewDecWithPrec(20, 4), sdk.NewDec(2)),
+			NewParams(true, 2000000000, sdk.NewDecWithPrec(20, 4), sdk.NewDec(2)),
 			true,
 		},
 	}
@@ -75,18 +90,10 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 func (suite *ParamsTestSuite) TestParamsValidatePriv() {
 	suite.Require().Error(validateBool(2))
 	suite.Require().NoError(validateBool(true))
-	suite.Require().Error(validateBaseFeeChangeDenominator(0))
-	suite.Require().Error(validateBaseFeeChangeDenominator(uint32(0)))
-	suite.Require().NoError(validateBaseFeeChangeDenominator(uint32(7)))
-	suite.Require().Error(validateElasticityMultiplier(""))
-	suite.Require().NoError(validateElasticityMultiplier(uint32(2)))
 	suite.Require().Error(validateBaseFee(""))
 	suite.Require().Error(validateBaseFee(int64(2000000000)))
 	suite.Require().Error(validateBaseFee(sdkmath.NewInt(-2000000000)))
 	suite.Require().NoError(validateBaseFee(sdkmath.NewInt(2000000000)))
-	suite.Require().Error(validateEnableHeight(""))
-	suite.Require().Error(validateEnableHeight(int64(-544435345345435345)))
-	suite.Require().NoError(validateEnableHeight(int64(544435345345435345)))
 	suite.Require().Error(validateMinGasPrice(sdk.Dec{}))
 	suite.Require().Error(validateMinGasMultiplier(sdk.NewDec(-5)))
 	suite.Require().Error(validateMinGasMultiplier(sdk.Dec{}))

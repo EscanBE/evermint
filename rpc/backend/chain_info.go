@@ -15,7 +15,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/params"
+	ethparams "github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -40,7 +40,7 @@ func (b *Backend) ChainID() (*hexutil.Big, error) {
 }
 
 // ChainConfig returns the latest ethereum chain configuration
-func (b *Backend) ChainConfig() *params.ChainConfig {
+func (b *Backend) ChainConfig() *ethparams.ChainConfig {
 	params, err := b.queryClient.Params(b.ctx, &evmtypes.QueryParamsRequest{})
 	if err != nil {
 		return nil
@@ -147,8 +147,8 @@ func (b *Backend) GetCoinbase() (sdk.AccAddress, error) {
 // FeeHistory returns data relevant for fee estimation based on the specified range of blocks.
 func (b *Backend) FeeHistory(
 	userBlockCount rpc.DecimalOrHex, // number blocks to fetch, maximum is 100
-	lastBlock rpc.BlockNumber,       // the block to start search , to oldest
-	rewardPercentiles []float64,     // percentiles to fetch reward
+	lastBlock rpc.BlockNumber, // the block to start search , to oldest
+	rewardPercentiles []float64, // percentiles to fetch reward
 ) (*rpctypes.FeeHistoryResult, error) {
 	blockEnd := int64(lastBlock) //#nosec G701 -- checked for int overflow already
 
@@ -254,6 +254,11 @@ func (b *Backend) SuggestGasTipCap(baseFee *big.Int) (*big.Int, error) {
 	if err != nil {
 		return nil, err
 	}
+	if params.Params.NoBaseFee {
+		// feemarket not enabled
+		return big.NewInt(0), nil
+	}
+
 	// calculate the maximum base fee delta in current block, assuming all block gas limit is consumed
 	// ```
 	// GasTarget = GasLimit / ElasticityMultiplier
@@ -264,7 +269,7 @@ func (b *Backend) SuggestGasTipCap(baseFee *big.Int) (*big.Int, error) {
 	// MaxDelta = BaseFee * (GasLimit - GasLimit / ElasticityMultiplier) / (GasLimit / ElasticityMultiplier) / Denominator
 	//          = BaseFee * (ElasticityMultiplier - 1) / Denominator
 	// ```t
-	maxDelta := baseFee.Int64() * (int64(params.Params.ElasticityMultiplier) - 1) / int64(params.Params.BaseFeeChangeDenominator) // #nosec G701
+	maxDelta := baseFee.Int64() * (int64(ethparams.ElasticityMultiplier) - 1) / int64(ethparams.BaseFeeChangeDenominator) // #nosec G701
 	if maxDelta < 0 {
 		// impossible if the parameter validation passed.
 		maxDelta = 0

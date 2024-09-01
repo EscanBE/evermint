@@ -269,6 +269,18 @@ func (suite *BackendTestSuite) TestSuggestGasTipCap() {
 			true,
 		},
 		{
+			"pass - London hardfork enabled but feemarket disabled",
+			func() {
+				feeMarketParams := feemarkettypes.DefaultParams()
+				feeMarketParams.NoBaseFee = true
+				feeMarketClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
+				RegisterFeeMarketParamsWithValue(feeMarketClient, 1, feeMarketParams)
+			},
+			big.NewInt(1),
+			big.NewInt(0),
+			true,
+		},
+		{
 			"pass - Gets the suggest gas tip cap ",
 			func() {},
 			nil,
