@@ -35,6 +35,30 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			true,
 		},
 		{
+			"base fee cannot be nil",
+			Params{
+				NoBaseFee:                false,
+				BaseFeeChangeDenominator: 0,
+				ElasticityMultiplier:     3,
+				BaseFee:                  sdkmath.Int{},
+				MinGasPrice:              sdk.NewDecWithPrec(20, 4),
+				MinGasMultiplier:         DefaultMinGasMultiplier,
+			},
+			true,
+		},
+		{
+			"base fee cannot be negative",
+			Params{
+				NoBaseFee:                false,
+				BaseFeeChangeDenominator: 0,
+				ElasticityMultiplier:     3,
+				BaseFee:                  sdkmath.NewInt(-1),
+				MinGasPrice:              sdk.NewDecWithPrec(20, 4),
+				MinGasMultiplier:         DefaultMinGasMultiplier,
+			},
+			true,
+		},
+		{
 			"base fee change denominator is 0 ",
 			NewParams(true, 0, 3, 2000000000, sdk.NewDecWithPrec(20, 4), DefaultMinGasMultiplier),
 			true,

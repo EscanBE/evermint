@@ -83,8 +83,10 @@ func (p Params) Validate() error {
 		return fmt.Errorf("base fee change denominator cannot be 0")
 	}
 
-	if p.BaseFee.IsNegative() {
-		return fmt.Errorf("initial base fee cannot be negative: %s", p.BaseFee)
+	if p.BaseFee.IsNil() {
+		return fmt.Errorf("base fee cannot be nil")
+	} else if p.BaseFee.IsNegative() {
+		return fmt.Errorf("base fee cannot be negative: %s", p.BaseFee)
 	}
 
 	if err := validateMinGasMultiplier(p.MinGasMultiplier); err != nil {
