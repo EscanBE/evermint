@@ -13,9 +13,8 @@ import (
 )
 
 // DeductFeeDecorator deducts fees from the first signer of the tx.
-// If the first signer does not have the funds to pay for the fees,
-// and does not have enough unclaimed staking rewards, then return
-// with InsufficientFunds error.
+// If the first signer does not have the funds to pay for the fees
+// then return with InsufficientFunds error.
 // The next AnteHandler is called if fees are successfully deducted.
 //
 // CONTRACT: Tx must implement FeeTx interface to use DeductFeeDecorator
@@ -52,7 +51,7 @@ func NewDeductFeeDecorator(
 }
 
 // AnteHandle ensures that the transaction contains valid fee requirements and tries to deduct those
-// from the account balance or unclaimed staking rewards, which the transaction sender might have.
+// from the account balance.
 func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	feeTx, ok := tx.(sdk.FeeTx)
 	if !ok {

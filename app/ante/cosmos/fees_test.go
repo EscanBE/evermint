@@ -1,12 +1,10 @@
 package cosmos_test
 
 import (
-	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
-	"time"
-
 	"cosmossdk.io/math"
+	"fmt"
 	cosmosante "github.com/EscanBE/evermint/v12/app/ante/cosmos"
+	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/testutil"
 	testutiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	sdktestutil "github.com/cosmos/cosmos-sdk/testutil/testdata"
@@ -30,7 +28,6 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 	testcases := []struct {
 		name        string
 		balance     math.Int
-		rewards     math.Int
 		gas         uint64
 		gasPrice    *math.Int
 		feeGranter  sdk.AccAddress
@@ -44,7 +41,6 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 		{
 			name:        "pass - sufficient balance to pay fees",
 			balance:     initBalance,
-			rewards:     zero,
 			gas:         0,
 			checkTx:     false,
 			simulate:    true,
@@ -54,7 +50,6 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 		{
 			name:        "fail - zero gas limit in check tx mode",
 			balance:     initBalance,
-			rewards:     zero,
 			gas:         0,
 			checkTx:     true,
 			simulate:    false,
@@ -62,9 +57,8 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			errContains: "must provide positive gas",
 		},
 		{
-			name:        "fail - checkTx - insufficient funds, no staking reward",
+			name:        "fail - checkTx - insufficient funds",
 			balance:     zero,
-			rewards:     zero,
 			gas:         10_000_000,
 			checkTx:     true,
 			simulate:    false,
@@ -74,63 +68,11 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 				// the balance should not have changed
 				balance := suite.app.BankKeeper.GetBalance(suite.ctx, addr, constants.BaseDenom)
 				suite.Require().Equal(zero, balance.Amount, "expected balance to be zero")
-
-				// there should be no rewards
-				rewards, err := testutil.GetTotalDelegationRewards(suite.ctx, suite.app.DistrKeeper, addr)
-				suite.Require().NoError(err, "failed to get total delegation rewards")
-				suite.Require().Empty(rewards, "expected rewards to be zero")
-			},
-		},
-		{
-			name:        "fail - insufficient funds, sufficient staking rewards",
-			balance:     sdk.NewInt(1e5),
-			rewards:     initBalance,
-			gas:         10_000_000,
-			checkTx:     false,
-			simulate:    false,
-			expPass:     false,
-			errContains: "failed to deduct fees from",
-			postCheck: func() {
-				// the balance should not have changed
-				balance := suite.app.BankKeeper.GetBalance(suite.ctx, addr, constants.BaseDenom)
-				suite.Require().Equal(sdk.NewInt(1e5), balance.Amount, "expected balance to be unchanged")
-
-				// the rewards should not have changed
-				rewards, err := testutil.GetTotalDelegationRewards(suite.ctx, suite.app.DistrKeeper, addr)
-				suite.Require().NoError(err, "failed to get total delegation rewards")
-				suite.Require().Equal(
-					sdk.NewDecCoins(sdk.NewDecCoin(constants.BaseDenom, initBalance)),
-					rewards,
-					"expected rewards to be unchanged")
-			},
-		},
-		{
-			name:        "fail - insufficient funds and insufficient staking rewards",
-			balance:     sdk.NewInt(1e5),
-			rewards:     sdk.NewInt(1e5),
-			gas:         10_000_000,
-			checkTx:     false,
-			simulate:    false,
-			expPass:     false,
-			errContains: "failed to deduct fees from",
-			postCheck: func() {
-				// the balance should not have changed
-				balance := suite.app.BankKeeper.GetBalance(suite.ctx, addr, constants.BaseDenom)
-				suite.Require().Equal(sdk.NewInt(1e5), balance.Amount, "expected balance to be unchanged")
-
-				// the rewards should not have changed
-				rewards, err := testutil.GetTotalDelegationRewards(suite.ctx, suite.app.DistrKeeper, addr)
-				suite.Require().NoError(err, "failed to get total delegation rewards")
-				suite.Require().Equal(
-					sdk.NewDecCoins(sdk.NewDecCoin(constants.BaseDenom, sdk.NewInt(1e5))),
-					rewards,
-					"expected rewards to be unchanged")
 			},
 		},
 		{
 			name:        "fail - sufficient balance to pay fees but provided fees < required fees",
 			balance:     initBalance,
-			rewards:     zero,
 			gas:         10_000_000,
 			gasPrice:    &lowGasPrice,
 			checkTx:     true,
@@ -148,7 +90,6 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 		{
 			name:        "success - sufficient balance to pay fees & min gas prices is zero",
 			balance:     initBalance,
-			rewards:     zero,
 			gas:         10_000_000,
 			gasPrice:    &lowGasPrice,
 			checkTx:     true,
@@ -166,7 +107,6 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 		{
 			name:        "success - sufficient balance to pay fees (fees > required fees)",
 			balance:     initBalance,
-			rewards:     zero,
 			gas:         10_000_000,
 			checkTx:     true,
 			simulate:    false,
@@ -183,7 +123,6 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 		{
 			name:        "success - zero fees",
 			balance:     initBalance,
-			rewards:     zero,
 			gas:         100,
 			gasPrice:    &zero,
 			checkTx:     true,
@@ -206,7 +145,6 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 		{
 			name:        "fail - with not authorized fee granter",
 			balance:     initBalance,
-			rewards:     zero,
 			gas:         10_000_000,
 			feeGranter:  fgAddr,
 			checkTx:     true,
@@ -217,7 +155,6 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 		{
 			name:        "success - with authorized fee granter",
 			balance:     initBalance,
-			rewards:     zero,
 			gas:         10_000_000,
 			feeGranter:  fgAddr,
 			checkTx:     true,
@@ -246,7 +183,6 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 		{
 			name:        "fail - authorized fee granter but no feegrant keeper on decorator",
 			balance:     initBalance,
-			rewards:     zero,
 			gas:         10_000_000,
 			feeGranter:  fgAddr,
 			checkTx:     true,
@@ -284,11 +220,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 				suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.DistrKeeper, suite.app.FeeGrantKeeper, suite.app.StakingKeeper, nil,
 			)
 
-			// prepare the testcase
-			var err error
-			suite.ctx, err = testutil.PrepareAccountsForDelegationRewards(suite.T(), suite.ctx, suite.app, addr, tc.balance, tc.rewards)
-			suite.Require().NoError(err, "failed to prepare accounts for delegation rewards")
-			suite.ctx, err = testutil.Commit(suite.ctx, suite.app, time.Second*0, nil)
+			err := testutil.FundAccountWithBaseDenom(suite.ctx, suite.app.BankKeeper, addr, tc.balance.Int64())
 			suite.Require().NoError(err)
 
 			// Create an arbitrary message for testing purposes
