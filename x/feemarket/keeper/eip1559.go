@@ -17,27 +17,14 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 	params := k.GetParams(ctx)
 
 	// Ignore the calculation if not enabled
-	if !params.IsBaseFeeEnabled(ctx.BlockHeight()) {
+	if params.NoBaseFee {
 		return nil
 	}
 
 	consParams := ctx.ConsensusParams()
 
-	// If the current block is the first EIP-1559 block, return the base fee
-	// defined in the parameters (DefaultBaseFee if it hasn't been changed by
-	// governance).
-	if ctx.BlockHeight() == params.EnableHeight {
-		return params.BaseFee.BigInt()
-	}
-
 	// get the block gas used and the base fee values for the parent block.
-	// NOTE: this is not the parent's base fee but the current block's base fee,
-	// as it is retrieved from the transient store, which is committed to the
-	// persistent KVStore after EndBlock (ABCI Commit).
 	parentBaseFee := params.BaseFee.BigInt()
-	if parentBaseFee == nil {
-		return nil
-	}
 
 	parentGasUsed := k.GetBlockGasWanted(ctx)
 

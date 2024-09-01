@@ -45,7 +45,6 @@ func (suite *AnteTestSuite) SetupTest() {
 		if suite.enableFeemarket {
 			// setup feemarketGenesis params
 			feemarketGenesis := feemarkettypes.DefaultGenesisState()
-			feemarketGenesis.Params.EnableHeight = 1
 			feemarketGenesis.Params.NoBaseFee = false
 			// Verify feeMarket genesis
 			err := feemarketGenesis.Validate()
