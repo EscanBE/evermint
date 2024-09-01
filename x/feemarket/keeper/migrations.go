@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	v4 "github.com/EscanBE/evermint/v12/x/feemarket/migrations/v4"
 	"github.com/EscanBE/evermint/v12/x/feemarket/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -20,7 +19,6 @@ func NewMigrator(keeper Keeper, legacySubspace types.Subspace) Migrator {
 	}
 }
 
-// Migrate3to4 migrates the store from consensus version 3 to 4
-func (m Migrator) Migrate3to4(ctx sdk.Context) error {
-	return v4.MigrateStore(ctx, m.keeper.storeKey, m.legacySubspace, m.keeper.cdc)
+func (m Migrator) Migrate(_ sdk.Context) error {
+	return nil
 }
