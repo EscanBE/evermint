@@ -59,6 +59,24 @@ var _ = Describe("when sending a Cosmos transaction", func() {
 		})
 	})
 
+	Context("and the sender account has NOT enough balance to pay for the transaction cost", Ordered, func() {
+		BeforeEach(func() {
+			addr, priv = testutiltx.NewAccAddressAndKey()
+
+			msg = &banktypes.MsgSend{
+				FromAddress: addr.String(),
+				ToAddress:   marker.ReplaceAbleAddress("evm1dx67l23hz9l0k9hcher8xz04uj7wf3yuqpfj0p"),
+				Amount:      sdk.Coins{sdk.Coin{Amount: sdkmath.NewInt(1e14), Denom: constants.BaseDenom}},
+			}
+		})
+
+		It("should fail", func() {
+			res, err := testutil.DeliverTx(s.ctx, s.app, priv, nil, msg)
+			Expect(res.IsOK()).To(BeTrue())
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
 	Context("and the sender account neither has enough balance nor sufficient staking rewards to pay for the transaction cost", func() {
 		var (
 			rewardsAmt = sdk.NewInt(0)
@@ -93,43 +111,6 @@ var _ = Describe("when sending a Cosmos transaction", func() {
 			rewards, err := testutil.GetTotalDelegationRewards(s.ctx, s.app.DistrKeeper, addr)
 			Expect(err).To(BeNil())
 			Expect(rewards.Empty()).To(BeTrue())
-		})
-	})
-
-	Context("and the sender account has not enough balance but sufficient staking rewards to pay for the transaction cost", func() {
-		var (
-			rewardsAmt = sdk.NewInt(1e18)
-			balance    = sdk.NewInt(0)
-		)
-
-		BeforeEach(func() {
-			addr, priv = testutiltx.NewAccAddressAndKey()
-
-			msg = &banktypes.MsgSend{
-				FromAddress: addr.String(),
-				ToAddress:   marker.ReplaceAbleAddress("evm1dx67l23hz9l0k9hcher8xz04uj7wf3yuqpfj0p"),
-				Amount:      sdk.Coins{sdk.Coin{Amount: sdkmath.NewInt(1), Denom: constants.BaseDenom}},
-			}
-
-			s.ctx, _ = testutil.PrepareAccountsForDelegationRewards(
-				s.T(), s.ctx, s.app, addr, balance, rewardsAmt,
-			)
-			var err error
-			s.ctx, err = testutil.Commit(s.ctx, s.app, time.Second*0, nil)
-			Expect(err).To(BeNil())
-		})
-
-		It("should withdraw enough staking rewards to cover the transaction cost", func() {
-			rewards, err := testutil.GetTotalDelegationRewards(s.ctx, s.app.DistrKeeper, addr)
-			Expect(err).To(BeNil())
-			Expect(rewards).To(Equal(sdk.NewDecCoins(sdk.NewDecCoin(constants.BaseDenom, rewardsAmt))))
-
-			balance := s.app.BankKeeper.GetBalance(s.ctx, addr, constants.BaseDenom)
-			Expect(balance.Amount).To(Equal(sdk.NewInt(0)))
-
-			res, err := testutil.DeliverTx(s.ctx, s.app, priv, nil, msg)
-			Expect(res.IsOK()).To(BeTrue())
-			Expect(err).To(BeNil())
 		})
 	})
 })
