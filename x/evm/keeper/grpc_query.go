@@ -420,11 +420,7 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 	}
 	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(ctx.BlockHeight()))
 
-	// Calculate base fee of the context block that being traced
-	baseFee := k.feeMarketKeeper.CalculateBaseFee(ctx)
-	if baseFee != nil {
-		cfg.BaseFee = baseFee
-	}
+	cfg.BaseFee = k.feeMarketKeeper.GetBaseFee(ctx)
 
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash().Bytes()))
 
@@ -516,11 +512,7 @@ func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest)
 	}
 	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(ctx.BlockHeight()))
 
-	// Calculate base fee of the context block that being traced
-	baseFee := k.feeMarketKeeper.CalculateBaseFee(ctx)
-	if baseFee != nil {
-		cfg.BaseFee = baseFee
-	}
+	cfg.BaseFee = k.feeMarketKeeper.GetBaseFee(ctx)
 
 	txsLength := len(req.Txs)
 	results := make([]*types.TxTraceResult, 0, txsLength)

@@ -70,6 +70,6 @@ func (k Keeper) SetBaseFee(ctx sdk.Context, baseFee *big.Int) {
 	params.BaseFee = sdk.NewIntFromBigInt(baseFee)
 	err := k.SetParams(ctx, params)
 	if err != nil {
-		return
+		panic(err)
 	}
 }

@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"github.com/ethereum/go-ethereum/consensus/misc"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
@@ -32,7 +31,6 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 		gasLimit = new(big.Int).SetUint64(math.MaxUint64)
 	}
 
-	fmt.Println("k.evmKeeper", k.evmKeeper, "ctx.BlockGasMeter()", ctx.BlockGasMeter())
 	baseFee := misc.CalcBaseFee(k.evmKeeper.GetChainConfig(ctx), &ethtypes.Header{
 		Number:   big.NewInt(ctx.BlockHeight()),
 		GasLimit: gasLimit.Uint64(),

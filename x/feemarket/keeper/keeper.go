@@ -73,6 +73,7 @@ func (k Keeper) SetBlockGasUsed(ctx sdk.Context, gas uint64) {
 }
 
 // GetBlockGasUsed returns the last block gas used value from the store.
+// TODO EB: remove this
 func (k Keeper) GetBlockGasUsed(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.KeyPrefixBlockGasUsed)
