@@ -331,11 +331,6 @@ func (k Keeper) getBaseFee(ctx sdk.Context, london bool) *big.Int {
 	return baseFee
 }
 
-// GetMinGasMultiplier returns the MinGasMultiplier param from the fee market module
-func (k Keeper) GetMinGasMultiplier(ctx sdk.Context) sdk.Dec {
-	return k.feeMarketKeeper.GetParams(ctx).MinGasMultiplier
-}
-
 // ResetTransientGasUsed reset gas used to prepare for execution of current cosmos tx, called in ante handler.
 func (k Keeper) ResetTransientGasUsed(ctx sdk.Context) {
 	store := ctx.TransientStore(k.transientKey)

@@ -622,22 +622,22 @@ func (suite *EvmTestSuite) TestERC20TransferReverted() {
 		expErr   string
 	}{
 		{
-			"no hooks",
-			intrinsicGas, // enough for intrinsicGas, but not enough for execution
-			nil,
-			"out of gas",
+			msg:      "no hooks",
+			gasLimit: intrinsicGas, // enough for intrinsicGas, but not enough for execution
+			hooks:    nil,
+			expErr:   "out of gas",
 		},
 		{
-			"success hooks",
-			intrinsicGas, // enough for intrinsicGas, but not enough for execution
-			&DummyHook{},
-			"out of gas",
+			msg:      "success hooks",
+			gasLimit: intrinsicGas, // enough for intrinsicGas, but not enough for execution
+			hooks:    &DummyHook{},
+			expErr:   "out of gas",
 		},
 		{
-			"failure hooks",
-			1000000, // enough gas limit, but hooks fails.
-			&FailureHook{},
-			"failed to execute post processing",
+			msg:      "failure hooks",
+			gasLimit: 1000000, // enough gas limit, but hooks fails.
+			hooks:    &FailureHook{},
+			expErr:   "failed to execute post processing",
 		},
 	}
 
@@ -648,7 +648,7 @@ func (suite *EvmTestSuite) TestERC20TransferReverted() {
 			k.SetHooks(tc.hooks)
 
 			// add some fund to pay gas fee
-			err := k.SetBalance(suite.ctx, suite.from, big.NewInt(1000000000000000))
+			err := k.SetBalance(suite.ctx, suite.from, big.NewInt(1000000000000001))
 			suite.Require().NoError(err)
 
 			contract := suite.deployERC20Contract()
@@ -698,8 +698,8 @@ func (suite *EvmTestSuite) TestERC20TransferReverted() {
 				suite.Require().Greater(tc.gasLimit, res.GasUsed)
 			}
 
-			// check gas refund works: only deducted fee for gas used, rather than gas limit.
-			suite.Require().Equal(new(big.Int).Mul(gasPrice, big.NewInt(int64(res.GasUsed))), new(big.Int).Sub(before, after))
+			// tx fee should be 100% consumed
+			suite.Require().Equal(new(big.Int).Sub(before, fees[0].Amount.BigInt()), after)
 
 			// nonce should not be increased.
 			nonce2 := k.GetNonce(suite.ctx, suite.from)

@@ -351,115 +351,6 @@ func (suite *KeeperTestSuite) TestGasToRefund() {
 	suite.mintFeeCollector = false
 }
 
-func (suite *KeeperTestSuite) TestRefundGas() {
-	var (
-		m   core.Message
-		err error
-	)
-
-	testCases := []struct {
-		name           string
-		leftoverGas    uint64
-		refundQuotient uint64
-		noError        bool
-		expGasRefund   uint64
-		malleate       func()
-	}{
-		{
-			name:           "leftoverGas more than tx gas limit",
-			leftoverGas:    params.TxGas + 1,
-			refundQuotient: params.RefundQuotient,
-			noError:        false,
-			expGasRefund:   params.TxGas + 1,
-		},
-		{
-			name:           "leftoverGas equal to tx gas limit, insufficient fee collector account",
-			leftoverGas:    params.TxGas,
-			refundQuotient: params.RefundQuotient,
-			noError:        true,
-			expGasRefund:   0,
-		},
-		{
-			name:           "leftoverGas less than to tx gas limit",
-			leftoverGas:    params.TxGas - 1,
-			refundQuotient: params.RefundQuotient,
-			noError:        true,
-			expGasRefund:   0,
-		},
-		{
-			name:           "no leftoverGas, refund half used gas ",
-			leftoverGas:    0,
-			refundQuotient: params.RefundQuotient,
-			noError:        true,
-			expGasRefund:   params.TxGas / params.RefundQuotient,
-		},
-		{
-			name:           "invalid Gas value in msg",
-			leftoverGas:    0,
-			refundQuotient: params.RefundQuotient,
-			noError:        false,
-			expGasRefund:   params.TxGas,
-			malleate: func() {
-				keeperParams := suite.app.EvmKeeper.GetParams(suite.ctx)
-				m, err = suite.createContractGethMsg(
-					suite.StateDB().GetNonce(suite.address),
-					ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID()),
-					keeperParams.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID()),
-					big.NewInt(-100),
-				)
-				suite.Require().NoError(err)
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.mintFeeCollector = true
-			suite.SetupTest() // reset
-
-			keeperParams := suite.app.EvmKeeper.GetParams(suite.ctx)
-			ethCfg := keeperParams.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
-			signer := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
-			vmdb := suite.StateDB()
-
-			m, err = newNativeMessage(
-				vmdb.GetNonce(suite.address),
-				suite.ctx.BlockHeight(),
-				suite.address,
-				ethCfg,
-				suite.signer,
-				signer,
-				ethtypes.AccessListTxType,
-				nil,
-				nil,
-			)
-			suite.Require().NoError(err)
-
-			vmdb.AddRefund(params.TxGas)
-
-			if tc.leftoverGas > m.Gas() {
-				return
-			}
-
-			if tc.malleate != nil {
-				tc.malleate()
-			}
-
-			gasUsed := m.Gas() - tc.leftoverGas
-			refund := keeper.GasToRefund(vmdb.GetRefund(), gasUsed, tc.refundQuotient)
-			suite.Require().Equal(tc.expGasRefund, refund)
-
-			err = suite.app.EvmKeeper.RefundGas(suite.ctx, m, refund, types.DefaultEVMDenom)
-			if tc.noError {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
-	}
-	suite.mintFeeCollector = false
-}
-
 func (suite *KeeperTestSuite) TestResetGasMeterAndConsumeGas() {
 	testCases := []struct {
 		name        string
@@ -607,7 +498,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 			expGasUsed: 21000,
 		},
 		{
-			name: "tx transfer success, consume at least 50% gas limit, the rest are refunded",
+			name: "tx transfer success, consume enough gas, regardless max gas",
 			malleate: func() {
 				err = testutil.FundModuleAccount(
 					suite.ctx,
@@ -642,7 +533,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 				suite.Require().NoError(err)
 			},
 			expErr:     false,
-			expGasUsed: 50_000, // consume at least half of gas limit
+			expGasUsed: 21_000, // consume just enough gas
 		},
 		{
 			name: "fail intrinsic gas check, consume all remaining gas",
@@ -828,7 +719,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 			expGasUsed: 21000,
 		},
 		{
-			name: "transfer message success, consume at least 50% gas limit",
+			name: "transfer message success, consume enough gas, regardless max gas",
 			malleate: func() {
 				suite.FundDefaultAddress(1_000_000)
 
@@ -836,7 +727,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 
 				ethTxParams := types.EvmTxArgs{
 					Nonce:     getNonce(suite.address.Bytes()),
-					GasLimit:  60_000,
+					GasLimit:  100_000,
 					Input:     nil,
 					GasFeeCap: nil,
 					GasPrice:  big.NewInt(10),
@@ -851,14 +742,14 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 
 				ethMsg := types.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
-				ethMsg.Sign(msgSigner, suite.signer)
+				err := ethMsg.Sign(msgSigner, suite.signer)
+				suite.Require().NoError(err)
 
-				var err error
 				msg, err = ethMsg.AsMessage(msgSigner, nil)
 				suite.Require().NoError(err)
 			},
 			expErr:     false,
-			expGasUsed: 30_000, // consume at least half of gas limit
+			expGasUsed: 21_000, // consume just enough gas
 		},
 		{
 			name:                  "fail intrinsic gas check",
@@ -1074,7 +965,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 			expGasUsed: 21000,
 		},
 		{
-			name: "transfer message success, consume at least 50% gas limit",
+			name: "transfer message success, consume enough gas, regardless max gas",
 			malleate: func() {
 				suite.FundDefaultAddress(1_000_000)
 
@@ -1104,7 +995,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				suite.Require().NoError(err)
 			},
 			expErr:     false,
-			expGasUsed: 50_000, // consume at least half of gas limit
+			expGasUsed: 21_000, // consume just enough gas
 		},
 		{
 			name: "fail intrinsic gas check",

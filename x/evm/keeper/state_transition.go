@@ -228,11 +228,6 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 		}
 	}
 
-	// refund gas in order to match the Ethereum gas consumption instead of the default SDK one.
-	if err = k.RefundGas(ctx, msg, msg.Gas()-res.GasUsed, cfg.Params.EvmDenom); err != nil {
-		return nil, errorsmod.Wrapf(err, "failed to refund gas leftover gas to sender %s", msg.From())
-	}
-
 	if len(receipt.Logs) > 0 {
 		// Update transient block bloom filter
 		k.SetBlockBloomTransient(ctx, receipt.Bloom.Big())
@@ -379,12 +374,12 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		return nil, errorsmod.Wrap(types.ErrGasOverflow, "apply message")
 	}
 	// refund gas
-	temporaryGasUsed := msg.Gas() - leftoverGas
-	refund := GasToRefund(stateDB.GetRefund(), temporaryGasUsed, refundQuotient)
+	gasUsed := msg.Gas() - leftoverGas
+	refund := GasToRefund(stateDB.GetRefund(), gasUsed, refundQuotient)
 
 	// update leftoverGas and temporaryGasUsed with refund amount
 	leftoverGas += refund
-	temporaryGasUsed -= refund
+	gasUsed -= refund
 
 	// EVM execution error needs to be available for the JSON-RPC client
 	var vmError string
@@ -398,21 +393,6 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 			return nil, errorsmod.Wrap(err, "failed to commit stateDB")
 		}
 	}
-
-	// calculate a minimum amount of gas to be charged to sender if GasLimit
-	// is considerably higher than GasUsed to stay more aligned with Tendermint gas mechanics
-	// for more info https://github.com/evmos/ethermint/issues/1085
-	gasLimit := sdk.NewDec(int64(msg.Gas()))
-	minGasMultiplier := k.GetMinGasMultiplier(ctx)
-	minimumGasUsed := gasLimit.Mul(minGasMultiplier)
-
-	if msg.Gas() < leftoverGas {
-		return nil, errorsmod.Wrapf(types.ErrGasOverflow, "message gas limit < leftover gas (%d < %d)", msg.Gas(), leftoverGas)
-	}
-
-	gasUsed := sdk.MaxDec(minimumGasUsed, sdk.NewDec(int64(temporaryGasUsed))).TruncateInt().Uint64()
-	// reset leftoverGas, to be used by the tracer
-	leftoverGas = msg.Gas() - gasUsed
 
 	return &types.MsgEthereumTxResponse{
 		GasUsed: gasUsed,
