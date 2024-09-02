@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"github.com/EscanBE/evermint/v12/integration_test_util"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	etherminttypes "github.com/EscanBE/evermint/v12/types"
+	"github.com/EscanBE/evermint/v12/x/evm/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"math/big"
@@ -248,10 +249,11 @@ func (suite *EthRpcTestSuite) Test_GetCode() {
 
 	accountI := suite.App().AccountKeeper().GetAccount(suite.Ctx(), contractAddr.Bytes())
 	suite.Require().NotNil(accountI)
-	contractAccount, ok := accountI.(*etherminttypes.EthAccount)
+	_, ok := accountI.(*authtypes.BaseAccount)
 	suite.Require().True(ok)
 
-	codeHash := common.HexToHash(contractAccount.CodeHash)
+	codeHash := suite.App().EvmKeeper().GetCodeHash(suite.Ctx(), contractAddr.Bytes())
+	suite.Require().False(types.IsEmptyCodeHash(codeHash))
 
 	code := suite.App().EvmKeeper().GetCode(suite.Ctx(), codeHash)
 	suite.Require().NotEmptyf(code, "not found code for contract %s", contractAddr.String())

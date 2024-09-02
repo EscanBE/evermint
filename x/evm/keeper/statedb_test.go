@@ -946,19 +946,19 @@ func (suite *KeeperTestSuite) TestDeleteAccount() {
 		expErr bool
 	}{
 		{
-			"remove address",
-			suite.address,
-			false,
+			name:   "fail - remove address is prohibited, contract only",
+			addr:   suite.address,
+			expErr: true,
 		},
 		{
-			"remove unexistent address - returns nil error",
-			common.HexToAddress("unexistent_address"),
-			false,
+			name:   "pass - remove non-existence address",
+			addr:   common.HexToAddress("void"),
+			expErr: false,
 		},
 		{
-			"remove deployed contract",
-			contractAddr,
-			false,
+			name:   "pass - remove deployed contract",
+			addr:   contractAddr,
+			expErr: false,
 		},
 	}
 

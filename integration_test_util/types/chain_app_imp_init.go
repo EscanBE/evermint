@@ -11,7 +11,6 @@ import (
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	itutilutils "github.com/EscanBE/evermint/v12/integration_test_util/utils"
-	etherminttypes "github.com/EscanBE/evermint/v12/types"
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
@@ -33,7 +32,6 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/ethereum/go-ethereum/common"
 	"strings"
 	"time"
 )
@@ -84,10 +82,7 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 	var genesisBalances []banktypes.Balance
 	var signingInfos []slashingtypes.SigningInfo
 	for i, account := range append(validatorAccounts, walletAccounts...) {
-		acc := &etherminttypes.EthAccount{
-			BaseAccount: authtypes.NewBaseAccount(account.GetCosmosAddress(), account.GetPubKey(), uint64(i), 0),
-			CodeHash:    common.BytesToHash(evmtypes.EmptyCodeHash).Hex(),
-		}
+		acc := authtypes.NewBaseAccount(account.GetCosmosAddress(), account.GetPubKey(), uint64(i), 0)
 
 		switch account.Type {
 		case TestAccountTypeValidator:
@@ -121,14 +116,14 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 	}
 
 	app := chainapp.NewEvermint(
-		logger,           // logger
-		db,               // db
-		nil,              // trace store
-		true,             // load latest
-		map[int64]bool{}, // skipUpgradeHeights
-		defaultNodeHome,  // homePath
-		0,                // invCheckPeriod
-		encCfg,           // encodingConfig
+		logger,                                                 // logger
+		db,                                                     // db
+		nil,                                                    // trace store
+		true,                                                   // load latest
+		map[int64]bool{},                                       // skipUpgradeHeights
+		defaultNodeHome,                                        // homePath
+		0,                                                      // invCheckPeriod
+		encCfg,                                                 // encodingConfig
 		simtestutil.NewAppOptionsWithFlagHome(defaultNodeHome), // appOpts
 		baseapp.SetChainID(chainCfg.CosmosChainId),             // baseAppOptions
 	)

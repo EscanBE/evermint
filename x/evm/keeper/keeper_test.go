@@ -8,7 +8,6 @@ import (
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/x/evm/keeper"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
@@ -135,14 +134,19 @@ func (suite *KeeperTestSuite) TestGetAccountStorage() {
 			tc.malleate()
 			i := 0
 			suite.app.AccountKeeper.IterateAccounts(suite.ctx, func(account authtypes.AccountI) bool {
-				ethAccount, ok := account.(evertypes.EthAccountI)
+				baseAccount, ok := account.(*authtypes.BaseAccount)
 				if !ok {
-					// ignore non EthAccounts
+					// ignore non base-account
 					return false
 				}
 
-				addr := ethAccount.EthAddress()
-				storage := suite.app.EvmKeeper.GetAccountStorage(suite.ctx, addr)
+				codeHash := suite.app.EvmKeeper.GetCodeHash(suite.ctx, baseAccount.GetAddress())
+				if evmtypes.IsEmptyCodeHash(codeHash) {
+					// ignore non contract accounts
+					return false
+				}
+
+				storage := suite.app.EvmKeeper.GetAccountStorage(suite.ctx, common.BytesToAddress(baseAccount.GetAddress()))
 
 				suite.Require().Equal(tc.expRes[i], len(storage))
 				i++
