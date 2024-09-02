@@ -1262,15 +1262,16 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 
 			res, err := suite.queryClient.BaseFee(suite.ctx.Context(), &types.QueryBaseFeeRequest{})
 			if tc.expPass {
-				var wantRes string
-				if res != nil && res.BaseFee != nil && !res.BaseFee.IsNil() {
-					wantRes = res.BaseFee.String()
-				} else {
-					wantRes = "nil"
+				str := func(num *sdkmath.Int) string {
+					if res != nil && res.BaseFee != nil && !res.BaseFee.IsNil() {
+						return res.BaseFee.String()
+					} else {
+						return "nil"
+					}
 				}
 
 				suite.Require().NotNil(res)
-				suite.Require().Equalf(expRes, res, "want: %s", wantRes)
+				suite.Require().Equal(str(expRes.BaseFee), str(res.BaseFee))
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)

@@ -22,21 +22,27 @@ func (k Keeper) updateBaseFeeForNextBlock(ctx sdk.Context) {
 
 	baseFee := k.CalculateBaseFee(ctx)
 
-	if baseFee == nil {
-		return
-	}
-
 	k.SetBaseFee(ctx, baseFee)
 
 	defer func() {
-		telemetry.SetGauge(float32(baseFee.Int64()), "feemarket", "base_fee")
+		telemetry.SetGauge(func() float32 {
+			if baseFee == nil {
+				return 0.0
+			}
+			return float32(baseFee.Int64())
+		}(), "feemarket", "base_fee")
 	}()
 
-	// Store current base fee in event
+	// Store next base fee in event
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeFeeMarket,
-			sdk.NewAttribute(types.AttributeKeyBaseFee, baseFee.String()),
+			sdk.NewAttribute(types.AttributeKeyBaseFee, func() string {
+				if baseFee == nil {
+					return "0"
+				}
+				return baseFee.String()
+			}()),
 		),
 	})
 }

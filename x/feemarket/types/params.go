@@ -12,8 +12,6 @@ import (
 var (
 	// DefaultMinGasPrice is 0 (i.e disabled)
 	DefaultMinGasPrice = sdk.ZeroDec()
-	// DefaultNoBaseFee is false
-	DefaultNoBaseFee = false
 )
 
 // Parameter keys
@@ -33,7 +31,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(ParamStoreKeyNoBaseFee, &p.NoBaseFee, validateBool),
-		paramtypes.NewParamSetPair(ParamStoreKeyBaseFee, &p.BaseFee, validateBaseFee),
+		paramtypes.NewParamSetPair(ParamStoreKeyBaseFee, p.BaseFee, validateBaseFee),
 		paramtypes.NewParamSetPair(ParamStoreKeyMinGasPrice, &p.MinGasPrice, validateMinGasPrice),
 	}
 }
@@ -44,28 +42,41 @@ func NewParams(
 	baseFee uint64,
 	minGasPrice sdk.Dec,
 ) Params {
+	baseFeeSdkInt := sdkmath.NewIntFromUint64(baseFee)
 	return Params{
 		NoBaseFee:   noBaseFee,
-		BaseFee:     sdkmath.NewIntFromUint64(baseFee),
+		BaseFee:     &baseFeeSdkInt,
 		MinGasPrice: minGasPrice,
 	}
 }
 
 // DefaultParams returns default evm parameters
 func DefaultParams() Params {
-	return Params{
-		NoBaseFee:   DefaultNoBaseFee,
-		BaseFee:     sdkmath.NewIntFromUint64(ethparams.InitialBaseFee),
-		MinGasPrice: DefaultMinGasPrice,
-	}
+	return NewParams(
+		false,
+		ethparams.InitialBaseFee,
+		DefaultMinGasPrice,
+	)
 }
 
 // Validate performs basic validation on fee market parameters.
 func (p Params) Validate() error {
-	if p.BaseFee.IsNil() {
-		return fmt.Errorf("base fee cannot be nil")
-	} else if p.BaseFee.IsNegative() {
-		return fmt.Errorf("base fee cannot be negative: %s", p.BaseFee)
+	baseFeeIsNil := p.BaseFee == nil || p.BaseFee.IsNil()
+
+	if !p.NoBaseFee {
+		if baseFeeIsNil {
+			return fmt.Errorf("base fee cannot be nil when base fee enabled")
+		}
+	} else {
+		if !baseFeeIsNil {
+			return fmt.Errorf("base fee must be nil when base fee disabled")
+		}
+	}
+
+	if !baseFeeIsNil {
+		if p.BaseFee.IsNegative() {
+			return fmt.Errorf("base fee cannot be negative: %s", p.BaseFee)
+		}
 	}
 
 	return validateMinGasPrice(p.MinGasPrice)

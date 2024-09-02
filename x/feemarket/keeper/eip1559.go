@@ -23,7 +23,8 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 		return nil
 	}
 
-	var gasLimit *big.Int
+	var gasLimit, baseFee *big.Int
+
 	// NOTE: a MaxGas equal to -1 means that block gas is unlimited
 	if consParams := ctx.ConsensusParams(); consParams != nil && consParams.Block.MaxGas > -1 {
 		gasLimit = big.NewInt(consParams.Block.MaxGas)
@@ -31,15 +32,19 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 		gasLimit = new(big.Int).SetUint64(math.MaxUint64)
 	}
 
-	baseFee := misc.CalcBaseFee(k.evmKeeper.GetChainConfig(ctx), &ethtypes.Header{
+	if params.BaseFee != nil {
+		baseFee = params.BaseFee.BigInt()
+	}
+
+	nextBaseFee := misc.CalcBaseFee(k.evmKeeper.GetChainConfig(ctx), &ethtypes.Header{
 		Number:   big.NewInt(ctx.BlockHeight()),
 		GasLimit: gasLimit.Uint64(),
 		GasUsed:  ctx.BlockGasMeter().GasConsumedToLimit(),
-		BaseFee:  params.BaseFee.BigInt(),
+		BaseFee:  baseFee,
 	})
 
 	// Set global min gas price as lower bound of the base fee, transactions below
 	// the min gas price don't even reach the mempool.
 	minGasPrice := params.MinGasPrice.TruncateInt().BigInt()
-	return math.BigMax(baseFee, minGasPrice)
+	return math.BigMax(nextBaseFee, minGasPrice)
 }

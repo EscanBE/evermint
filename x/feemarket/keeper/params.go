@@ -34,13 +34,17 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
 		return err
 	}
 
+	if params.NoBaseFee {
+		params.BaseFee = nil
+	}
+
 	store.Set(types.ParamsKey, bz)
 
 	return nil
 }
 
 // ----------------------------------------------------------------------------
-// Parent Base Fee
+// Base Fee
 // Required by EIP1559 base fee calculation.
 // ----------------------------------------------------------------------------
 
@@ -49,25 +53,27 @@ func (k Keeper) GetBaseFeeEnabled(ctx sdk.Context) bool {
 	return !k.GetParams(ctx).NoBaseFee
 }
 
-// GetBaseFee gets the base fee from the store
+// GetBaseFee gets the base fee from the store and returns as big.Int
 func (k Keeper) GetBaseFee(ctx sdk.Context) *big.Int {
 	params := k.GetParams(ctx)
-	if params.NoBaseFee {
+
+	baseFee := params.BaseFee
+	if baseFee == nil {
 		return nil
 	}
 
-	baseFee := params.BaseFee.BigInt()
-	if baseFee == nil || baseFee.Sign() == 0 {
-		// try v1 format
-		return k.GetBaseFeeV1(ctx)
-	}
-	return baseFee
+	return baseFee.BigInt()
 }
 
 // SetBaseFee set's the base fee in the store
 func (k Keeper) SetBaseFee(ctx sdk.Context, baseFee *big.Int) {
 	params := k.GetParams(ctx)
-	params.BaseFee = sdk.NewIntFromBigInt(baseFee)
+	if baseFee == nil {
+		params.BaseFee = nil
+	} else {
+		baseFeeSdkInt := sdk.NewIntFromBigInt(baseFee)
+		params.BaseFee = &baseFeeSdkInt
+	}
 	err := k.SetParams(ctx, params)
 	if err != nil {
 		panic(err)

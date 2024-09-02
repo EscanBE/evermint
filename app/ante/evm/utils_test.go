@@ -657,6 +657,7 @@ func (suite *AnteTestSuite) CreateTestSingleSignedTx(privKey cryptotypes.PrivKey
 func (suite *AnteTestSuite) disableBaseFee(ctx sdk.Context) {
 	params := suite.app.FeeMarketKeeper.GetParams(ctx)
 	params.NoBaseFee = true
+	params.BaseFee = nil
 	err := suite.app.FeeMarketKeeper.SetParams(ctx, params)
 	suite.Require().NoError(err)
 }

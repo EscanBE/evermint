@@ -37,7 +37,7 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 			NoBaseFee:          false,
 			parentBlockGasUsed: 50,
 			minGasPrice:        sdk.ZeroDec(),
-			expFee:             suite.app.FeeMarketKeeper.GetParams(suite.ctx).BaseFee.BigInt(),
+			expFee:             suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx),
 		},
 		{
 			name:               "with BaseFee - parent block used the same gas as its target, with higher min gas price (ElasticityMultiplier = 2)",

@@ -3,6 +3,7 @@ package keeper_test
 import (
 	_ "embed"
 	"github.com/EscanBE/evermint/v12/constants"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math/big"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -84,7 +85,7 @@ func (suite *KeeperTestSuite) TestBaseFee() {
 	}{
 		{"not enable london HF, not enable feemarket", false, false, nil},
 		{"enable london HF, not enable feemarket", true, false, big.NewInt(0)},
-		{"enable london HF, enable feemarket", true, true, big.NewInt(1000000000)},
+		{"enable london HF, enable feemarket", true, true, big.NewInt(875000000)},
 		{"not enable london HF, enable feemarket", false, true, nil},
 	}
 
@@ -93,7 +94,10 @@ func (suite *KeeperTestSuite) TestBaseFee() {
 			suite.enableFeemarket = tc.enableFeemarket
 			suite.enableLondonHF = tc.enableLondonHF
 			suite.SetupTest()
-			suite.app.EvmKeeper.BeginBlock(suite.ctx, abci.RequestBeginBlock{})
+
+			suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(100_000))
+
+			suite.app.FeeMarketKeeper.EndBlock(suite.ctx, abci.RequestEndBlock{})
 			params := suite.app.EvmKeeper.GetParams(suite.ctx)
 			ethCfg := params.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
 			baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx, ethCfg)

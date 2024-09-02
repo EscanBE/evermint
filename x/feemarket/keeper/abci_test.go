@@ -25,8 +25,6 @@ func (suite *KeeperTestSuite) TestEndBlock() {
 			malleate: func() {
 				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, big.NewInt(ethparams.InitialBaseFee))
 
-				meter := sdk.NewGasMeter(uint64(1000000000))
-				suite.ctx = suite.ctx.WithBlockGasMeter(meter)
 				suite.ctx.BlockGasMeter().ConsumeGas(2500000, "consume")
 			},
 			expBaseFee: big.NewInt(875000001),
@@ -35,15 +33,19 @@ func (suite *KeeperTestSuite) TestEndBlock() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+
 			params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
 			params.NoBaseFee = tc.noBaseFee
 			err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 			suite.Require().NoError(err)
 
+			meter := sdk.NewGasMeter(uint64(1000000000))
+			suite.ctx = suite.ctx.WithBlockGasMeter(meter)
+
 			tc.malleate()
 			suite.app.FeeMarketKeeper.EndBlock(suite.ctx, types.RequestEndBlock{Height: 1})
-			baseFee := suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx)
 
+			baseFee := suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx)
 			if tc.expBaseFee == nil {
 				suite.Require().Nil(baseFee)
 			} else {
