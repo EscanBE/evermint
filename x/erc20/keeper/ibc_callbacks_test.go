@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"math/big"
 
@@ -28,7 +29,6 @@ import (
 
 	"github.com/EscanBE/evermint/v12/contracts"
 	"github.com/EscanBE/evermint/v12/x/erc20/types"
-	vestingtypes "github.com/EscanBE/evermint/v12/x/vesting/types"
 )
 
 var erc20Denom = "erc20/0xdac17f958d2ee523a2206206994597c13d831ec7"
@@ -270,7 +270,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			malleate: func() {
 				// Set vesting account
 				bacc := authtypes.NewBaseAccount(ethsecpAddr, nil, 0, 0)
-				acc := vestingtypes.NewClawbackVestingAccount(bacc, ethsecpAddr, nil, suite.ctx.BlockTime(), nil, nil)
+				acc := vestingtypes.NewContinuousVestingAccount(bacc, sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdk.NewInt(100))), suite.ctx.BlockTime().Unix(), suite.ctx.BlockTime().Unix()+1_000_000)
 
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 				sourcePrefix := transfertypes.GetDenomPrefix(transfertypes.PortID, sourceChannel)
