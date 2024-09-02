@@ -521,9 +521,9 @@ paths:
         - Query
   /evmos/evm/v1/balances/{address}:
     get:
-      summary: |-
+      summary: >-
         Balance queries the balance of a the EVM denomination for a single
-        EthAccount.
+        account.
       operationId: Balance
       responses:
         '200':
