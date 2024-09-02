@@ -20,40 +20,9 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		GetBlockGasCmd(),
 		GetBaseFeeCmd(),
 		GetParamsCmd(),
 	)
-	return cmd
-}
-
-// GetBlockGasCmd queries the gas used in a block
-func GetBlockGasCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "block-gas",
-		Short: "Get the block gas used at a given block height",
-		Long: `Get the block gas used at a given block height.
-If the height is not provided, it will use the latest height from context`,
-		Args: cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-
-			ctx := cmd.Context()
-			res, err := queryClient.BlockGas(ctx, &types.QueryBlockGasRequest{})
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 

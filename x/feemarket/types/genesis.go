@@ -3,16 +3,14 @@ package types
 // DefaultGenesisState sets default fee market genesis state.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		Params:   DefaultParams(),
-		BlockGas: 0,
+		Params: DefaultParams(),
 	}
 }
 
 // NewGenesisState creates a new genesis state.
-func NewGenesisState(params Params, blockGas uint64) *GenesisState {
+func NewGenesisState(params Params) *GenesisState {
 	return &GenesisState{
-		Params:   params,
-		BlockGas: blockGas,
+		Params: params,
 	}
 }
 

@@ -13,6 +13,7 @@ import (
 )
 
 // KeyPrefixBaseFeeV1 TODO: Temporary will be removed with params refactor PR
+// TODO EB: remove this
 var KeyPrefixBaseFeeV1 = []byte{2}
 
 // Keeper grants access to the Fee Market module state.
@@ -59,34 +60,10 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", types.ModuleName)
 }
 
-// ----------------------------------------------------------------------------
-// Parent Block Gas Used
-// Required by EIP1559 base fee calculation.
-// ----------------------------------------------------------------------------
-
-// SetBlockGasUsed sets the block gas used to the store.
-// CONTRACT: this should be only called during EndBlock.
-func (k Keeper) SetBlockGasUsed(ctx sdk.Context, gas uint64) {
-	store := ctx.KVStore(k.storeKey)
-	gasBz := sdk.Uint64ToBigEndian(gas)
-	store.Set(types.KeyPrefixBlockGasUsed, gasBz)
-}
-
-// GetBlockGasUsed returns the last block gas used value from the store.
-// TODO EB: remove this
-func (k Keeper) GetBlockGasUsed(ctx sdk.Context) uint64 {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.KeyPrefixBlockGasUsed)
-	if len(bz) == 0 {
-		return 0
-	}
-
-	return sdk.BigEndianToUint64(bz)
-}
-
 // GetBaseFeeV1 get the base fee from v1 version of states.
 // return nil if base fee is not enabled
 // TODO: Figure out if this will be deleted ?
+// TODO EB: remove this
 func (k Keeper) GetBaseFeeV1(ctx sdk.Context) *big.Int {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(KeyPrefixBaseFeeV1)

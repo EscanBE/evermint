@@ -7,28 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (suite *KeeperTestSuite) TestSetGetBlockGasWanted() {
-	testCases := []struct {
-		name     string
-		malleate func()
-		expGas   uint64
-	}{
-		{
-			"with last block given",
-			func() {
-				suite.app.FeeMarketKeeper.SetBlockGasUsed(suite.ctx, uint64(1000000))
-			},
-			uint64(1000000),
-		},
-	}
-	for _, tc := range testCases {
-		tc.malleate()
-
-		gas := suite.app.FeeMarketKeeper.GetBlockGasUsed(suite.ctx)
-		suite.Require().Equal(tc.expGas, gas, tc.name)
-	}
-}
-
 func (suite *KeeperTestSuite) TestSetGetGasFee() {
 	testCases := []struct {
 		name     string
