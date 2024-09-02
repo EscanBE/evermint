@@ -252,6 +252,24 @@ func (k *Keeper) DeleteCodeHash(ctx sdk.Context, addr []byte) {
 	store.Delete(addr)
 }
 
+// IterateContracts iterating through all code hash, represents for all smart contracts
+func (k Keeper) IterateContracts(ctx sdk.Context, callback func(addr common.Address, codeHash common.Hash) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.KeyPrefixCodeHash)
+
+	defer func() {
+		_ = iterator.Close()
+	}()
+	for ; iterator.Valid(); iterator.Next() {
+		addr := common.BytesToAddress(iterator.Key())
+		codeHash := common.BytesToHash(iterator.Value())
+
+		if callback(addr, codeHash) {
+			break
+		}
+	}
+}
+
 // isNotProhibitedAccountType returns false if the given account is module account or vesting account
 func isNotProhibitedAccountType(accI authtypes.AccountI) (notProhibited bool, explain string) {
 	if moduleAccount, isModuleAccount := accI.(authtypes.ModuleAccountI); isModuleAccount {

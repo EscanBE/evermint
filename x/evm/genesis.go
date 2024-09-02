@@ -68,21 +68,18 @@ func InitGenesis(
 }
 
 // ExportGenesis exports genesis state of the EVM module
-func ExportGenesis(ctx sdk.Context, k *keeper.Keeper, ak types.AccountKeeper) *types.GenesisState {
+func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) *types.GenesisState {
 	var ethGenAccounts []types.GenesisAccount
-	ak.IterateAccounts(ctx, func(account authtypes.AccountI) bool {
-		accAddr := account.GetAddress()
-		codeHash := k.GetCodeHash(ctx, accAddr)
+	k.IterateContracts(ctx, func(addr common.Address, codeHash common.Hash) bool {
 		if types.IsEmptyCodeHash(codeHash) {
 			// ignore non-contract accounts
 			return false
 		}
 
-		ethAddr := common.BytesToAddress(accAddr)
-		storage := k.GetAccountStorage(ctx, ethAddr)
+		storage := k.GetAccountStorage(ctx, addr)
 
 		genAccount := types.GenesisAccount{
-			Address: ethAddr.String(),
+			Address: addr.String(),
 			Code:    common.Bytes2Hex(k.GetCode(ctx, codeHash)),
 			Storage: storage,
 		}
