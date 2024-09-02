@@ -2,8 +2,11 @@ package evm_test
 
 import (
 	"github.com/EscanBE/evermint/v12/constants"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"math"
 	"math/big"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -20,7 +23,7 @@ import (
 
 func (suite *AnteTestSuite) TestNewExternalOwnedAccountVerificationDecorator() {
 	dec := ethante.NewExternalOwnedAccountVerificationDecorator(
-		suite.app.AccountKeeper, suite.app.EvmKeeper,
+		suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.EvmKeeper,
 	)
 
 	addr := testutiltx.GenerateAddress()
@@ -36,74 +39,109 @@ func (suite *AnteTestSuite) TestNewExternalOwnedAccountVerificationDecorator() {
 	tx := evmtypes.NewTx(ethContractCreationTxParams)
 	tx.From = addr.Hex()
 
-	var vmdb *statedb.StateDB
-
 	testCases := []struct {
 		name     string
 		tx       sdk.Tx
-		malleate func()
+		malleate func(sdk.Context, *statedb.StateDB)
 		checkTx  bool
 		expPass  bool
 	}{
-		{"not CheckTx", nil, func() {}, false, true},
-		{"invalid transaction type", &testutiltx.InvalidTx{}, func() {}, true, false},
 		{
-			"sender not set to msg",
-			tx,
-			func() {},
-			true,
-			false,
+			name:     "not CheckTx",
+			tx:       nil,
+			malleate: func(_ sdk.Context, _ *statedb.StateDB) {},
+			checkTx:  false,
+			expPass:  true,
 		},
 		{
-			"sender not EOA",
-			tx,
-			func() {
+			name:     "invalid transaction type",
+			tx:       &testutiltx.InvalidTx{},
+			malleate: func(_ sdk.Context, _ *statedb.StateDB) {},
+			checkTx:  true,
+			expPass:  false,
+		},
+		{
+			name:     "sender not set to msg",
+			tx:       tx,
+			malleate: func(_ sdk.Context, _ *statedb.StateDB) {},
+			checkTx:  true,
+			expPass:  false,
+		},
+		{
+			name: "sender not EOA",
+			tx:   tx,
+			malleate: func(_ sdk.Context, vmdb *statedb.StateDB) {
 				// set not as an EOA
 				vmdb.SetCode(addr, []byte("1"))
 			},
-			true,
-			false,
+			checkTx: true,
+			expPass: false,
 		},
 		{
-			"not enough balance to cover tx cost",
-			tx,
-			func() {
+			name: "not enough balance to cover tx cost",
+			tx:   tx,
+			malleate: func(_ sdk.Context, vmdb *statedb.StateDB) {
 				// reset back to EOA
 				vmdb.SetCode(addr, nil)
 			},
-			true,
-			false,
+			checkTx: true,
+			expPass: false,
 		},
 		{
-			"success new account",
-			tx,
-			func() {
+			name: "success new account",
+			tx:   tx,
+			malleate: func(_ sdk.Context, vmdb *statedb.StateDB) {
 				vmdb.AddBalance(addr, big.NewInt(1000000))
 			},
-			true,
-			true,
+			checkTx: true,
+			expPass: true,
 		},
 		{
-			"success existing account",
-			tx,
-			func() {
-				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
-				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
+			name: "success existing account",
+			tx:   tx,
+			malleate: func(ctx sdk.Context, vmdb *statedb.StateDB) {
+				acc := suite.app.AccountKeeper.NewAccountWithAddress(ctx, addr.Bytes())
+				suite.app.AccountKeeper.SetAccount(ctx, acc)
 
 				vmdb.AddBalance(addr, big.NewInt(1000000))
 			},
-			true,
-			true,
+			checkTx: true,
+			expPass: true,
+		},
+		{
+			name: "not enough spendable balance",
+			tx:   tx,
+			malleate: func(ctx sdk.Context, vmdb *statedb.StateDB) {
+				acc := suite.app.AccountKeeper.NewAccountWithAddress(ctx, addr.Bytes())
+
+				const amount = 1_000_000
+
+				baseVestingAcc := &vestingtypes.BaseVestingAccount{
+					BaseAccount:      acc.(*authtypes.BaseAccount),
+					OriginalVesting:  sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdk.NewInt(amount))),
+					DelegatedFree:    sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdk.NewInt(0))),
+					DelegatedVesting: sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdk.NewInt(0))),
+					EndTime:          ctx.BlockTime().Add(99 * 365 * 24 * time.Hour).Unix(),
+				}
+				suite.app.AccountKeeper.SetAccount(ctx, &vestingtypes.DelayedVestingAccount{
+					BaseVestingAccount: baseVestingAcc,
+				})
+
+				vmdb.AddBalance(addr, big.NewInt(amount))
+			},
+			checkTx: true,
+			expPass: false,
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			vmdb = testutil.NewStateDB(suite.ctx, suite.app.EvmKeeper)
-			tc.malleate()
+			ctx, _ := suite.ctx.CacheContext()
+			vmdb := testutil.NewStateDB(ctx, suite.app.EvmKeeper)
+			tc.malleate(ctx, vmdb)
 			suite.Require().NoError(vmdb.Commit())
 
-			_, err := dec.AnteHandle(suite.ctx.WithIsCheckTx(tc.checkTx), tc.tx, false, testutil.NextFn)
+			_, err := dec.AnteHandle(ctx.WithIsCheckTx(tc.checkTx), tc.tx, false, testutil.NextFn)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

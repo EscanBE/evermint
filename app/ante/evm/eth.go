@@ -20,18 +20,18 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// TODO EA: validate if vesting account has enough balance to send
-
 // ExternalOwnedAccountVerificationDecorator validates an account balance checks
 type ExternalOwnedAccountVerificationDecorator struct {
 	ak        evmtypes.AccountKeeper
+	bk        evmtypes.BankKeeper
 	evmKeeper EVMKeeper
 }
 
 // NewExternalOwnedAccountVerificationDecorator creates a new ExternalOwnedAccountVerificationDecorator
-func NewExternalOwnedAccountVerificationDecorator(ak evmtypes.AccountKeeper, ek EVMKeeper) ExternalOwnedAccountVerificationDecorator {
+func NewExternalOwnedAccountVerificationDecorator(ak evmtypes.AccountKeeper, bk evmtypes.BankKeeper, ek EVMKeeper) ExternalOwnedAccountVerificationDecorator {
 	return ExternalOwnedAccountVerificationDecorator{
 		ak:        ak,
+		bk:        bk,
 		evmKeeper: ek,
 	}
 }
@@ -51,6 +51,8 @@ func (avd ExternalOwnedAccountVerificationDecorator) AnteHandle(
 	if !ctx.IsCheckTx() {
 		return next(ctx, tx, simulate)
 	}
+
+	var params *evmtypes.Params
 
 	for i, msg := range tx.GetMsgs() {
 		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
@@ -84,7 +86,23 @@ func (avd ExternalOwnedAccountVerificationDecorator) AnteHandle(
 			)
 		}
 
-		if err := keeper.CheckSenderBalance(sdkmath.NewIntFromBigInt(acct.Balance), txData); err != nil {
+		var spendableBalance *big.Int
+		if acct.Balance != nil && acct.Balance.Sign() > 0 {
+			if params == nil {
+				p := avd.evmKeeper.GetParams(ctx)
+				params = &p
+			}
+			spendableCoin := avd.bk.SpendableCoin(ctx, from, params.EvmDenom)
+			if spendableCoin.IsNil() || spendableCoin.IsZero() {
+				spendableBalance = common.Big0
+			} else {
+				spendableBalance = spendableCoin.Amount.BigInt()
+			}
+		} else {
+			spendableBalance = acct.Balance
+		}
+
+		if err := keeper.CheckSenderBalance(sdkmath.NewIntFromBigInt(spendableBalance), txData); err != nil {
 			return ctx, errorsmod.Wrap(err, "failed to check sender balance")
 		}
 	}

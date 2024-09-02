@@ -4,6 +4,7 @@ import (
 	"fmt"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
@@ -282,22 +283,7 @@ func isNotProhibitedAccountType(accI authtypes.AccountI) (notProhibited bool, ex
 		return
 	}
 
-	if _, isVestingAccount := accI.(*vestingtypes.ContinuousVestingAccount); isVestingAccount {
-		explain = fmt.Sprintf("%s is vesting account", accI.GetAddress().String())
-		return
-	}
-
-	if _, isVestingAccount := accI.(*vestingtypes.DelayedVestingAccount); isVestingAccount {
-		explain = fmt.Sprintf("%s is vesting account", accI.GetAddress().String())
-		return
-	}
-
-	if _, isVestingAccount := accI.(*vestingtypes.PeriodicVestingAccount); isVestingAccount {
-		explain = fmt.Sprintf("%s is vesting account", accI.GetAddress().String())
-		return
-	}
-
-	if _, isVestingAccount := accI.(*vestingtypes.PermanentLockedAccount); isVestingAccount {
+	if _, isVestingAccount := accI.(banktypes.VestingAccount); isVestingAccount {
 		explain = fmt.Sprintf("%s is vesting account", accI.GetAddress().String())
 		return
 	}
