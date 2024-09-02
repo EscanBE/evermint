@@ -232,22 +232,22 @@ func (suite *KeeperTestSuite) TestGetCodeHash() {
 		malleate func(vm.StateDB)
 	}{
 		{
-			"account not found",
-			utiltx.GenerateAddress(),
-			common.Hash{},
-			func(vm.StateDB) {},
+			name:     "account not found",
+			address:  utiltx.GenerateAddress(),
+			expHash:  common.Hash{},
+			malleate: func(vm.StateDB) {},
 		},
 		{
-			"account not EthAccount type, EmptyCodeHash",
-			addr,
-			common.BytesToHash(types.EmptyCodeHash),
-			func(vm.StateDB) {},
+			name:     "account with EmptyCodeHash",
+			address:  addr,
+			expHash:  common.BytesToHash(types.EmptyCodeHash),
+			malleate: func(vm.StateDB) {},
 		},
 		{
-			"existing account",
-			suite.address,
-			crypto.Keccak256Hash([]byte("codeHash")),
-			func(vmdb vm.StateDB) {
+			name:    "account with non-empty code hash",
+			address: suite.address,
+			expHash: crypto.Keccak256Hash([]byte("codeHash")),
+			malleate: func(vmdb vm.StateDB) {
 				vmdb.SetCode(suite.address, []byte("codeHash"))
 			},
 		},
@@ -276,28 +276,22 @@ func (suite *KeeperTestSuite) TestSetCode() {
 		isNoOp  bool
 	}{
 		{
-			"account not found",
-			utiltx.GenerateAddress(),
-			[]byte("code"),
-			false,
+			name:    "account not found",
+			address: utiltx.GenerateAddress(),
+			code:    []byte("code"),
+			isNoOp:  false,
 		},
 		{
-			"account not EthAccount type",
-			addr,
-			nil,
-			true,
+			name:    "existing account",
+			address: suite.address,
+			code:    []byte("code"),
+			isNoOp:  false,
 		},
 		{
-			"existing account",
-			suite.address,
-			[]byte("code"),
-			false,
-		},
-		{
-			"existing account, code deleted from store",
-			suite.address,
-			nil,
-			false,
+			name:    "existing account, code deleted from store",
+			address: suite.address,
+			code:    nil,
+			isNoOp:  false,
 		},
 	}
 
@@ -946,19 +940,19 @@ func (suite *KeeperTestSuite) TestDeleteAccount() {
 		expErr bool
 	}{
 		{
-			"remove address",
-			suite.address,
-			false,
+			name:   "fail - remove address is prohibited, contract only",
+			addr:   suite.address,
+			expErr: true,
 		},
 		{
-			"remove unexistent address - returns nil error",
-			common.HexToAddress("unexistent_address"),
-			false,
+			name:   "pass - remove non-existence address",
+			addr:   common.HexToAddress("void"),
+			expErr: false,
 		},
 		{
-			"remove deployed contract",
-			contractAddr,
-			false,
+			name:   "pass - remove deployed contract",
+			addr:   contractAddr,
+			expErr: false,
 		},
 	}
 

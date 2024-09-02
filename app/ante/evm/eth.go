@@ -20,16 +20,18 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// EthAccountVerificationDecorator validates an account balance checks
-type EthAccountVerificationDecorator struct {
+// ExternalOwnedAccountVerificationDecorator validates an account balance checks
+type ExternalOwnedAccountVerificationDecorator struct {
 	ak        evmtypes.AccountKeeper
+	bk        evmtypes.BankKeeper
 	evmKeeper EVMKeeper
 }
 
-// NewEthAccountVerificationDecorator creates a new EthAccountVerificationDecorator
-func NewEthAccountVerificationDecorator(ak evmtypes.AccountKeeper, ek EVMKeeper) EthAccountVerificationDecorator {
-	return EthAccountVerificationDecorator{
+// NewExternalOwnedAccountVerificationDecorator creates a new ExternalOwnedAccountVerificationDecorator
+func NewExternalOwnedAccountVerificationDecorator(ak evmtypes.AccountKeeper, bk evmtypes.BankKeeper, ek EVMKeeper) ExternalOwnedAccountVerificationDecorator {
+	return ExternalOwnedAccountVerificationDecorator{
 		ak:        ak,
+		bk:        bk,
 		evmKeeper: ek,
 	}
 }
@@ -40,7 +42,7 @@ func NewEthAccountVerificationDecorator(ak evmtypes.AccountKeeper, ek EVMKeeper)
 // - any of the msgs is not a MsgEthereumTx
 // - from address is empty
 // - account balance is lower than the transaction cost
-func (avd EthAccountVerificationDecorator) AnteHandle(
+func (avd ExternalOwnedAccountVerificationDecorator) AnteHandle(
 	ctx sdk.Context,
 	tx sdk.Tx,
 	simulate bool,
@@ -49,6 +51,8 @@ func (avd EthAccountVerificationDecorator) AnteHandle(
 	if !ctx.IsCheckTx() {
 		return next(ctx, tx, simulate)
 	}
+
+	var params *evmtypes.Params
 
 	for i, msg := range tx.GetMsgs() {
 		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
@@ -76,11 +80,29 @@ func (avd EthAccountVerificationDecorator) AnteHandle(
 			avd.ak.SetAccount(ctx, acc)
 			acct = statedb.NewEmptyAccount()
 		} else if acct.IsContract() {
-			return ctx, errorsmod.Wrapf(errortypes.ErrInvalidType,
-				"the sender is not EOA: address %s, codeHash <%s>", fromAddr, acct.CodeHash)
+			return ctx, errorsmod.Wrapf(
+				errortypes.ErrInvalidType,
+				"the sender is not EOA: address %s, codeHash <%s>", fromAddr, acct.CodeHash,
+			)
 		}
 
-		if err := keeper.CheckSenderBalance(sdkmath.NewIntFromBigInt(acct.Balance), txData); err != nil {
+		var spendableBalance *big.Int
+		if acct.Balance != nil && acct.Balance.Sign() > 0 {
+			if params == nil {
+				p := avd.evmKeeper.GetParams(ctx)
+				params = &p
+			}
+			spendableCoin := avd.bk.SpendableCoin(ctx, from, params.EvmDenom)
+			if spendableCoin.IsNil() || spendableCoin.IsZero() {
+				spendableBalance = common.Big0
+			} else {
+				spendableBalance = spendableCoin.Amount.BigInt()
+			}
+		} else {
+			spendableBalance = acct.Balance
+		}
+
+		if err := keeper.CheckSenderBalance(sdkmath.NewIntFromBigInt(spendableBalance), txData); err != nil {
 			return ctx, errorsmod.Wrap(err, "failed to check sender balance")
 		}
 	}

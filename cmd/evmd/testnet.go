@@ -13,7 +13,6 @@ import (
 	"github.com/cometbft/cometbft/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 	clientconfig "github.com/cosmos/cosmos-sdk/client/config"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"net"
@@ -334,10 +333,7 @@ func initTestnetFiles(
 		}
 
 		genBalances = append(genBalances, banktypes.Balance{Address: addr.String(), Coins: coins.Sort()})
-		genAccounts = append(genAccounts, &evertypes.EthAccount{
-			BaseAccount: authtypes.NewBaseAccount(addr, nil, 0, 0),
-			CodeHash:    common.BytesToHash(evmtypes.EmptyCodeHash).Hex(),
-		})
+		genAccounts = append(genAccounts, authtypes.NewBaseAccount(addr, nil, 0, 0))
 
 		valTokens := sdk.TokensFromConsensusPower(100, evertypes.PowerReduction)
 		createValMsg, err := stakingtypes.NewMsgCreateValidator(
@@ -412,10 +408,7 @@ func initTestnetFiles(
 			sdk.NewCoin(constants.BaseDenom, sdk.TokensFromConsensusPower(1000, evertypes.PowerReduction)),
 		}
 		genBalances = append(genBalances, banktypes.Balance{Address: normalAccountAddr.String(), Coins: coins.Sort()})
-		genAccounts = append(genAccounts, &evertypes.EthAccount{
-			BaseAccount: authtypes.NewBaseAccount(normalAccountAddr, nil, 0, 0),
-			CodeHash:    common.BytesToHash(evmtypes.EmptyCodeHash).Hex(),
-		})
+		genAccounts = append(genAccounts, authtypes.NewBaseAccount(normalAccountAddr, nil, 0, 0))
 	}
 
 	if err := initGenFiles(clientCtx, mbm, args.chainID, constants.BaseDenom, genAccounts, genBalances, genFiles, args.numValidators); err != nil {

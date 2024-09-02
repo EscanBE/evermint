@@ -1,12 +1,12 @@
 package evm_test
 
 import (
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/x/evm"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	"github.com/EscanBE/evermint/v12/x/evm/types"
@@ -28,17 +28,17 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 		expPanic bool
 	}{
 		{
-			"default",
-			func() {},
-			types.DefaultGenesisState(),
-			false,
+			name:     "pass - default",
+			malleate: func() {},
+			genState: types.DefaultGenesisState(),
+			expPanic: false,
 		},
 		{
-			"valid account",
-			func() {
+			name: "pass - valid account",
+			malleate: func() {
 				vmdb.AddBalance(address, big.NewInt(1))
 			},
-			&types.GenesisState{
+			genState: &types.GenesisState{
 				Params: types.DefaultParams(),
 				Accounts: []types.GenesisAccount{
 					{
@@ -49,12 +49,12 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 					},
 				},
 			},
-			false,
+			expPanic: false,
 		},
 		{
-			"account not found",
-			func() {},
-			&types.GenesisState{
+			name:     "fail - account not found",
+			malleate: func() {},
+			genState: &types.GenesisState{
 				Params: types.DefaultParams(),
 				Accounts: []types.GenesisAccount{
 					{
@@ -62,15 +62,15 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 					},
 				},
 			},
-			true,
+			expPanic: true,
 		},
 		{
-			"invalid account type",
-			func() {
+			name: "pass - BaseAccount",
+			malleate: func() {
 				acc := authtypes.NewBaseAccountWithAddress(address.Bytes())
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 			},
-			&types.GenesisState{
+			genState: &types.GenesisState{
 				Params: types.DefaultParams(),
 				Accounts: []types.GenesisAccount{
 					{
@@ -78,54 +78,37 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 					},
 				},
 			},
-			true,
+			expPanic: false,
 		},
 		{
-			"invalid code hash",
-			func() {
-				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, address.Bytes())
-				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
-			},
-			&types.GenesisState{
-				Params: types.DefaultParams(),
-				Accounts: []types.GenesisAccount{
-					{
-						Address: address.String(),
-						Code:    "ffffffff",
-					},
-				},
-			},
-			true,
-		},
-		{
-			"ignore empty account code checking",
-			func() {
-				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, address.Bytes())
-
-				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
-			},
-			&types.GenesisState{
-				Params: types.DefaultParams(),
-				Accounts: []types.GenesisAccount{
-					{
-						Address: address.String(),
-						Code:    "",
-					},
-				},
-			},
-			false,
-		},
-		{
-			"ignore empty account code checking with non-empty codehash",
-			func() {
-				ethAcc := &evertypes.EthAccount{
-					BaseAccount: authtypes.NewBaseAccount(address.Bytes(), nil, 0, 0),
-					CodeHash:    common.BytesToHash([]byte{1, 2, 3}).Hex(),
+			name: "fail - invalid account type",
+			malleate: func() {
+				baseVestingAccount := &vestingtypes.BaseVestingAccount{
+					BaseAccount:      authtypes.NewBaseAccountWithAddress(address.Bytes()),
+					OriginalVesting:  nil,
+					DelegatedFree:    nil,
+					DelegatedVesting: nil,
+					EndTime:          suite.ctx.BlockTime().Unix() + 1000,
 				}
-
-				suite.app.AccountKeeper.SetAccount(suite.ctx, ethAcc)
+				suite.app.AccountKeeper.SetAccount(suite.ctx, baseVestingAccount)
 			},
-			&types.GenesisState{
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				Accounts: []types.GenesisAccount{
+					{
+						Address: address.String(),
+					},
+				},
+			},
+			expPanic: true,
+		},
+		{
+			name: "pass - ignore empty account code checking",
+			malleate: func() {
+				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, address.Bytes())
+				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
+			},
+			genState: &types.GenesisState{
 				Params: types.DefaultParams(),
 				Accounts: []types.GenesisAccount{
 					{
@@ -134,7 +117,26 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 					},
 				},
 			},
-			false,
+			expPanic: false,
+		},
+		{
+			name: "pass - ignore empty account code checking with non-empty code-hash",
+			malleate: func() {
+				acc := authtypes.NewBaseAccount(address.Bytes(), nil, 0, 0)
+				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
+
+				suite.app.EvmKeeper.SetCodeHash(suite.ctx, address, common.BytesToHash([]byte{1, 2, 3}))
+			},
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				Accounts: []types.GenesisAccount{
+					{
+						Address: address.String(),
+						Code:    "",
+					},
+				},
+			},
+			expPanic: false,
 		},
 	}
 

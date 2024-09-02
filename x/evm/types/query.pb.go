@@ -1446,8 +1446,7 @@ type QueryClient interface {
 	// ValidatorAccount queries an Ethereum account's from a validator consensus
 	// Address.
 	ValidatorAccount(ctx context.Context, in *QueryValidatorAccountRequest, opts ...grpc.CallOption) (*QueryValidatorAccountResponse, error)
-	// Balance queries the balance of a the EVM denomination for a single
-	// EthAccount.
+	// Balance queries the balance of a the EVM denomination for a single account.
 	Balance(ctx context.Context, in *QueryBalanceRequest, opts ...grpc.CallOption) (*QueryBalanceResponse, error)
 	// Storage queries the balance of all coins for a single account.
 	Storage(ctx context.Context, in *QueryStorageRequest, opts ...grpc.CallOption) (*QueryStorageResponse, error)
@@ -1593,8 +1592,7 @@ type QueryServer interface {
 	// ValidatorAccount queries an Ethereum account's from a validator consensus
 	// Address.
 	ValidatorAccount(context.Context, *QueryValidatorAccountRequest) (*QueryValidatorAccountResponse, error)
-	// Balance queries the balance of a the EVM denomination for a single
-	// EthAccount.
+	// Balance queries the balance of a the EVM denomination for a single account.
 	Balance(context.Context, *QueryBalanceRequest) (*QueryBalanceResponse, error)
 	// Storage queries the balance of all coins for a single account.
 	Storage(context.Context, *QueryStorageRequest) (*QueryStorageResponse, error)

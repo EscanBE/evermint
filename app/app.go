@@ -376,7 +376,7 @@ func NewEvermint(
 
 	// use custom Ethermint account for contracts
 	chainApp.AccountKeeper = authkeeper.NewAccountKeeper(
-		appCodec, keys[authtypes.StoreKey], evertypes.ProtoAccount, maccPerms, sdk.GetConfig().GetBech32AccountAddrPrefix(), authAddr,
+		appCodec, keys[authtypes.StoreKey], authtypes.ProtoBaseAccount, maccPerms, sdk.GetConfig().GetBech32AccountAddrPrefix(), authAddr,
 	)
 	chainApp.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec, keys[banktypes.StoreKey], chainApp.AccountKeeper, chainApp.BlockedAddrs(), authAddr,

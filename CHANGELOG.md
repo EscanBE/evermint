@@ -102,6 +102,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (deps) [#117](https://github.com/EscanBE/evermint/pull/117) Bumps ibc-go to v7.4.0 which include patch for ASA-2024-007
 - (deps) [#120](https://github.com/EscanBE/evermint/pull/120) Bump cosmos-sdk v0.47.13, ibc-go v7.8.0, cometbft v0.37.5
 - (vesting) [#128](https://github.com/EscanBE/evermint/pull/128) Remove `x/vesting` module and disable vesting
+- (evm) [#129](https://github.com/EscanBE/evermint/pull/129) Use generic base account instead of EthAccount
 
 # Evermint changelog
 

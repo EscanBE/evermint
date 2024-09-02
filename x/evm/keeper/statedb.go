@@ -2,12 +2,14 @@ package keeper
 
 import (
 	"fmt"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
 
 	errorsmod "cosmossdk.io/errors"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	"github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -21,7 +23,7 @@ var _ statedb.Keeper = &Keeper{}
 // StateDB Keeper implementation
 // ----------------------------------------------------------------------------
 
-// GetAccount returns nil if account is not exist, returns error if it's not `EthAccountI`
+// GetAccount returns nil if account is not exist
 func (k *Keeper) GetAccount(ctx sdk.Context, addr common.Address) *statedb.Account {
 	acct := k.GetAccountWithoutBalance(ctx, addr)
 	if acct == nil {
@@ -117,10 +119,8 @@ func (k *Keeper) SetAccount(ctx sdk.Context, addr common.Address, account stated
 
 	codeHash := common.BytesToHash(account.CodeHash)
 
-	if ethAcct, ok := acct.(evertypes.EthAccountI); ok {
-		if err := ethAcct.SetCodeHash(codeHash); err != nil {
-			return err
-		}
+	if _, isBaseAccount := acct.(*authtypes.BaseAccount); isBaseAccount {
+		k.SetCodeHash(ctx, addr, codeHash)
 	}
 
 	k.accountKeeper.SetAccount(ctx, acct)
@@ -187,10 +187,16 @@ func (k *Keeper) DeleteAccount(ctx sdk.Context, addr common.Address) error {
 	}
 
 	// NOTE: only Ethereum accounts (contracts) can be selfdestructed
-	_, ok := acct.(evertypes.EthAccountI)
-	if !ok {
-		return errorsmod.Wrapf(types.ErrInvalidAccount, "type %T, address %s", acct, addr)
+	if isNotProhibitedAccount, reason := isNotProhibitedAccountType(acct); !isNotProhibitedAccount {
+		return errorsmod.Wrapf(types.ErrInvalidAccount, "type %T, address %s, reason: %s", acct, addr, reason)
 	}
+
+	// clear code-hash
+	codeHash := k.GetCodeHash(ctx, addr.Bytes())
+	if types.IsEmptyCodeHash(codeHash) {
+		return errorsmod.Wrapf(types.ErrInvalidAccount, "type %T, address %s, not smart contract", acct, addr)
+	}
+	k.DeleteCodeHash(ctx, addr.Bytes())
 
 	// clear balance
 	if err := k.SetBalance(ctx, addr, new(big.Int)); err != nil {
@@ -213,4 +219,75 @@ func (k *Keeper) DeleteAccount(ctx sdk.Context, addr common.Address) error {
 	)
 
 	return nil
+}
+
+// GetCodeHash returns the code hash for the corresponding account address.
+func (k *Keeper) GetCodeHash(ctx sdk.Context, addr []byte) common.Hash {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixCodeHash)
+	bz := store.Get(addr)
+
+	var codeHash common.Hash
+	if len(bz) == 0 {
+		codeHash = common.BytesToHash(types.EmptyCodeHash)
+	} else {
+		codeHash = common.BytesToHash(bz)
+	}
+
+	return codeHash
+}
+
+// SetCodeHash sets the code hash for the given address.
+func (k *Keeper) SetCodeHash(ctx sdk.Context, addr common.Address, codeHash common.Hash) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixCodeHash)
+
+	if types.IsEmptyCodeHash(codeHash) {
+		store.Delete(addr.Bytes())
+	} else {
+		store.Set(addr.Bytes(), codeHash.Bytes())
+	}
+}
+
+// DeleteCodeHash delete the code hash for the given address.
+func (k *Keeper) DeleteCodeHash(ctx sdk.Context, addr []byte) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixCodeHash)
+	store.Delete(addr)
+}
+
+// IterateContracts iterating through all code hash, represents for all smart contracts
+func (k Keeper) IterateContracts(ctx sdk.Context, callback func(addr common.Address, codeHash common.Hash) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.KeyPrefixCodeHash)
+
+	defer func() {
+		_ = iterator.Close()
+	}()
+	for ; iterator.Valid(); iterator.Next() {
+		addr := common.BytesToAddress(iterator.Key())
+		codeHash := common.BytesToHash(iterator.Value())
+
+		if callback(addr, codeHash) {
+			break
+		}
+	}
+}
+
+// isNotProhibitedAccountType returns false if the given account is module account or vesting account
+func isNotProhibitedAccountType(accI authtypes.AccountI) (notProhibited bool, explain string) {
+	if moduleAccount, isModuleAccount := accI.(authtypes.ModuleAccountI); isModuleAccount {
+		explain = fmt.Sprintf("%s is module account of %s", moduleAccount.GetAddress().String(), moduleAccount.GetName())
+		return
+	}
+
+	if _, isVestingAccount := accI.(*vestingtypes.BaseVestingAccount); isVestingAccount {
+		explain = fmt.Sprintf("%s is vesting account", accI.GetAddress().String())
+		return
+	}
+
+	if _, isVestingAccount := accI.(banktypes.VestingAccount); isVestingAccount {
+		explain = fmt.Sprintf("%s is vesting account", accI.GetAddress().String())
+		return
+	}
+
+	notProhibited = true
+	return
 }

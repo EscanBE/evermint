@@ -2,14 +2,12 @@ package statedb
 
 import (
 	"bytes"
+	"github.com/EscanBE/evermint/v12/x/evm/types"
 	"math/big"
 	"sort"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 )
-
-var emptyCodeHash = crypto.Keccak256(nil)
 
 // Account is the Ethereum consensus representation of accounts.
 // These objects are stored in the storage of auth module.
@@ -23,13 +21,13 @@ type Account struct {
 func NewEmptyAccount() *Account {
 	return &Account{
 		Balance:  new(big.Int),
-		CodeHash: emptyCodeHash,
+		CodeHash: types.EmptyCodeHash,
 	}
 }
 
 // IsContract returns if the account contains contract code.
 func (acct Account) IsContract() bool {
-	return !bytes.Equal(acct.CodeHash, emptyCodeHash)
+	return !types.IsEmptyCodeHash(common.BytesToHash(acct.CodeHash))
 }
 
 // Storage represents in-memory cache/buffer of contract storage.
@@ -71,7 +69,7 @@ func newObject(db *StateDB, address common.Address, account Account) *stateObjec
 		account.Balance = new(big.Int)
 	}
 	if account.CodeHash == nil {
-		account.CodeHash = emptyCodeHash
+		account.CodeHash = types.EmptyCodeHash
 	}
 	return &stateObject{
 		db:            db,
@@ -84,7 +82,7 @@ func newObject(db *StateDB, address common.Address, account Account) *stateObjec
 
 // empty returns whether the account is considered empty.
 func (s *stateObject) empty() bool {
-	return s.account.Nonce == 0 && s.account.Balance.Sign() == 0 && bytes.Equal(s.account.CodeHash, emptyCodeHash)
+	return s.account.Nonce == 0 && s.account.Balance.Sign() == 0 && !s.account.IsContract()
 }
 
 func (s *stateObject) markSuicided() {
@@ -136,7 +134,7 @@ func (s *stateObject) Code() []byte {
 	if s.code != nil {
 		return s.code
 	}
-	if bytes.Equal(s.CodeHash(), emptyCodeHash) {
+	if !s.account.IsContract() {
 		return nil
 	}
 	code := s.db.keeper.GetCode(s.db.ctx, common.BytesToHash(s.CodeHash()))

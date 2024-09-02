@@ -1,20 +1,18 @@
 package statedb_test
 
 import (
-	"bytes"
 	"errors"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"math/big"
 
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 )
 
 var (
-	_             statedb.Keeper = &MockKeeper{}
-	errAddress    common.Address = common.BigToAddress(big.NewInt(100))
-	emptyCodeHash                = crypto.Keccak256(nil)
+	_          statedb.Keeper = &MockKeeper{}
+	errAddress common.Address = common.BigToAddress(big.NewInt(100))
 )
 
 type MockAcount struct {
@@ -95,7 +93,7 @@ func (k MockKeeper) DeleteAccount(_ sdk.Context, addr common.Address) error {
 	}
 	old := k.accounts[addr]
 	delete(k.accounts, addr)
-	if !bytes.Equal(old.account.CodeHash, emptyCodeHash) {
+	if !evmtypes.IsEmptyCodeHash(common.BytesToHash(old.account.CodeHash)) {
 		delete(k.codes, common.BytesToHash(old.account.CodeHash))
 	}
 	return nil

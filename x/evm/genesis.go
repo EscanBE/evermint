@@ -1,7 +1,6 @@
 package evm
 
 import (
-	"bytes"
 	"fmt"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -10,7 +9,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/x/evm/keeper"
 	"github.com/EscanBE/evermint/v12/x/evm/types"
 )
@@ -37,31 +35,29 @@ func InitGenesis(
 	for _, account := range data.Accounts {
 		address := common.HexToAddress(account.Address)
 		accAddress := sdk.AccAddress(address.Bytes())
-		// check that the EVM balance the matches the account balance
+
 		acc := accountKeeper.GetAccount(ctx, accAddress)
 		if acc == nil {
 			panic(fmt.Errorf("account not found for address %s", account.Address))
 		}
-
-		ethAcct, ok := acc.(evertypes.EthAccountI)
-		if !ok {
+		if _, isBaseAccount := acc.(*authtypes.BaseAccount); !isBaseAccount {
 			panic(
-				fmt.Errorf("account %s must be an EthAccount interface, got %T",
-					account.Address, acc,
+				fmt.Errorf("account %s must be %T, got %T",
+					account.Address, (*authtypes.BaseAccount)(nil), acc,
 				),
 			)
 		}
+
 		code := common.Hex2Bytes(account.Code)
 		codeHash := crypto.Keccak256Hash(code)
 
-		// we ignore the empty Code hash checking, see ethermint PR#1234
-		if len(account.Code) != 0 && !bytes.Equal(ethAcct.GetCodeHash().Bytes(), codeHash.Bytes()) {
-			s := "the evm state code doesn't match with the codehash\n"
-			panic(fmt.Sprintf("%s account: %s , evm state codehash: %v, ethAccount codehash: %v, evm state code: %s\n",
-				s, account.Address, codeHash, ethAcct.GetCodeHash(), account.Code))
+		if !types.IsEmptyCodeHash(codeHash) {
+			k.SetCodeHash(ctx, address, codeHash)
 		}
 
-		k.SetCode(ctx, codeHash.Bytes(), code)
+		if len(code) > 0 {
+			k.SetCode(ctx, codeHash.Bytes(), code)
+		}
 
 		for _, storage := range account.Storage {
 			k.SetState(ctx, address, common.HexToHash(storage.Key), common.HexToHash(storage.Value).Bytes())
@@ -72,22 +68,19 @@ func InitGenesis(
 }
 
 // ExportGenesis exports genesis state of the EVM module
-func ExportGenesis(ctx sdk.Context, k *keeper.Keeper, ak types.AccountKeeper) *types.GenesisState {
+func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) *types.GenesisState {
 	var ethGenAccounts []types.GenesisAccount
-	ak.IterateAccounts(ctx, func(account authtypes.AccountI) bool {
-		ethAccount, ok := account.(evertypes.EthAccountI)
-		if !ok {
-			// ignore non EthAccounts
+	k.IterateContracts(ctx, func(addr common.Address, codeHash common.Hash) bool {
+		if types.IsEmptyCodeHash(codeHash) {
+			// ignore non-contract accounts
 			return false
 		}
-
-		addr := ethAccount.EthAddress()
 
 		storage := k.GetAccountStorage(ctx, addr)
 
 		genAccount := types.GenesisAccount{
 			Address: addr.String(),
-			Code:    common.Bytes2Hex(k.GetCode(ctx, ethAccount.GetCodeHash())),
+			Code:    common.Bytes2Hex(k.GetCode(ctx, codeHash)),
 			Storage: storage,
 		}
 

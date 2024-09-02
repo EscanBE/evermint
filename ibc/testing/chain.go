@@ -6,8 +6,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/ethereum/go-ethereum/common"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -21,7 +19,6 @@ import (
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
 // ChainIDPrefix defines the default chain ID prefix for our test chains
@@ -59,19 +56,14 @@ func NewTestChain(t *testing.T, coord *ibcgotesting.Coordinator, chainID string)
 
 	baseAcc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 
-	acc := &evertypes.EthAccount{
-		BaseAccount: baseAcc,
-		CodeHash:    common.BytesToHash(evmtypes.EmptyCodeHash).Hex(),
-	}
-
 	amount := sdk.TokensFromConsensusPower(1, evertypes.PowerReduction)
 
 	balance := banktypes.Balance{
-		Address: acc.GetAddress().String(),
+		Address: baseAcc.GetAddress().String(),
 		Coins:   sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, amount)),
 	}
 
-	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, chainID, balance)
+	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{baseAcc}, chainID, balance)
 
 	// create current header and call begin block
 	header := tmproto.Header{
@@ -95,7 +87,7 @@ func NewTestChain(t *testing.T, coord *ibcgotesting.Coordinator, chainID string)
 		Vals:          valSet,
 		Signers:       signers,
 		SenderPrivKey: senderPrivKey,
-		SenderAccount: acc,
+		SenderAccount: baseAcc,
 		NextVals:      valSet,
 	}
 
