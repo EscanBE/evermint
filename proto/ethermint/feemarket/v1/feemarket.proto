@@ -24,7 +24,7 @@ message Params {
   reserved 5;
   reserved "enable_height";
   // base_fee for EIP-1559 blocks.
-  string base_fee = 6 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  string base_fee = 6 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"];
   // min_gas_price defines the minimum gas price value for cosmos and eth transactions
   string min_gas_price = 7
       [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];

@@ -15,18 +15,3 @@ const (
 	// during the Commit phase.
 	TransientKey = "transient_" + ModuleName
 )
-
-// prefix bytes for the feemarket persistent store
-const (
-	prefixBlockGasUsed      = iota + 1
-	deprecatedPrefixBaseFee // unused
-)
-
-const (
-	prefixTransientBlockGasWanted = iota + 1
-)
-
-// KVStore key prefixes
-var (
-	KeyPrefixBlockGasUsed = []byte{prefixBlockGasUsed}
-)

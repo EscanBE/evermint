@@ -30,6 +30,8 @@ func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 	to := testutiltx.GenerateAddress()
 	emptyAccessList := ethtypes.AccessList{}
 
+	ten := sdkmath.NewInt(10)
+
 	testCases := []struct {
 		name     string
 		malleate func() sdk.Tx
@@ -200,7 +202,7 @@ func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 				suite.Require().NoError(err)
 
 				feemarketParams := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
-				feemarketParams.BaseFee = sdkmath.NewInt(10)
+				feemarketParams.BaseFee = &ten
 				err = suite.app.FeeMarketKeeper.SetParams(suite.ctx, feemarketParams)
 				suite.Require().NoError(err)
 
@@ -219,7 +221,7 @@ func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 				suite.Require().NoError(err)
 
 				feemarketParams := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
-				feemarketParams.BaseFee = sdkmath.NewInt(10)
+				feemarketParams.BaseFee = &ten
 				err = suite.app.FeeMarketKeeper.SetParams(suite.ctx, feemarketParams)
 				suite.Require().NoError(err)
 

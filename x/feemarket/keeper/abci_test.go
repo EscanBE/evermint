@@ -1,47 +1,56 @@
 package keeper_test
 
 import (
-	"fmt"
-
 	"github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ethparams "github.com/ethereum/go-ethereum/params"
+	"math/big"
 )
 
 func (suite *KeeperTestSuite) TestEndBlock() {
 	testCases := []struct {
 		name       string
-		NoBaseFee  bool
+		noBaseFee  bool
 		malleate   func()
-		expGasUsed uint64
+		expBaseFee *big.Int
 	}{
 		{
-			name:       "baseFee nil",
-			NoBaseFee:  true,
+			name:       "base fee should be nil if no base fee",
+			noBaseFee:  true,
 			malleate:   func() {},
-			expGasUsed: uint64(0),
+			expBaseFee: nil,
 		},
 		{
-			name: "pass",
+			name: "base fee should be updated",
 			malleate: func() {
-				meter := sdk.NewGasMeter(uint64(1000000000))
-				suite.ctx = suite.ctx.WithBlockGasMeter(meter)
+				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, big.NewInt(ethparams.InitialBaseFee))
+
 				suite.ctx.BlockGasMeter().ConsumeGas(2500000, "consume")
 			},
-			expGasUsed: uint64(2500000),
+			expBaseFee: big.NewInt(875000001),
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+
 			params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
-			params.NoBaseFee = tc.NoBaseFee
+			params.NoBaseFee = tc.noBaseFee
 			err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 			suite.Require().NoError(err)
 
+			meter := sdk.NewGasMeter(uint64(1000000000))
+			suite.ctx = suite.ctx.WithBlockGasMeter(meter)
+
 			tc.malleate()
 			suite.app.FeeMarketKeeper.EndBlock(suite.ctx, types.RequestEndBlock{Height: 1})
-			gasUsed := suite.app.FeeMarketKeeper.GetBlockGasUsed(suite.ctx)
-			suite.Require().Equal(tc.expGasUsed, gasUsed, tc.name)
+
+			baseFee := suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx)
+			if tc.expBaseFee == nil {
+				suite.Require().Nil(baseFee)
+			} else {
+				suite.Require().Equal(tc.expBaseFee, baseFee)
+			}
 		})
 	}
 }

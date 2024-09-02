@@ -75,27 +75,3 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 		}
 	}
 }
-
-func (suite *KeeperTestSuite) TestQueryBlockGas() {
-	testCases := []struct {
-		name    string
-		expPass bool
-	}{
-		{
-			"pass",
-			true,
-		},
-	}
-	for _, tc := range testCases {
-		gas := suite.app.FeeMarketKeeper.GetBlockGasUsed(suite.ctx)
-		exp := &types.QueryBlockGasResponse{Gas: int64(gas)}
-
-		res, err := suite.queryClient.BlockGas(suite.ctx.Context(), &types.QueryBlockGasRequest{})
-		if tc.expPass {
-			suite.Require().Equal(exp, res, tc.name)
-			suite.Require().NoError(err)
-		} else {
-			suite.Require().Error(err)
-		}
-	}
-}

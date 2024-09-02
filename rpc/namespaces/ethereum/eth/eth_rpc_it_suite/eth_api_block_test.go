@@ -185,7 +185,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 		blockBloom, err := suite.CITS.RpcBackend.BlockBloom(resultBlockResult)
 		suite.Require().NoError(err, "failed to fetch block bloom")
 
-		baseFee := suite.App().FeeMarketKeeper().GetParams(suite.Ctx()).BaseFee
+		baseFee := suite.App().FeeMarketKeeper().GetBaseFee(suite.Ctx())
 		consensusParams, err := suite.CITS.QueryClients.ClientQueryCtx.Client.(tmrpcclient.NetworkClient).ConsensusParams(context.Background(), ptrInt64(testBlockHeight))
 		suite.Require().NoError(err, "failed to fetch consensus params of test block")
 		suite.Equal(int64(40_000_000), consensusParams.ConsensusParams.Block.MaxGas, "invalid setup?")

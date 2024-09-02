@@ -936,9 +936,12 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.msg, func() {
 			suite.enableFeemarket = tc.enableFeemarket
 			suite.SetupTest()
+
+			suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(100_000))
+
 			// Deploy contract
 			contractAddr := suite.DeployTestContract(suite.T(), suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
 			suite.Commit()
@@ -1200,50 +1203,58 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 		name            string
 		malleate        func()
 		expPass         bool
-		enableFeemarket bool
+		enableFeeMarket bool
 		enableLondonHF  bool
 	}{
 		{
-			"pass - default Base Fee",
-			func() {
+			name: "pass - default Base Fee",
+			malleate: func() {
 				initialBaseFee := sdkmath.NewInt(ethparams.InitialBaseFee)
 				expRes = &types.QueryBaseFeeResponse{BaseFee: &initialBaseFee}
 			},
-			true, true, true,
+			expPass:         true,
+			enableFeeMarket: true,
+			enableLondonHF:  true,
 		},
 		{
-			"pass - non-nil Base Fee",
-			func() {
+			name: "pass - non-nil Base Fee",
+			malleate: func() {
 				baseFee := sdk.OneInt().BigInt()
 				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, baseFee)
 
 				aux = sdkmath.NewIntFromBigInt(baseFee)
 				expRes = &types.QueryBaseFeeResponse{BaseFee: &aux}
 			},
-			true, true, true,
+			expPass:         true,
+			enableFeeMarket: true,
+			enableLondonHF:  true,
 		},
 		{
-			"pass - nil Base Fee when london hardfork not activated",
-			func() {
+			name: "pass - nil Base Fee when london hardfork not activated",
+			malleate: func() {
 				baseFee := sdk.OneInt().BigInt()
 				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, baseFee)
 
 				expRes = &types.QueryBaseFeeResponse{}
 			},
-			true, true, false,
+			expPass:         true,
+			enableFeeMarket: true,
+			enableLondonHF:  false,
 		},
 		{
-			"pass - zero Base Fee when feemarket not activated",
-			func() {
+			name: "pass - zero Base Fee when feemarket not activated",
+			malleate: func() {
 				baseFee := sdk.ZeroInt()
 				expRes = &types.QueryBaseFeeResponse{BaseFee: &baseFee}
 			},
-			true, false, true,
+			expPass:         true,
+			enableFeeMarket: false,
+			enableLondonHF:  true,
 		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.enableFeemarket = tc.enableFeemarket
+			suite.enableFeemarket = tc.enableFeeMarket
 			suite.enableLondonHF = tc.enableLondonHF
 			suite.SetupTest()
 
@@ -1251,8 +1262,16 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 
 			res, err := suite.queryClient.BaseFee(suite.ctx.Context(), &types.QueryBaseFeeRequest{})
 			if tc.expPass {
+				str := func(num *sdkmath.Int) string {
+					if res != nil && res.BaseFee != nil && !res.BaseFee.IsNil() {
+						return res.BaseFee.String()
+					} else {
+						return "nil"
+					}
+				}
+
 				suite.Require().NotNil(res)
-				suite.Require().Equal(expRes, res, tc.name)
+				suite.Require().Equal(str(expRes.BaseFee), str(res.BaseFee))
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)

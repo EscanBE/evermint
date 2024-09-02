@@ -127,13 +127,12 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 }
 
-// BeginBlock returns the begin block for the fee market module.
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	am.keeper.BeginBlock(ctx, req)
+// BeginBlock returns the begin-blocker for the fee market module.
+func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
 }
 
-// EndBlock returns the end blocker for the fee market module. It returns no validator
-// updates.
+// EndBlock returns the end-blocker for the fee market module.
+// It returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
 	am.keeper.EndBlock(ctx, req)
 	return []abci.ValidatorUpdate{}

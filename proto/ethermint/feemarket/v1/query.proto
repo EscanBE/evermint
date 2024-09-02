@@ -18,11 +18,6 @@ service Query {
   rpc BaseFee(QueryBaseFeeRequest) returns (QueryBaseFeeResponse) {
     option (google.api.http).get = "/evmos/feemarket/v1/base_fee";
   }
-
-  // BlockGas queries the gas used at a given block height
-  rpc BlockGas(QueryBlockGasRequest) returns (QueryBlockGasResponse) {
-    option (google.api.http).get = "/evmos/feemarket/v1/block_gas";
-  }
 }
 
 // QueryParamsRequest defines the request type for querying x/evm parameters.
@@ -42,14 +37,4 @@ message QueryBaseFeeRequest {}
 message QueryBaseFeeResponse {
   // base_fee is the EIP1559 base fee
   string base_fee = 1 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"];
-}
-
-// QueryBlockGasRequest defines the request type for querying the EIP1559 base
-// fee.
-message QueryBlockGasRequest {}
-
-// QueryBlockGasResponse returns block gas used for a given height.
-message QueryBlockGasResponse {
-  // gas is the returned block gas
-  int64 gas = 1;
 }

@@ -3,16 +3,16 @@ package keeper
 import (
 	"github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ethparams "github.com/ethereum/go-ethereum/params"
 )
 
 // GetParams returns the total set of evm parameters.
 func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.KeyPrefixParams)
-	if len(bz) == 0 {
-		return k.GetLegacyParams(ctx)
+	if len(bz) != 0 {
+		k.cdc.MustUnmarshal(bz, &params)
 	}
-	k.cdc.MustUnmarshal(bz, &params)
 	return
 }
 
@@ -32,9 +32,6 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
 	return nil
 }
 
-// GetLegacyParams returns param set for version before migrate
-func (k Keeper) GetLegacyParams(ctx sdk.Context) types.Params {
-	var params types.Params
-	k.ss.GetParamSetIfExists(ctx, &params)
-	return params
+func (k Keeper) GetChainConfig(ctx sdk.Context) *ethparams.ChainConfig {
+	return k.GetParams(ctx).ChainConfig.EthereumConfig(k.eip155ChainID)
 }

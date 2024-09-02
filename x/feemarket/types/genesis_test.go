@@ -29,23 +29,13 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 			"valid genesis",
 			&GenesisState{
 				DefaultParams(),
-				uint64(1),
 			},
-			true,
-		},
-		{
-			"valid New genesis",
-			NewGenesisState(
-				DefaultParams(),
-				uint64(1),
-			),
 			true,
 		},
 		{
 			"empty genesis",
 			&GenesisState{
-				Params:   Params{},
-				BlockGas: 0,
+				Params: Params{},
 			},
 			false,
 		},

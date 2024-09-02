@@ -18,55 +18,109 @@ func TestParamsTestSuite(t *testing.T) {
 }
 
 func (suite *ParamsTestSuite) TestParamsValidate() {
+	one := sdkmath.OneInt()
+	minus1 := sdkmath.NewInt(-1)
+
 	testCases := []struct {
 		name     string
 		params   Params
 		expError bool
 	}{
-		{"default", DefaultParams(), false},
 		{
-			"valid",
-			NewParams(true, 2000000000, sdk.NewDecWithPrec(20, 4)),
-			false,
+			name:     "default",
+			params:   DefaultParams(),
+			expError: false,
 		},
 		{
-			"empty",
-			Params{},
-			true,
+			name:     "valid",
+			params:   NewParams(false, 2000000000, sdk.NewDecWithPrec(20, 4)),
+			expError: false,
 		},
 		{
-			"base fee cannot be nil",
-			Params{
-				NoBaseFee:   false,
-				BaseFee:     sdkmath.Int{},
+			name:     "empty",
+			params:   Params{},
+			expError: true,
+		},
+		{
+			name: "base fee can be nil when base fee disabled",
+			params: Params{
+				NoBaseFee:   true,
+				BaseFee:     nil,
 				MinGasPrice: sdk.NewDecWithPrec(20, 4),
 			},
-			true,
+			expError: false,
 		},
 		{
-			"base fee cannot be negative",
-			Params{
-				NoBaseFee:   false,
-				BaseFee:     sdkmath.NewInt(-1),
+			name: "base fee can be nil when base fee disabled",
+			params: Params{
+				NoBaseFee:   true,
+				BaseFee:     &sdkmath.Int{},
 				MinGasPrice: sdk.NewDecWithPrec(20, 4),
 			},
-			true,
+			expError: false,
 		},
 		{
-			"invalid: min gas price negative",
-			NewParams(true, 2000000000, sdk.NewDecFromInt(sdkmath.NewInt(-1))),
-			true,
+			name: "base fee cannot be nil when base fee enabled",
+			params: Params{
+				NoBaseFee:   false,
+				BaseFee:     nil,
+				MinGasPrice: sdk.NewDecWithPrec(20, 4),
+			},
+			expError: true,
+		},
+		{
+			name: "base fee cannot be nil when base fee enabled",
+			params: Params{
+				NoBaseFee:   false,
+				BaseFee:     &sdkmath.Int{},
+				MinGasPrice: sdk.NewDecWithPrec(20, 4),
+			},
+			expError: true,
+		},
+		{
+			name: "base fee cannot be negative",
+			params: Params{
+				NoBaseFee:   false,
+				BaseFee:     &minus1,
+				MinGasPrice: sdk.NewDecWithPrec(20, 4),
+			},
+			expError: true,
+		},
+		{
+			name: "base fee cannot be negative",
+			params: Params{
+				NoBaseFee:   true,
+				BaseFee:     &minus1,
+				MinGasPrice: sdk.NewDecWithPrec(20, 4),
+			},
+			expError: true,
+		},
+		{
+			name: "base fee must be nil when base fee disabled",
+			params: Params{
+				NoBaseFee:   true,
+				BaseFee:     &one,
+				MinGasPrice: sdk.NewDecWithPrec(20, 4),
+			},
+			expError: true,
+		},
+		{
+			name:     "invalid: min gas price negative",
+			params:   NewParams(true, 2000000000, sdk.NewDecFromInt(sdkmath.NewInt(-1))),
+			expError: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		err := tc.params.Validate()
+		suite.Run(tc.name, func() {
+			err := tc.params.Validate()
 
-		if tc.expError {
-			suite.Require().Error(err, tc.name)
-		} else {
-			suite.Require().NoError(err, tc.name)
-		}
+			if tc.expError {
+				suite.Require().Error(err, tc.name)
+			} else {
+				suite.Require().NoError(err, tc.name)
+			}
+		})
 	}
 }
 
