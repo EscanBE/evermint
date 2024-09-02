@@ -59,6 +59,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (ante) [#112](https://github.com/EscanBE/evermint/pull/112) Add some validation relates to number range for EVM txs
 - (ante) [#121](https://github.com/EscanBE/evermint/pull/121) Remove logic automatically claims staking rewards
 - (feemarket) [#122](https://github.com/EscanBE/evermint/pull/122) Remove unnecessary `x/feemarket` params
+- (evm) [#125](https://github.com/EscanBE/evermint/pull/125) Remove tx fee refunds for EVM txs and min-gas-multiplier logic
 
 ### Bug Fixes
 
