@@ -16,7 +16,7 @@ func (suite *KeeperTestSuite) TestSetGetBlockGasWanted() {
 		{
 			"with last block given",
 			func() {
-				suite.app.FeeMarketKeeper.SetBlockGasWanted(suite.ctx, uint64(1000000))
+				suite.app.FeeMarketKeeper.SetBlockGasUsed(suite.ctx, uint64(1000000))
 			},
 			uint64(1000000),
 		},
@@ -24,7 +24,7 @@ func (suite *KeeperTestSuite) TestSetGetBlockGasWanted() {
 	for _, tc := range testCases {
 		tc.malleate()
 
-		gas := suite.app.FeeMarketKeeper.GetBlockGasWanted(suite.ctx)
+		gas := suite.app.FeeMarketKeeper.GetBlockGasUsed(suite.ctx)
 		suite.Require().Equal(tc.expGas, gas, tc.name)
 	}
 }

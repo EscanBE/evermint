@@ -26,7 +26,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		{"default", DefaultParams(), false},
 		{
 			"valid",
-			NewParams(true, 2000000000, sdk.NewDecWithPrec(20, 4), DefaultMinGasMultiplier),
+			NewParams(true, 2000000000, sdk.NewDecWithPrec(20, 4)),
 			false,
 		},
 		{
@@ -37,41 +37,24 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		{
 			"base fee cannot be nil",
 			Params{
-				NoBaseFee:        false,
-				BaseFee:          sdkmath.Int{},
-				MinGasPrice:      sdk.NewDecWithPrec(20, 4),
-				MinGasMultiplier: DefaultMinGasMultiplier,
+				NoBaseFee:   false,
+				BaseFee:     sdkmath.Int{},
+				MinGasPrice: sdk.NewDecWithPrec(20, 4),
 			},
 			true,
 		},
 		{
 			"base fee cannot be negative",
 			Params{
-				NoBaseFee:        false,
-				BaseFee:          sdkmath.NewInt(-1),
-				MinGasPrice:      sdk.NewDecWithPrec(20, 4),
-				MinGasMultiplier: DefaultMinGasMultiplier,
+				NoBaseFee:   false,
+				BaseFee:     sdkmath.NewInt(-1),
+				MinGasPrice: sdk.NewDecWithPrec(20, 4),
 			},
 			true,
 		},
 		{
 			"invalid: min gas price negative",
-			NewParams(true, 2000000000, sdk.NewDecFromInt(sdkmath.NewInt(-1)), DefaultMinGasMultiplier),
-			true,
-		},
-		{
-			"valid: min gas multiplier zero",
-			NewParams(true, 2000000000, DefaultMinGasPrice, sdk.ZeroDec()),
-			false,
-		},
-		{
-			"invalid: min gas multiplier is negative",
-			NewParams(true, 2000000000, DefaultMinGasPrice, sdk.NewDecWithPrec(-5, 1)),
-			true,
-		},
-		{
-			"invalid: min gas multiplier bigger than 1",
-			NewParams(true, 2000000000, sdk.NewDecWithPrec(20, 4), sdk.NewDec(2)),
+			NewParams(true, 2000000000, sdk.NewDecFromInt(sdkmath.NewInt(-1))),
 			true,
 		},
 	}
@@ -95,9 +78,6 @@ func (suite *ParamsTestSuite) TestParamsValidatePriv() {
 	suite.Require().Error(validateBaseFee(sdkmath.NewInt(-2000000000)))
 	suite.Require().NoError(validateBaseFee(sdkmath.NewInt(2000000000)))
 	suite.Require().Error(validateMinGasPrice(sdk.Dec{}))
-	suite.Require().Error(validateMinGasMultiplier(sdk.NewDec(-5)))
-	suite.Require().Error(validateMinGasMultiplier(sdk.Dec{}))
-	suite.Require().Error(validateMinGasMultiplier(""))
 }
 
 func (suite *ParamsTestSuite) TestParamsValidateMinGasPrice() {

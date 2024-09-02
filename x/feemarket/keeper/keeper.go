@@ -56,18 +56,18 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // Required by EIP1559 base fee calculation.
 // ----------------------------------------------------------------------------
 
-// SetBlockGasWanted sets the block gas wanted to the store.
+// SetBlockGasUsed sets the block gas used to the store.
 // CONTRACT: this should be only called during EndBlock.
-func (k Keeper) SetBlockGasWanted(ctx sdk.Context, gas uint64) {
+func (k Keeper) SetBlockGasUsed(ctx sdk.Context, gas uint64) {
 	store := ctx.KVStore(k.storeKey)
 	gasBz := sdk.Uint64ToBigEndian(gas)
-	store.Set(types.KeyPrefixBlockGasWanted, gasBz)
+	store.Set(types.KeyPrefixBlockGasUsed, gasBz)
 }
 
-// GetBlockGasWanted returns the last block gas wanted value from the store.
-func (k Keeper) GetBlockGasWanted(ctx sdk.Context) uint64 {
+// GetBlockGasUsed returns the last block gas used value from the store.
+func (k Keeper) GetBlockGasUsed(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.KeyPrefixBlockGasWanted)
+	bz := store.Get(types.KeyPrefixBlockGasUsed)
 	if len(bz) == 0 {
 		return 0
 	}
