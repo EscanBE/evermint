@@ -18,20 +18,15 @@ const (
 
 // prefix bytes for the feemarket persistent store
 const (
-	prefixBlockGasWanted    = iota + 1
+	prefixBlockGasUsed      = iota + 1
 	deprecatedPrefixBaseFee // unused
 )
 
 const (
-	prefixTransientBlockGasUsed = iota + 1
+	prefixTransientBlockGasWanted = iota + 1
 )
 
 // KVStore key prefixes
 var (
-	KeyPrefixBlockGasWanted = []byte{prefixBlockGasWanted}
-)
-
-// Transient Store key prefixes
-var (
-	KeyPrefixTransientBlockGasWanted = []byte{prefixTransientBlockGasUsed}
+	KeyPrefixBlockGasUsed = []byte{prefixBlockGasUsed}
 )

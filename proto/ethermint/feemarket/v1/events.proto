@@ -13,6 +13,6 @@ message EventFeeMarket {
 message EventBlockGas {
   // height of the block
   string height = 1;
-  // amount of gas wanted by the block
+  // amount of gas used by the block
   string amount = 2;
 }

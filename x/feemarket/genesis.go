@@ -20,7 +20,7 @@ func InitGenesis(
 		panic(errorsmod.Wrap(err, "could not set parameters at genesis"))
 	}
 
-	k.SetBlockGasWanted(ctx, data.BlockGas)
+	k.SetBlockGasUsed(ctx, data.BlockGas)
 
 	return []abci.ValidatorUpdate{}
 }
@@ -29,6 +29,6 @@ func InitGenesis(
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return &types.GenesisState{
 		Params:   k.GetParams(ctx),
-		BlockGas: k.GetBlockGasWanted(ctx),
+		BlockGas: k.GetBlockGasUsed(ctx),
 	}
 }

@@ -72,7 +72,7 @@ func (m *EventFeeMarket) GetBaseFee() string {
 type EventBlockGas struct {
 	// height of the block
 	Height string `protobuf:"bytes,1,opt,name=height,proto3" json:"height,omitempty"`
-	// amount of gas wanted by the block
+	// amount of gas used by the block
 	Amount string `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
 }
 

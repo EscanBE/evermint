@@ -9,26 +9,25 @@ import (
 
 func (suite *KeeperTestSuite) TestEndBlock() {
 	testCases := []struct {
-		name         string
-		NoBaseFee    bool
-		malleate     func()
-		expGasWanted uint64
+		name       string
+		NoBaseFee  bool
+		malleate   func()
+		expGasUsed uint64
 	}{
 		{
-			"baseFee nil",
-			true,
-			func() {},
-			uint64(0),
+			name:       "baseFee nil",
+			NoBaseFee:  true,
+			malleate:   func() {},
+			expGasUsed: uint64(0),
 		},
 		{
-			"pass",
-			false,
-			func() {
+			name: "pass",
+			malleate: func() {
 				meter := sdk.NewGasMeter(uint64(1000000000))
 				suite.ctx = suite.ctx.WithBlockGasMeter(meter)
-				suite.app.FeeMarketKeeper.SetTransientBlockGasWanted(suite.ctx, 5000000)
+				suite.ctx.BlockGasMeter().ConsumeGas(2500000, "consume")
 			},
-			uint64(2500000),
+			expGasUsed: uint64(2500000),
 		},
 	}
 	for _, tc := range testCases {
@@ -41,8 +40,8 @@ func (suite *KeeperTestSuite) TestEndBlock() {
 
 			tc.malleate()
 			suite.app.FeeMarketKeeper.EndBlock(suite.ctx, types.RequestEndBlock{Height: 1})
-			gasWanted := suite.app.FeeMarketKeeper.GetBlockGasWanted(suite.ctx)
-			suite.Require().Equal(tc.expGasWanted, gasWanted, tc.name)
+			gasUsed := suite.app.FeeMarketKeeper.GetBlockGasUsed(suite.ctx)
+			suite.Require().Equal(tc.expGasUsed, gasUsed, tc.name)
 		})
 	}
 }

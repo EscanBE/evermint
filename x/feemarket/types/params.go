@@ -10,8 +10,6 @@ import (
 )
 
 var (
-	// DefaultMinGasMultiplier is 0.5 or 50%
-	DefaultMinGasMultiplier = sdk.NewDecWithPrec(50, 2)
 	// DefaultMinGasPrice is 0 (i.e disabled)
 	DefaultMinGasPrice = sdk.ZeroDec()
 	// DefaultNoBaseFee is false
@@ -20,11 +18,10 @@ var (
 
 // Parameter keys
 var (
-	ParamsKey                     = []byte("Params")
-	ParamStoreKeyNoBaseFee        = []byte("NoBaseFee")
-	ParamStoreKeyBaseFee          = []byte("BaseFee")
-	ParamStoreKeyMinGasPrice      = []byte("MinGasPrice")
-	ParamStoreKeyMinGasMultiplier = []byte("MinGasMultiplier")
+	ParamsKey                = []byte("Params")
+	ParamStoreKeyNoBaseFee   = []byte("NoBaseFee")
+	ParamStoreKeyBaseFee     = []byte("BaseFee")
+	ParamStoreKeyMinGasPrice = []byte("MinGasPrice")
 )
 
 // ParamKeyTable returns the parameter key table.
@@ -38,7 +35,6 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(ParamStoreKeyNoBaseFee, &p.NoBaseFee, validateBool),
 		paramtypes.NewParamSetPair(ParamStoreKeyBaseFee, &p.BaseFee, validateBaseFee),
 		paramtypes.NewParamSetPair(ParamStoreKeyMinGasPrice, &p.MinGasPrice, validateMinGasPrice),
-		paramtypes.NewParamSetPair(ParamStoreKeyMinGasMultiplier, &p.MinGasMultiplier, validateMinGasPrice),
 	}
 }
 
@@ -47,23 +43,20 @@ func NewParams(
 	noBaseFee bool,
 	baseFee uint64,
 	minGasPrice sdk.Dec,
-	minGasPriceMultiplier sdk.Dec,
 ) Params {
 	return Params{
-		NoBaseFee:        noBaseFee,
-		BaseFee:          sdkmath.NewIntFromUint64(baseFee),
-		MinGasPrice:      minGasPrice,
-		MinGasMultiplier: minGasPriceMultiplier,
+		NoBaseFee:   noBaseFee,
+		BaseFee:     sdkmath.NewIntFromUint64(baseFee),
+		MinGasPrice: minGasPrice,
 	}
 }
 
 // DefaultParams returns default evm parameters
 func DefaultParams() Params {
 	return Params{
-		NoBaseFee:        DefaultNoBaseFee,
-		BaseFee:          sdkmath.NewIntFromUint64(ethparams.InitialBaseFee),
-		MinGasPrice:      DefaultMinGasPrice,
-		MinGasMultiplier: DefaultMinGasMultiplier,
+		NoBaseFee:   DefaultNoBaseFee,
+		BaseFee:     sdkmath.NewIntFromUint64(ethparams.InitialBaseFee),
+		MinGasPrice: DefaultMinGasPrice,
 	}
 }
 
@@ -73,10 +66,6 @@ func (p Params) Validate() error {
 		return fmt.Errorf("base fee cannot be nil")
 	} else if p.BaseFee.IsNegative() {
 		return fmt.Errorf("base fee cannot be negative: %s", p.BaseFee)
-	}
-
-	if err := validateMinGasMultiplier(p.MinGasMultiplier); err != nil {
-		return err
 	}
 
 	return validateMinGasPrice(p.MinGasPrice)
@@ -118,26 +107,5 @@ func validateBaseFee(i interface{}) error {
 		return fmt.Errorf("base fee cannot be negative")
 	}
 
-	return nil
-}
-
-func validateMinGasMultiplier(i interface{}) error {
-	v, ok := i.(sdk.Dec)
-
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if v.IsNil() {
-		return fmt.Errorf("invalid parameter: nil")
-	}
-
-	if v.IsNegative() {
-		return fmt.Errorf("value cannot be negative: %s", v)
-	}
-
-	if v.GT(sdk.OneDec()) {
-		return fmt.Errorf("value cannot be greater than 1: %s", v)
-	}
 	return nil
 }
