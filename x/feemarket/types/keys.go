@@ -30,8 +30,3 @@ const (
 var (
 	KeyPrefixBlockGasUsed = []byte{prefixBlockGasUsed}
 )
-
-// Transient Store key prefixes
-var (
-	KeyPrefixTransientBlockGasWanted = []byte{prefixTransientBlockGasWanted}
-)
