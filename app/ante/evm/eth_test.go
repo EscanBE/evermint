@@ -18,8 +18,8 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-func (suite *AnteTestSuite) TestNewEthAccountVerificationDecorator() {
-	dec := ethante.NewEthAccountVerificationDecorator(
+func (suite *AnteTestSuite) TestNewExternalOwnedAccountVerificationDecorator() {
+	dec := ethante.NewExternalOwnedAccountVerificationDecorator(
 		suite.app.AccountKeeper, suite.app.EvmKeeper,
 	)
 

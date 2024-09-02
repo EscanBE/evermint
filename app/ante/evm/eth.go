@@ -20,15 +20,17 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// EthAccountVerificationDecorator validates an account balance checks
-type EthAccountVerificationDecorator struct {
+// TODO EA: validate if vesting account has enough balance to send
+
+// ExternalOwnedAccountVerificationDecorator validates an account balance checks
+type ExternalOwnedAccountVerificationDecorator struct {
 	ak        evmtypes.AccountKeeper
 	evmKeeper EVMKeeper
 }
 
-// NewEthAccountVerificationDecorator creates a new EthAccountVerificationDecorator
-func NewEthAccountVerificationDecorator(ak evmtypes.AccountKeeper, ek EVMKeeper) EthAccountVerificationDecorator {
-	return EthAccountVerificationDecorator{
+// NewExternalOwnedAccountVerificationDecorator creates a new ExternalOwnedAccountVerificationDecorator
+func NewExternalOwnedAccountVerificationDecorator(ak evmtypes.AccountKeeper, ek EVMKeeper) ExternalOwnedAccountVerificationDecorator {
+	return ExternalOwnedAccountVerificationDecorator{
 		ak:        ak,
 		evmKeeper: ek,
 	}
@@ -40,7 +42,7 @@ func NewEthAccountVerificationDecorator(ak evmtypes.AccountKeeper, ek EVMKeeper)
 // - any of the msgs is not a MsgEthereumTx
 // - from address is empty
 // - account balance is lower than the transaction cost
-func (avd EthAccountVerificationDecorator) AnteHandle(
+func (avd ExternalOwnedAccountVerificationDecorator) AnteHandle(
 	ctx sdk.Context,
 	tx sdk.Tx,
 	simulate bool,
@@ -76,8 +78,10 @@ func (avd EthAccountVerificationDecorator) AnteHandle(
 			avd.ak.SetAccount(ctx, acc)
 			acct = statedb.NewEmptyAccount()
 		} else if acct.IsContract() {
-			return ctx, errorsmod.Wrapf(errortypes.ErrInvalidType,
-				"the sender is not EOA: address %s, codeHash <%s>", fromAddr, acct.CodeHash)
+			return ctx, errorsmod.Wrapf(
+				errortypes.ErrInvalidType,
+				"the sender is not EOA: address %s, codeHash <%s>", fromAddr, acct.CodeHash,
+			)
 		}
 
 		if err := keeper.CheckSenderBalance(sdkmath.NewIntFromBigInt(acct.Balance), txData); err != nil {

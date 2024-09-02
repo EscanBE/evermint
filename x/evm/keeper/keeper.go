@@ -267,7 +267,7 @@ func (k *Keeper) GetAccountWithoutBalance(ctx sdk.Context, addr common.Address) 
 	}
 }
 
-// GetAccountOrEmpty returns empty account if not exist, returns error if it's not `EthAccount`
+// GetAccountOrEmpty returns empty account if not exist
 func (k *Keeper) GetAccountOrEmpty(ctx sdk.Context, addr common.Address) statedb.Account {
 	acct := k.GetAccount(ctx, addr)
 	if acct != nil {

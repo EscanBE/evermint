@@ -22,7 +22,7 @@ var _ statedb.Keeper = &Keeper{}
 // StateDB Keeper implementation
 // ----------------------------------------------------------------------------
 
-// GetAccount returns nil if account is not exist, returns error if it's not `EthAccountI`
+// GetAccount returns nil if account is not exist
 func (k *Keeper) GetAccount(ctx sdk.Context, addr common.Address) *statedb.Account {
 	acct := k.GetAccountWithoutBalance(ctx, addr)
 	if acct == nil {
