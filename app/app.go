@@ -133,9 +133,8 @@ import (
 	erc20client "github.com/EscanBE/evermint/v12/x/erc20/client"
 	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
-	"github.com/EscanBE/evermint/v12/x/vesting"
-	vestingkeeper "github.com/EscanBE/evermint/v12/x/vesting/keeper"
-	vestingtypes "github.com/EscanBE/evermint/v12/x/vesting/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
@@ -274,8 +273,7 @@ type Evermint struct {
 	FeeMarketKeeper feemarketkeeper.Keeper
 
 	// Evermint keepers
-	Erc20Keeper   erc20keeper.Keeper
-	VestingKeeper vestingkeeper.Keeper
+	Erc20Keeper erc20keeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -332,7 +330,6 @@ func NewEvermint(
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
 		// evermint module keys
 		erc20types.StoreKey,
-		vestingtypes.StoreKey,
 	)
 
 	// Add the EVM transient store key
@@ -461,11 +458,6 @@ func NewEvermint(
 
 	chainApp.StakingKeeper = stakingKeeper
 
-	chainApp.VestingKeeper = vestingkeeper.NewKeeper(
-		keys[vestingtypes.StoreKey], appCodec,
-		chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.StakingKeeper,
-	)
-
 	chainApp.Erc20Keeper = erc20keeper.NewKeeper(
 		keys[erc20types.StoreKey], appCodec, authtypes.NewModuleAddress(govtypes.ModuleName),
 		chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.EvmKeeper, chainApp.StakingKeeper,
@@ -587,7 +579,7 @@ func NewEvermint(
 		// Evermint app modules
 		erc20.NewAppModule(chainApp.Erc20Keeper, chainApp.AccountKeeper,
 			chainApp.GetSubspace(erc20types.ModuleName)),
-		vesting.NewAppModule(chainApp.VestingKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, *chainApp.StakingKeeper),
+		vesting.NewAppModule(chainApp.AccountKeeper, chainApp.BankKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -984,16 +976,6 @@ func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router) {
 
 	staticServer := http.FileServer(statikFS)
 	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
-}
-
-// GetMaccPerms returns a copy of the module account permissions
-func GetMaccPerms() map[string][]string {
-	dupMaccPerms := make(map[string][]string)
-	for k, v := range maccPerms {
-		dupMaccPerms[k] = v
-	}
-
-	return dupMaccPerms
 }
 
 // initParamsKeeper init params keeper and its subspaces
