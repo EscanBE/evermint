@@ -936,9 +936,12 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.msg, func() {
 			suite.enableFeemarket = tc.enableFeemarket
 			suite.SetupTest()
+
+			suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(100_000))
+
 			// Deploy contract
 			contractAddr := suite.DeployTestContract(suite.T(), suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
 			suite.Commit()

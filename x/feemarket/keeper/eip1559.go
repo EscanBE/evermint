@@ -1,17 +1,19 @@
 package keeper
 
 import (
-	ethparams "github.com/ethereum/go-ethereum/params"
+	"fmt"
+	"github.com/ethereum/go-ethereum/consensus/misc"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 )
 
-// CalculateBaseFee calculates the base fee for the current block. This is only calculated once per
-// block during BeginBlock. If the NoBaseFee parameter is enabled or below activation height, this function returns nil.
+// CalculateBaseFee calculates the base fee for the next block based on current block.
+// This is only calculated once per block during EndBlock.
+// If the NoBaseFee parameter is enabled, this function returns nil.
 // NOTE: This code is inspired from the go-ethereum EIP1559 implementation and adapted to Cosmos SDK-based
 // chains. For the canonical code refer to: https://github.com/ethereum/go-ethereum/blob/v1.10.26/consensus/misc/eip1559.go
 func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
@@ -22,59 +24,24 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 		return nil
 	}
 
-	consParams := ctx.ConsensusParams()
-
-	// get the block gas used and the base fee values for the parent block.
-	parentBaseFee := params.BaseFee.BigInt()
-
-	parentGasUsed := k.GetBlockGasUsed(ctx)
-
-	gasLimit := new(big.Int).SetUint64(math.MaxUint64)
-
+	var gasLimit *big.Int
 	// NOTE: a MaxGas equal to -1 means that block gas is unlimited
-	if consParams != nil && consParams.Block.MaxGas > -1 {
+	if consParams := ctx.ConsensusParams(); consParams != nil && consParams.Block.MaxGas > -1 {
 		gasLimit = big.NewInt(consParams.Block.MaxGas)
+	} else {
+		gasLimit = new(big.Int).SetUint64(math.MaxUint64)
 	}
 
-	// CONTRACT: ElasticityMultiplier cannot be 0 as it's checked in the params
-	// validation
-	parentGasTargetBig := new(big.Int).Div(gasLimit, new(big.Int).SetUint64(uint64(ethparams.ElasticityMultiplier)))
-	if !parentGasTargetBig.IsUint64() {
-		return nil
-	}
-
-	parentGasTarget := parentGasTargetBig.Uint64()
-	baseFeeChangeDenominator := new(big.Int).SetUint64(uint64(ethparams.BaseFeeChangeDenominator))
-
-	// If the parent gasUsed is the same as the target, the baseFee remains
-	// unchanged.
-	if parentGasUsed == parentGasTarget {
-		return new(big.Int).Set(parentBaseFee)
-	}
-
-	if parentGasUsed > parentGasTarget {
-		// If the parent block used more gas than its target, the baseFee should
-		// increase.
-		gasUsedDelta := new(big.Int).SetUint64(parentGasUsed - parentGasTarget)
-		x := new(big.Int).Mul(parentBaseFee, gasUsedDelta)
-		y := x.Div(x, parentGasTargetBig)
-		baseFeeDelta := math.BigMax(
-			x.Div(y, baseFeeChangeDenominator),
-			common.Big1,
-		)
-
-		return x.Add(parentBaseFee, baseFeeDelta)
-	}
-
-	// Otherwise if the parent block used less gas than its target, the baseFee
-	// should decrease.
-	gasUsedDelta := new(big.Int).SetUint64(parentGasTarget - parentGasUsed)
-	x := new(big.Int).Mul(parentBaseFee, gasUsedDelta)
-	y := x.Div(x, parentGasTargetBig)
-	baseFeeDelta := x.Div(y, baseFeeChangeDenominator)
+	fmt.Println("k.evmKeeper", k.evmKeeper, "ctx.BlockGasMeter()", ctx.BlockGasMeter())
+	baseFee := misc.CalcBaseFee(k.evmKeeper.GetChainConfig(ctx), &ethtypes.Header{
+		Number:   big.NewInt(ctx.BlockHeight()),
+		GasLimit: gasLimit.Uint64(),
+		GasUsed:  ctx.BlockGasMeter().GasConsumedToLimit(),
+		BaseFee:  params.BaseFee.BigInt(),
+	})
 
 	// Set global min gas price as lower bound of the base fee, transactions below
 	// the min gas price don't even reach the mempool.
 	minGasPrice := params.MinGasPrice.TruncateInt().BigInt()
-	return math.BigMax(x.Sub(parentBaseFee, baseFeeDelta), minGasPrice)
+	return math.BigMax(baseFee, minGasPrice)
 }
