@@ -422,6 +422,8 @@ func NewEvermint(
 		tracer, chainApp.GetSubspace(evmtypes.ModuleName),
 	)
 
+	chainApp.FeeMarketKeeper = chainApp.FeeMarketKeeper.WithEvmKeeper(chainApp.EvmKeeper)
+
 	// Create IBC Keeper
 	chainApp.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, keys[ibcexported.StoreKey], chainApp.GetSubspace(ibcexported.ModuleName), stakingKeeper, chainApp.UpgradeKeeper, scopedIBCKeeper,

@@ -26,6 +26,9 @@ type Keeper struct {
 	authority sdk.AccAddress
 	// Legacy subspace
 	ss paramstypes.Subspace
+
+	// external keepers
+	evmKeeper types.EvmKeeper
 }
 
 // NewKeeper generates new fee market module keeper
@@ -44,6 +47,11 @@ func NewKeeper(
 		transientKey: transientKey,
 		ss:           ss,
 	}
+}
+
+func (k Keeper) WithEvmKeeper(evmKeeper types.EvmKeeper) Keeper {
+	k.evmKeeper = evmKeeper
+	return k
 }
 
 // Logger returns a module-specific logger.
