@@ -297,107 +297,6 @@ paths:
           type: string
       tags:
         - Query
-  /evmos/vesting/v1/balances/{address}:
-    get:
-      summary: >-
-        Balances retrieves the unvested, vested and locked tokens for a vesting
-        account
-      operationId: Balances
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              locked:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    denom:
-                      type: string
-                    amount:
-                      type: string
-                  description: >-
-                    Coin defines a token with a denomination and an amount.
-
-
-                    NOTE: The amount field is an Int which implements the custom
-                    method
-
-                    signatures required by gogoproto.
-                title: locked defines the current amount of locked tokens
-              unvested:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    denom:
-                      type: string
-                    amount:
-                      type: string
-                  description: >-
-                    Coin defines a token with a denomination and an amount.
-
-
-                    NOTE: The amount field is an Int which implements the custom
-                    method
-
-                    signatures required by gogoproto.
-                title: unvested defines the current amount of unvested tokens
-              vested:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    denom:
-                      type: string
-                    amount:
-                      type: string
-                  description: >-
-                    Coin defines a token with a denomination and an amount.
-
-
-                    NOTE: The amount field is an Int which implements the custom
-                    method
-
-                    signatures required by gogoproto.
-                title: vested defines the current amount of vested tokens
-            description: >-
-              QueryBalancesResponse is the response type for the Query/Balances
-              RPC
-
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: address
-          description: address of the clawback vesting account
-          in: path
-          required: true
-          type: string
-      tags:
-        - Query
   /evmos/evm/v1/account/{address}:
     get:
       summary: Account queries an Ethereum account.
@@ -3837,45 +3736,6 @@ paths:
                       format: byte
       tags:
         - Query
-  /evmos/feemarket/v1/block_gas:
-    get:
-      summary: BlockGas queries the gas used at a given block height
-      operationId: BlockGas
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              gas:
-                type: string
-                format: int64
-                title: gas is the returned block gas
-            description: QueryBlockGasResponse returns block gas used for a given height.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      tags:
-        - Query
   /evmos/feemarket/v1/params:
     get:
       summary: Params queries the parameters of x/feemarket module.
@@ -3895,28 +3755,6 @@ paths:
                     title: >-
                       no_base_fee forces the EIP-1559 base fee to 0 (needed for
                       0 price calls)
-                  base_fee_change_denominator:
-                    type: integer
-                    format: int64
-                    description: >-
-                      base_fee_change_denominator bounds the amount the base fee
-                      can change
-
-                      between blocks.
-                  elasticity_multiplier:
-                    type: integer
-                    format: int64
-                    description: >-
-                      elasticity_multiplier bounds the maximum gas limit an
-                      EIP-1559 block may
-
-                      have.
-                  enable_height:
-                    type: string
-                    format: int64
-                    description: >-
-                      enable_height defines at which block height the base fee
-                      calculation is enabled.
                   base_fee:
                     type: string
                     description: base_fee for EIP-1559 blocks.
@@ -3925,13 +3763,6 @@ paths:
                     title: >-
                       min_gas_price defines the minimum gas price value for
                       cosmos and eth transactions
-                  min_gas_multiplier:
-                    type: string
-                    title: >-
-                      min_gas_multiplier bounds the minimum gas used to be
-                      charged
-
-                      to senders based on gas limit
                 title: Params defines the EVM module parameters
             description: >-
               QueryParamsResponse defines the response type for querying x/evm
@@ -42511,69 +42342,6 @@ definitions:
                   "@type": "type.googleapis.com/google.protobuf.Duration",
                   "value": "1.212s"
                 }
-  cosmos.base.v1beta1.Coin:
-    type: object
-    properties:
-      denom:
-        type: string
-      amount:
-        type: string
-    description: |-
-      Coin defines a token with a denomination and an amount.
-
-      NOTE: The amount field is an Int which implements the custom method
-      signatures required by gogoproto.
-  evmos.vesting.v1.QueryBalancesResponse:
-    type: object
-    properties:
-      locked:
-        type: array
-        items:
-          type: object
-          properties:
-            denom:
-              type: string
-            amount:
-              type: string
-          description: |-
-            Coin defines a token with a denomination and an amount.
-
-            NOTE: The amount field is an Int which implements the custom method
-            signatures required by gogoproto.
-        title: locked defines the current amount of locked tokens
-      unvested:
-        type: array
-        items:
-          type: object
-          properties:
-            denom:
-              type: string
-            amount:
-              type: string
-          description: |-
-            Coin defines a token with a denomination and an amount.
-
-            NOTE: The amount field is an Int which implements the custom method
-            signatures required by gogoproto.
-        title: unvested defines the current amount of unvested tokens
-      vested:
-        type: array
-        items:
-          type: object
-          properties:
-            denom:
-              type: string
-            amount:
-              type: string
-          description: |-
-            Coin defines a token with a denomination and an amount.
-
-            NOTE: The amount field is an Int which implements the custom method
-            signatures required by gogoproto.
-        title: vested defines the current amount of vested tokens
-    description: |-
-      QueryBalancesResponse is the response type for the Query/Balances RPC
-      method.
   ethermint.evm.v1.ChainConfig:
     type: object
     properties:
@@ -43518,26 +43286,6 @@ definitions:
         title: >-
           no_base_fee forces the EIP-1559 base fee to 0 (needed for 0 price
           calls)
-      base_fee_change_denominator:
-        type: integer
-        format: int64
-        description: |-
-          base_fee_change_denominator bounds the amount the base fee can change
-          between blocks.
-      elasticity_multiplier:
-        type: integer
-        format: int64
-        description: >-
-          elasticity_multiplier bounds the maximum gas limit an EIP-1559 block
-          may
-
-          have.
-      enable_height:
-        type: string
-        format: int64
-        description: >-
-          enable_height defines at which block height the base fee calculation
-          is enabled.
       base_fee:
         type: string
         description: base_fee for EIP-1559 blocks.
@@ -43546,11 +43294,6 @@ definitions:
         title: >-
           min_gas_price defines the minimum gas price value for cosmos and eth
           transactions
-      min_gas_multiplier:
-        type: string
-        title: |-
-          min_gas_multiplier bounds the minimum gas used to be charged
-          to senders based on gas limit
     title: Params defines the EVM module parameters
   ethermint.feemarket.v1.QueryBaseFeeResponse:
     type: object
@@ -43559,14 +43302,6 @@ definitions:
         type: string
         title: base_fee is the EIP1559 base fee
     description: QueryBaseFeeResponse returns the EIP1559 base fee.
-  ethermint.feemarket.v1.QueryBlockGasResponse:
-    type: object
-    properties:
-      gas:
-        type: string
-        format: int64
-        title: gas is the returned block gas
-    description: QueryBlockGasResponse returns block gas used for a given height.
   ethermint.feemarket.v1.QueryParamsResponse:
     type: object
     properties:
@@ -43579,28 +43314,6 @@ definitions:
             title: >-
               no_base_fee forces the EIP-1559 base fee to 0 (needed for 0 price
               calls)
-          base_fee_change_denominator:
-            type: integer
-            format: int64
-            description: >-
-              base_fee_change_denominator bounds the amount the base fee can
-              change
-
-              between blocks.
-          elasticity_multiplier:
-            type: integer
-            format: int64
-            description: >-
-              elasticity_multiplier bounds the maximum gas limit an EIP-1559
-              block may
-
-              have.
-          enable_height:
-            type: string
-            format: int64
-            description: >-
-              enable_height defines at which block height the base fee
-              calculation is enabled.
           base_fee:
             type: string
             description: base_fee for EIP-1559 blocks.
@@ -43609,15 +43322,22 @@ definitions:
             title: >-
               min_gas_price defines the minimum gas price value for cosmos and
               eth transactions
-          min_gas_multiplier:
-            type: string
-            title: |-
-              min_gas_multiplier bounds the minimum gas used to be charged
-              to senders based on gas limit
         title: Params defines the EVM module parameters
     description: >-
       QueryParamsResponse defines the response type for querying x/evm
       parameters.
+  cosmos.base.v1beta1.Coin:
+    type: object
+    properties:
+      denom:
+        type: string
+      amount:
+        type: string
+    description: |-
+      Coin defines a token with a denomination and an amount.
+
+      NOTE: The amount field is an Int which implements the custom method
+      signatures required by gogoproto.
   ibc.applications.transfer.v1.DenomTrace:
     type: object
     properties:
