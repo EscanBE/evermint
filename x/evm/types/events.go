@@ -6,13 +6,11 @@ const (
 	EventTypeBlockBloom = "block_bloom"
 	EventTypeTxReceipt  = "tx_receipt"
 
-	// TODO LOG: consider remove all unnecessary
 	AttributeKeyRecipient      = "recipient"
 	AttributeKeyTxHash         = "txHash"
 	AttributeKeyEthereumTxHash = "ethereumTxHash"
 	AttributeKeyTxIndex        = "txIndex"
 	AttributeKeyTxGasUsed      = "txGasUsed"
-	AttributeKeyTxType         = "txType"
 	// receipt
 	AttributeKeyReceiptMarshalled        = "marshalled"
 	AttributeKeyReceiptTxHash            = "txHash"
