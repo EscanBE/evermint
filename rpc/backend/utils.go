@@ -223,20 +223,13 @@ func AllTxLogsFromEvents(events []abci.Event) ([][]*ethtypes.Log, error) {
 	return allLogs, nil
 }
 
-// TxLogsFromEvents parses ethereum logs from cosmos events for specific msg index
-func TxLogsFromEvents(events []abci.Event, msgIndex int) ([]*ethtypes.Log, error) {
+// TxLogsFromEvent parses ethereum logs from cosmos events
+// TODO LOG: take all from event
+func TxLogsFromEvent(events []abci.Event) ([]*ethtypes.Log, error) {
 	for _, event := range events {
-		if event.Type != evmtypes.EventTypeTxReceipt {
-			continue
+		if event.Type == evmtypes.EventTypeTxReceipt {
+			return ParseTxLogsFromEvent(event)
 		}
-
-		if msgIndex > 0 {
-			// not the eth tx we want
-			msgIndex--
-			continue
-		}
-
-		return ParseTxLogsFromEvent(event)
 	}
 
 	return nil, nil

@@ -184,8 +184,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 	}
 
 	// parse tx logs from events
-	msgIndex := int(res.MsgIndex) // #nosec G701 -- checked for int overflow already
-	logs, err := TxLogsFromEvents(blockRes.TxsResults[res.TxIndex].Events, msgIndex)
+	logs, err := TxLogsFromEvent(blockRes.TxsResults[res.TxIndex].Events)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse logs from events")
 	}

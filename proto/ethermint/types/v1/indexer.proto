@@ -14,7 +14,7 @@ message TxResult {
   // tx_index of the cosmos transaction
   uint32 tx_index = 2;
   // msg_index in a batch transaction
-  uint32 msg_index = 3;
+  uint32 msg_index = 3; // TODO LOG: remove
 
   // eth_tx_index is the index in the list of valid eth tx in the block,
   // aka. the transaction list returned by eth_getBlock api.

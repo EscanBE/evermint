@@ -430,8 +430,7 @@ func (e *PublicAPI) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, err
 	}
 
 	// parse tx logs from events
-	index := int(res.MsgIndex) // #nosec G701
-	return backend.TxLogsFromEvents(resBlockResult.TxsResults[res.TxIndex].Events, index)
+	return backend.TxLogsFromEvent(resBlockResult.TxsResults[res.TxIndex].Events)
 }
 
 // SignTypedData signs EIP-712 conformant typed data

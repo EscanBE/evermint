@@ -433,7 +433,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 		}
 		cumulativeGasUsed += indexedTxByHash.CumulativeGasUsed
 
-		logs, err := TxLogsFromEvents(blockRes.TxsResults[indexedTxByHash.TxIndex].Events, int(indexedTxByHash.MsgIndex))
+		logs, err := TxLogsFromEvent(blockRes.TxsResults[indexedTxByHash.TxIndex].Events)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to parse logs from events")
 		}

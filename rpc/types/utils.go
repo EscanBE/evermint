@@ -262,6 +262,7 @@ func NewRPCTransaction(
 	return result, nil
 }
 
+// TODO LOG: receipt from event
 func NewRPCReceipt(
 	ethMsg *evmtypes.MsgEthereumTx,
 	transactionIndex hexutil.Uint64,
