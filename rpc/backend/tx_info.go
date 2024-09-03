@@ -68,8 +68,7 @@ func (b *Backend) GetTransactionByHash(txHash common.Hash) (*rpctypes.RPCTransac
 
 	baseFee, err := b.BaseFee(blockRes)
 	if err != nil {
-		// handle the error for pruned node.
-		b.logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", blockRes.Height, "error", err)
+		return nil, errors.Wrapf(err, "failed to fetch base fee. Pruned block %d?", blockRes.Height)
 	}
 
 	height := uint64(res.Height)    //#nosec G701 -- checked for int overflow already
@@ -188,8 +187,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 	msgIndex := int(res.MsgIndex) // #nosec G701 -- checked for int overflow already
 	logs, err := TxLogsFromEvents(blockRes.TxsResults[res.TxIndex].Events, msgIndex)
 	if err != nil {
-		// TODO ES return error
-		b.logger.Debug("failed to parse logs", "hash", hexTx, "error", err.Error())
+		return nil, errors.Wrap(err, "failed to parse logs from events")
 	}
 
 	if res.EthTxIndex == -1 {
@@ -211,10 +209,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 	if ethMsg.AsTransaction().Type() == uint8(ethtypes.DynamicFeeTxType) {
 		baseFee, err = b.BaseFee(blockRes)
 		if err != nil {
-			// TODO ES return error
-			// TODO ES in NewRPCReceipt, remove condition check base fee is nil
-			// tolerate the error for pruned node.
-			b.logger.Error("fetch basefee failed, node is pruned?", "height", res.Height, "error", err)
+			return nil, errors.Wrapf(err, "failed to fetch base fee. Pruned block %d?", res.Height)
 		}
 	}
 
@@ -345,8 +340,7 @@ func (b *Backend) GetTransactionByBlockAndIndex(block *tmrpctypes.ResultBlock, i
 
 	baseFee, err := b.BaseFee(blockRes)
 	if err != nil {
-		// handle the error for pruned node.
-		b.logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", block.Block.Height, "error", err)
+		return nil, errors.Wrapf(err, "failed to fetch base fee. Pruned block %d?", block.Block.Height)
 	}
 
 	height := uint64(block.Block.Height) // #nosec G701 -- checked for int overflow already

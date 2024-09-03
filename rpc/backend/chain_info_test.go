@@ -95,26 +95,6 @@ func (suite *BackendTestSuite) TestBaseFee() {
 			false,
 		},
 		{
-			"fail - grpc baseFee error - with feemarket block event with baseFee attribute value",
-			&tmrpctypes.ResultBlockResults{
-				Height: 1,
-				BeginBlockEvents: []types.Event{
-					{
-						Type: feemarkettypes.EventTypeFeeMarket,
-						Attributes: []types.EventAttribute{
-							{Value: baseFee.String()},
-						},
-					},
-				},
-			},
-			func() {
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterBaseFeeError(queryClient)
-			},
-			baseFee.BigInt(),
-			true,
-		},
-		{
 			"fail - base fee or london fork not enabled",
 			&tmrpctypes.ResultBlockResults{Height: 1},
 			func() {

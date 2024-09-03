@@ -286,15 +286,11 @@ func (b *Backend) HeaderByNumber(blockNum rpctypes.BlockNumber) (*ethtypes.Heade
 		return nil, fmt.Errorf("block result not found for height %d", resBlock.Block.Height)
 	}
 
-	bloom, err := b.BlockBloom(blockRes)
-	if err != nil {
-		b.logger.Debug("HeaderByNumber BlockBloom failed", "height", resBlock.Block.Height)
-	}
+	bloom := b.BlockBloom(blockRes)
 
 	baseFee, err := b.BaseFee(blockRes)
 	if err != nil {
-		// handle the error for pruned node.
-		b.logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", resBlock.Block.Height, "error", err)
+		return nil, errors.Wrapf(err, "failed to fetch base fee. Pruned block %d?", resBlock.Block.Height)
 	}
 
 	ethHeader := rpctypes.EthHeaderFromTendermint(resBlock.Block.Header, bloom, baseFee)
@@ -316,15 +312,12 @@ func (b *Backend) HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error) 
 		return nil, errors.Errorf("block result not found for height %d", resBlock.Block.Height)
 	}
 
-	bloom, err := b.BlockBloom(blockRes)
-	if err != nil {
-		b.logger.Debug("HeaderByHash BlockBloom failed", "height", resBlock.Block.Height)
-	}
+	bloom := b.BlockBloom(blockRes)
 
 	baseFee, err := b.BaseFee(blockRes)
 	if err != nil {
-		// handle the error for pruned node.
-		b.logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", resBlock.Block.Height, "error", err)
+		return nil, errors.Wrapf(err, "failed to fetch base fee. Pruned block %d?", resBlock.Block.Height)
+
 	}
 
 	ethHeader := rpctypes.EthHeaderFromTendermint(resBlock.Block.Header, bloom, baseFee)
@@ -332,7 +325,8 @@ func (b *Backend) HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error) 
 }
 
 // BlockBloom query block bloom filter from block results
-func (b *Backend) BlockBloom(blockRes *tmrpctypes.ResultBlockResults) (ethtypes.Bloom, error) {
+// TODO RC: remove error
+func (b *Backend) BlockBloom(blockRes *tmrpctypes.ResultBlockResults) ethtypes.Bloom {
 	for _, event := range blockRes.EndBlockEvents {
 		if event.Type != evmtypes.EventTypeBlockBloom {
 			continue
@@ -340,11 +334,11 @@ func (b *Backend) BlockBloom(blockRes *tmrpctypes.ResultBlockResults) (ethtypes.
 
 		for _, attr := range event.Attributes {
 			if attr.Key == evmtypes.AttributeKeyEthereumBloom {
-				return ethtypes.BytesToBloom([]byte(attr.Value)), nil
+				return ethtypes.BytesToBloom([]byte(attr.Value))
 			}
 		}
 	}
-	return ethtypes.Bloom{}, errors.New("block bloom event is not found")
+	return evmtypes.EmptyBlockBloom
 }
 
 // RPCBlockFromTendermintBlock returns a JSON-RPC compatible Ethereum block from a
@@ -367,7 +361,6 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 	ctx := rpctypes.ContextWithHeight(block.Height)
 	res, err := b.queryClient.ValidatorAccount(ctx, req)
 	if err != nil {
-		// TODO ES return error
 		b.logger.Debug(
 			"failed to query validator operator address",
 			"height", block.Height,
@@ -395,8 +388,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 
 	gasLimit, err := rpctypes.BlockMaxGasFromConsensusParams(ctx, b.clientCtx, block.Height)
 	if err != nil {
-		// TODO ES return error
-		b.logger.Error("failed to query consensus params", "error", err.Error())
+		return nil, errors.Wrap(err, "failed to query consensus params")
 	}
 
 	var gasUsed uint64
@@ -416,9 +408,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 
 	baseFee, err := b.BaseFee(blockRes)
 	if err != nil {
-		// TODO ES return error
-		// handle the error for pruned node.
-		b.logger.Error("failed to fetch Base Fee from pruned block. Check node pruning configuration", "height", block.Height, "error", err)
+		return nil, errors.Wrapf(err, "failed to fetch base fee. Pruned block %d?", block.Height)
 	}
 
 	// prepare txs information
@@ -445,8 +435,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 
 		logs, err := TxLogsFromEvents(blockRes.TxsResults[indexedTxByHash.TxIndex].Events, int(indexedTxByHash.MsgIndex))
 		if err != nil {
-			// TODO ES return error
-			b.logger.Debug("failed to parse logs", "hash", transaction.Hash().Hex(), "error", err.Error())
+			return nil, errors.Wrap(err, "failed to parse logs from events")
 		}
 
 		txData, err := evmtypes.UnpackTxData(ethMsg.Data)
@@ -474,11 +463,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 
 	// prepare block-bloom information
 
-	bloom, err := b.BlockBloom(blockRes)
-	if err != nil {
-		// TODO ES return error
-		b.logger.Debug("failed to query BlockBloom", "height", block.Height, "error", err.Error())
-	}
+	bloom := b.BlockBloom(blockRes)
 
 	// finalize
 
@@ -523,16 +508,11 @@ func (b *Backend) EthBlockFromTendermintBlock(
 	blockRes *tmrpctypes.ResultBlockResults,
 ) (*ethtypes.Block, error) {
 	block := resBlock.Block
-	height := block.Height
-	bloom, err := b.BlockBloom(blockRes)
-	if err != nil {
-		b.logger.Debug("HeaderByNumber BlockBloom failed", "height", height)
-	}
+	bloom := b.BlockBloom(blockRes)
 
 	baseFee, err := b.BaseFee(blockRes)
 	if err != nil {
-		// handle error for pruned node and log
-		b.logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", height, "error", err)
+		return nil, errors.Wrapf(err, "failed to fetch base fee. Pruned block %d?", block.Height)
 	}
 
 	ethHeader := rpctypes.EthHeaderFromTendermint(block.Header, bloom, baseFee)

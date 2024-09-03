@@ -43,7 +43,7 @@ type Backend interface {
 	TendermintBlockResultByNumber(height *int64) (*coretypes.ResultBlockResults, error)
 	GetLogs(blockHash common.Hash) ([][]*ethtypes.Log, error)
 	GetLogsByHeight(*int64) ([][]*ethtypes.Log, error)
-	BlockBloom(blockRes *coretypes.ResultBlockResults) (ethtypes.Bloom, error)
+	BlockBloom(blockRes *coretypes.ResultBlockResults) ethtypes.Bloom
 
 	BloomStatus() (uint64, uint64)
 

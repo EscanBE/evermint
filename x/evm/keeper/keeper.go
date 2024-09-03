@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -172,10 +171,6 @@ func (k Keeper) SetTxIndexTransient(ctx sdk.Context, index uint64) {
 func (k Keeper) GetTxIndexTransient(ctx sdk.Context) uint64 {
 	store := ctx.TransientStore(k.transientKey)
 	bz := store.Get(types.KeyPrefixTransientTxIndex)
-	if len(bz) == 0 {
-		return 0
-	}
-
 	return sdk.BigEndianToUint64(bz)
 }
 
@@ -187,10 +182,6 @@ func (k Keeper) GetTxIndexTransient(ctx sdk.Context) uint64 {
 func (k Keeper) GetLogSizeTransient(ctx sdk.Context) uint64 {
 	store := ctx.TransientStore(k.transientKey)
 	bz := store.Get(types.KeyPrefixTransientLogSize)
-	if len(bz) == 0 {
-		return 0
-	}
-
 	return sdk.BigEndianToUint64(bz)
 }
 
@@ -310,50 +301,16 @@ func (k *Keeper) GetBalance(ctx sdk.Context, addr common.Address) *big.Int {
 // - `0`: london hardfork enabled but feemarket is not enabled.
 // - `n`: both london hardfork and feemarket are enabled.
 func (k Keeper) GetBaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int {
-	return k.getBaseFee(ctx, types.IsLondon(ethCfg, ctx.BlockHeight()))
-}
-
-func (k Keeper) getBaseFee(ctx sdk.Context, london bool) *big.Int {
-	if !london {
+	isLondon := types.IsLondon(ethCfg, ctx.BlockHeight())
+	if !isLondon {
 		return nil
 	}
+
 	baseFee := k.feeMarketKeeper.GetBaseFee(ctx)
 	if baseFee == nil {
 		// return 0 if feemarket not enabled.
 		baseFee = big.NewInt(0)
 	}
+
 	return baseFee
-}
-
-// ResetTransientGasUsed reset gas used to prepare for execution of current cosmos tx, called in ante handler.
-func (k Keeper) ResetTransientGasUsed(ctx sdk.Context) {
-	store := ctx.TransientStore(k.transientKey)
-	store.Delete(types.KeyPrefixTransientGasUsed)
-}
-
-// GetTransientGasUsed returns the gas used by current cosmos tx.
-func (k Keeper) GetTransientGasUsed(ctx sdk.Context) uint64 {
-	store := ctx.TransientStore(k.transientKey)
-	bz := store.Get(types.KeyPrefixTransientGasUsed)
-	if len(bz) == 0 {
-		return 0
-	}
-	return sdk.BigEndianToUint64(bz)
-}
-
-// SetTransientGasUsed sets the gas used by current cosmos tx.
-func (k Keeper) SetTransientGasUsed(ctx sdk.Context, gasUsed uint64) {
-	store := ctx.TransientStore(k.transientKey)
-	bz := sdk.Uint64ToBigEndian(gasUsed)
-	store.Set(types.KeyPrefixTransientGasUsed, bz)
-}
-
-// AddTransientGasUsed accumulate gas used by each eth msgs included in current cosmos tx.
-func (k Keeper) AddTransientGasUsed(ctx sdk.Context, gasUsed uint64) (uint64, error) {
-	result := k.GetTransientGasUsed(ctx) + gasUsed
-	if result < gasUsed {
-		return 0, errorsmod.Wrap(types.ErrGasOverflow, "transient gas used")
-	}
-	k.SetTransientGasUsed(ctx, result)
-	return result, nil
 }

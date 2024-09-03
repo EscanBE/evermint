@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"github.com/EscanBE/evermint/v12/constants"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -22,6 +23,8 @@ var (
 	DefaultEnableCall = true
 	// DefaultExtraEIPs defines the list of all EIPs that are enabled by default
 	DefaultExtraEIPs = []int64{3855}
+
+	EmptyBlockBloom = ethtypes.CreateBloom(ethtypes.Receipts{})
 )
 
 // NewParams creates a new Params instance

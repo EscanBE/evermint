@@ -237,7 +237,8 @@ func TxLogsFromEvents(events []abci.Event, msgIndex int) ([]*ethtypes.Log, error
 
 		return ParseTxLogsFromEvent(event)
 	}
-	return nil, fmt.Errorf("eth tx logs not found for message index %d", msgIndex)
+
+	return nil, nil
 }
 
 // ParseTxLogsFromEvent parse tx logs from one event

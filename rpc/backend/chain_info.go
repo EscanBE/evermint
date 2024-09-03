@@ -3,20 +3,18 @@ package backend
 import (
 	"errors"
 	"fmt"
-	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
-	"math/big"
-	"strconv"
-
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	"github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
+	"math/big"
 )
 
 // ChainID is the EIP-155 replay-protection chain id for the current ethereum chain config.
@@ -65,20 +63,7 @@ func (b *Backend) GlobalMinGasPrice() (sdk.Dec, error) {
 func (b *Backend) BaseFee(blockRes *tmrpctypes.ResultBlockResults) (*big.Int, error) {
 	// return BaseFee if London hard fork is activated and feemarket is enabled
 	res, err := b.queryClient.BaseFee(rpctypes.ContextWithHeight(blockRes.Height), &evmtypes.QueryBaseFeeRequest{})
-	if err != nil || res.BaseFee == nil {
-		// we can't tell if it's london HF not enabled or the state is pruned,
-		// in either case, we'll fallback to parsing from begin blocker event,
-		// faster to iterate reversely
-		for i := len(blockRes.BeginBlockEvents) - 1; i >= 0; i-- {
-			evt := blockRes.BeginBlockEvents[i]
-			if evt.Type == feemarkettypes.EventTypeFeeMarket && len(evt.Attributes) > 0 {
-				baseFee, err := strconv.ParseInt(string(evt.Attributes[0].Value), 10, 64)
-				if err == nil {
-					return big.NewInt(baseFee), nil
-				}
-				break
-			}
-		}
+	if err != nil {
 		return nil, err
 	}
 

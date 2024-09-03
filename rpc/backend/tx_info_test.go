@@ -73,7 +73,7 @@ func (suite *BackendTestSuite) TestGetTransactionByHash() {
 			true,
 		},
 		{
-			"pass - Base fee error",
+			"fail - Base fee error",
 			func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
@@ -84,8 +84,8 @@ func (suite *BackendTestSuite) TestGetTransactionByHash() {
 				RegisterBaseFeeError(queryClient)
 			},
 			msgEthereumTx,
-			rpcTransaction,
-			true,
+			nil,
+			false,
 		},
 		{
 			"pass - Transaction found and returned",
@@ -331,7 +331,7 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 			true,
 		},
 		{
-			"pass - Can't fetch base fee",
+			"fail - Can't fetch base fee",
 			func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
@@ -344,8 +344,8 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 			},
 			&tmrpctypes.ResultBlock{Block: defaultBlock},
 			0,
-			txFromMsg,
-			true,
+			nil,
+			false,
 		},
 		{
 			"pass - Gets Tx by transaction index",
