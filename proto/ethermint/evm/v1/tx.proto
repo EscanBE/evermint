@@ -151,9 +151,9 @@ message MsgEthereumTxResponse {
   // Tendermint sha256 hash of the transaction bytes. See
   // https://github.com/cometbft/cometbft/issues/6539 for reference
   string hash = 1;
-  // logs contains the transaction hash and the proto-compatible ethereum
-  // logs.
-  repeated Log logs = 2;
+  // DEPRECATED: logs contains the transaction hash and the proto-compatible ethereum logs.
+  reserved 2;
+  reserved "logs";
   // ret is the returned data from evm function (result or data supplied with revert
   // opcode)
   bytes ret = 3;
@@ -161,6 +161,8 @@ message MsgEthereumTxResponse {
   string vm_error = 4;
   // gas_used specifies how much gas was consumed by the transaction
   uint64 gas_used = 5;
+  // marshalled_receipt is the marshalled version of Ethereum tx receipt
+  bytes marshalled_receipt = 6;
 }
 
 // MsgUpdateParams defines a Msg for updating the x/evm module parameters.
