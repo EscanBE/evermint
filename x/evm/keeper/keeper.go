@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -314,34 +313,4 @@ func (k Keeper) GetBaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int
 	}
 
 	return baseFee
-}
-
-// ResetTransientGasUsed reset gas used to prepare for execution of current cosmos tx, called in ante handler.
-func (k Keeper) ResetTransientGasUsed(ctx sdk.Context) {
-	store := ctx.TransientStore(k.transientKey)
-	store.Delete(types.KeyPrefixTransientGasUsed)
-}
-
-// GetTransientGasUsed returns the gas used by current cosmos tx.
-func (k Keeper) GetTransientGasUsed(ctx sdk.Context) uint64 {
-	store := ctx.TransientStore(k.transientKey)
-	bz := store.Get(types.KeyPrefixTransientGasUsed)
-	return sdk.BigEndianToUint64(bz)
-}
-
-// SetTransientGasUsed sets the gas used by current cosmos tx.
-func (k Keeper) SetTransientGasUsed(ctx sdk.Context, gasUsed uint64) {
-	store := ctx.TransientStore(k.transientKey)
-	bz := sdk.Uint64ToBigEndian(gasUsed)
-	store.Set(types.KeyPrefixTransientGasUsed, bz)
-}
-
-// AddTransientGasUsed accumulate gas used by each eth msgs included in current cosmos tx.
-func (k Keeper) AddTransientGasUsed(ctx sdk.Context, gasUsed uint64) (uint64, error) {
-	result := k.GetTransientGasUsed(ctx) + gasUsed
-	if result < gasUsed {
-		return 0, errorsmod.Wrap(types.ErrGasOverflow, "transient gas used")
-	}
-	k.SetTransientGasUsed(ctx, result)
-	return result, nil
 }

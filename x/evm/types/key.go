@@ -34,7 +34,7 @@ const (
 	prefixTransientBloom = iota + 1
 	prefixTransientTxIndex
 	prefixTransientLogSize
-	prefixTransientGasUsed
+	prefixTransientGasUsed // deprecated
 )
 
 // KVStore key prefixes
@@ -50,7 +50,6 @@ var (
 	KeyPrefixTransientBloom   = []byte{prefixTransientBloom}
 	KeyPrefixTransientTxIndex = []byte{prefixTransientTxIndex}
 	KeyPrefixTransientLogSize = []byte{prefixTransientLogSize}
-	KeyPrefixTransientGasUsed = []byte{prefixTransientGasUsed}
 )
 
 // AddressStoragePrefix returns a prefix to iterate over a given account storage.
