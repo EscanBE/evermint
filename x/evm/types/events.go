@@ -5,7 +5,6 @@ const (
 	EventTypeEthereumTx = TypeMsgEthereumTx
 	EventTypeBlockBloom = "block_bloom"
 	EventTypeTxReceipt  = "tx_receipt"
-	EventTypeTxLog      = "tx_log" // TODO LOG: remove
 
 	// TODO LOG: consider remove all unnecessary
 	AttributeKeyRecipient      = "recipient"
@@ -14,7 +13,6 @@ const (
 	AttributeKeyTxIndex        = "txIndex"
 	AttributeKeyTxGasUsed      = "txGasUsed"
 	AttributeKeyTxType         = "txType"
-	AttributeKeyTxLog          = "txLog"
 	// receipt
 	AttributeKeyReceiptMarshalled        = "marshalled"
 	AttributeKeyReceiptTxHash            = "txHash"

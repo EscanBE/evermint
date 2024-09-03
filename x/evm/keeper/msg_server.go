@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"strconv"
 
@@ -101,10 +100,6 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 		attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyEthereumTxFailed, response.VmError))
 	}
 
-	receipt := &ethtypes.Receipt{}
-	if err := receipt.UnmarshalBinary(response.MarshalledReceipt); err != nil {
-		return nil, errorsmod.Wrap(err, "failed to unmarshal receipt")
-	}
 	var contractAddr string
 	if tx.To() == nil && !response.Failed() {
 		contractAddr = crypto.CreateAddress(common.HexToAddress(sender), tx.Nonce()).String()
@@ -127,15 +122,6 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 		sdk.NewAttribute(types.AttributeKeyReceiptTxIndex, strconv.FormatUint(txIndex, 10)),
 	}
 
-	txLogAttrs := make([]sdk.Attribute, len(receipt.Logs))
-	for i, log := range receipt.Logs {
-		value, err := log.MarshalJSON()
-		if err != nil {
-			return nil, errorsmod.Wrap(err, "failed to encode log")
-		}
-		txLogAttrs[i] = sdk.NewAttribute(types.AttributeKeyTxLog, string(value))
-	}
-
 	// emit events
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -145,10 +131,6 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 		sdk.NewEvent(
 			types.EventTypeTxReceipt,
 			txReceiptAttrs...,
-		),
-		sdk.NewEvent(
-			types.EventTypeTxLog,
-			txLogAttrs...,
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
