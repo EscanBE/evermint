@@ -182,8 +182,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 
 		resultBlockResult, err := suite.CITS.RpcBackend.TendermintBlockResultByNumber(ptrInt64(testBlockHeight))
 		suite.Require().NoError(err)
-		blockBloom, err := suite.CITS.RpcBackend.BlockBloom(resultBlockResult)
-		suite.Require().NoError(err, "failed to fetch block bloom")
+		blockBloom := suite.CITS.RpcBackend.BlockBloom(resultBlockResult)
 
 		baseFee := suite.App().FeeMarketKeeper().GetBaseFee(suite.Ctx())
 		consensusParams, err := suite.CITS.QueryClients.ClientQueryCtx.Client.(tmrpcclient.NetworkClient).ConsensusParams(context.Background(), ptrInt64(testBlockHeight))

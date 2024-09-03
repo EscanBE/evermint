@@ -926,24 +926,21 @@ func (suite *BackendTestSuite) TestBlockBloom() {
 		name          string
 		blockRes      *tmrpctypes.ResultBlockResults
 		expBlockBloom ethtypes.Bloom
-		expPass       bool
 	}{
 		{
-			"fail - empty block result",
+			"empty block result",
 			&tmrpctypes.ResultBlockResults{},
-			ethtypes.Bloom{},
-			false,
+			evmtypes.EmptyBlockBloom,
 		},
 		{
-			"fail - non block bloom event type",
+			"non block bloom event type",
 			&tmrpctypes.ResultBlockResults{
 				EndBlockEvents: []types.Event{{Type: evmtypes.EventTypeEthereumTx}},
 			},
-			ethtypes.Bloom{},
-			false,
+			evmtypes.EmptyBlockBloom,
 		},
 		{
-			"fail - nonblock bloom attribute key",
+			"nonblock bloom attribute key",
 			&tmrpctypes.ResultBlockResults{
 				EndBlockEvents: []types.Event{
 					{
@@ -954,11 +951,10 @@ func (suite *BackendTestSuite) TestBlockBloom() {
 					},
 				},
 			},
-			ethtypes.Bloom{},
-			false,
+			evmtypes.EmptyBlockBloom,
 		},
 		{
-			"pass - block bloom attribute key",
+			"block bloom attribute key",
 			&tmrpctypes.ResultBlockResults{
 				EndBlockEvents: []types.Event{
 					{
@@ -970,19 +966,13 @@ func (suite *BackendTestSuite) TestBlockBloom() {
 				},
 			},
 			ethtypes.Bloom{},
-			true,
 		},
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			blockBloom, err := suite.backend.BlockBloom(tc.blockRes)
+			blockBloom := suite.backend.BlockBloom(tc.blockRes)
 
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().Equal(tc.expBlockBloom, blockBloom)
-			} else {
-				suite.Require().Error(err)
-			}
+			suite.Require().Equal(tc.expBlockBloom, blockBloom)
 		})
 	}
 }
@@ -1005,17 +995,17 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 		expPass      bool
 	}{
 		{
-			"pass - block without tx",
-			sdk.NewInt(1).BigInt(),
-			sdk.AccAddress(common.Address{}.Bytes()),
-			int64(1),
-			&tmrpctypes.ResultBlock{Block: emptyBlock},
-			&tmrpctypes.ResultBlockResults{
+			name:      "pass - block without tx",
+			baseFee:   sdk.NewInt(1).BigInt(),
+			validator: sdk.AccAddress(common.Address{}.Bytes()),
+			height:    int64(1),
+			resBlock:  &tmrpctypes.ResultBlock{Block: emptyBlock},
+			blockRes: &tmrpctypes.ResultBlockResults{
 				Height:     1,
 				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
 			},
-			false,
-			func(baseFee math.Int, validator sdk.AccAddress, height int64) {
+			fullTx: false,
+			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
@@ -1028,23 +1018,23 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
-			false,
-			true,
+			expTxs:  false,
+			expPass: true,
 		},
 		{
-			"pass - block with tx - with BaseFee error",
-			nil,
-			sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
-			int64(1),
-			&tmrpctypes.ResultBlock{
+			name:      "fail - block with tx - with BaseFee error",
+			baseFee:   nil,
+			validator: sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			height:    int64(1),
+			resBlock: &tmrpctypes.ResultBlock{
 				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
 			},
-			&tmrpctypes.ResultBlockResults{
+			blockRes: &tmrpctypes.ResultBlockResults{
 				Height:     1,
 				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
 			},
-			true,
-			func(baseFee math.Int, validator sdk.AccAddress, height int64) {
+			fullTx: true,
+			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFeeError(queryClient)
 				RegisterValidatorAccount(queryClient, validator)
@@ -1055,26 +1045,25 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				RegisterParamsWithoutHeader(queryClient, height)
 
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
-			true,
-			true,
+			expTxs:  false,
+			expPass: false,
 		},
 		{
-			"pass - block with tx - with ValidatorAccount error",
-			sdk.NewInt(1).BigInt(),
-			sdk.AccAddress(common.Address{}.Bytes()),
-			int64(1),
-			&tmrpctypes.ResultBlock{
+			name:      "pass - block with tx - with ValidatorAccount error",
+			baseFee:   sdk.NewInt(1).BigInt(),
+			validator: sdk.AccAddress(common.Address{}.Bytes()),
+			height:    int64(1),
+			resBlock: &tmrpctypes.ResultBlock{
 				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
 			},
-			&tmrpctypes.ResultBlockResults{
+			blockRes: &tmrpctypes.ResultBlockResults{
 				Height:     1,
 				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
 			},
-			true,
-			func(baseFee math.Int, validator sdk.AccAddress, height int64) {
+			fullTx: true,
+			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccountError(queryClient)
@@ -1088,25 +1077,24 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
-			true,
-			true,
+			expTxs:  true,
+			expPass: true,
 		},
 		{
-			"pass - block with tx - with ConsensusParams error - BlockMaxGas defaults to max uint32",
-			sdk.NewInt(1).BigInt(),
-			sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
-			int64(1),
-			&tmrpctypes.ResultBlock{
+			name:      "fail - block with tx - with ConsensusParams error",
+			baseFee:   sdk.NewInt(1).BigInt(),
+			validator: sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			height:    int64(1),
+			resBlock: &tmrpctypes.ResultBlock{
 				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
 			},
-			&tmrpctypes.ResultBlockResults{
+			blockRes: &tmrpctypes.ResultBlockResults{
 				Height:     1,
 				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
 			},
-			true,
-			func(baseFee math.Int, validator sdk.AccAddress, height int64) {
+			fullTx: true,
+			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
@@ -1115,21 +1103,20 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				RegisterParamsWithoutHeader(queryClient, height)
 
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
-			true,
-			true,
+			expTxs:  false,
+			expPass: false,
 		},
 		{
-			"pass - block with tx - with ShouldIgnoreGasUsed - empty txs",
-			sdk.NewInt(1).BigInt(),
-			sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
-			int64(1),
-			&tmrpctypes.ResultBlock{
+			name:      "pass - block with tx - with ShouldIgnoreGasUsed - empty txs",
+			baseFee:   sdk.NewInt(1).BigInt(),
+			validator: sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			height:    int64(1),
+			resBlock: &tmrpctypes.ResultBlock{
 				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
 			},
-			&tmrpctypes.ResultBlockResults{
+			blockRes: &tmrpctypes.ResultBlockResults{
 				Height: 1,
 				TxsResults: []*types.ResponseDeliverTx{
 					{
@@ -1139,8 +1126,8 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 					},
 				},
 			},
-			true,
-			func(baseFee math.Int, validator sdk.AccAddress, height int64) {
+			fullTx: true,
+			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
@@ -1153,23 +1140,23 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
-			false,
-			true,
+			expTxs:  false,
+			expPass: true,
 		},
 		{
-			"pass - block with tx - non fullTx",
-			sdk.NewInt(1).BigInt(),
-			sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
-			int64(1),
-			&tmrpctypes.ResultBlock{
+			name:      "pass - block with tx - non fullTx",
+			baseFee:   sdk.NewInt(1).BigInt(),
+			validator: sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			height:    int64(1),
+			resBlock: &tmrpctypes.ResultBlock{
 				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
 			},
-			&tmrpctypes.ResultBlockResults{
+			blockRes: &tmrpctypes.ResultBlockResults{
 				Height:     1,
 				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
 			},
-			false,
-			func(baseFee math.Int, validator sdk.AccAddress, height int64) {
+			fullTx: false,
+			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
@@ -1183,23 +1170,23 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
-			true,
-			true,
+			expTxs:  true,
+			expPass: true,
 		},
 		{
-			"pass - block with tx",
-			sdk.NewInt(1).BigInt(),
-			sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
-			int64(1),
-			&tmrpctypes.ResultBlock{
+			name:      "pass - block with tx",
+			baseFee:   sdk.NewInt(1).BigInt(),
+			validator: sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			height:    int64(1),
+			resBlock: &tmrpctypes.ResultBlock{
 				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
 			},
-			&tmrpctypes.ResultBlockResults{
+			blockRes: &tmrpctypes.ResultBlockResults{
 				Height:     1,
 				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
 			},
-			true,
-			func(baseFee math.Int, validator sdk.AccAddress, height int64) {
+			fullTx: true,
+			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
@@ -1213,8 +1200,8 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
-			true,
-			true,
+			expTxs:  true,
+			expPass: true,
 		},
 		{
 			name:      "pass - indexer returns error when getting latest block number",
@@ -1437,7 +1424,7 @@ func (suite *BackendTestSuite) TestHeaderByNumber() {
 			false,
 		},
 		{
-			"pass - without Base Fee, failed to fetch from prunned block",
+			"fail - without Base Fee, failed to fetch from pruned block",
 			ethrpc.BlockNumber(1),
 			nil,
 			func(blockNum ethrpc.BlockNumber, baseFee math.Int) {
@@ -1449,7 +1436,7 @@ func (suite *BackendTestSuite) TestHeaderByNumber() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFeeError(queryClient)
 			},
-			true,
+			false,
 		},
 		{
 			"pass - blockNum = 1, without tx",
@@ -1548,7 +1535,7 @@ func (suite *BackendTestSuite) TestHeaderByHash() {
 			false,
 		},
 		{
-			"pass - without Base Fee, failed to fetch from prunned block",
+			"fail - without Base Fee, failed to fetch from pruned block",
 			common.BytesToHash(block.Hash()),
 			nil,
 			func(hash common.Hash, baseFee math.Int) {
@@ -1560,7 +1547,7 @@ func (suite *BackendTestSuite) TestHeaderByHash() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFeeError(queryClient)
 			},
-			true,
+			false,
 		},
 		{
 			"pass - blockNum = 1, without tx",
