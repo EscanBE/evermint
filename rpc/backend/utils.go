@@ -223,6 +223,97 @@ func AllTxLogsFromEvents(events []abci.Event) ([][]*ethtypes.Log, error) {
 	return allLogs, nil
 }
 
+// TxReceiptFromEvent parses ethereum receipt from cosmos events
+func TxReceiptFromEvent(events []abci.Event) (*ethtypes.Receipt, error) {
+	for _, event := range events {
+		if event.Type == evmtypes.EventTypeTxReceipt {
+			return ParseTxReceiptFromEvent(event)
+		}
+	}
+
+	return nil, nil
+}
+
+// ParseTxReceiptFromEvent parse tx receipt from one event.
+// The output receipt will be:
+// - Missing block hash in receipt.
+// - Missing block hash and log index in logs.
+func ParseTxReceiptFromEvent(event abci.Event) (*ethtypes.Receipt, error) {
+	if event.Type != evmtypes.EventTypeTxReceipt {
+		panic(fmt.Sprintf("wrong event, expected: %s, got: %s", evmtypes.EventTypeTxReceipt, event.Type))
+	}
+
+	marshalledReceiptRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptMarshalled)
+	if !found {
+		return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptMarshalled)
+	}
+	bzReceipt, err := hexutil.Decode(marshalledReceiptRaw)
+	if err != nil {
+		return nil, err
+	}
+	receipt := &ethtypes.Receipt{}
+	if err := receipt.UnmarshalBinary(bzReceipt); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal receipt")
+	}
+
+	txHashRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptTxHash)
+	if !found {
+		return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptTxHash)
+	}
+	txHash := common.HexToHash(txHashRaw)
+
+	blockNumberRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptBlockNumber)
+	if !found {
+		return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptBlockNumber)
+	}
+	blockNumber, err := strconv.ParseUint(blockNumberRaw, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("bad event attribute value: %s = %s", evmtypes.AttributeKeyReceiptBlockNumber, blockNumberRaw)
+	}
+
+	txIndexRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptTxIndex)
+	if !found {
+		return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptTxIndex)
+	}
+	txIndex, err := strconv.ParseUint(txIndexRaw, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("bad event attribute value: %s = %s", evmtypes.AttributeKeyReceiptTxIndex, txIndexRaw)
+	}
+
+	contractAddrRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptContractAddress)
+	if !found {
+		return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptContractAddress)
+	}
+	var contractAddr common.Address
+	if contractAddrRaw != "" {
+		contractAddr = common.HexToAddress(contractAddrRaw)
+	}
+
+	gasUsedRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptGasUsed)
+	if !found {
+		return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptGasUsed)
+	}
+	gasUsed, err := strconv.ParseUint(gasUsedRaw, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("bad event attribute value: %s = %s", evmtypes.AttributeKeyReceiptGasUsed, gasUsedRaw)
+	}
+
+	// fill data
+	receipt.TxHash = txHash
+	receipt.ContractAddress = contractAddr
+	receipt.GasUsed = gasUsed
+	receipt.BlockNumber = new(big.Int).SetUint64(blockNumber)
+	receipt.TransactionIndex = uint(txIndex)
+
+	for _, log := range receipt.Logs {
+		log.BlockNumber = blockNumber
+		log.TxHash = receipt.TxHash
+		log.TxIndex = receipt.TransactionIndex
+	}
+
+	return receipt, nil
+}
+
 // TxLogsFromEvent parses ethereum logs from cosmos events
 // TODO LOG: take all from event
 func TxLogsFromEvent(events []abci.Event) ([]*ethtypes.Log, error) {
