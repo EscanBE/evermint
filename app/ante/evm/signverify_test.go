@@ -43,25 +43,58 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 		allowUnprotectedTxs bool
 		reCheckTx           bool
 		expPass             bool
+		expPanic            bool
 	}{
-		{"ReCheckTx", &testutiltx.InvalidTx{}, false, true, false},
-		{"invalid transaction type", &testutiltx.InvalidTx{}, false, false, false},
 		{
-			"invalid sender",
-			evmtypes.NewTx(&evmtypes.EvmTxArgs{
+			name:                "ReCheckTx",
+			tx:                  &testutiltx.InvalidTx{},
+			allowUnprotectedTxs: false,
+			reCheckTx:           true,
+			expPass:             false,
+			expPanic:            true,
+		},
+		{
+			name:                "invalid transaction type",
+			tx:                  &testutiltx.InvalidTx{},
+			allowUnprotectedTxs: false,
+			reCheckTx:           false,
+			expPass:             false,
+			expPanic:            true,
+		},
+		{
+			name: "invalid sender",
+			tx: evmtypes.NewTx(&evmtypes.EvmTxArgs{
 				To:       &addr,
 				Nonce:    1,
 				Amount:   big.NewInt(10),
 				GasLimit: 1000,
 				GasPrice: big.NewInt(1),
 			}),
-			true,
-			false,
-			false,
+			allowUnprotectedTxs: true,
+			reCheckTx:           false,
+			expPass:             false,
 		},
-		{"successful signature verification", signedTx, false, false, true},
-		{"invalid, reject unprotected txs", unprotectedTx, false, false, false},
-		{"successful, allow unprotected txs", unprotectedTx, true, false, true},
+		{
+			name:                "successful signature verification",
+			tx:                  signedTx,
+			allowUnprotectedTxs: false,
+			reCheckTx:           false,
+			expPass:             true,
+		},
+		{
+			name:                "invalid, reject unprotected txs",
+			tx:                  unprotectedTx,
+			allowUnprotectedTxs: false,
+			reCheckTx:           false,
+			expPass:             false,
+		},
+		{
+			name:                "successful, allow unprotected txs",
+			tx:                  unprotectedTx,
+			allowUnprotectedTxs: true,
+			reCheckTx:           false,
+			expPass:             true,
+		},
 		{
 			name: "invalid, reject if sender is already set and doesn't match the signature",
 			tx: func() *evmtypes.MsgEthereumTx {
@@ -85,6 +118,14 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 			}
 			suite.SetupTest()
 			dec := ethante.NewEthSigVerificationDecorator(suite.app.EvmKeeper)
+
+			if tc.expPanic {
+				suite.Require().Panics(func() {
+					_, _ = dec.AnteHandle(suite.ctx.WithIsReCheckTx(tc.reCheckTx), tc.tx, false, testutil.NextFn)
+				})
+				return
+			}
+
 			_, err := dec.AnteHandle(suite.ctx.WithIsReCheckTx(tc.reCheckTx), tc.tx, false, testutil.NextFn)
 
 			if tc.expPass {

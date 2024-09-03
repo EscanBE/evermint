@@ -45,6 +45,7 @@ func (suite *AnteTestSuite) TestNewExternalOwnedAccountVerificationDecorator() {
 		malleate func(sdk.Context, *statedb.StateDB)
 		checkTx  bool
 		expPass  bool
+		expPanic bool
 	}{
 		{
 			name:     "not CheckTx",
@@ -59,6 +60,7 @@ func (suite *AnteTestSuite) TestNewExternalOwnedAccountVerificationDecorator() {
 			malleate: func(_ sdk.Context, _ *statedb.StateDB) {},
 			checkTx:  true,
 			expPass:  false,
+			expPanic: true,
 		},
 		{
 			name:     "sender not set to msg",
@@ -141,6 +143,13 @@ func (suite *AnteTestSuite) TestNewExternalOwnedAccountVerificationDecorator() {
 			tc.malleate(ctx, vmdb)
 			suite.Require().NoError(vmdb.Commit())
 
+			if tc.expPanic {
+				suite.Require().Panics(func() {
+					_, _ = dec.AnteHandle(ctx.WithIsCheckTx(tc.checkTx), tc.tx, false, testutil.NextFn)
+				})
+				return
+			}
+
 			_, err := dec.AnteHandle(ctx.WithIsCheckTx(tc.checkTx), tc.tx, false, testutil.NextFn)
 
 			if tc.expPass {
@@ -175,36 +184,65 @@ func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
 		malleate  func()
 		reCheckTx bool
 		expPass   bool
+		expPanic  bool
 	}{
-		{"ReCheckTx", &testutiltx.InvalidTx{}, func() {}, true, false},
-		{"invalid transaction type", &testutiltx.InvalidTx{}, func() {}, false, false},
-		{"sender account not found", tx, func() {}, false, false},
 		{
-			"sender nonce missmatch",
-			tx,
-			func() {
+			name:      "ReCheckTx",
+			tx:        &testutiltx.InvalidTx{},
+			malleate:  func() {},
+			reCheckTx: true,
+			expPass:   false,
+			expPanic:  true,
+		},
+		{
+			name:      "invalid transaction type",
+			tx:        &testutiltx.InvalidTx{},
+			malleate:  func() {},
+			reCheckTx: false,
+			expPass:   false,
+			expPanic:  true,
+		},
+		{
+			name:      "sender account not found",
+			tx:        tx,
+			malleate:  func() {},
+			reCheckTx: false,
+			expPass:   false,
+		},
+		{
+			name: "sender nonce missmatch",
+			tx:   tx,
+			malleate: func() {
 				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 			},
-			false,
-			false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"success",
-			tx,
-			func() {
+			name: "success",
+			tx:   tx,
+			malleate: func() {
 				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
 				suite.Require().NoError(acc.SetSequence(1))
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 			},
-			false,
-			true,
+			reCheckTx: false,
+			expPass:   true,
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			tc.malleate()
+
+			if tc.expPanic {
+				suite.Require().Panics(func() {
+					_, _ = dec.AnteHandle(suite.ctx.WithIsReCheckTx(tc.reCheckTx), tc.tx, false, testutil.NextFn)
+				})
+				return
+			}
+
 			_, err := dec.AnteHandle(suite.ctx.WithIsReCheckTx(tc.reCheckTx), tc.tx, false, testutil.NextFn)
 
 			if tc.expPass {
@@ -318,7 +356,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 			math.MaxUint64,
 			func(ctx sdk.Context) sdk.Context { return ctx },
 			false,
-			false,
+			true,
 			0,
 			func(ctx sdk.Context) {},
 		},
@@ -558,28 +596,40 @@ func (suite *AnteTestSuite) TestCanTransferDecorator() {
 		tx       sdk.Tx
 		malleate func()
 		expPass  bool
+		expPanic bool
 	}{
-		{"invalid transaction type", &testutiltx.InvalidTx{}, func() {}, false},
-		{"AsMessage failed", tx2, func() {}, false},
 		{
-			"evm CanTransfer failed",
-			tx,
-			func() {
+			name:     "invalid transaction type",
+			tx:       &testutiltx.InvalidTx{},
+			malleate: func() {},
+			expPass:  false,
+			expPanic: true,
+		},
+		{
+			name:     "AsMessage failed",
+			tx:       tx2,
+			malleate: func() {},
+			expPass:  false,
+		},
+		{
+			name: "evm CanTransfer failed",
+			tx:   tx,
+			malleate: func() {
 				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"success",
-			tx,
-			func() {
+			name: "success",
+			tx:   tx,
+			malleate: func() {
 				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 				vmdb.AddBalance(addr, big.NewInt(1000000))
 			},
-			true,
+			expPass: true,
 		},
 	}
 
@@ -588,6 +638,13 @@ func (suite *AnteTestSuite) TestCanTransferDecorator() {
 			vmdb = testutil.NewStateDB(suite.ctx, suite.app.EvmKeeper)
 			tc.malleate()
 			suite.Require().NoError(vmdb.Commit())
+
+			if tc.expPanic {
+				suite.Require().Panics(func() {
+					_, _ = dec.AnteHandle(suite.ctx.WithIsCheckTx(true), tc.tx, false, testutil.NextFn)
+				})
+				return
+			}
 
 			_, err := dec.AnteHandle(suite.ctx.WithIsCheckTx(true), tc.tx, false, testutil.NextFn)
 
@@ -654,7 +711,7 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 			"invalid transaction type",
 			&testutiltx.InvalidTx{},
 			func() {},
-			false, false,
+			false, true,
 		},
 		{
 			"no signers",
@@ -743,7 +800,8 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			tx: func() sdk.Tx {
 				return &testutiltx.InvalidTx{}
 			},
-			expPass: false,
+			expPass:  false,
+			expPanic: true,
 		},
 		{
 			name: "accept positive value",

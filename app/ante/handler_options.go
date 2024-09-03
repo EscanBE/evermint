@@ -98,6 +98,8 @@ func newEVMAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		// outermost AnteDecorator. SetUpContext must be called first
 		evmante.NewEthSetUpContextDecorator(options.EvmKeeper),
+		// ensure one and only one evm tx per tx
+		evmante.NewSingleEthTxDecorator(),
 		// Check eth effective gas price against the node's minimal-gas-prices config
 		evmante.NewEthMempoolFeeDecorator(options.EvmKeeper),
 		// Check eth effective gas price against the global MinGasPrice

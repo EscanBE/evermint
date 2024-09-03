@@ -54,15 +54,12 @@ func (avd ExternalOwnedAccountVerificationDecorator) AnteHandle(
 
 	var params *evmtypes.Params
 
-	for i, msg := range tx.GetMsgs() {
-		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
-		if !ok {
-			return ctx, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
-		}
+	{
+		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
 		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
 		if err != nil {
-			return ctx, errorsmod.Wrapf(err, "failed to unpack tx data any for tx %d", i)
+			return ctx, errorsmod.Wrap(err, "failed to unpack tx data any for tx")
 		}
 
 		// sender address should be in the tx cache from the previous AnteHandle call
@@ -180,11 +177,8 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	minPriority := int64(math.MaxInt64)
 	baseFee := egcd.evmKeeper.GetBaseFee(ctx, ethCfg)
 
-	for _, msg := range tx.GetMsgs() {
-		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
-		if !ok {
-			return ctx, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
-		}
+	{
+		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
 		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
 		if err != nil {
@@ -278,11 +272,8 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 	ethCfg := params.ChainConfig.EthereumConfig(ctd.evmKeeper.ChainID())
 	signer := ethtypes.MakeSigner(ethCfg, big.NewInt(ctx.BlockHeight()))
 
-	for _, msg := range tx.GetMsgs() {
-		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
-		if !ok {
-			return ctx, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
-		}
+	{
+		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
 		baseFee := ctd.evmKeeper.GetBaseFee(ctx, ethCfg)
 
@@ -352,11 +343,8 @@ func NewEthIncrementSenderSequenceDecorator(ak evmtypes.AccountKeeper) EthIncrem
 // contract creation, the nonce will be incremented during the transaction execution and not within
 // this AnteHandler decorator.
 func (issd EthIncrementSenderSequenceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
-	for _, msg := range tx.GetMsgs() {
-		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
-		if !ok {
-			return ctx, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
-		}
+	{
+		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
 		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
 		if err != nil {
@@ -404,11 +392,8 @@ func NewEthBasicValidationDecorator() EthBasicValidationDecorator {
 // AnteHandle handles basic validation for the Ethereum transaction:
 //  1. Value is not negative
 func (bvd EthBasicValidationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
-	for _, msg := range tx.GetMsgs() {
-		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
-		if !ok {
-			return ctx, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
-		}
+	{
+		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
 		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
 		if err != nil {
