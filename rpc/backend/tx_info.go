@@ -152,6 +152,26 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 		b.logger.Debug("block not found", "height", res.Height, "error", err.Error())
 		return nil, nil
 	}
+	blockRes, err := b.TendermintBlockResultByNumber(&res.Height)
+	if err != nil {
+		b.logger.Debug("failed to retrieve block results", "height", res.Height, "error", err.Error())
+		return nil, nil
+	}
+
+	if res.EthTxIndex == -1 {
+		// Fallback to find tx index by iterating all valid eth transactions
+		msgs := b.EthMsgsFromTendermintBlock(resBlock, blockRes)
+		for i := range msgs {
+			if msgs[i].Hash == hexTx {
+				res.EthTxIndex = int32(i) // #nosec G701
+				break
+			}
+		}
+	}
+	// return error if still unable to find the eth tx index
+	if res.EthTxIndex == -1 {
+		return nil, errors.New("can't find index of ethereum tx")
+	}
 
 	tx, err := b.clientCtx.TxConfig.TxDecoder()(resBlock.Block.Txs[res.TxIndex])
 	if err != nil {
@@ -168,11 +188,6 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 	}
 
 	cumulativeGasUsed := uint64(0)
-	blockRes, err := b.TendermintBlockResultByNumber(&res.Height)
-	if err != nil {
-		b.logger.Debug("failed to retrieve block results", "height", res.Height, "error", err.Error())
-		return nil, nil
-	}
 	for _, txResult := range blockRes.TxsResults[0:res.TxIndex] {
 		cumulativeGasUsed += uint64(txResult.GasUsed) // #nosec G701 -- checked for int overflow already
 	}
@@ -187,21 +202,6 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 	logs, err := TxLogsFromEvent(blockRes.TxsResults[res.TxIndex].Events)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse logs from events")
-	}
-
-	if res.EthTxIndex == -1 {
-		// Fallback to find tx index by iterating all valid eth transactions
-		msgs := b.EthMsgsFromTendermintBlock(resBlock, blockRes)
-		for i := range msgs {
-			if msgs[i].Hash == hexTx {
-				res.EthTxIndex = int32(i) // #nosec G701
-				break
-			}
-		}
-	}
-	// return error if still unable to find the eth tx index
-	if res.EthTxIndex == -1 {
-		return nil, errors.New("can't find index of ethereum tx")
 	}
 
 	var baseFee *big.Int
