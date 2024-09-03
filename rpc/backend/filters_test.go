@@ -68,7 +68,10 @@ func (suite *BackendTestSuite) TestGetLogs() {
 						Topics: []common.Hash{
 							common.HexToHash("0x4fea76427b8345861e80a3540a8a9d936fd393981e80a3540a8a9d936fd39398"),
 						},
-						Data: []byte{0x12, 0x34, 0x56},
+						Data:        []byte{0x12, 0x34, 0x56},
+						BlockNumber: 1,
+						TxHash:      common.HexToHash("0x89393df639d9a8a0453a08e189393df639d9a8a0453a08e1685438b72467aef4"),
+						TxIndex:     0,
 					},
 				},
 			},

@@ -1,9 +1,11 @@
 package backend
 
 import (
+	"cosmossdk.io/errors"
 	"fmt"
 	"math/big"
 	"sort"
+	"strconv"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -243,26 +245,67 @@ func TxLogsFromEvents(events []abci.Event, msgIndex int) ([]*ethtypes.Log, error
 // ParseTxLogsFromEvent parse tx logs from one event
 // TODO LOG: replace
 func ParseTxLogsFromEvent(event abci.Event) ([]*ethtypes.Log, error) {
-	logs := make([]*ethtypes.Log, 0, len(event.Attributes))
-	for _, attr := range event.Attributes {
-		if attr.Key != evmtypes.AttributeKeyReceiptMarshalled {
-			continue
-		}
-
-		bzReceipt, err := hexutil.Decode(attr.Value)
-		if err != nil {
-			return nil, err
-		}
-
-		receipt := &ethtypes.Receipt{}
-		if err := receipt.UnmarshalBinary(bzReceipt); err != nil {
-			return nil, err
-		}
-
-		logs = append(logs, receipt.Logs...)
+	if event.Type != evmtypes.EventTypeTxReceipt {
+		panic(fmt.Sprintf("wrong event, expected: %s, got: %s", evmtypes.EventTypeTxReceipt, event.Type))
 	}
 
-	return logs, nil
+	marshalledReceiptRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptMarshalled)
+	if !found {
+		return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptMarshalled)
+	}
+	bzReceipt, err := hexutil.Decode(marshalledReceiptRaw)
+	if err != nil {
+		return nil, err
+	}
+	receipt := &ethtypes.Receipt{}
+	if err := receipt.UnmarshalBinary(bzReceipt); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal receipt")
+	}
+
+	if len(receipt.Logs) > 0 {
+		txHashRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptTxHash)
+		if !found {
+			return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptTxHash)
+		}
+		txHash := common.HexToHash(txHashRaw)
+
+		blockNumberRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptBlockNumber)
+		if !found {
+			return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptBlockNumber)
+		}
+		blockNumber, err := strconv.ParseUint(blockNumberRaw, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("bad event attribute value: %s = %s", evmtypes.AttributeKeyReceiptBlockNumber, blockNumberRaw)
+		}
+
+		txIndexRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptTxIndex)
+		if !found {
+			return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptTxIndex)
+		}
+		txIndex, err := strconv.ParseUint(txIndexRaw, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("bad event attribute value: %s = %s", evmtypes.AttributeKeyReceiptTxIndex, txIndexRaw)
+		}
+
+		for _, log := range receipt.Logs {
+			log.BlockNumber = blockNumber
+			log.TxHash = txHash
+			log.TxIndex = uint(txIndex)
+		}
+	}
+
+	return receipt.Logs, nil
+}
+
+func findAttribute(attrs []abci.EventAttribute, key string) (value string, found bool) {
+	for _, attr := range attrs {
+		if attr.Key == key {
+			value = attr.Value
+			found = true
+			break
+		}
+	}
+	return
 }
 
 // ShouldIgnoreGasUsed returns true if the gasUsed in result should be ignored

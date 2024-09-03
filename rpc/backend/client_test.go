@@ -5,6 +5,7 @@ import (
 	"cosmossdk.io/errors"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"strconv"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -216,6 +217,21 @@ func RegisterBlockResultsWithEventLog(client *mocks.Client, height int64) (*tmrp
 							{
 								Key:   evmtypes.AttributeKeyReceiptMarshalled,
 								Value: hexutil.Encode(bzReceipt),
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyReceiptTxHash,
+								Value: "0x89393df639d9a8a0453a08e189393df639d9a8a0453a08e1685438b72467aef4",
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyReceiptBlockNumber,
+								Value: strconv.FormatInt(height, 10),
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyReceiptTxIndex,
+								Value: "0",
 								Index: true,
 							},
 						},
