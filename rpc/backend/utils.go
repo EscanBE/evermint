@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"encoding/json"
 	"fmt"
 	"math/big"
 	"sort"
@@ -242,21 +241,23 @@ func TxLogsFromEvents(events []abci.Event, msgIndex int) ([]*ethtypes.Log, error
 }
 
 // ParseTxLogsFromEvent parse tx logs from one event
+// TODO LOG: replace
 func ParseTxLogsFromEvent(event abci.Event) ([]*ethtypes.Log, error) {
-	logs := make([]*evmtypes.Log, 0, len(event.Attributes))
+	logs := make([]*ethtypes.Log, 0, len(event.Attributes))
 	for _, attr := range event.Attributes {
 		if attr.Key != evmtypes.AttributeKeyTxLog {
 			continue
 		}
 
-		var log evmtypes.Log
-		if err := json.Unmarshal([]byte(attr.Value), &log); err != nil {
+		log := &ethtypes.Log{}
+		if err := log.UnmarshalJSON([]byte(attr.Value)); err != nil {
 			return nil, err
 		}
 
-		logs = append(logs, &log)
+		logs = append(logs, log)
 	}
-	return evmtypes.LogsToEthereum(logs), nil
+
+	return logs, nil
 }
 
 // ShouldIgnoreGasUsed returns true if the gasUsed in result should be ignored

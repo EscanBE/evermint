@@ -3,6 +3,7 @@ package utils
 import (
 	"github.com/EscanBE/evermint/v12/constants"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"strings"
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
@@ -83,4 +84,16 @@ func GetEvermintAddressFromBech32(address string) (sdk.AccAddress, error) {
 
 func UseZeroGasConfig(ctx sdk.Context) sdk.Context {
 	return ctx.WithKVGasConfig(storetypes.GasConfig{}).WithTransientKVGasConfig(storetypes.GasConfig{})
+}
+
+// MoveReceiptStatusToFailed switch state of Ethereum receipt to failed, consensus fields only
+func MoveReceiptStatusToFailed(receipt ethtypes.Receipt, existingGasUsed, newGasUsed uint64) ethtypes.Receipt {
+	return ethtypes.Receipt{
+		Type:              receipt.Type,
+		PostState:         receipt.PostState,
+		Status:            ethtypes.ReceiptStatusFailed,
+		CumulativeGasUsed: receipt.CumulativeGasUsed - existingGasUsed + newGasUsed,
+		Bloom:             ethtypes.CreateBloom(ethtypes.Receipts{}),
+		Logs:              []*ethtypes.Log{},
+	}
 }

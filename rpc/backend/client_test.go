@@ -178,6 +178,7 @@ func TestRegisterConsensusParams(t *testing.T) {
 
 // BlockResults
 
+// TODO LOG: replace
 func RegisterBlockResultsWithEventLog(client *mocks.Client, height int64) (*tmrpctypes.ResultBlockResults, error) {
 	res := &tmrpctypes.ResultBlockResults{
 		Height: height,

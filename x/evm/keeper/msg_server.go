@@ -2,8 +2,11 @@ package keeper
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"strconv"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -98,9 +101,35 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 		attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyEthereumTxFailed, response.VmError))
 	}
 
-	txLogAttrs := make([]sdk.Attribute, len(response.Logs))
-	for i, log := range response.Logs {
-		value, err := json.Marshal(log)
+	receipt := &ethtypes.Receipt{}
+	if err := receipt.UnmarshalBinary(response.MarshalledReceipt); err != nil {
+		return nil, errorsmod.Wrap(err, "failed to unmarshal receipt")
+	}
+	var contractAddr string
+	if tx.To() == nil && !response.Failed() {
+		contractAddr = crypto.CreateAddress(common.HexToAddress(sender), tx.Nonce()).String()
+	}
+	txData, err := types.UnpackTxData(msg.Data)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "failed to unpack tx data")
+	}
+	baseFee := k.feeMarketKeeper.GetBaseFee(ctx)
+	if baseFee == nil {
+		baseFee = common.Big0
+	}
+	txReceiptAttrs := []sdk.Attribute{
+		sdk.NewAttribute(types.AttributeKeyReceiptMarshalled, hexutil.Encode(response.MarshalledReceipt)),
+		sdk.NewAttribute(types.AttributeKeyReceiptTxHash, response.Hash),
+		sdk.NewAttribute(types.AttributeKeyReceiptContractAddress, contractAddr),
+		sdk.NewAttribute(types.AttributeKeyReceiptGasUsed, strconv.FormatUint(response.GasUsed, 10)),
+		sdk.NewAttribute(types.AttributeKeyReceiptEffectiveGasPrice, txData.EffectiveGasPrice(baseFee).String()),
+		sdk.NewAttribute(types.AttributeKeyReceiptBlockNumber, strconv.FormatInt(ctx.BlockHeight(), 10)),
+		sdk.NewAttribute(types.AttributeKeyReceiptTxIndex, strconv.FormatUint(txIndex, 10)),
+	}
+
+	txLogAttrs := make([]sdk.Attribute, len(receipt.Logs))
+	for i, log := range receipt.Logs {
+		value, err := log.MarshalJSON()
 		if err != nil {
 			return nil, errorsmod.Wrap(err, "failed to encode log")
 		}
@@ -112,6 +141,10 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 		sdk.NewEvent(
 			types.EventTypeEthereumTx,
 			attrs...,
+		),
+		sdk.NewEvent(
+			types.EventTypeTxReceipt,
+			txReceiptAttrs...,
 		),
 		sdk.NewEvent(
 			types.EventTypeTxLog,

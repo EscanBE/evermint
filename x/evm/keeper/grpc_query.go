@@ -440,7 +440,12 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 			continue
 		}
 		k.ResetGasMeterAndConsumeGas(ctx, rsp.GasUsed)
-		txConfig.LogIndex += uint(len(rsp.Logs))
+
+		receipt := &ethtypes.Receipt{}
+		if err := receipt.UnmarshalBinary(rsp.MarshalledReceipt); err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to unmarshal receipt: %w", err)
+		}
+		txConfig.LogIndex += uint(len(receipt.Logs))
 	}
 
 	tx := req.Msg.AsTransaction()
@@ -626,13 +631,18 @@ func (k *Keeper) traceTx(
 	}
 	k.ResetGasMeterAndConsumeGas(ctx, res.GasUsed)
 
+	receipt := &ethtypes.Receipt{}
+	if err := receipt.UnmarshalBinary(res.MarshalledReceipt); err != nil {
+		return nil, 0, status.Errorf(codes.Internal, "failed to unmarshal receipt: %w", err)
+	}
+
 	var result interface{}
 	result, err = tracer.GetResult()
 	if err != nil {
 		return nil, 0, status.Error(codes.Internal, err.Error())
 	}
 
-	return &result, txConfig.LogIndex + uint(len(res.Logs)), nil
+	return &result, txConfig.LogIndex + uint(len(receipt.Logs)), nil
 }
 
 // BaseFee implements the Query/BaseFee gRPC method

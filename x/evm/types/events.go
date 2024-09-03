@@ -4,16 +4,25 @@ package types
 const (
 	EventTypeEthereumTx = TypeMsgEthereumTx
 	EventTypeBlockBloom = "block_bloom"
-	EventTypeTxLog      = "tx_log"
+	EventTypeTxReceipt  = "tx_receipt"
+	EventTypeTxLog      = "tx_log" // TODO LOG: remove
 
-	AttributeKeyContractAddress = "contract"
-	AttributeKeyRecipient       = "recipient"
-	AttributeKeyTxHash          = "txHash"
-	AttributeKeyEthereumTxHash  = "ethereumTxHash"
-	AttributeKeyTxIndex         = "txIndex"
-	AttributeKeyTxGasUsed       = "txGasUsed"
-	AttributeKeyTxType          = "txType"
-	AttributeKeyTxLog           = "txLog"
+	// TODO LOG: consider remove all unnecessary
+	AttributeKeyRecipient      = "recipient"
+	AttributeKeyTxHash         = "txHash"
+	AttributeKeyEthereumTxHash = "ethereumTxHash"
+	AttributeKeyTxIndex        = "txIndex"
+	AttributeKeyTxGasUsed      = "txGasUsed"
+	AttributeKeyTxType         = "txType"
+	AttributeKeyTxLog          = "txLog"
+	// receipt
+	AttributeKeyReceiptMarshalled        = "marshalled"
+	AttributeKeyReceiptTxHash            = "txHash"
+	AttributeKeyReceiptContractAddress   = "contractAddr"
+	AttributeKeyReceiptGasUsed           = "gasUsed"
+	AttributeKeyReceiptEffectiveGasPrice = "effectiveGasPrice"
+	AttributeKeyReceiptBlockNumber       = "blockNumber"
+	AttributeKeyReceiptTxIndex           = "txIndex"
 	// tx failed in eth vm execution
 	AttributeKeyEthereumTxFailed = "ethereumTxFailed"
 	AttributeValueCategory       = ModuleName
