@@ -131,11 +131,6 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 //
 // For relevant discussion see: https://github.com/cosmos/cosmos-sdk/discussions/9072
 func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*types.MsgEthereumTxResponse, error) {
-	var (
-		bloom        *big.Int
-		bloomReceipt ethtypes.Bloom
-	)
-
 	cfg, err := k.EVMConfig(ctx, sdk.ConsAddress(ctx.BlockHeader().ProposerAddress), k.eip155ChainID)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to load evm config")
@@ -172,15 +167,6 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 		return nil, errorsmod.Wrap(err, "failed to apply ethereum core message")
 	}
 
-	logs := types.LogsToEthereum(res.Logs)
-
-	// Compute block bloom filter
-	if len(logs) > 0 {
-		bloom = k.GetBlockBloomTransient(ctx)
-		bloom.Or(bloom, big.NewInt(0).SetBytes(ethtypes.LogsBloom(logs)))
-		bloomReceipt = ethtypes.BytesToBloom(bloom.Bytes())
-	}
-
 	cumulativeGasUsed := res.GasUsed
 	if ctx.BlockGasMeter() != nil {
 		limit := ctx.BlockGasMeter().Limit()
@@ -199,8 +185,6 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 		Type:              tx.Type(),
 		PostState:         nil, // TODO: intermediate state root
 		CumulativeGasUsed: cumulativeGasUsed,
-		Bloom:             bloomReceipt,
-		Logs:              logs,
 		TxHash:            txConfig.TxHash,
 		ContractAddress:   contractAddr,
 		GasUsed:           res.GasUsed,
@@ -211,15 +195,32 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 
 	if !res.Failed() {
 		receipt.Status = ethtypes.ReceiptStatusSuccessful
+		receipt.Logs = types.LogsToEthereum(res.Logs)
+	} else {
+		receipt.Status = ethtypes.ReceiptStatusFailed
+		receipt.Logs = []*ethtypes.Log{}
+	}
+
+	isSuccess := func() bool {
+		return receipt.Status == ethtypes.ReceiptStatusSuccessful
+	}
+
+	if isSuccess() {
+		receipt.Status = ethtypes.ReceiptStatusSuccessful
+
 		// Only call hooks if tx executed successfully.
 		if err = k.PostTxProcessing(tmpCtx, msg, receipt); err != nil {
 			// If hooks return error, revert the whole tx.
 			res.VmError = types.ErrPostTxProcessing.Error()
 			k.Logger(ctx).Error("tx post processing failed", "error", err)
 
-			// If the tx failed in post processing hooks, we should clear the logs
+			// If the tx failed in post-processing hooks, we should update receipt and clear the logs
+			receipt.Status = ethtypes.ReceiptStatusFailed
+			receipt.Logs = []*ethtypes.Log{}
 			res.Logs = nil
-		} else if commit != nil {
+		}
+
+		if isSuccess() && commit != nil {
 			// PostTxProcessing is successful, commit the tmpCtx
 			commit()
 			// Since the post-processing can alter the log, we need to update the result
@@ -228,9 +229,15 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 		}
 	}
 
+	receipt.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{receipt})
+
+	// Update transient block bloom filter
 	if len(receipt.Logs) > 0 {
+		blockBloom := k.GetBlockBloomTransient(ctx)
+		blockBloom.Or(blockBloom, big.NewInt(0).SetBytes(receipt.Bloom.Bytes()))
+
 		// Update transient block bloom filter
-		k.SetBlockBloomTransient(ctx, receipt.Bloom.Big())
+		k.SetBlockBloomTransient(ctx, blockBloom)
 		k.SetLogSizeTransient(ctx, uint64(txConfig.LogIndex)+uint64(len(receipt.Logs)))
 	}
 
