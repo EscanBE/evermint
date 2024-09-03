@@ -61,6 +61,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (feemarket) [#122](https://github.com/EscanBE/evermint/pull/122) Remove unnecessary `x/feemarket` params
 - (evm) [#125](https://github.com/EscanBE/evermint/pull/125) Remove tx fee refunds for EVM txs and min-gas-multiplier logic
 - (feemarket) [#127](https://github.com/EscanBE/evermint/pull/127) Move base fee calculation to end blocker
+- (evm) [#130](https://github.com/EscanBE/evermint/pull/130) Allow one and only one Ethereum Tx per tx execution
 
 ### Bug Fixes
 
