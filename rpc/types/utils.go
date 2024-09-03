@@ -329,6 +329,49 @@ func NewRPCReceipt(
 	return &rpcReceipt, nil
 }
 
+func NewRPCReceiptFromReceipt(
+	ethMsg *evmtypes.MsgEthereumTx,
+	ethReceipt *ethtypes.Receipt,
+	effectiveGasPrice *big.Int,
+	chainID *big.Int,
+) (receipt *RPCReceipt, err error) {
+	from, err := ethMsg.GetSender(chainID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get sender")
+	}
+
+	txData, err := evmtypes.UnpackTxData(ethMsg.Data)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to unpack tx data")
+	}
+
+	rpcReceipt := RPCReceipt{
+		Status:            hexutil.Uint(ethReceipt.Status),
+		CumulativeGasUsed: hexutil.Uint64(ethReceipt.CumulativeGasUsed),
+		Bloom:             ethReceipt.Bloom,
+		Logs:              ethReceipt.Logs,
+		TransactionHash:   ethMsg.AsTransaction().Hash(),
+		GasUsed:           hexutil.Uint64(ethReceipt.GasUsed),
+		BlockHash:         ethReceipt.BlockHash,
+		BlockNumber:       hexutil.Uint64(ethReceipt.BlockNumber.Uint64()),
+		TransactionIndex:  hexutil.Uint64(ethReceipt.TransactionIndex),
+		Type:              hexutil.Uint(ethReceipt.Type),
+		From:              from,
+		To:                txData.GetTo(),
+	}
+
+	if newContractAddr := ethReceipt.ContractAddress; newContractAddr != (common.Address{}) {
+		rpcReceipt.ContractAddress = &newContractAddr
+	}
+
+	if effectiveGasPrice != nil {
+		effectiveGasPrice := hexutil.Big(*effectiveGasPrice)
+		rpcReceipt.EffectiveGasPrice = &effectiveGasPrice
+	}
+
+	return &rpcReceipt, nil
+}
+
 // BaseFeeFromEvents parses the feemarket basefee from cosmos events
 func BaseFeeFromEvents(events []abci.Event) *big.Int {
 	for _, event := range events {

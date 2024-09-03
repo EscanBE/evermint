@@ -376,11 +376,6 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 
 	validatorAddr := common.BytesToAddress(validatorAccAddr)
 
-	chainID, err := b.ChainID()
-	if err != nil {
-		return nil, err
-	}
-
 	// prepare gas & fee information
 
 	gasLimit, err := rpctypes.BlockMaxGasFromConsensusParams(ctx, b.clientCtx, block.Height)
@@ -414,7 +409,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 
 	var transactions ethtypes.Transactions
 	var receipts ethtypes.Receipts
-	for transactionIndex, ethMsg := range ethMsgs {
+	for _, ethMsg := range ethMsgs {
 		transaction := ethMsg.AsTransaction()
 
 		transactions = append(transactions, transaction)
@@ -430,32 +425,18 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 		}
 		cumulativeGasUsed += indexedTxByHash.CumulativeGasUsed
 
-		logs, err := TxLogsFromEvent(blockRes.TxsResults[indexedTxByHash.TxIndex].Events)
+		icReceipt, err := TxReceiptFromEvent(blockRes.TxsResults[indexedTxByHash.TxIndex].Events)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to parse logs from events")
+			return nil, errors.Wrap(err, "failed to parse receipt from events")
 		}
 
-		txData, err := evmtypes.UnpackTxData(ethMsg.Data)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to unpack tx data")
-		}
+		var startLogIndex uint = 0 // we ignore the real index because the receipt is only be used for compute receipt root
+		icReceipt.Fill(common.BytesToHash(resBlock.BlockID.Hash.Bytes()), startLogIndex)
 
-		receipt, err := rpctypes.NewRPCReceipt(
-			ethMsg,
-			hexutil.Uint64(transactionIndex),
-			!indexedTxByHash.Failed,
-			hexutil.Uint64(b.GetGasUsed(indexedTxByHash, txData.GetGasPrice(), txData.GetGas())),
-			hexutil.Uint64(cumulativeGasUsed),
-			baseFee,
-			logs,
-			common.BytesToHash(resBlock.BlockID.Hash.Bytes()),
-			hexutil.Uint64(indexedTxByHash.Height),
-			chainID.ToInt(),
-		)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to create transaction receipt")
-		}
-		receipts = append(receipts, receipt.AsEthReceipt())
+		receipt := icReceipt.Receipt
+		receipt.CumulativeGasUsed = cumulativeGasUsed // TODO LOG: what should we respect? Receipt or self calculation
+
+		receipts = append(receipts, receipt)
 	}
 
 	// prepare block-bloom information

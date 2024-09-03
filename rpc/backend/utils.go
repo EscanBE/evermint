@@ -346,22 +346,6 @@ func ParseTxReceiptFromEvent(event abci.Event) (*InCompletedEthReceipt, error) {
 	}, nil
 }
 
-// TxLogsFromEvent parses ethereum logs from cosmos events
-// TODO LOG: take all from event
-func TxLogsFromEvent(events []abci.Event) ([]*ethtypes.Log, error) {
-	for _, event := range events {
-		if event.Type == evmtypes.EventTypeTxReceipt {
-			receipt, err := ParseTxReceiptFromEvent(event)
-			if err != nil {
-				return nil, err
-			}
-			return receipt.Logs, nil
-		}
-	}
-
-	return nil, nil
-}
-
 func findAttribute(attrs []abci.EventAttribute, key string) (value string, found bool) {
 	for _, attr := range attrs {
 		if attr.Key == key {

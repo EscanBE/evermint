@@ -2,6 +2,7 @@ package backend
 
 import (
 	"fmt"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 
 	"github.com/EscanBE/evermint/v12/indexer"
@@ -553,67 +554,91 @@ func (suite *BackendTestSuite) TestQueryTendermintTxIndexer() {
 
 func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 	msgEthereumTx, _ := suite.buildEthereumTx()
-	txHash := msgEthereumTx.AsTransaction().Hash()
 
 	txBz := suite.signAndEncodeEthTx(msgEthereumTx)
 
+	receipt := ethtypes.Receipt{
+		Type:        ethtypes.LegacyTxType,
+		Status:      ethtypes.ReceiptStatusSuccessful,
+		TxHash:      msgEthereumTx.AsTransaction().Hash(),
+		BlockNumber: common.Big1,
+	}
+
 	testCases := []struct {
 		name         string
-		registerMock func()
+		registerMock func() []*abci.ResponseDeliverTx
 		tx           *evmtypes.MsgEthereumTx
 		block        *types.Block
-		blockResult  []*abci.ResponseDeliverTx
 		expTxReceipt *rpctypes.RPCReceipt
 		expPass      bool
 	}{
 		{
-			"fail - Receipts do not match",
-			func() {
+			name: "fail - Receipts do not match",
+			registerMock: func() []*abci.ResponseDeliverTx {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterParamsWithoutHeader(queryClient, 1)
 				_, err := RegisterBlock(client, 1, txBz)
 				suite.Require().NoError(err)
-				_, err = RegisterBlockResults(client, 1)
+
+				anotherReceipt := receipt
+				anotherReceipt.TxHash = common.Hash{}
+				blockResWithReceipt, err := RegisterBlockResultsWithEventReceipt(client, 1, &anotherReceipt)
 				suite.Require().NoError(err)
+
+				return blockResWithReceipt.TxsResults
 			},
-			msgEthereumTx,
-			&types.Block{Header: types.Header{Height: 1}, Data: types.Data{Txs: []types.Tx{txBz}}},
-			[]*abci.ResponseDeliverTx{
-				{
-					Code: 0,
-					Events: []abci.Event{
-						{Type: evmtypes.EventTypeEthereumTx, Attributes: []abci.EventAttribute{
-							{Key: "ethereumTxHash", Value: txHash.Hex()},
-							{Key: "txIndex", Value: "0"},
-							{Key: "amount", Value: "1000"},
-							{Key: "txGasUsed", Value: "21000"},
-							{Key: "txHash", Value: ""},
-							{Key: "recipient", Value: "0x775b87ef5D82ca211811C1a02CE0fE0CA3a455d7"},
-						}},
-					},
-				},
+			tx:           msgEthereumTx,
+			block:        &types.Block{Header: types.Header{Height: 1}, Data: types.Data{Txs: []types.Tx{txBz}}},
+			expTxReceipt: (*rpctypes.RPCReceipt)(nil),
+			expPass:      false,
+		},
+		{
+			name: "pass - receipt match",
+			registerMock: func() []*abci.ResponseDeliverTx {
+				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
+				client := suite.backend.clientCtx.Client.(*mocks.Client)
+				RegisterParamsWithoutHeader(queryClient, 1)
+				_, err := RegisterBlock(client, 1, txBz)
+				suite.Require().NoError(err)
+
+				blockResWithReceipt, err := RegisterBlockResultsWithEventReceipt(client, 1, &receipt)
+				suite.Require().NoError(err)
+
+				return blockResWithReceipt.TxsResults
 			},
-			(*rpctypes.RPCReceipt)(nil),
-			false,
+			tx:    msgEthereumTx,
+			block: &types.Block{Header: types.Header{Height: 1}, Data: types.Data{Txs: []types.Tx{txBz}}},
+			expTxReceipt: func() *rpctypes.RPCReceipt {
+				rpcReceipt, err := rpctypes.NewRPCReceiptFromReceipt(
+					msgEthereumTx,
+					&receipt,
+					common.Big0, // effective gas price
+					msgEthereumTx.AsTransaction().ChainId(),
+				)
+				suite.Require().NoError(err)
+				return rpcReceipt
+			}(),
+			expPass: true,
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			tc.registerMock()
+			responseDeliverTxs := tc.registerMock()
 
 			db := dbm.NewMemDB()
 			suite.backend.indexer = indexer.NewKVIndexer(db, tmlog.NewNopLogger(), suite.backend.clientCtx)
-			err := suite.backend.indexer.IndexBlock(tc.block, tc.blockResult)
+			err := suite.backend.indexer.IndexBlock(tc.block, responseDeliverTxs)
 			suite.Require().NoError(err)
 			suite.backend.indexer.Ready()
 
 			txReceipt, err := suite.backend.GetTransactionReceipt(common.HexToHash(tc.tx.Hash))
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Equal(tc.expTxReceipt, txReceipt)
+				equals, diff := tc.expTxReceipt.Compare(txReceipt)
+				suite.Require().Truef(equals, "diff: %s", diff)
 			} else {
 				suite.NotEqual(tc.expTxReceipt, txReceipt)
 			}

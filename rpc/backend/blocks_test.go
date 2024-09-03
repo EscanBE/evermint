@@ -159,11 +159,6 @@ func (suite *BackendTestSuite) TestGetBlockByNumber() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
-
-				RegisterParamsWithoutHeader(queryClient, height)
-
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			false,
 			true,
@@ -180,18 +175,22 @@ func (suite *BackendTestSuite) TestGetBlockByNumber() {
 				height := blockNum.Int64()
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				resBlock, _ = RegisterBlock(client, height, txBz)
-				blockRes, _ = RegisterBlockResults(client, blockNum.Int64())
 				RegisterConsensusParams(client, height)
 
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
 
-				RegisterParamsWithoutHeader(queryClient, height)
-
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
-				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
+
+				var err error
+				blockRes, err = RegisterBlockResultsWithEventReceipt(client, height, &ethtypes.Receipt{
+					Type:   ethtypes.LegacyTxType,
+					Status: ethtypes.ReceiptStatusSuccessful,
+					TxHash: msgEthereumTx.AsTransaction().Hash(),
+				})
+				suite.Require().NoError(err)
 			},
 			false,
 			true,
@@ -215,11 +214,8 @@ func (suite *BackendTestSuite) TestGetBlockByNumber() {
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
 
-				RegisterParamsWithoutHeader(queryClient, height)
-
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHashErr(indexer, msgEthereumTx.AsTransaction().Hash())
-				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			expNoop: false,
 			expPass: false,
@@ -236,7 +232,6 @@ func (suite *BackendTestSuite) TestGetBlockByNumber() {
 				height := blockNum.Int64()
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				resBlock, _ = RegisterBlock(client, height, txBz)
-				blockRes, _ = RegisterBlockResults(client, blockNum.Int64())
 				RegisterConsensusParams(client, height)
 
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
@@ -245,7 +240,14 @@ func (suite *BackendTestSuite) TestGetBlockByNumber() {
 
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
-				RegisterIndexerGetLastRequestIndexedBlockErr(indexer)
+
+				var err error
+				blockRes, err = RegisterBlockResultsWithEventReceipt(client, height, &ethtypes.Receipt{
+					Type:   ethtypes.LegacyTxType,
+					Status: ethtypes.ReceiptStatusSuccessful,
+					TxHash: msgEthereumTx.AsTransaction().Hash(),
+				})
+				suite.Require().NoError(err)
 			},
 			expNoop: false,
 			expPass: true,
@@ -370,11 +372,6 @@ func (suite *BackendTestSuite) TestGetBlockByHash() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
-
-				RegisterParamsWithoutHeader(queryClient, height)
-
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			false,
 			true,
@@ -392,18 +389,22 @@ func (suite *BackendTestSuite) TestGetBlockByHash() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				resBlock, _ = RegisterBlockByHash(client, hash, txBz)
 
-				blockRes, _ = RegisterBlockResults(client, height)
 				RegisterConsensusParams(client, height)
 
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
 
-				RegisterParamsWithoutHeader(queryClient, height)
-
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
-				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
+
+				var err error
+				blockRes, err = RegisterBlockResultsWithEventReceipt(client, height, &ethtypes.Receipt{
+					Type:   ethtypes.LegacyTxType,
+					Status: ethtypes.ReceiptStatusSuccessful,
+					TxHash: msgEthereumTx.AsTransaction().Hash(),
+				})
+				suite.Require().NoError(err)
 			},
 			false,
 			true,
@@ -425,9 +426,6 @@ func (suite *BackendTestSuite) TestGetBlockByHash() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterValidatorAccount(queryClient, validator)
-
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlockErr(indexer)
 			},
 			expPass: true,
 		},
@@ -982,6 +980,13 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 	msgEthereumTx, bz := suite.signMsgEthTx(msgEthereumTx)
 	emptyBlock := tmtypes.MakeBlock(1, []tmtypes.Tx{}, nil, nil)
 
+	blockResWithReceipt, err := BuildBlockResultsWithEventReceipt(1, &ethtypes.Receipt{
+		Type:   ethtypes.LegacyTxType,
+		Status: ethtypes.ReceiptStatusSuccessful,
+		TxHash: msgEthereumTx.AsTransaction().Hash(),
+	})
+	suite.Require().NoError(err)
+
 	testCases := []struct {
 		name         string
 		baseFee      *big.Int
@@ -1012,11 +1017,6 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
-
-				RegisterParamsWithoutHeader(queryClient, height)
-
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			expTxs:  false,
 			expPass: true,
@@ -1041,11 +1041,6 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
-
-				RegisterParamsWithoutHeader(queryClient, height)
-
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			expTxs:  false,
 			expPass: false,
@@ -1058,11 +1053,8 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			resBlock: &tmrpctypes.ResultBlock{
 				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
 			},
-			blockRes: &tmrpctypes.ResultBlockResults{
-				Height:     1,
-				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
-			},
-			fullTx: true,
+			blockRes: blockResWithReceipt,
+			fullTx:   true,
 			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
@@ -1071,11 +1063,8 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
 
-				RegisterParamsWithoutHeader(queryClient, height)
-
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
-				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			expTxs:  true,
 			expPass: true,
@@ -1099,11 +1088,6 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParamsError(client, height)
-
-				RegisterParamsWithoutHeader(queryClient, height)
-
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			expTxs:  false,
 			expPass: false,
@@ -1134,11 +1118,6 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
-
-				RegisterParamsWithoutHeader(queryClient, height)
-
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			expTxs:  false,
 			expPass: true,
@@ -1151,11 +1130,8 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			resBlock: &tmrpctypes.ResultBlock{
 				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
 			},
-			blockRes: &tmrpctypes.ResultBlockResults{
-				Height:     1,
-				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
-			},
-			fullTx: false,
+			blockRes: blockResWithReceipt,
+			fullTx:   false,
 			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
@@ -1164,11 +1140,8 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
 
-				RegisterParamsWithoutHeader(queryClient, height)
-
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
-				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			expTxs:  true,
 			expPass: true,
@@ -1181,11 +1154,8 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			resBlock: &tmrpctypes.ResultBlock{
 				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
 			},
-			blockRes: &tmrpctypes.ResultBlockResults{
-				Height:     1,
-				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
-			},
-			fullTx: true,
+			blockRes: blockResWithReceipt,
+			fullTx:   true,
 			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
@@ -1194,11 +1164,8 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
 
-				RegisterParamsWithoutHeader(queryClient, height)
-
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
-				RegisterIndexerGetLastRequestIndexedBlock(indexer, height)
 			},
 			expTxs:  true,
 			expPass: true,
@@ -1211,11 +1178,8 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			resBlock: &tmrpctypes.ResultBlock{
 				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
 			},
-			blockRes: &tmrpctypes.ResultBlockResults{
-				Height:     1,
-				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
-			},
-			fullTx: true,
+			blockRes: blockResWithReceipt,
+			fullTx:   true,
 			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)
@@ -1226,7 +1190,6 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHash(indexer, msgEthereumTx.AsTransaction().Hash(), height)
-				RegisterIndexerGetLastRequestIndexedBlockErr(indexer)
 			},
 			expTxs:  true,
 			expPass: true,
@@ -1252,11 +1215,8 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterConsensusParams(client, height)
 
-				RegisterParamsWithoutHeader(queryClient, height)
-
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHashErr(indexer, msgEthereumTx.AsTransaction().Hash())
-				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			expTxs:  false,
 			expPass: false,

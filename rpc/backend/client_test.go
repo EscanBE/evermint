@@ -182,7 +182,94 @@ func TestRegisterConsensusParams(t *testing.T) {
 
 // BlockResults
 
-// TODO LOG: replace
+func BuildBlockResultsWithEventReceipt(height int64, receipt *ethtypes.Receipt) (*tmrpctypes.ResultBlockResults, error) {
+	bzReceipt, err := receipt.MarshalBinary()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal receipt")
+	}
+	return &tmrpctypes.ResultBlockResults{
+		Height: height,
+		TxsResults: []*abci.ResponseDeliverTx{
+			{
+				Code:    0,
+				GasUsed: 0,
+				Events: []abci.Event{
+					{
+						Type: evmtypes.EventTypeEthereumTx,
+						Attributes: []abci.EventAttribute{
+							{
+								Key:   evmtypes.AttributeKeyEthereumTxHash,
+								Value: receipt.TxHash.Hex(),
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyTxIndex,
+								Value: strconv.FormatUint(uint64(receipt.TransactionIndex), 10),
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyTxGasUsed,
+								Value: strconv.FormatUint(receipt.GasUsed, 10),
+								Index: true,
+							},
+						},
+					},
+					{
+						Type: evmtypes.EventTypeTxReceipt,
+						Attributes: []abci.EventAttribute{
+							{
+								Key:   evmtypes.AttributeKeyReceiptMarshalled,
+								Value: hexutil.Encode(bzReceipt),
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyReceiptTxHash,
+								Value: receipt.TxHash.Hex(),
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyReceiptBlockNumber,
+								Value: strconv.FormatInt(height, 10),
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyReceiptTxIndex,
+								Value: strconv.FormatUint(uint64(receipt.TransactionIndex), 10),
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyReceiptContractAddress,
+								Value: "",
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyReceiptGasUsed,
+								Value: strconv.FormatUint(receipt.GasUsed, 10),
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyReceiptEffectiveGasPrice,
+								Value: "0",
+								Index: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}, nil
+}
+
+func RegisterBlockResultsWithEventReceipt(client *mocks.Client, height int64, receipt *ethtypes.Receipt) (*tmrpctypes.ResultBlockResults, error) {
+	blockRes, err := BuildBlockResultsWithEventReceipt(height, receipt)
+	if err != nil {
+		return nil, err
+	}
+	client.On("BlockResults", rpc.ContextWithHeight(height), mock.AnythingOfType("*int64")).
+		Return(blockRes, nil)
+	return blockRes, nil
+}
+
 func RegisterBlockResultsWithEventLog(client *mocks.Client, height int64) (*tmrpctypes.ResultBlockResults, error) {
 	receipt := &ethtypes.Receipt{
 		Type:              ethtypes.LegacyTxType,
@@ -200,64 +287,7 @@ func RegisterBlockResultsWithEventLog(client *mocks.Client, height int64) (*tmrp
 			},
 		},
 	}
-	bzReceipt, err := receipt.MarshalBinary()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal receipt")
-	}
-	res := &tmrpctypes.ResultBlockResults{
-		Height: height,
-		TxsResults: []*abci.ResponseDeliverTx{
-			{
-				Code:    0,
-				GasUsed: 0,
-				Events: []abci.Event{
-					{
-						Type: evmtypes.EventTypeTxReceipt,
-						Attributes: []abci.EventAttribute{
-							{
-								Key:   evmtypes.AttributeKeyReceiptMarshalled,
-								Value: hexutil.Encode(bzReceipt),
-								Index: true,
-							},
-							{
-								Key:   evmtypes.AttributeKeyReceiptTxHash,
-								Value: "0x89393df639d9a8a0453a08e189393df639d9a8a0453a08e1685438b72467aef4",
-								Index: true,
-							},
-							{
-								Key:   evmtypes.AttributeKeyReceiptBlockNumber,
-								Value: strconv.FormatInt(height, 10),
-								Index: true,
-							},
-							{
-								Key:   evmtypes.AttributeKeyReceiptTxIndex,
-								Value: "0",
-								Index: true,
-							},
-							{
-								Key:   evmtypes.AttributeKeyReceiptContractAddress,
-								Value: "",
-								Index: true,
-							},
-							{
-								Key:   evmtypes.AttributeKeyReceiptGasUsed,
-								Value: "1",
-								Index: true,
-							},
-							{
-								Key:   evmtypes.AttributeKeyReceiptEffectiveGasPrice,
-								Value: "0",
-								Index: true,
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-	client.On("BlockResults", rpc.ContextWithHeight(height), mock.AnythingOfType("*int64")).
-		Return(res, nil)
-	return res, nil
+	return RegisterBlockResultsWithEventReceipt(client, height, receipt)
 }
 
 func RegisterBlockResults(

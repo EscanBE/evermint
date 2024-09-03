@@ -13,7 +13,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/pkg/errors"
 )
 
@@ -181,12 +180,6 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 
 	ethMsg := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
-	txData, err := evmtypes.UnpackTxData(ethMsg.Data)
-	if err != nil {
-		b.logger.Error("failed to unpack tx data", "error", err.Error())
-		return nil, err
-	}
-
 	cumulativeGasUsed := uint64(0)
 	for _, txResult := range blockRes.TxsResults[0:res.TxIndex] {
 		cumulativeGasUsed += uint64(txResult.GasUsed) // #nosec G701 -- checked for int overflow already
@@ -198,30 +191,20 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 		return nil, err
 	}
 
-	// parse tx logs from events
-	logs, err := TxLogsFromEvent(blockRes.TxsResults[res.TxIndex].Events)
+	icReceipt, err := TxReceiptFromEvent(blockRes.TxsResults[res.TxIndex].Events)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse logs from events")
+		return nil, errors.Wrap(err, "failed to parse receipt from events")
 	}
+	var startLogIdx uint = 0 // TODO LOG: what should it be?
+	icReceipt.Fill(common.BytesToHash(resBlock.BlockID.Hash.Bytes()), startLogIdx)
 
-	var baseFee *big.Int
-	if ethMsg.AsTransaction().Type() == uint8(ethtypes.DynamicFeeTxType) {
-		baseFee, err = b.BaseFee(blockRes)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to fetch base fee. Pruned block %d?", res.Height)
-		}
-	}
+	receipt := icReceipt.Receipt
+	receipt.CumulativeGasUsed = cumulativeGasUsed // TODO LOG: what should we respect? Receipt or self calculation
 
-	return rpctypes.NewRPCReceipt(
+	return rpctypes.NewRPCReceiptFromReceipt(
 		ethMsg,
-		hexutil.Uint64(res.EthTxIndex),
-		!res.Failed,
-		hexutil.Uint64(b.GetGasUsed(res, txData.GetGasPrice(), txData.GetGas())),
-		hexutil.Uint64(cumulativeGasUsed),
-		baseFee,
-		logs,
-		common.BytesToHash(resBlock.BlockID.Hash.Bytes()),
-		hexutil.Uint64(res.Height),
+		receipt,
+		icReceipt.EffectiveGasPrice,
 		chainID.ToInt(),
 	)
 }

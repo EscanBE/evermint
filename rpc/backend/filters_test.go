@@ -70,7 +70,7 @@ func (suite *BackendTestSuite) TestGetLogs() {
 						},
 						Data:        []byte{0x12, 0x34, 0x56},
 						BlockNumber: 1,
-						TxHash:      common.HexToHash("0x89393df639d9a8a0453a08e189393df639d9a8a0453a08e1685438b72467aef4"),
+						TxHash:      common.Hash{},
 						TxIndex:     0,
 					},
 				},

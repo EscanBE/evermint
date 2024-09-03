@@ -2,6 +2,7 @@ package eth
 
 import (
 	"context"
+	"cosmossdk.io/errors"
 
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 
@@ -411,11 +412,9 @@ func (e *PublicAPI) Sign(address common.Address, data hexutil.Bytes) (hexutil.By
 func (e *PublicAPI) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, error) {
 	e.logger.Debug("eth_getTransactionLogs", "hash", txHash)
 
-	hexTx := txHash.Hex()
 	res, err := e.backend.GetTxByEthHash(txHash)
 	if err != nil {
-		e.logger.Debug("tx not found", "hash", hexTx, "error", err.Error())
-		return nil, nil
+		return nil, errors.Wrap(err, "tx not found")
 	}
 
 	if res.Failed {
@@ -426,11 +425,21 @@ func (e *PublicAPI) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, err
 	resBlockResult, err := e.backend.TendermintBlockResultByNumber(&res.Height)
 	if err != nil {
 		e.logger.Debug("block result not found", "number", res.Height, "error", err.Error())
-		return nil, nil
+		return nil, errors.Wrap(err, "block result not found")
+	}
+	resBlock, err := e.backend.TendermintBlockByNumber(rpctypes.BlockNumber(res.Height))
+	if err != nil {
+		return nil, errors.Wrap(err, "block not found")
 	}
 
-	// parse tx logs from events
-	return backend.TxLogsFromEvent(resBlockResult.TxsResults[res.TxIndex].Events)
+	icReceipt, err := backend.TxReceiptFromEvent(resBlockResult.TxsResults[res.TxIndex].Events)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get receipt from event")
+	}
+	var startLogIdx uint = 0 // TODO LOG: what should it be?
+	icReceipt.Fill(common.BytesToHash(resBlock.BlockID.Hash.Bytes()), startLogIdx)
+
+	return icReceipt.Logs, nil
 }
 
 // SignTypedData signs EIP-712 conformant typed data
