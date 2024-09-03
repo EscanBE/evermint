@@ -223,8 +223,27 @@ func AllTxLogsFromEvents(events []abci.Event) ([][]*ethtypes.Log, error) {
 	return allLogs, nil
 }
 
+// InCompletedEthReceipt holds an in-completed Ethereum receipt, missing:
+// - Block hash in receipt.
+// - Block hash and log index in logs.
+type InCompletedEthReceipt struct {
+	*ethtypes.Receipt
+}
+
+// Fill the missing fields for the receipt
+func (r *InCompletedEthReceipt) Fill(blockHash common.Hash, startLogIndex uint) {
+	r.Receipt.BlockHash = blockHash
+
+	idx := startLogIndex
+	for _, log := range r.Receipt.Logs {
+		log.BlockHash = blockHash
+		log.Index = idx
+		idx++
+	}
+}
+
 // TxReceiptFromEvent parses ethereum receipt from cosmos events
-func TxReceiptFromEvent(events []abci.Event) (*ethtypes.Receipt, error) {
+func TxReceiptFromEvent(events []abci.Event) (*InCompletedEthReceipt, error) {
 	for _, event := range events {
 		if event.Type == evmtypes.EventTypeTxReceipt {
 			return ParseTxReceiptFromEvent(event)
@@ -238,7 +257,7 @@ func TxReceiptFromEvent(events []abci.Event) (*ethtypes.Receipt, error) {
 // The output receipt will be:
 // - Missing block hash in receipt.
 // - Missing block hash and log index in logs.
-func ParseTxReceiptFromEvent(event abci.Event) (*ethtypes.Receipt, error) {
+func ParseTxReceiptFromEvent(event abci.Event) (*InCompletedEthReceipt, error) {
 	if event.Type != evmtypes.EventTypeTxReceipt {
 		panic(fmt.Sprintf("wrong event, expected: %s, got: %s", evmtypes.EventTypeTxReceipt, event.Type))
 	}
@@ -311,7 +330,7 @@ func ParseTxReceiptFromEvent(event abci.Event) (*ethtypes.Receipt, error) {
 		log.TxIndex = receipt.TransactionIndex
 	}
 
-	return receipt, nil
+	return &InCompletedEthReceipt{receipt}, nil
 }
 
 // TxLogsFromEvent parses ethereum logs from cosmos events
