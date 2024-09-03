@@ -486,27 +486,25 @@ func (e *PublicAPI) GetPendingTransactions() ([]*rpctypes.RPCTransaction, error)
 
 	result := make([]*rpctypes.RPCTransaction, 0, len(txs))
 	for _, tx := range txs {
-		for _, msg := range (*tx).GetMsgs() {
-			ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
-			if !ok {
-				// not valid ethereum tx
-				break
-			}
-
-			rpctx, err := rpctypes.NewTransactionFromMsg(
-				ethMsg,
-				common.Hash{},
-				uint64(0),
-				uint64(0),
-				nil,
-				e.backend.ChainConfig().ChainID,
-			)
-			if err != nil {
-				return nil, err
-			}
-
-			result = append(result, rpctx)
+		ethMsg, ok := (*tx).GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+		if !ok {
+			// not valid ethereum tx
+			break
 		}
+
+		rpctx, err := rpctypes.NewTransactionFromMsg(
+			ethMsg,
+			common.Hash{},
+			uint64(0),
+			uint64(0),
+			nil,
+			e.backend.ChainConfig().ChainID,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, rpctx)
 	}
 
 	return result, nil

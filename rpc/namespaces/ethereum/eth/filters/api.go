@@ -171,11 +171,9 @@ func (api *PublicFilterAPI) NewPendingTransactionFilter() rpc.ID {
 
 				api.filtersMu.Lock()
 				if f, found := api.filters[pendingTxSub.ID()]; found {
-					for _, msg := range tx.GetMsgs() {
-						ethTx, ok := msg.(*evmtypes.MsgEthereumTx)
-						if ok {
-							f.hashes = append(f.hashes, ethTx.AsTransaction().Hash())
-						}
+					ethTx, ok := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+					if ok {
+						f.hashes = append(f.hashes, ethTx.AsTransaction().Hash())
 					}
 				}
 				api.filtersMu.Unlock()
@@ -235,11 +233,9 @@ func (api *PublicFilterAPI) NewPendingTransactions(ctx context.Context) (*rpc.Su
 					continue
 				}
 
-				for _, msg := range tx.GetMsgs() {
-					ethTx, ok := msg.(*evmtypes.MsgEthereumTx)
-					if ok {
-						_ = notifier.Notify(rpcSub.ID, ethTx.AsTransaction().Hash()) // #nosec G703
-					}
+				ethTx, ok := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+				if ok {
+					_ = notifier.Notify(rpcSub.ID, ethTx.AsTransaction().Hash()) // #nosec G703
 				}
 			case <-rpcSub.Err():
 				pendingTxSub.Unsubscribe(api.events)

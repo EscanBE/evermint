@@ -21,7 +21,6 @@ func RegisterIndexerGetByBlockAndIndex(queryClient *mocks.EVMTxIndexer, height i
 		Return(&types.TxResult{
 			Height:            height,
 			TxIndex:           uint32(index),
-			MsgIndex:          0,
 			EthTxIndex:        index,
 			Failed:            false,
 			GasUsed:           mockGasUsed,
@@ -39,7 +38,6 @@ func RegisterIndexerGetByTxHash(queryClient *mocks.EVMTxIndexer, hash common.Has
 		Return(&types.TxResult{
 			Height:            height,
 			TxIndex:           0,
-			MsgIndex:          0,
 			EthTxIndex:        0,
 			Failed:            false,
 			GasUsed:           mockGasUsed,

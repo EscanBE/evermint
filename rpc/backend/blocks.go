@@ -256,14 +256,11 @@ func (b *Backend) EthMsgsFromTendermintBlock(
 			continue
 		}
 
-		for _, msg := range tx.GetMsgs() {
-			ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
-			if !ok {
-				continue
+		if msgs := tx.GetMsgs(); len(msgs) == 1 {
+			if ethMsg, isEthTx := msgs[0].(*evmtypes.MsgEthereumTx); isEthTx {
+				ethMsg.Hash = ethMsg.AsTransaction().Hash().Hex()
+				result = append(result, ethMsg)
 			}
-
-			ethMsg.Hash = ethMsg.AsTransaction().Hash().Hex()
-			result = append(result, ethMsg)
 		}
 	}
 

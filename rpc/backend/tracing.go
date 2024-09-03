@@ -52,14 +52,11 @@ func (b *Backend) TraceTransaction(hash common.Hash, config *evmtypes.TraceConfi
 			b.logger.Debug("failed to decode transaction in block", "height", blk.Block.Height, "error", err.Error())
 			continue
 		}
-		for _, msg := range tx.GetMsgs() {
-			ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
-			if !ok {
-				continue
-			}
-
-			predecessors = append(predecessors, ethMsg)
+		ethMsg, isEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+		if !isEthTx {
+			continue
 		}
+		predecessors = append(predecessors, ethMsg)
 	}
 
 	tx, err := b.clientCtx.TxConfig.TxDecoder()(blk.Block.Txs[transaction.TxIndex])
@@ -68,17 +65,7 @@ func (b *Backend) TraceTransaction(hash common.Hash, config *evmtypes.TraceConfi
 		return nil, err
 	}
 
-	// add predecessor messages in current cosmos tx
-	index := int(transaction.MsgIndex) // #nosec G701
-	for i := 0; i < index; i++ {
-		ethMsg, ok := tx.GetMsgs()[i].(*evmtypes.MsgEthereumTx)
-		if !ok {
-			continue
-		}
-		predecessors = append(predecessors, ethMsg)
-	}
-
-	ethMessage, ok := tx.GetMsgs()[transaction.MsgIndex].(*evmtypes.MsgEthereumTx)
+	ethMessage, ok := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 	if !ok {
 		b.logger.Debug("invalid transaction type", "type", fmt.Sprintf("%T", tx))
 		return nil, fmt.Errorf("invalid transaction type %T", tx)
