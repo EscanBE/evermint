@@ -228,6 +228,7 @@ func AllTxLogsFromEvents(events []abci.Event) ([][]*ethtypes.Log, error) {
 // - Block hash and log index in logs.
 type InCompletedEthReceipt struct {
 	*ethtypes.Receipt
+	EffectiveGasPrice *big.Int
 }
 
 // Fill the missing fields for the receipt
@@ -317,6 +318,15 @@ func ParseTxReceiptFromEvent(event abci.Event) (*InCompletedEthReceipt, error) {
 		return nil, fmt.Errorf("bad event attribute value: %s = %s", evmtypes.AttributeKeyReceiptGasUsed, gasUsedRaw)
 	}
 
+	effectiveGasPriceRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptEffectiveGasPrice)
+	if !found {
+		return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptEffectiveGasPrice)
+	}
+	effectiveGasPrice, ok := new(big.Int).SetString(effectiveGasPriceRaw, 10)
+	if !ok {
+		return nil, fmt.Errorf("bad event attribute value: %s = %s", evmtypes.AttributeKeyReceiptEffectiveGasPrice, effectiveGasPriceRaw)
+	}
+
 	// fill data
 	receipt.TxHash = txHash
 	receipt.ContractAddress = contractAddr
@@ -330,7 +340,10 @@ func ParseTxReceiptFromEvent(event abci.Event) (*InCompletedEthReceipt, error) {
 		log.TxIndex = receipt.TransactionIndex
 	}
 
-	return &InCompletedEthReceipt{receipt}, nil
+	return &InCompletedEthReceipt{
+		Receipt:           receipt,
+		EffectiveGasPrice: effectiveGasPrice,
+	}, nil
 }
 
 // TxLogsFromEvent parses ethereum logs from cosmos events

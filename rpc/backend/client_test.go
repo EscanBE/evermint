@@ -244,6 +244,11 @@ func RegisterBlockResultsWithEventLog(client *mocks.Client, height int64) (*tmrp
 								Value: "1",
 								Index: true,
 							},
+							{
+								Key:   evmtypes.AttributeKeyReceiptEffectiveGasPrice,
+								Value: "0",
+								Index: true,
+							},
 						},
 					},
 				},
