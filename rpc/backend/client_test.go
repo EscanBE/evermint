@@ -187,7 +187,7 @@ func RegisterBlockResultsWithEventLog(client *mocks.Client, height int64) (*tmrp
 				Type: evmtypes.EventTypeTxLog,
 				Attributes: []abci.EventAttribute{{
 					Key:   evmtypes.AttributeKeyTxLog,
-					Value: "{\"test\": \"hello\"}",
+					Value: "{\"address\": \"0x4fea76427b8345861e80a3540a8a9d936fd39398\", \"topics\": [\"0x4fea76427b8345861e80a3540a8a9d936fd393981e80a3540a8a9d936fd39398\"], \"data\": \"0x123456\", \"transactionHash\": \"0x89393df639d9a8a0453a08e189393df639d9a8a0453a08e1685438b72467aef4\"}",
 					Index: true,
 				}},
 			}}},

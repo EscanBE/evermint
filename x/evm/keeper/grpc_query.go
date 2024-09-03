@@ -243,7 +243,7 @@ func (k Keeper) EthCall(c context.Context, req *types.EthCallRequest) (*types.Ms
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
+	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash())).WithTxTypeFromMessage(msg)
 
 	// pass false to not commit StateDB
 	res, err := k.ApplyMessageWithConfig(ctx, msg, nil, false, cfg, txConfig)
@@ -341,6 +341,7 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 			msg.AccessList(),
 			msg.IsFake(),
 		)
+		txConfig = txConfig.WithTxTypeFromMessage(msg)
 
 		// pass false to not commit StateDB
 		rsp, err = k.ApplyMessageWithConfig(ctx, msg, nil, false, cfg, txConfig)
@@ -432,6 +433,7 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 		}
 		txConfig.TxHash = ethTx.Hash()
 		txConfig.TxIndex = uint(i)
+		txConfig = txConfig.WithTxTypeFromMessage(msg)
 
 		// reset gas meter per transaction to avoid stacking the gas used of every predecessor in the same gas meter
 		ctx = ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(msg.Gas()))
@@ -443,7 +445,7 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 
 		receipt := &ethtypes.Receipt{}
 		if err := receipt.UnmarshalBinary(rsp.MarshalledReceipt); err != nil {
-			return nil, status.Errorf(codes.Internal, "failed to unmarshal receipt: %w", err)
+			return nil, status.Errorf(codes.Internal, "failed to unmarshal receipt: %v", err)
 		}
 		txConfig.LogIndex += uint(len(receipt.Logs))
 	}
@@ -570,6 +572,7 @@ func (k *Keeper) traceTx(
 	if err != nil {
 		return nil, 0, status.Error(codes.Internal, err.Error())
 	}
+	txConfig = txConfig.WithTxTypeFromMessage(msg)
 
 	if traceConfig == nil {
 		traceConfig = &types.TraceConfig{}
@@ -633,7 +636,7 @@ func (k *Keeper) traceTx(
 
 	receipt := &ethtypes.Receipt{}
 	if err := receipt.UnmarshalBinary(res.MarshalledReceipt); err != nil {
-		return nil, 0, status.Errorf(codes.Internal, "failed to unmarshal receipt: %w", err)
+		return nil, 0, status.Errorf(codes.Internal, "failed to unmarshal receipt: %v", err)
 	}
 
 	var result interface{}

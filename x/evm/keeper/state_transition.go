@@ -138,7 +138,6 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 		return nil, errorsmod.Wrap(err, "failed to load evm config")
 	}
 	txConfig := k.TxConfig(ctx, tx.Hash())
-	txConfig.OptionalTxType = int16(tx.Type())
 
 	// get the signer according to the chain rules from the config and block height
 	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(ctx.BlockHeight()))
@@ -146,6 +145,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to return ethereum transaction as core message")
 	}
+	txConfig = txConfig.WithTxTypeFromMessage(msg)
 
 	// snapshot to contain the tx processing and post processing in same scope
 	var commit func()
@@ -245,6 +245,7 @@ func (k *Keeper) ApplyMessage(ctx sdk.Context, msg core.Message, tracer vm.EVMLo
 	}
 
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
+	txConfig = txConfig.WithTxTypeFromMessage(msg)
 	return k.ApplyMessageWithConfig(ctx, msg, tracer, commit, cfg, txConfig)
 }
 
@@ -382,10 +383,10 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 	}
 
 	var txType uint8
-	if txConfig.OptionalTxType < 0 || txConfig.OptionalTxType > math.MaxUint8 {
+	if txConfig.TxType < 0 || txConfig.TxType > math.MaxUint8 {
 		panic("require tx type set")
 	} else {
-		txType = uint8(txConfig.OptionalTxType)
+		txType = uint8(txConfig.TxType)
 	}
 
 	// TODO: use transient and tracking correctly

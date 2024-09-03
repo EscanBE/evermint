@@ -25,12 +25,9 @@ func TestEvmDataEncoding(t *testing.T) {
 	ret := []byte{0x5, 0x8}
 
 	data := &evmtypes.MsgEthereumTxResponse{
-		Hash: common.BytesToHash([]byte("hash")).String(),
-		Logs: []*evmtypes.Log{{
-			Data:        []byte{1, 2, 3, 4},
-			BlockNumber: 17,
-		}},
-		Ret: ret,
+		Hash:              common.BytesToHash([]byte("hash")).String(),
+		MarshalledReceipt: []byte("receipt"),
+		Ret:               ret,
 	}
 
 	anyData := codectypes.UnsafePackAny(data)
@@ -44,7 +41,7 @@ func TestEvmDataEncoding(t *testing.T) {
 	res, err := evmtypes.DecodeTxResponse(txDataBz)
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	require.Equal(t, data.Logs, res.Logs)
+	require.Equal(t, data.MarshalledReceipt, res.MarshalledReceipt)
 	require.Equal(t, ret, res.Ret)
 }
 

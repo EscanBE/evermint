@@ -1,8 +1,6 @@
 package backend
 
 import (
-	"fmt"
-
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
 	ethrpc "github.com/EscanBE/evermint/v12/rpc/types"
 	tmtypes "github.com/cometbft/cometbft/types"
@@ -13,8 +11,6 @@ import (
 func (suite *BackendTestSuite) TestGetLogs() {
 	_, bz := suite.buildEthereumTx()
 	block := tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil)
-	logs := make([]*ethtypes.Log, 0, 1)
-	fmt.Println(string([]byte{0x7b, 0x22, 0x74, 0x65, 0x73, 0x74, 0x22, 0x3a, 0x20, 0x22, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x22, 0x7d}))
 
 	testCases := []struct {
 		name         string
@@ -65,7 +61,18 @@ func (suite *BackendTestSuite) TestGetLogs() {
 				suite.Require().NoError(err)
 			},
 			common.BytesToHash(block.Hash()),
-			[][]*ethtypes.Log{logs},
+			[][]*ethtypes.Log{
+				{
+					{
+						Address: common.HexToAddress("0x4fea76427b8345861e80a3540a8a9d936fd39398"),
+						Topics: []common.Hash{
+							common.HexToHash("0x4fea76427b8345861e80a3540a8a9d936fd393981e80a3540a8a9d936fd39398"),
+						},
+						Data:   []byte{0x12, 0x34, 0x56},
+						TxHash: common.HexToHash("0x89393df639d9a8a0453a08e189393df639d9a8a0453a08e1685438b72467aef4"),
+					},
+				},
+			},
 			true,
 		},
 	}
