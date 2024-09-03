@@ -213,12 +213,12 @@ func AllTxLogsFromEvents(events []abci.Event) ([][]*ethtypes.Log, error) {
 			continue
 		}
 
-		logs, err := ParseTxLogsFromEvent(event)
+		receipt, err := ParseTxReceiptFromEvent(event)
 		if err != nil {
 			return nil, err
 		}
 
-		allLogs = append(allLogs, logs)
+		allLogs = append(allLogs, receipt.Logs)
 	}
 	return allLogs, nil
 }
@@ -319,66 +319,15 @@ func ParseTxReceiptFromEvent(event abci.Event) (*ethtypes.Receipt, error) {
 func TxLogsFromEvent(events []abci.Event) ([]*ethtypes.Log, error) {
 	for _, event := range events {
 		if event.Type == evmtypes.EventTypeTxReceipt {
-			return ParseTxLogsFromEvent(event)
+			receipt, err := ParseTxReceiptFromEvent(event)
+			if err != nil {
+				return nil, err
+			}
+			return receipt.Logs, nil
 		}
 	}
 
 	return nil, nil
-}
-
-// ParseTxLogsFromEvent parse tx logs from one event
-// TODO LOG: replace
-func ParseTxLogsFromEvent(event abci.Event) ([]*ethtypes.Log, error) {
-	if event.Type != evmtypes.EventTypeTxReceipt {
-		panic(fmt.Sprintf("wrong event, expected: %s, got: %s", evmtypes.EventTypeTxReceipt, event.Type))
-	}
-
-	marshalledReceiptRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptMarshalled)
-	if !found {
-		return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptMarshalled)
-	}
-	bzReceipt, err := hexutil.Decode(marshalledReceiptRaw)
-	if err != nil {
-		return nil, err
-	}
-	receipt := &ethtypes.Receipt{}
-	if err := receipt.UnmarshalBinary(bzReceipt); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal receipt")
-	}
-
-	if len(receipt.Logs) > 0 {
-		txHashRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptTxHash)
-		if !found {
-			return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptTxHash)
-		}
-		txHash := common.HexToHash(txHashRaw)
-
-		blockNumberRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptBlockNumber)
-		if !found {
-			return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptBlockNumber)
-		}
-		blockNumber, err := strconv.ParseUint(blockNumberRaw, 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("bad event attribute value: %s = %s", evmtypes.AttributeKeyReceiptBlockNumber, blockNumberRaw)
-		}
-
-		txIndexRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptTxIndex)
-		if !found {
-			return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptTxIndex)
-		}
-		txIndex, err := strconv.ParseUint(txIndexRaw, 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("bad event attribute value: %s = %s", evmtypes.AttributeKeyReceiptTxIndex, txIndexRaw)
-		}
-
-		for _, log := range receipt.Logs {
-			log.BlockNumber = blockNumber
-			log.TxHash = txHash
-			log.TxIndex = uint(txIndex)
-		}
-	}
-
-	return receipt.Logs, nil
 }
 
 func findAttribute(attrs []abci.EventAttribute, key string) (value string, found bool) {
