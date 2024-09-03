@@ -43,6 +43,28 @@ func (esc EthSetupContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 	return next(newCtx, tx, simulate)
 }
 
+// SingleEthTxDecorator check if the transaction contains one and only one EthereumTx
+type SingleEthTxDecorator struct {
+}
+
+func NewSingleEthTxDecorator() SingleEthTxDecorator {
+	return SingleEthTxDecorator{}
+}
+
+func (sed SingleEthTxDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	for _, msg := range tx.GetMsgs() {
+		if _, isEthTx := msg.(*evmtypes.MsgEthereumTx); !isEthTx {
+			return ctx, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
+		}
+	}
+
+	if len(tx.GetMsgs()) != 1 {
+		return ctx, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "expected one and only one %T", (*evmtypes.MsgEthereumTx)(nil))
+	}
+
+	return next(ctx, tx, simulate)
+}
+
 // EthEmitEventDecorator emit events in ante handler in case of tx execution failed (out of block gas limit).
 type EthEmitEventDecorator struct {
 	evmKeeper EVMKeeper
@@ -59,18 +81,15 @@ func (eeed EthEmitEventDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 	// we need to emit some basic events at the very end of ante handler to be indexed by tendermint.
 	txIndex := eeed.evmKeeper.GetTxIndexTransient(ctx)
 
-	for i, msg := range tx.GetMsgs() {
-		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
-		if !ok {
-			return ctx, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
-		}
+	{
+		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
 		// emit ethereum tx hash as an event so that it can be indexed by Tendermint for query purposes
 		// it's emitted in ante handler, so we can query failed transaction (out of block gas limit).
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			evmtypes.EventTypeEthereumTx,
 			sdk.NewAttribute(evmtypes.AttributeKeyEthereumTxHash, msgEthTx.Hash),
-			sdk.NewAttribute(evmtypes.AttributeKeyTxIndex, strconv.FormatUint(txIndex+uint64(i), 10)), // #nosec G701
+			sdk.NewAttribute(evmtypes.AttributeKeyTxIndex, strconv.FormatUint(txIndex, 10)), // #nosec G701
 		))
 	}
 
@@ -146,11 +165,8 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 	enableCall := evmParams.GetEnableCall()
 	evmDenom := evmParams.GetEvmDenom()
 
-	for _, msg := range protoTx.GetMsgs() {
-		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
-		if !ok {
-			return ctx, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
-		}
+	{
+		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
 		// Validate `From` field
 		if msgEthTx.From != "" {

@@ -35,11 +35,8 @@ func (esvd EthSigVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, s
 	blockNum := big.NewInt(ctx.BlockHeight())
 	signer := ethtypes.MakeSigner(ethCfg, blockNum)
 
-	for _, msg := range tx.GetMsgs() {
-		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
-		if !ok {
-			return ctx, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
-		}
+	{
+		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
 		allowUnprotectedTxs := evmParams.GetAllowUnprotectedTxs()
 		ethTx := msgEthTx.AsTransaction()

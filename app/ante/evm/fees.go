@@ -60,17 +60,10 @@ func (empd EthMinGasPriceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 	ethCfg := chainCfg.EthereumConfig(empd.evmKeeper.ChainID())
 	baseFee := empd.evmKeeper.GetBaseFee(ctx, ethCfg)
 
-	for _, msg := range tx.GetMsgs() {
-		ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
-		if !ok {
-			return ctx, errorsmod.Wrapf(
-				errortypes.ErrUnknownRequest,
-				"invalid message type %T, expected %T",
-				msg, (*evmtypes.MsgEthereumTx)(nil),
-			)
-		}
+	{
+		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
-		feeAmt := ethMsg.GetFee()
+		feeAmt := msgEthTx.GetFee()
 
 		// For dynamic transactions, GetFee() uses the GasFeeCap value, which
 		// is the maximum gas price that the signer can pay. In practice, the
@@ -81,16 +74,16 @@ func (empd EthMinGasPriceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 		// Transactions with MinGasPrices * gasUsed < tx fees < EffectiveFee are rejected
 		// by the feemarket AnteHandle
 
-		txData, err := evmtypes.UnpackTxData(ethMsg.Data)
+		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
 		if err != nil {
-			return ctx, errorsmod.Wrapf(err, "failed to unpack tx data %s", ethMsg.Hash)
+			return ctx, errorsmod.Wrapf(err, "failed to unpack tx data %s", msgEthTx.Hash)
 		}
 
 		if txData.TxType() != ethtypes.LegacyTxType {
-			feeAmt = ethMsg.GetEffectiveFee(baseFee)
+			feeAmt = msgEthTx.GetEffectiveFee(baseFee)
 		}
 
-		gasLimit := sdk.NewDecFromBigInt(new(big.Int).SetUint64(ethMsg.GetGas()))
+		gasLimit := sdk.NewDecFromBigInt(new(big.Int).SetUint64(msgEthTx.GetGas()))
 
 		requiredFee := minGasPrice.Mul(gasLimit)
 		fee := sdk.NewDecFromBigInt(feeAmt)
@@ -127,14 +120,11 @@ func (mfd EthMempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 	evmDenom := evmParams.GetEvmDenom()
 	minGasPrice := ctx.MinGasPrices().AmountOf(evmDenom)
 
-	for _, msg := range tx.GetMsgs() {
-		ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
-		if !ok {
-			return ctx, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
-		}
+	{
+		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
-		fee := sdk.NewDecFromBigInt(ethMsg.GetFee())
-		gasLimit := sdk.NewDecFromBigInt(new(big.Int).SetUint64(ethMsg.GetGas()))
+		fee := sdk.NewDecFromBigInt(msgEthTx.GetFee())
+		gasLimit := sdk.NewDecFromBigInt(new(big.Int).SetUint64(msgEthTx.GetGas()))
 		requiredFee := minGasPrice.Mul(gasLimit)
 
 		if fee.LT(requiredFee) {
