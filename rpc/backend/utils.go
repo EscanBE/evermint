@@ -207,7 +207,7 @@ func (b *Backend) processBlock(
 func AllTxLogsFromEvents(events []abci.Event) ([][]*ethtypes.Log, error) {
 	allLogs := make([][]*ethtypes.Log, 0, 4)
 	for _, event := range events {
-		if event.Type != evmtypes.EventTypeTxLog {
+		if event.Type != evmtypes.EventTypeTxReceipt {
 			continue
 		}
 
@@ -224,7 +224,7 @@ func AllTxLogsFromEvents(events []abci.Event) ([][]*ethtypes.Log, error) {
 // TxLogsFromEvents parses ethereum logs from cosmos events for specific msg index
 func TxLogsFromEvents(events []abci.Event, msgIndex int) ([]*ethtypes.Log, error) {
 	for _, event := range events {
-		if event.Type != evmtypes.EventTypeTxLog {
+		if event.Type != evmtypes.EventTypeTxReceipt {
 			continue
 		}
 
@@ -245,16 +245,21 @@ func TxLogsFromEvents(events []abci.Event, msgIndex int) ([]*ethtypes.Log, error
 func ParseTxLogsFromEvent(event abci.Event) ([]*ethtypes.Log, error) {
 	logs := make([]*ethtypes.Log, 0, len(event.Attributes))
 	for _, attr := range event.Attributes {
-		if attr.Key != evmtypes.AttributeKeyTxLog {
+		if attr.Key != evmtypes.AttributeKeyReceiptMarshalled {
 			continue
 		}
 
-		log := &ethtypes.Log{}
-		if err := log.UnmarshalJSON([]byte(attr.Value)); err != nil {
+		bzReceipt, err := hexutil.Decode(attr.Value)
+		if err != nil {
 			return nil, err
 		}
 
-		logs = append(logs, log)
+		receipt := &ethtypes.Receipt{}
+		if err := receipt.UnmarshalBinary(bzReceipt); err != nil {
+			return nil, err
+		}
+
+		logs = append(logs, receipt.Logs...)
 	}
 
 	return logs, nil

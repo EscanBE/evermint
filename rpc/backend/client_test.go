@@ -2,6 +2,9 @@ package backend
 
 import (
 	"context"
+	"cosmossdk.io/errors"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -180,17 +183,45 @@ func TestRegisterConsensusParams(t *testing.T) {
 
 // TODO LOG: replace
 func RegisterBlockResultsWithEventLog(client *mocks.Client, height int64) (*tmrpctypes.ResultBlockResults, error) {
+	receipt := &ethtypes.Receipt{
+		Type:              ethtypes.LegacyTxType,
+		PostState:         nil,
+		Status:            ethtypes.ReceiptStatusSuccessful,
+		CumulativeGasUsed: 0,
+		Bloom:             ethtypes.Bloom{},
+		Logs: []*ethtypes.Log{
+			{
+				Address: common.HexToAddress("0x4fea76427b8345861e80a3540a8a9d936fd39398"),
+				Topics: []common.Hash{
+					common.HexToHash("0x4fea76427b8345861e80a3540a8a9d936fd393981e80a3540a8a9d936fd39398"),
+				},
+				Data: []byte{0x12, 0x34, 0x56},
+			},
+		},
+	}
+	bzReceipt, err := receipt.MarshalBinary()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal receipt")
+	}
 	res := &tmrpctypes.ResultBlockResults{
 		Height: height,
 		TxsResults: []*abci.ResponseDeliverTx{
-			{Code: 0, GasUsed: 0, Events: []abci.Event{{
-				Type: evmtypes.EventTypeTxLog,
-				Attributes: []abci.EventAttribute{{
-					Key:   evmtypes.AttributeKeyTxLog,
-					Value: "{\"address\": \"0x4fea76427b8345861e80a3540a8a9d936fd39398\", \"topics\": [\"0x4fea76427b8345861e80a3540a8a9d936fd393981e80a3540a8a9d936fd39398\"], \"data\": \"0x123456\", \"transactionHash\": \"0x89393df639d9a8a0453a08e189393df639d9a8a0453a08e1685438b72467aef4\"}",
-					Index: true,
-				}},
-			}}},
+			{
+				Code:    0,
+				GasUsed: 0,
+				Events: []abci.Event{
+					{
+						Type: evmtypes.EventTypeTxReceipt,
+						Attributes: []abci.EventAttribute{
+							{
+								Key:   evmtypes.AttributeKeyReceiptMarshalled,
+								Value: hexutil.Encode(bzReceipt),
+								Index: true,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 	client.On("BlockResults", rpc.ContextWithHeight(height), mock.AnythingOfType("*int64")).
