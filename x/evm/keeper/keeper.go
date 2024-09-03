@@ -172,10 +172,6 @@ func (k Keeper) SetTxIndexTransient(ctx sdk.Context, index uint64) {
 func (k Keeper) GetTxIndexTransient(ctx sdk.Context) uint64 {
 	store := ctx.TransientStore(k.transientKey)
 	bz := store.Get(types.KeyPrefixTransientTxIndex)
-	if len(bz) == 0 {
-		return 0
-	}
-
 	return sdk.BigEndianToUint64(bz)
 }
 
@@ -187,10 +183,6 @@ func (k Keeper) GetTxIndexTransient(ctx sdk.Context) uint64 {
 func (k Keeper) GetLogSizeTransient(ctx sdk.Context) uint64 {
 	store := ctx.TransientStore(k.transientKey)
 	bz := store.Get(types.KeyPrefixTransientLogSize)
-	if len(bz) == 0 {
-		return 0
-	}
-
 	return sdk.BigEndianToUint64(bz)
 }
 
@@ -310,18 +302,17 @@ func (k *Keeper) GetBalance(ctx sdk.Context, addr common.Address) *big.Int {
 // - `0`: london hardfork enabled but feemarket is not enabled.
 // - `n`: both london hardfork and feemarket are enabled.
 func (k Keeper) GetBaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int {
-	return k.getBaseFee(ctx, types.IsLondon(ethCfg, ctx.BlockHeight()))
-}
-
-func (k Keeper) getBaseFee(ctx sdk.Context, london bool) *big.Int {
-	if !london {
+	isLondon := types.IsLondon(ethCfg, ctx.BlockHeight())
+	if !isLondon {
 		return nil
 	}
+
 	baseFee := k.feeMarketKeeper.GetBaseFee(ctx)
 	if baseFee == nil {
 		// return 0 if feemarket not enabled.
 		baseFee = big.NewInt(0)
 	}
+
 	return baseFee
 }
 
@@ -335,9 +326,6 @@ func (k Keeper) ResetTransientGasUsed(ctx sdk.Context) {
 func (k Keeper) GetTransientGasUsed(ctx sdk.Context) uint64 {
 	store := ctx.TransientStore(k.transientKey)
 	bz := store.Get(types.KeyPrefixTransientGasUsed)
-	if len(bz) == 0 {
-		return 0
-	}
 	return sdk.BigEndianToUint64(bz)
 }
 
