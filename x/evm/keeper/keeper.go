@@ -214,6 +214,25 @@ func (k Keeper) GetLogCountForTdxIndexTransient(ctx sdk.Context, txIdx uint64) u
 	return sdk.BigEndianToUint64(bz)
 }
 
+// GetCumulativeLogCountTransient returns the total log count for all transactions in the current block.
+func (k Keeper) GetCumulativeLogCountTransient(ctx sdk.Context, exceptLast bool) uint64 {
+	store := ctx.TransientStore(k.transientKey)
+
+	var total uint64
+
+	txCount := k.GetTxCountTransient(ctx)
+	for i := uint64(0); i < txCount; i++ {
+		if exceptLast && i == txCount-1 {
+			continue
+		}
+
+		bz := store.Get(types.TxLogCountTransientKey(i))
+		total += sdk.BigEndianToUint64(bz)
+	}
+
+	return total
+}
+
 // ----------------------------------------------------------------------------
 // Log
 // ----------------------------------------------------------------------------

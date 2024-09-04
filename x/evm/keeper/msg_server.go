@@ -123,13 +123,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 		sdk.NewAttribute(types.AttributeKeyReceiptEffectiveGasPrice, txData.EffectiveGasPrice(baseFee).String()),
 		sdk.NewAttribute(types.AttributeKeyReceiptBlockNumber, strconv.FormatInt(ctx.BlockHeight(), 10)),
 		sdk.NewAttribute(types.AttributeKeyReceiptTxIndex, strconv.FormatUint(txIndex, 10)),
-		sdk.NewAttribute(types.AttributeKeyReceiptStartLogIndex, strconv.FormatUint(func() uint64 {
-			var cumulativeLogCount, prevTxIdx uint64
-			for prevTxIdx = 0; prevTxIdx < txIndex; prevTxIdx++ {
-				cumulativeLogCount += k.GetLogCountForTdxIndexTransient(ctx, prevTxIdx)
-			}
-			return cumulativeLogCount
-		}(), 10)),
+		sdk.NewAttribute(types.AttributeKeyReceiptStartLogIndex, strconv.FormatUint(k.GetCumulativeLogCountTransient(ctx, true), 10)),
 	}
 
 	// emit events
