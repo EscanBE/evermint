@@ -19,6 +19,6 @@ func NewMigrator(keeper Keeper, legacySubspace types.Subspace) Migrator {
 	}
 }
 
-func (m Migrator) Migrate(_ sdk.Context) error {
+func (m Migrator) NoOpMigrate(_ sdk.Context) error {
 	return nil
 }

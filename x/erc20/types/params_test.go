@@ -24,7 +24,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		{"default", types.DefaultParams(), false},
 		{
 			"valid",
-			types.NewParams(true, true),
+			types.NewParams(true),
 			false,
 		},
 		{

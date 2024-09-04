@@ -122,8 +122,8 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), &am.keeper)
 
 	m := keeper.NewMigrator(am.keeper, am.legacySubspace)
-	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate); err != nil {
-		panic(err)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, m.NoOpMigrate); err != nil {
+		panic(fmt.Errorf("failed to migrate %s: %w", types.ModuleName, err))
 	}
 }
 
