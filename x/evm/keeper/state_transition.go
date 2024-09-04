@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"github.com/EscanBE/evermint/v12/utils"
 	"math"
 	"math/big"
 
@@ -18,7 +17,6 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 )
 
@@ -147,19 +145,8 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 	}
 	txConfig = txConfig.WithTxTypeFromMessage(msg)
 
-	// snapshot to contain the tx processing and post processing in same scope
-	var commit func()
-	tmpCtx := ctx
-	if k.hooks != nil {
-		// Create a cache context to revert state when tx hooks fails,
-		// the cache context is only committed when both tx and hooks executed successfully.
-		// Didn't use `Snapshot` because the context stack has exponential complexity on certain operations,
-		// thus restricted to be used only inside `ApplyMessage`.
-		tmpCtx, commit = ctx.CacheContext()
-	}
-
 	// pass true to commit the StateDB
-	res, err := k.ApplyMessageWithConfig(tmpCtx, msg, nil, true, cfg, txConfig)
+	res, err := k.ApplyMessageWithConfig(ctx, msg, nil, true, cfg, txConfig)
 	if err != nil {
 		// Refer to EIP-140 https://eips.ethereum.org/EIPS/eip-140
 		// Opcode REVERT provides a way to stop execution and revert state changes, without consuming all provided gas.
@@ -168,59 +155,6 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 		k.ResetGasMeterAndConsumeGas(ctx, ctx.GasMeter().Limit())
 
 		return nil, errorsmod.Wrap(err, "failed to apply ethereum core message")
-	}
-
-	receipt := &ethtypes.Receipt{}
-	if err := receipt.UnmarshalBinary(res.MarshalledReceipt); err != nil {
-		return nil, errorsmod.Wrap(err, "failed to unmarshal receipt")
-	}
-
-	// fill other non-consensus fields
-	{
-		receipt.TxHash = txConfig.TxHash
-		if msg.To() == nil {
-			receipt.ContractAddress = crypto.CreateAddress(msg.From(), msg.Nonce())
-		}
-		receipt.GasUsed = res.GasUsed
-		receipt.BlockHash = txConfig.BlockHash
-		receipt.BlockNumber = big.NewInt(ctx.BlockHeight())
-		receipt.TransactionIndex = txConfig.TxIndex
-	}
-
-	isSuccess := func() bool {
-		return receipt.Status == ethtypes.ReceiptStatusSuccessful
-	}
-
-	if isSuccess() {
-		// Only call hooks if tx executed successfully.
-		if k.hooks != nil {
-			if err = k.PostTxProcessing(tmpCtx, msg, receipt); err != nil {
-				// If hooks return error, revert the whole tx.
-				res.VmError = types.ErrPostTxProcessing.Error()
-				k.Logger(ctx).Error("tx post processing failed", "error", err)
-
-				// If the tx failed in post-processing hooks, we should update receipt and clear the logs
-				receipt = utils.Ptr(utils.MoveReceiptStatusToFailed(*receipt, res.GasUsed, tx.Gas()))
-			}
-
-			receipt.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{receipt})
-			bzReceipt, err := receipt.MarshalBinary()
-			if err != nil {
-				return nil, errorsmod.Wrap(err, "failed to marshal receipt")
-			}
-			res.MarshalledReceipt = bzReceipt
-
-			k.SetLogCountForCurrentTxTransient(ctx, uint64(len(receipt.Logs)))
-			k.SetGasUsedForCurrentTxTransient(ctx, receipt.GasUsed)
-			k.SetTxReceiptForCurrentTxTransient(ctx, bzReceipt)
-		}
-
-		// we check the success status again because post-processing can change the status
-		if isSuccess() && commit != nil {
-			// commit the tmpCtx
-			commit()
-			ctx.EventManager().EmitEvents(tmpCtx.EventManager().Events())
-		}
 	}
 
 	// reset the gas meter for current cosmos transaction

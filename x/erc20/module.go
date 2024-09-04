@@ -126,9 +126,8 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	// NOTE: the migrations below will only run if the consensus version has changed
 	// since the last release
 
-	// register v2 -> v3 migration
-	if err := cfg.RegisterMigration(types.ModuleName, 2, migrator.Migrate2to3); err != nil {
-		panic(fmt.Errorf("failed to migrate %s to v2: %w", types.ModuleName, err))
+	if err := cfg.RegisterMigration(types.ModuleName, 1, migrator.NoOpMigrate); err != nil {
+		panic(fmt.Errorf("failed to migrate %s: %w", types.ModuleName, err))
 	}
 }
 

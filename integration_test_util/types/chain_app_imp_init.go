@@ -116,14 +116,14 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 	}
 
 	app := chainapp.NewEvermint(
-		logger,                                                 // logger
-		db,                                                     // db
-		nil,                                                    // trace store
-		true,                                                   // load latest
-		map[int64]bool{},                                       // skipUpgradeHeights
-		defaultNodeHome,                                        // homePath
-		0,                                                      // invCheckPeriod
-		encCfg,                                                 // encodingConfig
+		logger,           // logger
+		db,               // db
+		nil,              // trace store
+		true,             // load latest
+		map[int64]bool{}, // skipUpgradeHeights
+		defaultNodeHome,  // homePath
+		0,                // invCheckPeriod
+		encCfg,           // encodingConfig
 		simtestutil.NewAppOptionsWithFlagHome(defaultNodeHome), // appOpts
 		baseapp.SetChainID(chainCfg.CosmosChainId),             // baseAppOptions
 	)
@@ -346,7 +346,6 @@ func genesisStateWithValSet(chainCfg ChainConfig, disableTendermint bool, testCo
 		erc20Genesis = erc20types.DefaultGenesisState()
 		if erc20Genesis != nil {
 			erc20Genesis.Params.EnableErc20 = true
-			erc20Genesis.Params.EnableEVMHook = true
 			genesisState[erc20types.ModuleName] = codec.MustMarshalJSON(erc20Genesis)
 		}
 	}
