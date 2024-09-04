@@ -113,6 +113,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evm) [#133](https://github.com/EscanBE/evermint/pull/133) Remove some fields from EVM tx indexer and adjust emits legacy events
 - (evm) [#134](https://github.com/EscanBE/evermint/pull/134) Remove the 2nd ethereum event, use receipt event only
 - (evm+erc20) [#140](https://github.com/EscanBE/evermint/pull/140) Remove EVM Hooks logic
+- (erc20) [#141](https://github.com/EscanBE/evermint/pull/141) Remove `x/erc20` auto-convert logic
 
 # Evermint changelog
 

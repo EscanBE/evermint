@@ -5,13 +5,13 @@ import (
 	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	feemarketkeeper "github.com/EscanBE/evermint/v12/x/feemarket/keeper"
-	ibctransferkeeper "github.com/EscanBE/evermint/v12/x/ibc/transfer/keeper"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	distkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 )
 
