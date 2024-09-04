@@ -2,18 +2,16 @@ package backend
 
 import (
 	"fmt"
-	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
-	"math"
-	"math/big"
-
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	"github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/pkg/errors"
+	"math"
 )
 
 // GetTransactionByHash returns the Ethereum format transaction identified by Ethereum transaction hash
@@ -118,21 +116,6 @@ func (b *Backend) getTransactionByHashPending(txHash common.Hash) (*rpctypes.RPC
 
 	b.logger.Debug("tx not found", "hash", hexTx)
 	return nil, nil
-}
-
-// GetGasUsed returns gasUsed from transaction
-func (b *Backend) GetGasUsed(res *types.TxResult, price *big.Int, gas uint64) uint64 {
-	return b.getGasUsed(!res.Failed, res.Height, price, gas, res.GasUsed)
-}
-
-func (b *Backend) getGasUsed(success bool, height int64, price *big.Int, gas, recordedGasUsed uint64) uint64 {
-	// patch gasUsed if tx is reverted and happened before height on which fixed was introduced
-	// to return real gas charged
-	// more info at https://github.com/evmos/ethermint/pull/1557
-	if !success && height < b.cfg.JSONRPC.FixRevertGasRefundHeight {
-		return new(big.Int).Mul(price, new(big.Int).SetUint64(gas)).Uint64()
-	}
-	return recordedGasUsed
 }
 
 // GetTransactionReceipt returns the transaction receipt identified by hash.
