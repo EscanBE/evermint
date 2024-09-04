@@ -86,15 +86,27 @@ func UseZeroGasConfig(ctx sdk.Context) sdk.Context {
 	return ctx.WithKVGasConfig(storetypes.GasConfig{}).WithTransientKVGasConfig(storetypes.GasConfig{})
 }
 
-// MoveReceiptStatusToFailed switch state of Ethereum receipt to failed, consensus fields only
+// MoveReceiptStatusToFailed switch state of Ethereum receipt to failed
 func MoveReceiptStatusToFailed(receipt ethtypes.Receipt, existingGasUsed, newGasUsed uint64) ethtypes.Receipt {
 	receiptOfFailed := ethtypes.Receipt{
+		// consensus fields
 		Type:              receipt.Type,
 		PostState:         receipt.PostState,
 		Status:            ethtypes.ReceiptStatusFailed,
 		CumulativeGasUsed: receipt.CumulativeGasUsed - existingGasUsed + newGasUsed,
 		Bloom:             ethtypes.Bloom{}, // compute bellow
 		Logs:              []*ethtypes.Log{},
+
+		// other fields
+
+		// override
+		GasUsed: newGasUsed, // consume all gas
+		// copy others
+		TxHash:           receipt.TxHash,
+		ContractAddress:  receipt.ContractAddress,
+		BlockHash:        receipt.BlockHash,
+		BlockNumber:      receipt.BlockNumber,
+		TransactionIndex: receipt.TransactionIndex,
 	}
 
 	receiptOfFailed.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{&receiptOfFailed})
