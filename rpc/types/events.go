@@ -23,16 +23,16 @@ type ParsedTx struct {
 func ParseTxResult(result *abci.ResponseDeliverTx, tx sdk.Tx) (*ParsedTx, error) {
 	var p *ParsedTx
 
-	var eventSetCount int
+	var foundEventEthTx bool
+	var foundEventReceipt bool
 	for _, event := range result.Events {
-		switch event.Type {
-		case evmtypes.EventTypeEthereumTx, evmtypes.EventTypeTxReceipt:
-		// ok
-		default:
+		if event.Type == evmtypes.EventTypeEthereumTx {
+			foundEventEthTx = true
+		} else if event.Type == evmtypes.EventTypeTxReceipt {
+			foundEventReceipt = true
+		} else {
 			continue
 		}
-
-		eventSetCount++
 
 		if p == nil {
 			p = &ParsedTx{
@@ -49,8 +49,11 @@ func ParseTxResult(result *abci.ResponseDeliverTx, tx sdk.Tx) (*ParsedTx, error)
 		if result.Code != 0 && tx != nil {
 			// this could only happen if tx exceeds block gas limit
 			p.Failed = true
-		} else if eventSetCount < 2 {
-			// if the second part of the event is missing, tx was failed
+		} else if !foundEventEthTx {
+			// tx was aborted before ante handler, maybe due to block gas limit
+			p.Failed = true
+		} else if !foundEventReceipt {
+			// tx failed and no receipt event found
 			p.Failed = true
 		}
 	}
