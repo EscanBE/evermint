@@ -63,4 +63,5 @@ evmd convert-address evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz evmos
 2. [Rename chain](https://github.com/EscanBE/evermint/blob/main/RENAME_CHAIN.md)
 3. [`snapshots` command](https://github.com/EscanBE/evermint/pull/12)
 4. [`inspect` command](https://github.com/EscanBE/evermint/pull/14)
-5. Dependencies updated: `Cosmos-SDK v0.47.13`, `CometBFT v0.37.5`, `ibc-go v7.8.0`, `go-ethereum v1.10.26`
+5. [Flag `--allow-insecure-unlock`](https://github.com/EscanBE/evermint/pull/142)
+6. Dependencies updated: `Cosmos-SDK v0.47.13`, `CometBFT v0.37.5`, `ibc-go v7.8.0`, `go-ethereum v1.10.26`
