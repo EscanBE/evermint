@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/EscanBE/evermint/v12/utils"
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,10 +19,11 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
 // an empty slice.
 func (k *Keeper) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	// Gas costs are handled within msg handler so costs should be ignored
-	infCtx := ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+	zeroGasCtx := utils.UseZeroGasConfig(ctx.WithGasMeter(sdk.NewInfiniteGasMeter()))
 
-	bloom := ethtypes.BytesToBloom(k.GetBlockBloomTransient(infCtx).Bytes())
-	k.EmitBlockBloomEvent(infCtx, bloom)
+	receipts := k.GetTxReceiptsTransient(zeroGasCtx)
+	bloom := ethtypes.CreateBloom(receipts)
+	k.EmitBlockBloomEvent(zeroGasCtx, bloom)
 
 	return []abci.ValidatorUpdate{}
 }

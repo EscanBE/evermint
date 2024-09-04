@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"cosmossdk.io/errors"
+	"fmt"
 	"github.com/EscanBE/evermint/v12/utils"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -174,13 +175,18 @@ func (k Keeper) IncreaseTxCountTransient(ctx sdk.Context) {
 // GetTxCountTransient returns the count of transaction being processed in the current block.
 // Notice: if not set, it returns 1
 func (k Keeper) GetTxCountTransient(ctx sdk.Context) uint64 {
-	store := ctx.TransientStore(k.transientKey)
-	bz := store.Get(types.KeyTransientTxCount)
-	count := sdk.BigEndianToUint64(bz)
+	count := k.GetRawTxCountTransient(ctx)
 	if count < 1 {
 		count = 1
 	}
 	return count
+}
+
+// GetRawTxCountTransient returns the raw count of transaction being processed in the current block.
+func (k Keeper) GetRawTxCountTransient(ctx sdk.Context) uint64 {
+	store := ctx.TransientStore(k.transientKey)
+	bz := store.Get(types.KeyTransientTxCount)
+	return sdk.BigEndianToUint64(bz)
 }
 
 // SetGasUsedForCurrentTxTransient sets the gas used for the current transaction in the transient store,
@@ -240,6 +246,29 @@ func (k Keeper) SetTxReceiptForCurrentTxTransient(ctx sdk.Context, receiptBz []b
 
 	store := ctx.TransientStore(k.transientKey)
 	store.Set(types.TxReceiptTransientKey(txIdx), receiptBz)
+}
+
+// GetTxReceiptsTransient returns the receipts for all transactions in the current block.
+func (k Keeper) GetTxReceiptsTransient(ctx sdk.Context) (receipts ethtypes.Receipts) {
+	txCount := k.GetRawTxCountTransient(ctx)
+
+	store := ctx.TransientStore(k.transientKey)
+
+	for txIdx := uint64(0); txIdx < txCount; txIdx++ {
+		bzReceipt := store.Get(types.TxReceiptTransientKey(txIdx))
+		if len(bzReceipt) == 0 {
+			panic(fmt.Sprintf("receipt not found for tx at %d", txIdx))
+		}
+
+		receipt := &ethtypes.Receipt{}
+		if err := receipt.UnmarshalBinary(bzReceipt); err != nil {
+			panic(errors.Wrapf(err, "failed to unmarshal receipt at idx: %d", txIdx))
+		}
+
+		receipts = append(receipts, receipt)
+	}
+
+	return
 }
 
 // ----------------------------------------------------------------------------
