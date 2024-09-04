@@ -192,8 +192,10 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 	}
 
 	if isSuccess() {
-		receipt.Status = ethtypes.ReceiptStatusSuccessful
+		k.SetGasUsedForCurrentTxTransient(ctx, res.GasUsed)
+	}
 
+	if isSuccess() {
 		// Only call hooks if tx executed successfully.
 		if err = k.PostTxProcessing(tmpCtx, msg, receipt); err != nil {
 			// If hooks return error, revert the whole tx.
@@ -203,6 +205,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 			// If the tx failed in post-processing hooks, we should update receipt and clear the logs
 			newReceipt := utils.MoveReceiptStatusToFailed(*receipt, res.GasUsed, tx.Gas())
 			receipt = &newReceipt
+			k.SetGasUsedForCurrentTxTransient(ctx, tx.Gas())
 		}
 
 		if isSuccess() && commit != nil {
@@ -387,14 +390,10 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		txType = uint8(txConfig.TxType)
 	}
 
-	// TODO: use transient and tracking correctly
 	cumulativeGasUsed := gasUsed
-	if ctx.BlockGasMeter() != nil {
-		limit := ctx.BlockGasMeter().Limit()
-		cumulativeGasUsed += ctx.BlockGasMeter().GasConsumed()
-		if cumulativeGasUsed > limit {
-			cumulativeGasUsed = limit
-		}
+	var prevTxIdx uint64
+	for prevTxIdx = 0; prevTxIdx < uint64(txConfig.TxIndex); prevTxIdx++ {
+		cumulativeGasUsed += k.GetGasUsedForTdxIndexTransient(ctx, prevTxIdx)
 	}
 
 	receipt := ethtypes.Receipt{

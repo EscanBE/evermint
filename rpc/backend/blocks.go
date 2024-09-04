@@ -383,21 +383,6 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 		return nil, errors.Wrap(err, "failed to query consensus params")
 	}
 
-	var gasUsed uint64
-	var gasUsedByTxs []uint64
-	for _, txResult := range blockRes.TxsResults {
-		gasUsedByTx := uint64(txResult.GetGasUsed()) // #nosec G701 -- checked for int overflow already
-
-		// workaround for cosmos-sdk bug. https://github.com/cosmos/cosmos-sdk/issues/10832
-		if ShouldIgnoreGasUsed(txResult) {
-			// block gas limit has exceeded, other txs must have failed with same reason.
-			gasUsedByTx = 0
-		}
-
-		gasUsed += gasUsedByTx
-		gasUsedByTxs = append(gasUsedByTxs, gasUsedByTx)
-	}
-
 	baseFee, err := b.BaseFee(blockRes)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to fetch base fee. Pruned block %d?", block.Height)
@@ -419,12 +404,6 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 			return nil, err
 		}
 
-		var cumulativeGasUsed uint64
-		for _, gasUsedByTx := range gasUsedByTxs[0:indexedTxByHash.TxIndex] { // previous txs
-			cumulativeGasUsed += gasUsedByTx
-		}
-		cumulativeGasUsed += indexedTxByHash.CumulativeGasUsed
-
 		icReceipt, err := TxReceiptFromEvent(blockRes.TxsResults[indexedTxByHash.TxIndex].Events)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to parse receipt from events")
@@ -433,10 +412,13 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 		var startLogIndex uint = 0 // we ignore the real index because the receipt is only be used for compute receipt root
 		icReceipt.Fill(common.BytesToHash(resBlock.BlockID.Hash.Bytes()), startLogIndex)
 
-		receipt := icReceipt.Receipt
-		receipt.CumulativeGasUsed = cumulativeGasUsed // TODO LOG: what should we respect? Receipt or self calculation
+		receipts = append(receipts, icReceipt.Receipt)
+	}
 
-		receipts = append(receipts, receipt)
+	// prepare gas used
+	var blockGasUsed uint64
+	if len(receipts) > 0 {
+		blockGasUsed = receipts[len(receipts)-1].CumulativeGasUsed
 	}
 
 	// prepare block-bloom information
@@ -449,7 +431,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 		block.Header,
 		b.chainID,
 		block.Size(),
-		gasLimit, new(big.Int).SetUint64(gasUsed), baseFee,
+		gasLimit, new(big.Int).SetUint64(blockGasUsed), baseFee,
 		transactions, fullTx,
 		receipts,
 		bloom,

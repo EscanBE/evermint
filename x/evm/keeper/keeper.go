@@ -182,6 +182,22 @@ func (k Keeper) GetTxCountTransient(ctx sdk.Context) uint64 {
 	return count
 }
 
+// SetGasUsedForCurrentTxTransient sets the gas used for the current transaction in the transient store,
+// based on the transient tx counter.
+func (k Keeper) SetGasUsedForCurrentTxTransient(ctx sdk.Context, gas uint64) {
+	txIdx := k.GetTxCountTransient(ctx)
+
+	store := ctx.TransientStore(k.transientKey)
+	store.Set(types.TxGasTransientKey(txIdx), sdk.Uint64ToBigEndian(gas))
+}
+
+// GetGasUsedForTdxIndexTransient returns gas used for tx by index from the transient store.
+func (k Keeper) GetGasUsedForTdxIndexTransient(ctx sdk.Context, txIdx uint64) uint64 {
+	store := ctx.TransientStore(k.transientKey)
+	bz := store.Get(types.TxGasTransientKey(txIdx))
+	return sdk.BigEndianToUint64(bz)
+}
+
 // ----------------------------------------------------------------------------
 // Log
 // ----------------------------------------------------------------------------
@@ -326,9 +342,11 @@ func (k Keeper) GetBaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int
 // SetupExecutionContext setups the execution context for the EVM transaction execution:
 //   - Use zero gas config
 //   - Increase the count of transaction being processed in the current block
-func (k Keeper) SetupExecutionContext(ctx sdk.Context) sdk.Context {
+//   - Set the gas used for the current transaction, assume tx failed so gas used = tx gas
+func (k Keeper) SetupExecutionContext(ctx sdk.Context, txGas uint64) sdk.Context {
 	ctx = utils.UseZeroGasConfig(ctx)
 	k.IncreaseTxCountTransient(ctx)
+	k.SetGasUsedForCurrentTxTransient(ctx, txGas)
 
 	return ctx
 }

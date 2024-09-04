@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -36,6 +37,7 @@ const (
 	prefixTransientLogSize
 	prefixTransientGasUsed // deprecated
 	prefixTransientTxCount
+	prefixTransientTxGas
 )
 
 // KVStore key prefixes
@@ -50,6 +52,7 @@ var (
 var (
 	KeyPrefixTransientBloom   = []byte{prefixTransientBloom}
 	KeyPrefixTransientLogSize = []byte{prefixTransientLogSize}
+	KeyPrefixTransientTxGas   = []byte{prefixTransientTxGas}
 )
 
 // Transient Store key
@@ -65,4 +68,8 @@ func AddressStoragePrefix(address common.Address) []byte {
 // StateKey defines the full key under which an account state is stored.
 func StateKey(address common.Address, key []byte) []byte {
 	return append(AddressStoragePrefix(address), key...)
+}
+
+func TxGasTransientKey(txIdx uint64) []byte {
+	return append(KeyPrefixTransientTxGas, sdk.Uint64ToBigEndian(txIdx)...)
 }

@@ -180,12 +180,6 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 
 	ethMsg := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
-	cumulativeGasUsed := uint64(0)
-	for _, txResult := range blockRes.TxsResults[0:res.TxIndex] {
-		cumulativeGasUsed += uint64(txResult.GasUsed) // #nosec G701 -- checked for int overflow already
-	}
-	cumulativeGasUsed += res.CumulativeGasUsed
-
 	chainID, err := b.ChainID()
 	if err != nil {
 		return nil, err
@@ -198,12 +192,9 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 	var startLogIdx uint = 0 // TODO LOG: what should it be?
 	icReceipt.Fill(common.BytesToHash(resBlock.BlockID.Hash.Bytes()), startLogIdx)
 
-	receipt := icReceipt.Receipt
-	receipt.CumulativeGasUsed = cumulativeGasUsed // TODO LOG: what should we respect? Receipt or self calculation
-
 	return rpctypes.NewRPCReceiptFromReceipt(
 		ethMsg,
-		receipt,
+		icReceipt.Receipt,
 		icReceipt.EffectiveGasPrice,
 		chainID.ToInt(),
 	)

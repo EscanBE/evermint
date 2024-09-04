@@ -24,8 +24,10 @@ message TxResult {
   bool failed = 5;
   // gas_used by the transaction. If it exceeds the block gas limit,
   // it's set to gas limit, which is what's actually deducted by ante handler.
+  // TODO LOG: consider remove?
   uint64 gas_used = 6;
   // cumulative_gas_used specifies the cumulated amount of gas used for all
   // processed messages within the current batch transaction.
+  // TODO LOG: consider remove?
   uint64 cumulative_gas_used = 7;
 }
