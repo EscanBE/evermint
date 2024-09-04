@@ -189,8 +189,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse receipt from events")
 	}
-	var startLogIdx uint = 0 // TODO LOG: what should it be?
-	icReceipt.Fill(common.BytesToHash(resBlock.BlockID.Hash.Bytes()), startLogIdx)
+	icReceipt.Fill(common.BytesToHash(resBlock.BlockID.Hash.Bytes()))
 
 	return rpctypes.NewRPCReceiptFromReceipt(
 		ethMsg,

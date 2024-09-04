@@ -225,21 +225,17 @@ func AllTxLogsFromEvents(events []abci.Event) ([][]*ethtypes.Log, error) {
 
 // InCompletedEthReceipt holds an in-completed Ethereum receipt, missing:
 // - Block hash in receipt.
-// - Block hash and log index in logs.
+// - Block hash in each log element.
 type InCompletedEthReceipt struct {
 	*ethtypes.Receipt
 	EffectiveGasPrice *big.Int
 }
 
 // Fill the missing fields for the receipt
-func (r *InCompletedEthReceipt) Fill(blockHash common.Hash, startLogIndex uint) {
+func (r *InCompletedEthReceipt) Fill(blockHash common.Hash) {
 	r.Receipt.BlockHash = blockHash
-
-	idx := startLogIndex
 	for _, log := range r.Receipt.Logs {
 		log.BlockHash = blockHash
-		log.Index = idx
-		idx++
 	}
 }
 
@@ -257,7 +253,7 @@ func TxReceiptFromEvent(events []abci.Event) (*InCompletedEthReceipt, error) {
 // ParseTxReceiptFromEvent parse tx receipt from one event.
 // The output receipt will be:
 // - Missing block hash in receipt.
-// - Missing block hash and log index in logs.
+// - Missing block hash in each log element.
 func ParseTxReceiptFromEvent(event abci.Event) (*InCompletedEthReceipt, error) {
 	if event.Type != evmtypes.EventTypeTxReceipt {
 		panic(fmt.Sprintf("wrong event, expected: %s, got: %s", evmtypes.EventTypeTxReceipt, event.Type))
@@ -327,6 +323,15 @@ func ParseTxReceiptFromEvent(event abci.Event) (*InCompletedEthReceipt, error) {
 		return nil, fmt.Errorf("bad event attribute value: %s = %s", evmtypes.AttributeKeyReceiptEffectiveGasPrice, effectiveGasPriceRaw)
 	}
 
+	startLogIndexRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptStartLogIndex)
+	if !found {
+		return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptStartLogIndex)
+	}
+	startLogIndex, err := strconv.ParseUint(startLogIndexRaw, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("bad event attribute value: %s = %s", evmtypes.AttributeKeyReceiptStartLogIndex, startLogIndexRaw)
+	}
+
 	// fill data
 	receipt.TxHash = txHash
 	receipt.ContractAddress = contractAddr
@@ -334,10 +339,11 @@ func ParseTxReceiptFromEvent(event abci.Event) (*InCompletedEthReceipt, error) {
 	receipt.BlockNumber = new(big.Int).SetUint64(blockNumber)
 	receipt.TransactionIndex = uint(txIndex)
 
-	for _, log := range receipt.Logs {
+	for i, log := range receipt.Logs {
 		log.BlockNumber = blockNumber
 		log.TxHash = receipt.TxHash
 		log.TxIndex = receipt.TransactionIndex
+		log.Index = uint(startLogIndex + uint64(i))
 	}
 
 	return &InCompletedEthReceipt{

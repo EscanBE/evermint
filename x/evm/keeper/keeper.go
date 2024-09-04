@@ -198,11 +198,28 @@ func (k Keeper) GetGasUsedForTdxIndexTransient(ctx sdk.Context, txIdx uint64) ui
 	return sdk.BigEndianToUint64(bz)
 }
 
+// SetLogCountForCurrentTxTransient sets the log count for the current transaction in the transient store,
+// based on the transient tx counter.
+func (k Keeper) SetLogCountForCurrentTxTransient(ctx sdk.Context, count uint64) {
+	txIdx := k.GetTxCountTransient(ctx) - 1
+
+	store := ctx.TransientStore(k.transientKey)
+	store.Set(types.TxLogCountTransientKey(txIdx), sdk.Uint64ToBigEndian(count))
+}
+
+// GetLogCountForTdxIndexTransient returns log count for tx by index from the transient store.
+func (k Keeper) GetLogCountForTdxIndexTransient(ctx sdk.Context, txIdx uint64) uint64 {
+	store := ctx.TransientStore(k.transientKey)
+	bz := store.Get(types.TxLogCountTransientKey(txIdx))
+	return sdk.BigEndianToUint64(bz)
+}
+
 // ----------------------------------------------------------------------------
 // Log
 // ----------------------------------------------------------------------------
 
 // GetLogSizeTransient returns EVM log index on the current block.
+// TODO LOG: consider remove
 func (k Keeper) GetLogSizeTransient(ctx sdk.Context) uint64 {
 	store := ctx.TransientStore(k.transientKey)
 	bz := store.Get(types.KeyPrefixTransientLogSize)

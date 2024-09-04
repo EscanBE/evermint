@@ -419,6 +419,8 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		}
 	}
 
+	k.SetLogCountForCurrentTxTransient(ctx, uint64(len(receipt.Logs)))
+
 	bzReceipt, err := receipt.MarshalBinary()
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to marshal receipt")

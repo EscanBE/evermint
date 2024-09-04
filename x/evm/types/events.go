@@ -18,7 +18,8 @@ const (
 	AttributeKeyReceiptGasUsed           = "gasUsed"
 	AttributeKeyReceiptEffectiveGasPrice = "effectiveGasPrice"
 	AttributeKeyReceiptBlockNumber       = "blockNumber"
-	AttributeKeyReceiptTxIndex           = "txIndex"
+	AttributeKeyReceiptTxIndex           = "txIdx"
+	AttributeKeyReceiptStartLogIndex     = "logIdx"
 	// tx failed in eth vm execution
 	AttributeKeyEthereumTxFailed = "ethereumTxFailed"
 	AttributeValueCategory       = ModuleName

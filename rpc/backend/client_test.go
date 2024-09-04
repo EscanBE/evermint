@@ -252,6 +252,16 @@ func BuildBlockResultsWithEventReceipt(height int64, receipt *ethtypes.Receipt) 
 								Value: "0",
 								Index: true,
 							},
+							{
+								Key: evmtypes.AttributeKeyReceiptStartLogIndex,
+								Value: func() string {
+									if len(receipt.Logs) == 0 {
+										return "0"
+									}
+									return strconv.FormatUint(uint64(receipt.Logs[0].Index), 10)
+								}(),
+								Index: true,
+							},
 						},
 					},
 				},

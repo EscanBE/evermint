@@ -38,6 +38,7 @@ const (
 	prefixTransientGasUsed // deprecated
 	prefixTransientTxCount
 	prefixTransientTxGas
+	prefixTransientTxLogCount
 )
 
 // KVStore key prefixes
@@ -50,9 +51,10 @@ var (
 
 // Transient Store key prefixes
 var (
-	KeyPrefixTransientBloom   = []byte{prefixTransientBloom}
-	KeyPrefixTransientLogSize = []byte{prefixTransientLogSize}
-	KeyPrefixTransientTxGas   = []byte{prefixTransientTxGas}
+	KeyPrefixTransientBloom      = []byte{prefixTransientBloom}
+	KeyPrefixTransientLogSize    = []byte{prefixTransientLogSize}
+	KeyPrefixTransientTxGas      = []byte{prefixTransientTxGas}
+	KeyPrefixTransientTxLogCount = []byte{prefixTransientTxLogCount}
 )
 
 // Transient Store key
@@ -72,4 +74,8 @@ func StateKey(address common.Address, key []byte) []byte {
 
 func TxGasTransientKey(txIdx uint64) []byte {
 	return append(KeyPrefixTransientTxGas, sdk.Uint64ToBigEndian(txIdx)...)
+}
+
+func TxLogCountTransientKey(txIdx uint64) []byte {
+	return append(KeyPrefixTransientTxLogCount, sdk.Uint64ToBigEndian(txIdx)...)
 }

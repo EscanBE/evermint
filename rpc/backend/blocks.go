@@ -409,8 +409,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 			return nil, errors.Wrap(err, "failed to parse receipt from events")
 		}
 
-		var startLogIndex uint = 0 // we ignore the real index because the receipt is only be used for compute receipt root
-		icReceipt.Fill(common.BytesToHash(resBlock.BlockID.Hash.Bytes()), startLogIndex)
+		icReceipt.Fill(common.BytesToHash(resBlock.BlockID.Hash.Bytes()))
 
 		receipts = append(receipts, icReceipt.Receipt)
 	}

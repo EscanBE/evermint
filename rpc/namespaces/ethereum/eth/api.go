@@ -436,8 +436,7 @@ func (e *PublicAPI) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, err
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get receipt from event")
 	}
-	var startLogIdx uint = 0 // TODO LOG: what should it be?
-	icReceipt.Fill(common.BytesToHash(resBlock.BlockID.Hash.Bytes()), startLogIdx)
+	icReceipt.Fill(common.BytesToHash(resBlock.BlockID.Hash.Bytes()))
 
 	return icReceipt.Logs, nil
 }
