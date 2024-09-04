@@ -469,12 +469,6 @@ func NewEvermint(
 		),
 	)
 
-	chainApp.EvmKeeper = chainApp.EvmKeeper.SetHooks(
-		evmkeeper.NewMultiEvmHooks(
-		//
-		),
-	)
-
 	chainApp.TransferKeeper = transferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], chainApp.GetSubspace(ibctransfertypes.ModuleName),
 		chainApp.IBCKeeper.ChannelKeeper, // No ICS4 wrapper

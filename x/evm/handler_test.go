@@ -1,7 +1,6 @@
 package evm_test
 
 import (
-	"errors"
 	"github.com/EscanBE/evermint/v12/constants"
 	"math/big"
 	"testing"
@@ -23,7 +22,6 @@ import (
 
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
@@ -614,38 +612,22 @@ func (suite *EvmTestSuite) deployERC20Contract() common.Address {
 // - when transaction reverted, nonce is still increased.
 func (suite *EvmTestSuite) TestERC20TransferReverted() {
 	intrinsicGas := uint64(21572)
-	// test different hooks scenarios
 	testCases := []struct {
 		msg      string
 		gasLimit uint64
-		hooks    types.EvmHooks
 		expErr   string
 	}{
 		{
-			msg:      "no hooks",
+			msg:      "default",
 			gasLimit: intrinsicGas, // enough for intrinsicGas, but not enough for execution
-			hooks:    nil,
 			expErr:   "out of gas",
-		},
-		{
-			msg:      "success hooks",
-			gasLimit: intrinsicGas, // enough for intrinsicGas, but not enough for execution
-			hooks:    &DummyHook{},
-			expErr:   "out of gas",
-		},
-		{
-			msg:      "failure hooks",
-			gasLimit: 1000000, // enough gas limit, but hooks fails.
-			hooks:    &FailureHook{},
-			expErr:   "failed to execute post processing",
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.msg, func() {
 			suite.SetupTest()
-			k := suite.app.EvmKeeper.CleanHooks()
-			k.SetHooks(tc.hooks)
+			k := suite.app.EvmKeeper
 
 			// add some fund to pay gas fee
 			err := k.SetBalance(suite.ctx, suite.from, big.NewInt(1000000000000001))
@@ -719,27 +701,17 @@ func (suite *EvmTestSuite) TestContractDeploymentRevert() {
 	testCases := []struct {
 		msg      string
 		gasLimit uint64
-		hooks    types.EvmHooks
 	}{
 		{
-			"no hooks",
+			"success",
 			intrinsicGas,
-			nil,
-		},
-		{
-			"success hooks",
-			intrinsicGas,
-			&DummyHook{},
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.msg, func() {
 			suite.SetupTest()
-			k := suite.app.EvmKeeper.CleanHooks()
-
-			// test with different hooks scenarios
-			k.SetHooks(tc.hooks)
+			k := suite.app.EvmKeeper
 
 			nonce := k.GetNonce(suite.ctx, suite.from)
 			ctorArgs, err := types.ERC20Contract.ABI.Pack("", suite.from, big.NewInt(0))
@@ -767,18 +739,4 @@ func (suite *EvmTestSuite) TestContractDeploymentRevert() {
 			suite.Require().Equal(nonce+1, nonce2)
 		})
 	}
-}
-
-// DummyHook implements EvmHooks interface
-type DummyHook struct{}
-
-func (dh *DummyHook) PostTxProcessing(_ sdk.Context, _ core.Message, _ *ethtypes.Receipt) error {
-	return nil
-}
-
-// FailureHook implements EvmHooks interface
-type FailureHook struct{}
-
-func (dh *FailureHook) PostTxProcessing(_ sdk.Context, _ core.Message, _ *ethtypes.Receipt) error {
-	return errors.New("mock error")
 }
