@@ -16,7 +16,6 @@ const (
 	EventTypeBlockBloom = "block_bloom"
 	EventTypeTxReceipt  = "tx_receipt"
 
-	AttributeKeyRecipient      = "recipient"
 	AttributeKeyTxHash         = "txHash"
 	AttributeKeyEthereumTxHash = "ethereumTxHash"
 	AttributeKeyTxIndex        = "txIndex"

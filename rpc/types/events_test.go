@@ -40,7 +40,6 @@ func TestParseTxResult(t *testing.T) {
 						{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash.Hex()},
 						{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
 						{Key: evmtypes.AttributeKeyTxHash, Value: "14A84ED06282645EFBF080E0B7ED80D8D8D6A36337668A12B5F229F81CDD3F57"},
-						{Key: evmtypes.AttributeKeyRecipient, Value: "0x775b87ef5D82ca211811C1a02CE0fE0CA3a455d7"},
 					}},
 					{Type: "message", Attributes: []abci.EventAttribute{
 						{Key: "action", Value: "/ethermint.evm.v1.MsgEthereumTx"},

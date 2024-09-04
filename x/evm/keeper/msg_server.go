@@ -91,10 +91,6 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 		txAttrs = append(txAttrs, sdk.NewAttribute(types.AttributeKeyTxHash, hash.String()))
 	}
 
-	if to := tx.To(); to != nil {
-		txAttrs = append(txAttrs, sdk.NewAttribute(types.AttributeKeyRecipient, to.Hex()))
-	}
-
 	if response.Failed() {
 		txAttrs = append(txAttrs, sdk.NewAttribute(types.AttributeKeyEthereumTxFailed, response.VmError))
 	}
