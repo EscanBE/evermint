@@ -64,6 +64,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evm) [#130](https://github.com/EscanBE/evermint/pull/130) Allow one and only one Ethereum Tx per tx execution
 - (misc) [#131](https://github.com/EscanBE/evermint/pull/131) Miscellaneous refactor and improve code logic
 - (rpc+indexer) [#138](https://github.com/EscanBE/evermint/pull/138) Improve check txs dropped pre-AnteHandle
+- (rpc) [#142](https://github.com/EscanBE/evermint/pull/142) Support flag `--allow-insecure-unlock` to protect local accounts on node
 
 ### Bug Fixes
 

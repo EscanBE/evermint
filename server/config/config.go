@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"github.com/EscanBE/evermint/v12/server/flags"
 	"path"
 	"time"
 
@@ -25,7 +26,7 @@ const (
 	// DefaultJSONRPCWsAddress is the default address the JSON-RPC WebSocket server binds to.
 	DefaultJSONRPCWsAddress = "127.0.0.1:8546"
 
-	// DefaultJsonRPCMetricsAddress is the default address the JSON-RPC Metrics server binds to.
+	// DefaultJSONRPCMetricsAddress is the default address the JSON-RPC Metrics server binds to.
 	DefaultJSONRPCMetricsAddress = "127.0.0.1:6065"
 
 	// DefaultEVMTracer is the default vm.Tracer type
@@ -63,6 +64,9 @@ const (
 
 	// DefaultAllowUnprotectedTxs value is false
 	DefaultAllowUnprotectedTxs = false
+
+	// DefaultAllowInsecureUnlock is the default value of allow insecure unlock configuration
+	DefaultAllowInsecureUnlock = false
 
 	// DefaultMaxOpenConnections represents the amount of open connections (unlimited = 0)
 	DefaultMaxOpenConnections = 0
@@ -120,6 +124,8 @@ type JSONRPCConfig struct {
 	// AllowUnprotectedTxs restricts unprotected (non EIP155 signed) transactions to be submitted via
 	// the node's RPC when global parameter is disabled.
 	AllowUnprotectedTxs bool `mapstructure:"allow-unprotected-txs"`
+	// AllowInsecureUnlock allow insecure account unlocking when account-related RPCs are exposed by http
+	AllowInsecureUnlock bool `mapstructure:"allow-insecure-unlock"`
 	// MaxOpenConnections sets the maximum number of simultaneous connections
 	// for the server listener.
 	MaxOpenConnections int `mapstructure:"max-open-connections"`
@@ -224,6 +230,7 @@ func DefaultJSONRPCConfig() *JSONRPCConfig {
 		HTTPTimeout:         DefaultHTTPTimeout,
 		HTTPIdleTimeout:     DefaultHTTPIdleTimeout,
 		AllowUnprotectedTxs: DefaultAllowUnprotectedTxs,
+		AllowInsecureUnlock: DefaultAllowInsecureUnlock,
 		MaxOpenConnections:  DefaultMaxOpenConnections,
 		MetricsAddress:      DefaultJSONRPCMetricsAddress,
 	}
@@ -319,21 +326,23 @@ func GetConfig(v *viper.Viper) (Config, error) {
 			MaxTxGasWanted: v.GetUint64("evm.max-tx-gas-wanted"),
 		},
 		JSONRPC: JSONRPCConfig{
-			Enable:             v.GetBool("json-rpc.enable"),
-			API:                v.GetStringSlice("json-rpc.api"),
-			Address:            v.GetString("json-rpc.address"),
-			WsAddress:          v.GetString("json-rpc.ws-address"),
-			GasCap:             v.GetUint64("json-rpc.gas-cap"),
-			FilterCap:          v.GetInt32("json-rpc.filter-cap"),
-			FeeHistoryCap:      v.GetInt32("json-rpc.feehistory-cap"),
-			TxFeeCap:           v.GetFloat64("json-rpc.txfee-cap"),
-			EVMTimeout:         v.GetDuration("json-rpc.evm-timeout"),
-			LogsCap:            v.GetInt32("json-rpc.logs-cap"),
-			BlockRangeCap:      v.GetInt32("json-rpc.block-range-cap"),
-			HTTPTimeout:        v.GetDuration("json-rpc.http-timeout"),
-			HTTPIdleTimeout:    v.GetDuration("json-rpc.http-idle-timeout"),
-			MaxOpenConnections: v.GetInt("json-rpc.max-open-connections"),
-			MetricsAddress:     v.GetString("json-rpc.metrics-address"),
+			Enable:              v.GetBool("json-rpc.enable"),
+			API:                 v.GetStringSlice("json-rpc.api"),
+			Address:             v.GetString("json-rpc.address"),
+			WsAddress:           v.GetString("json-rpc.ws-address"),
+			GasCap:              v.GetUint64("json-rpc.gas-cap"),
+			FilterCap:           v.GetInt32("json-rpc.filter-cap"),
+			FeeHistoryCap:       v.GetInt32("json-rpc.feehistory-cap"),
+			TxFeeCap:            v.GetFloat64("json-rpc.txfee-cap"),
+			EVMTimeout:          v.GetDuration("json-rpc.evm-timeout"),
+			LogsCap:             v.GetInt32("json-rpc.logs-cap"),
+			BlockRangeCap:       v.GetInt32("json-rpc.block-range-cap"),
+			HTTPTimeout:         v.GetDuration("json-rpc.http-timeout"),
+			HTTPIdleTimeout:     v.GetDuration("json-rpc.http-idle-timeout"),
+			AllowUnprotectedTxs: v.GetBool(flags.JSONRPCAllowUnprotectedTxs) || v.GetBool(flags.LegacyRpcAllowUnprotectedTxs),
+			AllowInsecureUnlock: v.GetBool(flags.JSONRPCAllowInsecureUnlock) || v.GetBool(flags.LegacyAllowInsecureUnlock),
+			MaxOpenConnections:  v.GetInt("json-rpc.max-open-connections"),
+			MetricsAddress:      v.GetString("json-rpc.metrics-address"),
 		},
 		TLS: TLSConfig{
 			CertificatePath: v.GetString("tls.certificate-path"),

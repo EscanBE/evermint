@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 	"time"
@@ -28,6 +29,11 @@ import (
 
 // Accounts returns the list of accounts available to this node.
 func (b *Backend) Accounts() ([]common.Address, error) {
+	if !b.cfg.JSONRPC.AllowInsecureUnlock {
+		b.logger.Debug("account unlock with HTTP access is forbidden")
+		return []common.Address{}, errors.New("account unlock with HTTP access is forbidden")
+	}
+
 	addresses := make([]common.Address, 0) // return [] instead of nil if empty
 
 	infos, err := b.clientCtx.Keyring.List()
@@ -75,6 +81,11 @@ func (b *Backend) Syncing() (interface{}, error) {
 
 // SetEtherbase sets the etherbase of the miner
 func (b *Backend) SetEtherbase(etherbase common.Address) bool {
+	if !b.cfg.JSONRPC.AllowInsecureUnlock {
+		b.logger.Debug("account unlock with HTTP access is forbidden")
+		return false
+	}
+
 	delAddr, err := b.GetCoinbase()
 	if err != nil {
 		b.logger.Debug("failed to get coinbase address", "error", err.Error())
@@ -214,6 +225,11 @@ func (b *Backend) ImportRawKey(privkey, password string) (common.Address, error)
 
 // ListAccounts will return a list of addresses for accounts this node manages.
 func (b *Backend) ListAccounts() ([]common.Address, error) {
+	if !b.cfg.JSONRPC.AllowInsecureUnlock {
+		b.logger.Debug("account unlock with HTTP access is forbidden")
+		return []common.Address{}, fmt.Errorf("account unlock with HTTP access is forbidden")
+	}
+
 	addrs := []common.Address{}
 
 	list, err := b.clientCtx.Keyring.List()
