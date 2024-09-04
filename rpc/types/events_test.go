@@ -17,7 +17,7 @@ func TestParseTxResult(t *testing.T) {
 	testCases := []struct {
 		name     string
 		response abci.ResponseDeliverTx
-		expTxs   []*ParsedTx // expected parse result, nil means expect error.
+		expTx    *ParsedTx // expected parse result, nil means expect error.
 	}{
 		{
 			"2 parts events",
@@ -52,13 +52,10 @@ func TestParseTxResult(t *testing.T) {
 					}},
 				},
 			},
-			[]*ParsedTx{
-				{
-					MsgIndex:   0,
-					Hash:       txHash,
-					EthTxIndex: 0,
-					Failed:     false,
-				},
+			&ParsedTx{
+				Hash:       txHash,
+				EthTxIndex: 0,
+				Failed:     false,
 			},
 		},
 		{
@@ -75,33 +72,21 @@ func TestParseTxResult(t *testing.T) {
 					},
 				},
 			},
-			[]*ParsedTx{
-				{
-					MsgIndex:   0,
-					Hash:       txHash,
-					EthTxIndex: 10,
-					Failed:     true,
-				},
+			&ParsedTx{
+				Hash:       txHash,
+				EthTxIndex: 10,
+				Failed:     true,
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			require.NotEmpty(t, tc.expTxs)
+			require.NotEmpty(t, tc.expTx)
 
 			parsed, err := ParseTxResult(&tc.response, nil)
 			require.NoError(t, err)
-			for msgIndex, expTx := range tc.expTxs {
-				require.Equal(t, expTx, parsed.GetTxByMsgIndex(msgIndex))
-				require.Equal(t, expTx, parsed.GetTxByHash(expTx.Hash))
-				require.Equal(t, expTx, parsed.GetTxByTxIndex(int(expTx.EthTxIndex)))
-			}
-			// non-exists tx hash
-			require.Nil(t, parsed.GetTxByHash(common.Hash{}))
-			// out of range
-			require.Nil(t, parsed.GetTxByMsgIndex(len(tc.expTxs)))
-			require.Nil(t, parsed.GetTxByTxIndex(99999999))
+			require.Equal(t, tc.expTx, parsed)
 		})
 	}
 }

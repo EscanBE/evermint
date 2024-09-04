@@ -7,7 +7,6 @@ import (
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/pkg/errors"
@@ -230,32 +229,6 @@ func (b *Backend) GetTxByEthHash(hash common.Hash) (*types.TxResult, error) {
 func (b *Backend) GetTxByTxIndex(height int64, index uint) (*types.TxResult, error) {
 	int32Index := int32(index) // #nosec G701 -- checked for int overflow already
 	return b.indexer.GetByBlockAndIndex(height, int32Index)
-}
-
-// queryTendermintTxIndexer query tx in tendermint tx indexer
-func (b *Backend) queryTendermintTxIndexer(query string, txGetter func(*rpctypes.ParsedTxs) *rpctypes.ParsedTx) (*types.TxResult, error) {
-	resTxs, err := b.clientCtx.Client.TxSearch(b.ctx, query, false, nil, nil, "")
-	if err != nil {
-		return nil, err
-	}
-	if len(resTxs.Txs) == 0 {
-		return nil, errors.New("ethereum tx not found")
-	}
-	txResult := resTxs.Txs[0]
-	if !rpctypes.TxSuccessOrExceedsBlockGasLimit(&txResult.TxResult) {
-		return nil, errors.New("invalid ethereum tx")
-	}
-
-	var tx sdk.Tx
-	if txResult.TxResult.Code != 0 {
-		// it's only needed when the tx exceeds block gas limit
-		tx, err = b.clientCtx.TxConfig.TxDecoder()(txResult.Tx)
-		if err != nil {
-			return nil, fmt.Errorf("invalid ethereum tx")
-		}
-	}
-
-	return rpctypes.ParseTxIndexerResult(txResult, tx, txGetter)
 }
 
 // GetTransactionByBlockAndIndex is the common code shared by `GetTransactionByBlockNumberAndIndex` and `GetTransactionByBlockHashAndIndex`.

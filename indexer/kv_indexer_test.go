@@ -64,9 +64,9 @@ func TestKVIndexer(t *testing.T) {
 		expSuccess  bool
 	}{
 		{
-			"success",
-			&tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			[]*abci.ResponseDeliverTx{
+			name:  "success",
+			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
+			blockResult: []*abci.ResponseDeliverTx{
 				{
 					Code: 0,
 					Events: []abci.Event{
@@ -91,53 +91,62 @@ func TestKVIndexer(t *testing.T) {
 					},
 				},
 			},
-			true,
+			expSuccess: true,
 		},
 		{
-			"success, exceed block gas limit",
-			&tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			[]*abci.ResponseDeliverTx{
+			name:  "success, exceed block gas limit",
+			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
+			blockResult: []*abci.ResponseDeliverTx{
 				{
-					Code:   11,
-					Log:    "out of gas in location: block gas meter; gasWanted: 21000",
-					Events: []abci.Event{},
+					Code: 11,
+					Log:  "out of gas in location: block gas meter; gasWanted: 21000",
+					Events: []abci.Event{
+
+						{
+							Type: evmtypes.EventTypeEthereumTx,
+							Attributes: []abci.EventAttribute{
+								{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash.Hex()},
+								{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
+							},
+						},
+					},
 				},
 			},
-			true,
+			expSuccess: true,
 		},
 		{
-			"fail, failed eth tx",
-			&tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			[]*abci.ResponseDeliverTx{
+			name:  "fail, failed eth tx",
+			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
+			blockResult: []*abci.ResponseDeliverTx{
 				{
 					Code:   15,
 					Log:    "nonce mismatch",
 					Events: []abci.Event{},
 				},
 			},
-			false,
+			expSuccess: false,
 		},
 		{
-			"fail, invalid events",
-			&tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			[]*abci.ResponseDeliverTx{
+			name:  "success, no events (simulate case tx aborted before ante, due to block gas maxed out)",
+			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
+			blockResult: []*abci.ResponseDeliverTx{
 				{
 					Code:   0,
 					Events: []abci.Event{},
 				},
 			},
-			false,
+			expSuccess: true,
 		},
 		{
-			"fail, not eth tx",
-			&tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz2}}},
-			[]*abci.ResponseDeliverTx{
+			name:  "fail, not eth tx",
+			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz2}}},
+			blockResult: []*abci.ResponseDeliverTx{
 				{
 					Code:   0,
 					Events: []abci.Event{},
 				},
 			},
-			false,
+			expSuccess: false,
 		},
 	}
 

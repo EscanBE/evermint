@@ -530,47 +530,6 @@ func (suite *BackendTestSuite) TestGetTransactionByTxIndex() {
 	}
 }
 
-func (suite *BackendTestSuite) TestQueryTendermintTxIndexer() {
-	testCases := []struct {
-		name         string
-		registerMock func()
-		txGetter     func(*rpctypes.ParsedTxs) *rpctypes.ParsedTx
-		query        string
-		expTxResult  *evertypes.TxResult
-		expPass      bool
-	}{
-		{
-			"fail - Ethereum tx with query not found",
-			func() {
-				client := suite.backend.clientCtx.Client.(*mocks.Client)
-				RegisterTxSearchEmpty(client, "")
-			},
-			func(txs *rpctypes.ParsedTxs) *rpctypes.ParsedTx {
-				return &rpctypes.ParsedTx{}
-			},
-			"",
-			&evertypes.TxResult{},
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			tc.registerMock()
-
-			txResults, err := suite.backend.queryTendermintTxIndexer(tc.query, tc.txGetter)
-
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().Equal(txResults, tc.expTxResult)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
-	}
-}
-
 func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 	msgEthereumTx, _ := suite.buildEthereumTx()
 

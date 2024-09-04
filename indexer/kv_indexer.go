@@ -87,7 +87,7 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 			continue
 		}
 
-		txs, err := rpctypes.ParseTxResult(result, tx)
+		parsedTx, err := rpctypes.ParseTxResult(result, tx)
 		if err != nil {
 			kv.logger.Error("Fail to parse event", "err", err, "block", height, "txIndex", txIndex)
 			continue
@@ -102,25 +102,37 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 				TxIndex:    uint32(txIndex),
 				EthTxIndex: ethTxIndex,
 			}
-			if result.Code != abci.CodeTypeOK {
-				// exceeds block gas limit scenario
-				txResult.Failed = true
-			} else {
-				parsedTx := txs.GetTxByMsgIndex(0)
-				if parsedTx == nil {
-					kv.logger.Error("msg index not found in events", "msgIndex", 0)
-					continue
+
+			err = func(txResult evertypes.TxResult, ethTxIndex int32) (resErr error) {
+				defer func() {
+					resErr = saveTxResult(kv.clientCtx.Codec, batch, txHash, &txResult)
+				}()
+
+				if result.Code != abci.CodeTypeOK {
+					// exceeds block gas limit scenario
+					txResult.Failed = true
+					return
 				}
+
+				if parsedTx == nil {
+					// exceeds block gas limit (before ante) scenario
+					kv.logger.Error("Fail to parse event", "err", "not found", "block", height, "txIndex", txIndex)
+					txResult.Failed = true
+					return
+				}
+
 				if parsedTx.EthTxIndex >= 0 && parsedTx.EthTxIndex != ethTxIndex {
 					kv.logger.Error("eth tx index don't match", "expect", ethTxIndex, "found", parsedTx.EthTxIndex)
 				}
 				txResult.Failed = parsedTx.Failed
-			}
+
+				return
+			}(txResult, ethTxIndex)
 
 			ethTxIndex++
 
-			if err := saveTxResult(kv.clientCtx.Codec, batch, txHash, &txResult); err != nil {
-				return errorsmod.Wrapf(err, "IndexBlock %d", height)
+			if err != nil {
+				return err
 			}
 		}
 	}
