@@ -233,7 +233,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 			PostState:         nil,
 			Status:            ethtypes.ReceiptStatusFailed,
 			CumulativeGasUsed: cumulativeGasUsed,
-			Bloom:             evmtypes.EmptyBlockBloom,
+			Bloom:             ethtypes.Bloom{}, // compute bellow
 			Logs:              []*ethtypes.Log{},
 			TxHash:            ethTx.Hash(),
 			ContractAddress:   common.Address{},
@@ -243,11 +243,16 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 			TransactionIndex:  uint(res.EthTxIndex),
 		}
 
+		receipt.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{receipt})
+
 		if ethTx.Type() == ethtypes.DynamicFeeTxType {
 			if baseFee == nil {
 				baseFee, err = b.BaseFee(blockRes)
 				if err != nil {
 					return nil, errors.Wrapf(err, "failed to fetch base fee. Pruned block %d?", blockRes.Height)
+				}
+				if baseFee == nil {
+					return nil, fmt.Errorf("base fee nil but dynamic fee tx?, block %d, tx: %s", blockRes.Height, ethTx.Hash())
 				}
 			}
 		}

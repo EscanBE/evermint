@@ -1,10 +1,11 @@
 package keeper
 
 import (
+	"cosmossdk.io/errors"
+	"fmt"
 	"github.com/EscanBE/evermint/v12/utils"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -138,26 +139,6 @@ func (k Keeper) GetAuthority() sdk.AccAddress {
 	return k.authority
 }
 
-// GetBlockBloomTransient returns bloom bytes for the current block height
-func (k Keeper) GetBlockBloomTransient(ctx sdk.Context) *big.Int {
-	store := prefix.NewStore(ctx.TransientStore(k.transientKey), types.KeyPrefixTransientBloom)
-	heightBz := sdk.Uint64ToBigEndian(uint64(ctx.BlockHeight()))
-	bz := store.Get(heightBz)
-	if len(bz) == 0 {
-		return big.NewInt(0)
-	}
-
-	return new(big.Int).SetBytes(bz)
-}
-
-// SetBlockBloomTransient sets the given bloom bytes to the transient store. This value is reset on
-// every block.
-func (k Keeper) SetBlockBloomTransient(ctx sdk.Context, bloom *big.Int) {
-	store := prefix.NewStore(ctx.TransientStore(k.transientKey), types.KeyPrefixTransientBloom)
-	heightBz := sdk.Uint64ToBigEndian(uint64(ctx.BlockHeight()))
-	store.Set(heightBz, bloom.Bytes())
-}
-
 // ----------------------------------------------------------------------------
 // Tx
 // ----------------------------------------------------------------------------
@@ -173,13 +154,18 @@ func (k Keeper) IncreaseTxCountTransient(ctx sdk.Context) {
 // GetTxCountTransient returns the count of transaction being processed in the current block.
 // Notice: if not set, it returns 1
 func (k Keeper) GetTxCountTransient(ctx sdk.Context) uint64 {
-	store := ctx.TransientStore(k.transientKey)
-	bz := store.Get(types.KeyTransientTxCount)
-	count := sdk.BigEndianToUint64(bz)
+	count := k.GetRawTxCountTransient(ctx)
 	if count < 1 {
 		count = 1
 	}
 	return count
+}
+
+// GetRawTxCountTransient returns the raw count of transaction being processed in the current block.
+func (k Keeper) GetRawTxCountTransient(ctx sdk.Context) uint64 {
+	store := ctx.TransientStore(k.transientKey)
+	bz := store.Get(types.KeyTransientTxCount)
+	return sdk.BigEndianToUint64(bz)
 }
 
 // SetGasUsedForCurrentTxTransient sets the gas used for the current transaction in the transient store,
@@ -231,6 +217,37 @@ func (k Keeper) GetCumulativeLogCountTransient(ctx sdk.Context, exceptCurrent bo
 	}
 
 	return total
+}
+
+// SetTxReceiptForCurrentTxTransient sets the receipt for the current transaction in the transient store.
+func (k Keeper) SetTxReceiptForCurrentTxTransient(ctx sdk.Context, receiptBz []byte) {
+	txIdx := k.GetTxCountTransient(ctx) - 1
+
+	store := ctx.TransientStore(k.transientKey)
+	store.Set(types.TxReceiptTransientKey(txIdx), receiptBz)
+}
+
+// GetTxReceiptsTransient returns the receipts for all transactions in the current block.
+func (k Keeper) GetTxReceiptsTransient(ctx sdk.Context) (receipts ethtypes.Receipts) {
+	txCount := k.GetRawTxCountTransient(ctx)
+
+	store := ctx.TransientStore(k.transientKey)
+
+	for txIdx := uint64(0); txIdx < txCount; txIdx++ {
+		bzReceipt := store.Get(types.TxReceiptTransientKey(txIdx))
+		if len(bzReceipt) == 0 {
+			panic(fmt.Sprintf("receipt not found for tx at %d", txIdx))
+		}
+
+		receipt := &ethtypes.Receipt{}
+		if err := receipt.UnmarshalBinary(bzReceipt); err != nil {
+			panic(errors.Wrapf(err, "failed to unmarshal receipt at idx: %d", txIdx))
+		}
+
+		receipts = append(receipts, receipt)
+	}
+
+	return
 }
 
 // ----------------------------------------------------------------------------
@@ -360,10 +377,29 @@ func (k Keeper) GetBaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int
 //   - Use zero gas config
 //   - Increase the count of transaction being processed in the current block
 //   - Set the gas used for the current transaction, assume tx failed so gas used = tx gas
-func (k Keeper) SetupExecutionContext(ctx sdk.Context, txGas uint64) sdk.Context {
+//   - Set the failed receipt for the current transaction, assume tx failed
+func (k Keeper) SetupExecutionContext(ctx sdk.Context, txGas uint64, txType uint8) sdk.Context {
 	ctx = utils.UseZeroGasConfig(ctx)
 	k.IncreaseTxCountTransient(ctx)
 	k.SetGasUsedForCurrentTxTransient(ctx, txGas)
+
+	bzFailedReceipt := func() []byte {
+		failedReceipt := &ethtypes.Receipt{
+			Type:              txType,
+			PostState:         nil,
+			Status:            ethtypes.ReceiptStatusFailed,
+			CumulativeGasUsed: k.GetCumulativeLogCountTransient(ctx, false),
+			Bloom:             ethtypes.Bloom{}, // compute below
+			Logs:              []*ethtypes.Log{},
+		}
+		failedReceipt.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{failedReceipt})
+		bzReceipt, err := failedReceipt.MarshalBinary()
+		if err != nil {
+			panic(errors.Wrap(err, "failed to marshal receipt"))
+		}
+		return bzReceipt
+	}()
+	k.SetTxReceiptForCurrentTxTransient(ctx, bzFailedReceipt)
 
 	return ctx
 }

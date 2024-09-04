@@ -417,8 +417,8 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 				Type:              transaction.Type(),
 				PostState:         nil,
 				Status:            ethtypes.ReceiptStatusFailed,
-				CumulativeGasUsed: transaction.Gas(),
-				Bloom:             evmtypes.EmptyBlockBloom,
+				CumulativeGasUsed: transaction.Gas(), // compute below
+				Bloom:             ethtypes.Bloom{},  // compute below
 				Logs:              []*ethtypes.Log{},
 				TxHash:            transaction.Hash(),
 				ContractAddress:   common.Address{},
@@ -431,6 +431,8 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 			for _, prevReceipt := range receipts {
 				receipt.CumulativeGasUsed += prevReceipt.GasUsed
 			}
+
+			receipt.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{receipt})
 		} else {
 			icReceipt.Fill(blockHash)
 			receipt = icReceipt.Receipt

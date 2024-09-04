@@ -105,7 +105,8 @@ func NewEthSetupExecutionDecorator(evmKeeper EVMKeeper) EthSetupExecutionDecorat
 
 // AnteHandle emits some basic events for the eth messages
 func (sed EthSetupExecutionDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
-	sed.evmKeeper.SetupExecutionContext(ctx, tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx).GetGas())
+	ethTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx).AsTransaction()
+	sed.evmKeeper.SetupExecutionContext(ctx, ethTx.Gas(), ethTx.Type())
 	return next(ctx, tx, simulate)
 }
 

@@ -164,12 +164,12 @@ func createTestReceipt(root []byte, resBlock *tmrpctypes.ResultBlock, tx *evmtyp
 
 	transaction := tx.AsTransaction()
 
-	return &ethtypes.Receipt{
+	receipt := &ethtypes.Receipt{
 		Type:              transaction.Type(),
 		PostState:         root,
 		Status:            status,
 		CumulativeGasUsed: gasUsed,
-		Bloom:             ethtypes.BytesToBloom(ethtypes.LogsBloom([]*ethtypes.Log{})),
+		Bloom:             ethtypes.Bloom{}, // compute bellow
 		Logs:              []*ethtypes.Log{},
 		TxHash:            transaction.Hash(),
 		ContractAddress:   common.Address{},
@@ -178,6 +178,10 @@ func createTestReceipt(root []byte, resBlock *tmrpctypes.ResultBlock, tx *evmtyp
 		BlockNumber:       big.NewInt(resBlock.Block.Height),
 		TransactionIndex:  0,
 	}
+
+	receipt.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{receipt})
+
+	return receipt
 }
 
 func (suite *BackendTestSuite) generateTestKeyring(clientDir string) (keyring.Keyring, error) {

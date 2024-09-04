@@ -192,44 +192,35 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 	}
 
 	if isSuccess() {
-		k.SetGasUsedForCurrentTxTransient(ctx, res.GasUsed)
-	}
-
-	if isSuccess() {
 		// Only call hooks if tx executed successfully.
-		if err = k.PostTxProcessing(tmpCtx, msg, receipt); err != nil {
-			// If hooks return error, revert the whole tx.
-			res.VmError = types.ErrPostTxProcessing.Error()
-			k.Logger(ctx).Error("tx post processing failed", "error", err)
+		if k.hooks != nil {
+			if err = k.PostTxProcessing(tmpCtx, msg, receipt); err != nil {
+				// If hooks return error, revert the whole tx.
+				res.VmError = types.ErrPostTxProcessing.Error()
+				k.Logger(ctx).Error("tx post processing failed", "error", err)
 
-			// If the tx failed in post-processing hooks, we should update receipt and clear the logs
-			newReceipt := utils.MoveReceiptStatusToFailed(*receipt, res.GasUsed, tx.Gas())
-			receipt = &newReceipt
-			k.SetGasUsedForCurrentTxTransient(ctx, tx.Gas())
+				// If the tx failed in post-processing hooks, we should update receipt and clear the logs
+				receipt = utils.Ptr(utils.MoveReceiptStatusToFailed(*receipt, res.GasUsed, tx.Gas()))
+			}
+
+			receipt.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{receipt})
+			bzReceipt, err := receipt.MarshalBinary()
+			if err != nil {
+				return nil, errorsmod.Wrap(err, "failed to marshal receipt")
+			}
+			res.MarshalledReceipt = bzReceipt
+
+			k.SetLogCountForCurrentTxTransient(ctx, uint64(len(receipt.Logs)))
+			k.SetGasUsedForCurrentTxTransient(ctx, receipt.GasUsed)
+			k.SetTxReceiptForCurrentTxTransient(ctx, bzReceipt)
 		}
 
+		// we check the success status again because post-processing can change the status
 		if isSuccess() && commit != nil {
-			// PostTxProcessing is successful, commit the tmpCtx
+			// commit the tmpCtx
 			commit()
 			ctx.EventManager().EmitEvents(tmpCtx.EventManager().Events())
 		}
-
-		// update receipt
-		receipt.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{receipt})
-		bzReceipt, err := receipt.MarshalBinary()
-		if err != nil {
-			return nil, errorsmod.Wrap(err, "failed to marshal receipt")
-		}
-		res.MarshalledReceipt = bzReceipt
-	}
-
-	// Update transient block bloom filter
-	if len(receipt.Logs) > 0 {
-		blockBloom := k.GetBlockBloomTransient(ctx)
-		blockBloom.Or(blockBloom, big.NewInt(0).SetBytes(receipt.Bloom.Bytes()))
-
-		// Update transient block bloom filter
-		k.SetBlockBloomTransient(ctx, blockBloom)
 	}
 
 	// reset the gas meter for current cosmos transaction
@@ -401,7 +392,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		PostState:         nil, // TODO: intermediate state root
 		Status:            0,   // to be filled below
 		CumulativeGasUsed: cumulativeGasUsed,
-		Bloom:             ethtypes.Bloom{}, // to be filled bellow
+		Bloom:             ethtypes.Bloom{}, // compute bellow
 		Logs:              stateDB.Logs(),
 	}
 	if success {
@@ -418,12 +409,14 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		}
 	}
 
-	k.SetLogCountForCurrentTxTransient(ctx, uint64(len(receipt.Logs)))
-
 	bzReceipt, err := receipt.MarshalBinary()
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to marshal receipt")
 	}
+
+	k.SetLogCountForCurrentTxTransient(ctx, uint64(len(receipt.Logs)))
+	k.SetGasUsedForCurrentTxTransient(ctx, gasUsed)
+	k.SetTxReceiptForCurrentTxTransient(ctx, bzReceipt)
 
 	return &types.MsgEthereumTxResponse{
 		GasUsed:           gasUsed,

@@ -79,6 +79,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (rename-chain) [#108](https://github.com/EscanBE/evermint/pull/108) Resolve compile error `*_test.go` after run rename chain
 - (proto) [#119](https://github.com/EscanBE/evermint/pull/119) Use `cosmos/gogoproto` in some missed-to-replace places
 - (rpc) [#135](https://github.com/EscanBE/evermint/pull/135) Build tx receipt to response for txs aborted due to block gas limit
+- (evm) [#136](https://github.com/EscanBE/evermint/pull/136) Correct block bloom, receipt bloom computation and some other minor issues of transient data
 
 ### Client Breaking
 
