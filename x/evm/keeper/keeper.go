@@ -6,7 +6,6 @@ import (
 	"github.com/EscanBE/evermint/v12/utils"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -138,26 +137,6 @@ func (k Keeper) EmitBlockBloomEvent(ctx sdk.Context, bloom ethtypes.Bloom) {
 // GetAuthority returns the x/evm module authority address
 func (k Keeper) GetAuthority() sdk.AccAddress {
 	return k.authority
-}
-
-// GetBlockBloomTransient returns bloom bytes for the current block height
-func (k Keeper) GetBlockBloomTransient(ctx sdk.Context) *big.Int {
-	store := prefix.NewStore(ctx.TransientStore(k.transientKey), types.KeyPrefixTransientBloom)
-	heightBz := sdk.Uint64ToBigEndian(uint64(ctx.BlockHeight()))
-	bz := store.Get(heightBz)
-	if len(bz) == 0 {
-		return big.NewInt(0)
-	}
-
-	return new(big.Int).SetBytes(bz)
-}
-
-// SetBlockBloomTransient sets the given bloom bytes to the transient store. This value is reset on
-// every block.
-func (k Keeper) SetBlockBloomTransient(ctx sdk.Context, bloom *big.Int) {
-	store := prefix.NewStore(ctx.TransientStore(k.transientKey), types.KeyPrefixTransientBloom)
-	heightBz := sdk.Uint64ToBigEndian(uint64(ctx.BlockHeight()))
-	store.Set(heightBz, bloom.Bytes())
 }
 
 // ----------------------------------------------------------------------------

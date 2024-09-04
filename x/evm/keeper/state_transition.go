@@ -223,15 +223,6 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 		res.MarshalledReceipt = bzReceipt
 	}
 
-	// Update transient block bloom filter
-	if len(receipt.Logs) > 0 {
-		blockBloom := k.GetBlockBloomTransient(ctx)
-		blockBloom.Or(blockBloom, big.NewInt(0).SetBytes(receipt.Bloom.Bytes()))
-
-		// Update transient block bloom filter
-		k.SetBlockBloomTransient(ctx, blockBloom)
-	}
-
 	// reset the gas meter for current cosmos transaction
 	k.ResetGasMeterAndConsumeGas(ctx, res.GasUsed)
 	return res, nil

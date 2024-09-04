@@ -32,10 +32,10 @@ const (
 
 // prefix bytes for the EVM transient store
 const (
-	prefixTransientBloom   = iota + 1
-	prefixTransientTxIndex // deprecated
-	prefixTransientLogSize // deprecated
-	prefixTransientGasUsed // deprecated
+	prefixTransientBloom   = iota + 1 // deprecated
+	prefixTransientTxIndex            // deprecated
+	prefixTransientLogSize            // deprecated
+	prefixTransientGasUsed            // deprecated
 	prefixTransientTxCount
 	prefixTransientTxGas
 	prefixTransientTxLogCount
@@ -52,7 +52,6 @@ var (
 
 // Transient Store key prefixes
 var (
-	KeyPrefixTransientBloom      = []byte{prefixTransientBloom}
 	KeyPrefixTransientTxGas      = []byte{prefixTransientTxGas}
 	KeyPrefixTransientTxLogCount = []byte{prefixTransientTxLogCount}
 	KeyPrefixTransientTxReceipt  = []byte{prefixTransientTxReceipt}
