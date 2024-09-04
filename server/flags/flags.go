@@ -58,6 +58,12 @@ const (
 	JSONRPCEnableMetrics = "metrics"
 )
 
+// Flags follow go-ethereum naming
+const (
+	LegacyRpcAllowUnprotectedTxs = "rpc.allow-unprotected-txs"
+	LegacyAllowInsecureUnlock    = "allow-insecure-unlock"
+)
+
 // EVM flags
 const (
 	EVMTracer         = "evm.tracer"
