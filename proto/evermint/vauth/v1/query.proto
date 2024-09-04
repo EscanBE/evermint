@@ -1,0 +1,28 @@
+syntax = "proto3";
+package evermint.vauth.v1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "evermint/vauth/v1/vauth.proto";
+
+option go_package = "github.com/EscanBE/evermint/v12/x/vauth/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Address retrieves the proof by account address
+  rpc ProvedAccountOwnershipByAddress(QueryProvedAccountOwnershipByAddressRequest) returns (QueryProvedAccountOwnershipByAddressResponse) {
+    option (google.api.http).get = "/evermint/vauth/v1/proved_account_ownership_by_address";
+  }
+}
+
+// QueryProvedAccountOwnershipByAddressRequest is the request type for the Query/ProvedAccountOwnershipByAddress RPC method.
+message QueryProvedAccountOwnershipByAddressRequest {
+  // address is the address query for
+  string address = 1;
+}
+
+// QueryProvedAccountOwnershipByAddressResponse is the response type for the Query/ProvedAccountOwnershipByAddress RPC method.
+message QueryProvedAccountOwnershipByAddressResponse {
+  // proof is the proved account ownership
+  ProvedAccountOwnership proof = 1 [(gogoproto.nullable) = false];
+}

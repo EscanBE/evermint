@@ -1,0 +1,10 @@
+syntax = "proto3";
+package evermint.vauth.v1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/EscanBE/evermint/v12/x/vauth/types";
+
+// GenesisState defines the module's genesis state.
+message GenesisState {
+}

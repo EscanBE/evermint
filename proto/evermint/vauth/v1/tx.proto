@@ -1,0 +1,34 @@
+syntax = "proto3";
+package evermint.vauth.v1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/EscanBE/evermint/v12/x/vauth/types";
+
+// Msg defines the vauth Msg service.
+service Msg {
+  // SubmitProveAccountOwnership submit account ownership proof and persist to store.
+  rpc SubmitProveAccountOwnership(MsgSubmitProveAccountOwnership) returns (MsgSubmitProveAccountOwnershipResponse) {
+    option (google.api.http).get = "/evermint/vauth/v1/tx/submit_prove_account_ownership";
+  };
+}
+
+// MsgSubmitProveAccountOwnership defines a Msg to submit account ownership proof
+message MsgSubmitProveAccountOwnership {
+  option (cosmos.msg.v1.signer) = "submitter";
+
+  // submitter is the cosmos bech32 address of the account who submitted the proof
+  string submitter = 1;
+
+  // address is the cosmos bech32 address that submit proof for
+  string address = 2;
+
+  // signature is the Ethereum signed message
+  string signature = 3;
+}
+
+// MsgSubmitProveAccountOwnershipResponse returns no fields
+message MsgSubmitProveAccountOwnershipResponse {}

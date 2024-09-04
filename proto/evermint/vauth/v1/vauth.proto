@@ -1,0 +1,15 @@
+syntax = "proto3";
+package evermint.vauth.v1;
+
+import "gogoproto/gogo.proto";
+option go_package = "github.com/EscanBE/evermint/v12/x/vauth/types";
+
+// ProvedAccountOwnership store the proved ownership
+message ProvedAccountOwnership {
+  // address is account that has prove
+  string address = 1;
+  // hash is the transaction hash that the prove was submitted
+  string hash = 2;
+  // signature is the signed message that prove the ownership
+  string signature = 3;
+}
