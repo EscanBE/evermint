@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/EscanBE/evermint/v12/utils"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"math/big"
@@ -101,10 +100,6 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 		txAttrs = append(txAttrs, sdk.NewAttribute(types.AttributeKeyEthereumTxFailed, response.VmError))
 	}
 
-	var contractAddr string
-	if tx.To() == nil && !response.Failed() {
-		contractAddr = crypto.CreateAddress(common.HexToAddress(sender), tx.Nonce()).String()
-	}
 	txData, err := types.UnpackTxData(msg.Data)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to unpack tx data")
@@ -113,15 +108,23 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 	if tx.Type() == ethtypes.DynamicFeeTxType {
 		baseFee = utils.Coalesce(k.feeMarketKeeper.GetBaseFee(ctx), common.Big0)
 	}
-	txReceiptAttrs := []sdk.Attribute{
-		sdk.NewAttribute(types.AttributeKeyReceiptMarshalled, hexutil.Encode(response.MarshalledReceipt)),
-		sdk.NewAttribute(types.AttributeKeyReceiptTxHash, response.Hash),
-		sdk.NewAttribute(types.AttributeKeyReceiptContractAddress, contractAddr),
-		sdk.NewAttribute(types.AttributeKeyReceiptGasUsed, strconv.FormatUint(response.GasUsed, 10)),
-		sdk.NewAttribute(types.AttributeKeyReceiptEffectiveGasPrice, txData.EffectiveGasPrice(baseFee).String()),
-		sdk.NewAttribute(types.AttributeKeyReceiptBlockNumber, strconv.FormatInt(ctx.BlockHeight(), 10)),
-		sdk.NewAttribute(types.AttributeKeyReceiptTxIndex, strconv.FormatUint(txIndex, 10)),
-		sdk.NewAttribute(types.AttributeKeyReceiptStartLogIndex, strconv.FormatUint(k.GetCumulativeLogCountTransient(ctx, true), 10)),
+
+	receipt := &ethtypes.Receipt{}
+	if err := receipt.UnmarshalBinary(response.MarshalledReceipt); err != nil {
+		return nil, errorsmod.Wrap(err, "failed to unmarshal receipt")
+	}
+	// supply the fields those are used in sdk event construction
+	receipt.TxHash = common.HexToHash(response.Hash)
+	if tx.To() == nil && !response.Failed() {
+		receipt.ContractAddress = crypto.CreateAddress(common.HexToAddress(sender), tx.Nonce())
+	}
+	receipt.GasUsed = response.GasUsed
+	receipt.BlockNumber = big.NewInt(ctx.BlockHeight())
+	receipt.TransactionIndex = uint(txIndex)
+
+	receiptSdkEvent, err := types.GetSdkEventForReceipt(receipt, txData.EffectiveGasPrice(baseFee))
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "failed to get sdk event for receipt")
 	}
 
 	// emit events
@@ -130,10 +133,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 			types.EventTypeEthereumTx,
 			txAttrs...,
 		),
-		sdk.NewEvent(
-			types.EventTypeTxReceipt,
-			txReceiptAttrs...,
-		),
+		receiptSdkEvent,
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
