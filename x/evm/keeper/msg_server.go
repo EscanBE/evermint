@@ -85,10 +85,10 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 		sdk.NewAttribute(types.AttributeKeyTxIndex, strconv.FormatUint(txIndex, 10)),
 	}
 
+	var tmTxHash *tmbytes.HexBytes
 	if len(ctx.TxBytes()) > 0 {
-		// add event for tendermint transaction hash format
-		hash := tmbytes.HexBytes(tmtypes.Tx(ctx.TxBytes()).Hash())
-		txAttrs = append(txAttrs, sdk.NewAttribute(types.AttributeKeyTxHash, hash.String()))
+		tmTxHash = utils.Ptr[tmbytes.HexBytes](tmtypes.Tx(ctx.TxBytes()).Hash())
+		txAttrs = append(txAttrs, sdk.NewAttribute(types.AttributeKeyTxHash, tmTxHash.String()))
 	}
 
 	if response.Failed() {
@@ -126,6 +126,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 			}
 			return nil
 		}(),
+		tmTxHash,
 	)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to get sdk event for receipt")

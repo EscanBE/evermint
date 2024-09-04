@@ -2,6 +2,7 @@ package types
 
 import (
 	"cosmossdk.io/errors"
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -22,6 +23,7 @@ const (
 	// receipt
 	AttributeKeyReceiptMarshalled        = "marshalled"
 	AttributeKeyReceiptEvmTxHash         = "evmTxHash"
+	AttributeKeyReceiptTendermintTxHash  = "tmTxHash"
 	AttributeKeyReceiptContractAddress   = "contractAddr"
 	AttributeKeyReceiptGasUsed           = "gasUsed"
 	AttributeKeyReceiptEffectiveGasPrice = "effectiveGasPrice"
@@ -47,6 +49,7 @@ func GetSdkEventForReceipt(
 	receipt *ethtypes.Receipt,
 	effectiveGasPrice *big.Int,
 	vmErr error,
+	tendermintTxHash *tmbytes.HexBytes,
 ) (sdk.Event, error) {
 	bzReceipt, err := receipt.MarshalBinary()
 	if err != nil {
@@ -72,6 +75,9 @@ func GetSdkEventForReceipt(
 	}
 	if vmErr != nil {
 		attrs = append(attrs, sdk.NewAttribute(AttributeKeyReceiptVmError, vmErr.Error()))
+	}
+	if tendermintTxHash != nil {
+		attrs = append(attrs, sdk.NewAttribute(AttributeKeyReceiptTendermintTxHash, tendermintTxHash.String()))
 	}
 
 	return sdk.NewEvent(
