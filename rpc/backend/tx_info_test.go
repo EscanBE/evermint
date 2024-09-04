@@ -29,14 +29,24 @@ func (suite *BackendTestSuite) TestGetTransactionByHash() {
 		{
 			Code: 0,
 			Events: []abci.Event{
-				{Type: evmtypes.EventTypeEthereumTx, Attributes: []abci.EventAttribute{
-					{Key: "ethereumTxHash", Value: txHash.Hex()},
-					{Key: "txIndex", Value: "0"},
-					{Key: "amount", Value: "1000"},
-					{Key: "txGasUsed", Value: "21000"},
-					{Key: "txHash", Value: ""},
-					{Key: "recipient", Value: ""},
-				}},
+				{
+					Type: evmtypes.EventTypeEthereumTx,
+					Attributes: []abci.EventAttribute{
+						{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash.Hex()},
+						{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
+					},
+				},
+				{
+					Type: evmtypes.EventTypeEthereumTx,
+					Attributes: []abci.EventAttribute{
+						{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash.Hex()},
+						{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
+						{Key: "amount", Value: "1000"},
+						{Key: evmtypes.AttributeKeyTxGasUsed, Value: "21000"},
+						{Key: evmtypes.AttributeKeyTxHash, Value: ""},
+						{Key: evmtypes.AttributeKeyRecipient, Value: ""},
+					},
+				},
 			},
 		},
 	}
@@ -287,14 +297,24 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 		{
 			Code: 0,
 			Events: []abci.Event{
-				{Type: evmtypes.EventTypeEthereumTx, Attributes: []abci.EventAttribute{
-					{Key: "ethereumTxHash", Value: common.HexToHash(msgEthTx.Hash).Hex()},
-					{Key: "txIndex", Value: "0"},
-					{Key: "amount", Value: "1000"},
-					{Key: "txGasUsed", Value: "21000"},
-					{Key: "txHash", Value: ""},
-					{Key: "recipient", Value: ""},
-				}},
+				{
+					Type: evmtypes.EventTypeEthereumTx,
+					Attributes: []abci.EventAttribute{
+						{Key: evmtypes.AttributeKeyEthereumTxHash, Value: common.HexToHash(msgEthTx.Hash).Hex()},
+						{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
+					},
+				},
+				{
+					Type: evmtypes.EventTypeEthereumTx,
+					Attributes: []abci.EventAttribute{
+						{Key: evmtypes.AttributeKeyEthereumTxHash, Value: common.HexToHash(msgEthTx.Hash).Hex()},
+						{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
+						{Key: "amount", Value: "1000"},
+						{Key: evmtypes.AttributeKeyTxGasUsed, Value: "21000"},
+						{Key: evmtypes.AttributeKeyTxHash, Value: ""},
+						{Key: evmtypes.AttributeKeyRecipient, Value: ""},
+					},
+				},
 			},
 		},
 	}

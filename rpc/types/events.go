@@ -12,40 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// EventFormat is the format version of the events.
-//
-// To fix the issue of tx exceeds block gas limit, we changed the event format in a breaking way.
-// But to avoid forcing clients to re-sync from scatch, we make json-rpc logic to be compatible with both formats.
-type EventFormat int
-
-const (
-	eventFormatUnknown EventFormat = iota
-
-	// Event Format 1 (the format used before PR #1062):
-	// ```
-	// ethereum_tx(amount, ethereumTxHash, [txIndex, txGasUsed], txHash, [receipient], ethereumTxFailed)
-	// tx_log(txLog, txLog, ...)
-	// ethereum_tx(amount, ethereumTxHash, [txIndex, txGasUsed], txHash, [receipient], ethereumTxFailed)
-	// tx_log(txLog, txLog, ...)
-	// ...
-	// ```
-	eventFormat1
-
-	// Event Format 2 (the format used after PR #1062):
-	// ```
-	// ethereum_tx(ethereumTxHash, txIndex)
-	// ethereum_tx(ethereumTxHash, txIndex)
-	// ...
-	// ethereum_tx(amount, ethereumTxHash, txIndex, txGasUsed, txHash, [receipient], ethereumTxFailed)
-	// tx_log(txLog, txLog, ...)
-	// ethereum_tx(amount, ethereumTxHash, txIndex, txGasUsed, txHash, [receipient], ethereumTxFailed)
-	// tx_log(txLog, txLog, ...)
-	// ...
-	// ```
-	// If the transaction exceeds block gas limit, it only emits the first part.
-	eventFormat2
-)
-
 // ParsedTx is the tx infos parsed from events.
 type ParsedTx struct {
 	MsgIndex int
@@ -75,7 +41,6 @@ type ParsedTxs struct {
 // ParseTxResult parse eth tx infos from cosmos-sdk events.
 // It supports two event formats, the formats are described in the comments of the format constants.
 func ParseTxResult(result *abci.ResponseDeliverTx, tx sdk.Tx) (*ParsedTxs, error) {
-	format := eventFormatUnknown
 	// the index of current ethereum_tx event in format 1 or the second part of format 2
 	eventIndex := -1
 
@@ -87,41 +52,19 @@ func ParseTxResult(result *abci.ResponseDeliverTx, tx sdk.Tx) (*ParsedTxs, error
 			continue
 		}
 
-		if format == eventFormatUnknown {
-			// discover the format version by inspect the first ethereum_tx event.
-			if len(event.Attributes) > 2 {
-				format = eventFormat1
-			} else {
-				format = eventFormat2
-			}
-		}
-
 		if len(event.Attributes) == 2 {
-			// the first part of format 2
+			// the first part which emitted in AnteHandler
 			if err := p.newTx(event.Attributes); err != nil {
 				return nil, err
 			}
 		} else {
-			// format 1 or second part of format 2
+			// the second part which emitted in MsgServer after tx execution
 			eventIndex++
-			if format == eventFormat1 {
-				// append tx
-				if err := p.newTx(event.Attributes); err != nil {
-					return nil, err
-				}
-			} else {
-				// the second part of format 2, update tx fields
-				if err := p.updateTx(eventIndex, event.Attributes); err != nil {
-					return nil, err
-				}
+			// update tx fields
+			if err := p.updateTx(eventIndex, event.Attributes); err != nil {
+				return nil, err
 			}
 		}
-	}
-
-	// some old versions miss some events, fill it with tx result
-	gasUsed := uint64(result.GasUsed) // #nosec G701
-	if len(p.Txs) == 1 {
-		p.Txs[0].GasUsed = gasUsed
 	}
 
 	// this could only happen if tx exceeds block gas limit
