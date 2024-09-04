@@ -103,9 +103,7 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 				EthTxIndex: ethTxIndex,
 			}
 			if result.Code != abci.CodeTypeOK {
-				// exceeds block gas limit scenario, set gas used to gas limit because that's what's charged by ante handler.
-				// some old versions don't emit any events, so workaround here directly.
-				txResult.GasUsed = ethMsg.GetGas()
+				// exceeds block gas limit scenario
 				txResult.Failed = true
 			} else {
 				parsedTx := txs.GetTxByMsgIndex(0)
@@ -116,7 +114,6 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 				if parsedTx.EthTxIndex >= 0 && parsedTx.EthTxIndex != ethTxIndex {
 					kv.logger.Error("eth tx index don't match", "expect", ethTxIndex, "found", parsedTx.EthTxIndex)
 				}
-				txResult.GasUsed = parsedTx.GasUsed
 				txResult.Failed = parsedTx.Failed
 			}
 

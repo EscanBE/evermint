@@ -14,14 +14,14 @@ import (
 
 // ParsedTx is the tx infos parsed from events.
 type ParsedTx struct {
-	MsgIndex int
+	MsgIndex int // TODO IDX: remove
 
 	// the following fields are parsed from events
 
 	Hash common.Hash
 	// -1 means uninitialized
 	EthTxIndex int32
-	GasUsed    uint64
+	GasUsed    uint64 // TODO IDX: remove
 	Failed     bool
 }
 
@@ -71,10 +71,6 @@ func ParseTxResult(result *abci.ResponseDeliverTx, tx sdk.Tx) (*ParsedTxs, error
 	if result.Code != 0 && tx != nil {
 		for i := 0; i < len(p.Txs); i++ {
 			p.Txs[i].Failed = true
-
-			// replace gasUsed with gasLimit because that's what's actually deducted.
-			gasLimit := tx.GetMsgs()[i].(*evmtypes.MsgEthereumTx).GetGas()
-			p.Txs[i].GasUsed = gasLimit
 		}
 	}
 	return p, nil
@@ -96,7 +92,6 @@ func ParseTxIndexerResult(txResult *tmrpctypes.ResultTx, tx sdk.Tx, getter func(
 		TxIndex:    txResult.Index,
 		EthTxIndex: parsedTx.EthTxIndex,
 		Failed:     parsedTx.Failed,
-		GasUsed:    parsedTx.GasUsed,
 	}, nil
 }
 
@@ -104,6 +99,7 @@ func ParseTxIndexerResult(txResult *tmrpctypes.ResultTx, tx sdk.Tx, getter func(
 func (p *ParsedTxs) newTx(attrs []abci.EventAttribute) error {
 	msgIndex := len(p.Txs)
 	tx := NewParsedTx(msgIndex)
+	tx.Failed = true // first seen, not yet reach second part so assume tx failed, the later part process will override this
 	if err := fillTxAttributes(&tx, attrs); err != nil {
 		return err
 	}
@@ -170,12 +166,6 @@ func fillTxAttribute(tx *ParsedTx, key string, value string) error {
 			return err
 		}
 		tx.EthTxIndex = int32(txIndex) // #nosec G701
-	case evmtypes.AttributeKeyTxGasUsed:
-		gasUsed, err := strconv.ParseUint(value, 10, 64)
-		if err != nil {
-			return err
-		}
-		tx.GasUsed = gasUsed
 	case evmtypes.AttributeKeyEthereumTxFailed:
 		tx.Failed = len(value) > 0
 	}

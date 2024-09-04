@@ -322,7 +322,6 @@ func (b *Backend) HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error) 
 }
 
 // BlockBloom query block bloom filter from block results
-// TODO RC: remove error
 func (b *Backend) BlockBloom(blockRes *tmrpctypes.ResultBlockResults) ethtypes.Bloom {
 	for _, event := range blockRes.EndBlockEvents {
 		if event.Type != evmtypes.EventTypeBlockBloom {

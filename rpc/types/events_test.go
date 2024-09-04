@@ -57,7 +57,6 @@ func TestParseTxResult(t *testing.T) {
 					MsgIndex:   0,
 					Hash:       txHash,
 					EthTxIndex: 0,
-					GasUsed:    21000,
 					Failed:     false,
 				},
 			},
@@ -67,40 +66,42 @@ func TestParseTxResult(t *testing.T) {
 			abci.ResponseDeliverTx{
 				GasUsed: 21000,
 				Events: []abci.Event{
-					{Type: evmtypes.EventTypeEthereumTx, Attributes: []abci.EventAttribute{
-						{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash.Hex()},
-						{Key: evmtypes.AttributeKeyTxIndex, Value: "10"},
-					}},
-					{Type: evmtypes.EventTypeEthereumTx, Attributes: []abci.EventAttribute{
-						{Key: "amount", Value: "1000"},
-						{Key: evmtypes.AttributeKeyTxGasUsed, Value: "0x01"},
-						{Key: evmtypes.AttributeKeyTxHash, Value: "14A84ED06282645EFBF080E0B7ED80D8D8D6A36337668A12B5F229F81CDD3F57"},
-						{Key: evmtypes.AttributeKeyRecipient, Value: "0x775b87ef5D82ca211811C1a02CE0fE0CA3a455d7"},
-					}},
+					{
+						Type: evmtypes.EventTypeEthereumTx,
+						Attributes: []abci.EventAttribute{
+							{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash.Hex()},
+							{Key: evmtypes.AttributeKeyTxIndex, Value: "10"},
+						},
+					},
 				},
 			},
-			nil,
+			[]*ParsedTx{
+				{
+					MsgIndex:   0,
+					Hash:       txHash,
+					EthTxIndex: 10,
+					Failed:     true,
+				},
+			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			require.NotEmpty(t, tc.expTxs)
+
 			parsed, err := ParseTxResult(&tc.response, nil)
-			if tc.expTxs == nil {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-				for msgIndex, expTx := range tc.expTxs {
-					require.Equal(t, expTx, parsed.GetTxByMsgIndex(msgIndex))
-					require.Equal(t, expTx, parsed.GetTxByHash(expTx.Hash))
-					require.Equal(t, expTx, parsed.GetTxByTxIndex(int(expTx.EthTxIndex)))
-				}
-				// non-exists tx hash
-				require.Nil(t, parsed.GetTxByHash(common.Hash{}))
-				// out of range
-				require.Nil(t, parsed.GetTxByMsgIndex(len(tc.expTxs)))
-				require.Nil(t, parsed.GetTxByTxIndex(99999999))
+			require.NoError(t, err)
+			for msgIndex, expTx := range tc.expTxs {
+				require.Equal(t, expTx, parsed.GetTxByMsgIndex(msgIndex))
+				require.Equal(t, expTx, parsed.GetTxByHash(expTx.Hash))
+				require.Equal(t, expTx, parsed.GetTxByTxIndex(int(expTx.EthTxIndex)))
 			}
+			// non-exists tx hash
+			require.Nil(t, parsed.GetTxByHash(common.Hash{}))
+			// out of range
+			require.Nil(t, parsed.GetTxByMsgIndex(len(tc.expTxs)))
+			require.Nil(t, parsed.GetTxByTxIndex(99999999))
 		})
 	}
 }
