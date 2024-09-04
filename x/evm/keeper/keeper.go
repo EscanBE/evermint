@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/EscanBE/evermint/v12/utils"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -161,17 +162,24 @@ func (k Keeper) SetBlockBloomTransient(ctx sdk.Context, bloom *big.Int) {
 // Tx
 // ----------------------------------------------------------------------------
 
-// SetTxIndexTransient set the index of processing transaction
-func (k Keeper) SetTxIndexTransient(ctx sdk.Context, index uint64) {
+// IncreaseTxCountTransient increase the count of transaction being processed in the current block
+func (k Keeper) IncreaseTxCountTransient(ctx sdk.Context) {
 	store := ctx.TransientStore(k.transientKey)
-	store.Set(types.KeyPrefixTransientTxIndex, sdk.Uint64ToBigEndian(index))
+	bz := store.Get(types.KeyTransientTxCount)
+	curCount := sdk.BigEndianToUint64(bz)
+	store.Set(types.KeyTransientTxCount, sdk.Uint64ToBigEndian(curCount+1))
 }
 
-// GetTxIndexTransient returns EVM transaction index on the current block.
-func (k Keeper) GetTxIndexTransient(ctx sdk.Context) uint64 {
+// GetTxCountTransient returns the count of transaction being processed in the current block.
+// Notice: if not set, it returns 1
+func (k Keeper) GetTxCountTransient(ctx sdk.Context) uint64 {
 	store := ctx.TransientStore(k.transientKey)
-	bz := store.Get(types.KeyPrefixTransientTxIndex)
-	return sdk.BigEndianToUint64(bz)
+	bz := store.Get(types.KeyTransientTxCount)
+	count := sdk.BigEndianToUint64(bz)
+	if count < 1 {
+		count = 1
+	}
+	return count
 }
 
 // ----------------------------------------------------------------------------
@@ -313,4 +321,14 @@ func (k Keeper) GetBaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int
 	}
 
 	return baseFee
+}
+
+// SetupExecutionContext setups the execution context for the EVM transaction execution:
+//   - Use zero gas config
+//   - Increase the count of transaction being processed in the current block
+func (k Keeper) SetupExecutionContext(ctx sdk.Context) sdk.Context {
+	ctx = utils.UseZeroGasConfig(ctx)
+	k.IncreaseTxCountTransient(ctx)
+
+	return ctx
 }

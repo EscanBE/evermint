@@ -76,7 +76,7 @@ func NewEthEmitEventDecorator(evmKeeper EVMKeeper) EthEmitEventDecorator {
 func (eeed EthEmitEventDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	// After eth tx passed ante handler, the fee is deducted and nonce increased, it shouldn't be ignored by json-rpc,
 	// we need to emit some basic events at the very end of ante handler to be indexed by tendermint.
-	txIndex := eeed.evmKeeper.GetTxIndexTransient(ctx)
+	txIndex := eeed.evmKeeper.GetTxCountTransient(ctx) - 1
 
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
@@ -90,6 +90,22 @@ func (eeed EthEmitEventDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 		))
 	}
 
+	return next(ctx, tx, simulate)
+}
+
+// EthSetupExecutionDecorator update some information to transient store.
+type EthSetupExecutionDecorator struct {
+	evmKeeper EVMKeeper
+}
+
+// NewEthSetupExecutionDecorator creates a new EthSetupExecutionDecorator
+func NewEthSetupExecutionDecorator(evmKeeper EVMKeeper) EthSetupExecutionDecorator {
+	return EthSetupExecutionDecorator{evmKeeper}
+}
+
+// AnteHandle emits some basic events for the eth messages
+func (sed EthSetupExecutionDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	sed.evmKeeper.SetupExecutionContext(ctx)
 	return next(ctx, tx, simulate)
 }
 

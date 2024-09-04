@@ -37,7 +37,7 @@ func (k *Keeper) TxConfig(ctx sdk.Context, txHash common.Hash) statedb.TxConfig 
 	return statedb.NewTxConfig(
 		common.BytesToHash(ctx.HeaderHash()), // BlockHash
 		txHash,                               // TxHash
-		uint(k.GetTxIndexTransient(ctx)),     // TxIndex
+		uint(k.GetTxCountTransient(ctx)-1),   // TxIndex
 		uint(k.GetLogSizeTransient(ctx)),     // LogIndex
 	)
 }

@@ -230,8 +230,6 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 		k.SetLogSizeTransient(ctx, uint64(txConfig.LogIndex)+uint64(len(receipt.Logs)))
 	}
 
-	k.SetTxIndexTransient(ctx, uint64(txConfig.TxIndex)+1)
-
 	// reset the gas meter for current cosmos transaction
 	k.ResetGasMeterAndConsumeGas(ctx, res.GasUsed)
 	return res, nil

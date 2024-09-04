@@ -35,7 +35,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 
 	sender := msg.From
 	tx := msg.AsTransaction()
-	txIndex := k.GetTxIndexTransient(ctx)
+	txIndex := k.GetTxCountTransient(ctx) - 1
 
 	labels := []metrics.Label{
 		telemetry.NewLabel("tx_type", fmt.Sprintf("%d", tx.Type())),
