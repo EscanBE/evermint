@@ -93,6 +93,7 @@ import (
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 
 	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v7/modules/core"
 	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
@@ -137,10 +138,6 @@ import (
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-
-	// NOTE: override ICS20 keeper to support IBC transfers of ERC20 tokens
-	"github.com/EscanBE/evermint/v12/x/ibc/transfer"
-	transferkeeper "github.com/EscanBE/evermint/v12/x/ibc/transfer/keeper"
 
 	// Force-load the tracer engines to trigger registration due to Go-Ethereum v1.10.15 changes
 	_ "github.com/ethereum/go-ethereum/eth/tracers/js"
@@ -190,12 +187,12 @@ var (
 		slashing.AppModuleBasic{},
 		ibc.AppModuleBasic{},
 		ibctm.AppModuleBasic{},
+		ibctransfer.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		authzmodule.AppModuleBasic{},
 		feegrantmodule.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
-		transfer.AppModuleBasic{AppModuleBasic: &ibctransfer.AppModuleBasic{}},
 		vesting.AppModuleBasic{},
 		evm.AppModuleBasic{},
 		feemarket.AppModuleBasic{},
@@ -260,13 +257,14 @@ type Evermint struct {
 	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	ICAHostKeeper         icahostkeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
-	TransferKeeper        transferkeeper.Keeper
+	TransferKeeper        ibctransferkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	MintKeeper            mintkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
+	ScopedICAHostKeeper  capabilitykeeper.ScopedKeeper
 
 	// Ethermint keepers
 	EvmKeeper       *evmkeeper.Keeper
@@ -469,18 +467,17 @@ func NewEvermint(
 		),
 	)
 
-	chainApp.TransferKeeper = transferkeeper.NewKeeper(
-		appCodec, keys[ibctransfertypes.StoreKey], chainApp.GetSubspace(ibctransfertypes.ModuleName),
+	chainApp.TransferKeeper = ibctransferkeeper.NewKeeper(
+		appCodec,
+		keys[ibctransfertypes.StoreKey],
+		chainApp.GetSubspace(ibctransfertypes.ModuleName),
 		chainApp.IBCKeeper.ChannelKeeper, // No ICS4 wrapper
-		chainApp.IBCKeeper.ChannelKeeper, &chainApp.IBCKeeper.PortKeeper,
-		chainApp.AccountKeeper, chainApp.BankKeeper, scopedTransferKeeper,
-		chainApp.Erc20Keeper, // Add ERC20 Keeper for ERC20 transfers
+		chainApp.IBCKeeper.ChannelKeeper,
+		&chainApp.IBCKeeper.PortKeeper,
+		chainApp.AccountKeeper,
+		chainApp.BankKeeper,
+		scopedTransferKeeper,
 	)
-
-	// NOTE: app.Erc20Keeper is already initialized elsewhere
-
-	// Override the ICS20 app module
-	transferModule := transfer.NewAppModule(chainApp.TransferKeeper)
 
 	// Create the app.ICAHostKeeper
 	chainApp.ICAHostKeeper = icahostkeeper.NewKeeper(
@@ -495,34 +492,11 @@ func NewEvermint(
 	)
 	chainApp.ICAHostKeeper.WithQueryRouter(baseApp.GRPCQueryRouter())
 
-	// create host IBC module
-	icaHostIBCModule := icahost.NewIBCModule(chainApp.ICAHostKeeper)
-
-	/*
-		Create Transfer Stack
-
-		transfer stack contains (from bottom to top):
-			- ERC-20 Middleware
-			- IBC Transfer
-
-		SendPacket, since it is originating from the application to core IBC:
-		 	transferKeeper.SendPacket -> erc20.SendPacket -> channel.SendPacket
-
-		RecvPacket, message that originates from core IBC and goes down to app, the flow is the other way
-			channel.RecvPacket -> erc20.OnRecvPacket -> transfer.OnRecvPacket
-	*/
-
-	// create IBC module from top to bottom of stack
-	var transferStack porttypes.IBCModule
-
-	transferStack = transfer.NewIBCModule(chainApp.TransferKeeper)
-	transferStack = erc20.NewIBCMiddleware(chainApp.Erc20Keeper, transferStack)
-
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.
-		AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
-		AddRoute(ibctransfertypes.ModuleName, transferStack)
+		AddRoute(icahosttypes.SubModuleName, icahost.NewIBCModule(chainApp.ICAHostKeeper)).
+		AddRoute(ibctransfertypes.ModuleName, ibctransfer.NewIBCModule(chainApp.TransferKeeper))
 
 	chainApp.IBCKeeper.SetRouter(ibcRouter)
 
@@ -566,7 +540,7 @@ func NewEvermint(
 		// ibc modules
 		ibc.NewAppModule(chainApp.IBCKeeper),
 		ica.NewAppModule(nil, &chainApp.ICAHostKeeper),
-		transferModule,
+		ibctransfer.NewAppModule(chainApp.TransferKeeper),
 		// Ethermint app modules
 		evm.NewAppModule(chainApp.EvmKeeper, chainApp.AccountKeeper, chainApp.GetSubspace(evmtypes.ModuleName)),
 		feemarket.NewAppModule(chainApp.FeeMarketKeeper, chainApp.GetSubspace(feemarkettypes.ModuleName)),
@@ -706,6 +680,7 @@ func NewEvermint(
 
 	chainApp.ScopedIBCKeeper = scopedIBCKeeper
 	chainApp.ScopedTransferKeeper = scopedTransferKeeper
+	chainApp.ScopedICAHostKeeper = scopedICAHostKeeper
 
 	// Finally start the tpsCounter.
 	chainApp.tpsCounter = newTPSCounter(logger)
