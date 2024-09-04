@@ -88,12 +88,23 @@ func GetSdkEventForReceipt(
 	), nil
 }
 
-func ContainsEventTypeEthereumTx(events []abci.Event) bool {
-	for _, event := range events {
+// TxWasDroppedPreAnteHandleDueToBlockGasExcess returns true if the tx was ignored pre-ante-handler due to block gas exceed.
+// There are some state of a tx:
+//   - Case 1: was applied successfully
+//   - Case 2: Failed to apply due to block gas limit
+//   - Case 3: Ignored before execution due to block gas exceed, will not reach ante handle
+//
+// This function will return true for case 3 and return false for case 1 and case 2.
+func TxWasDroppedPreAnteHandleDueToBlockGasExcess(res *abci.ResponseDeliverTx) bool {
+	if res.Code == 0 { // case 1
+		return false
+	}
+
+	for _, event := range res.Events { // case 2, when exists mean already reach ante handler
 		if event.Type == EventTypeEthereumTx {
-			return true
+			return false
 		}
 	}
 
-	return false
+	return true
 }

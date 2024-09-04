@@ -4,15 +4,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/EscanBE/evermint/v12/utils"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/pkg/errors"
 	"math/big"
-	"strings"
-
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmtypes "github.com/cometbft/cometbft/types"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -27,10 +25,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
 )
-
-// ExceedBlockGasLimitError defines the error message when tx execution exceeds the block gas limit.
-// The tx fee is deducted in ante handler, so it shouldn't be ignored in JSON-RPC API.
-const ExceedBlockGasLimitError = "out of gas in location: block gas meter; gasWanted:"
 
 // RawTxToEthTx returns a evm MsgEthereum transaction from raw tx bytes.
 func RawTxToEthTx(clientCtx client.Context, txBz tmtypes.Tx) ([]*evmtypes.MsgEthereumTx, error) {
@@ -340,10 +334,4 @@ func CheckTxFee(gasPrice *big.Int, gas uint64, cap float64) error {
 		return fmt.Errorf("tx fee (%.2f ether) exceeds the configured cap (%.2f ether)", feeFloat, cap)
 	}
 	return nil
-}
-
-// TxSuccessOrExceedsBlockGasLimit returns true if the transaction was successful
-// or if it failed with an ExceedBlockGasLimit error
-func TxSuccessOrExceedsBlockGasLimit(res *abci.ResponseDeliverTx) bool {
-	return res.Code == 0 || strings.Contains(res.Log, ExceedBlockGasLimitError)
 }

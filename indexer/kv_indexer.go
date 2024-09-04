@@ -73,7 +73,9 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 	var ethTxIndex int32
 	for txIndex, tx := range block.Txs {
 		result := txResults[txIndex]
-		if !rpctypes.TxSuccessOrExceedsBlockGasLimit(result) {
+
+		// ignore the dropped tx
+		if evmtypes.TxWasDroppedPreAnteHandleDueToBlockGasExcess(result) {
 			continue
 		}
 
