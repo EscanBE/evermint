@@ -222,11 +222,6 @@ func BuildBlockResultsWithEventReceipt(height int64, receipt *ethtypes.Receipt) 
 								Value: strconv.FormatUint(uint64(receipt.TransactionIndex), 10),
 								Index: true,
 							},
-							{
-								Key:   evmtypes.AttributeKeyTxGasUsed,
-								Value: strconv.FormatUint(receipt.GasUsed, 10),
-								Index: true,
-							},
 						},
 					},
 					{
