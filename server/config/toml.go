@@ -22,7 +22,7 @@ max-tx-gas-wanted = {{ .EVM.MaxTxGasWanted }}
 
 [json-rpc]
 
-# Enable defines if the gRPC server should be enabled.
+# Enable defines if the EVM Json-RPC server should be enabled.
 enable = {{ .JSONRPC.Enable }}
 
 # Address defines the EVM RPC HTTP server address to bind to.
@@ -65,6 +65,9 @@ http-idle-timeout = "{{ .JSONRPC.HTTPIdleTimeout }}"
 # AllowUnprotectedTxs restricts unprotected (non EIP155 signed) transactions to be submitted via
 # the node's RPC when the global parameter is disabled.
 allow-unprotected-txs = {{ .JSONRPC.AllowUnprotectedTxs }}
+
+# Allow insecure account unlocking when account-related RPCs are exposed by http
+allow-insecure-unlock = {{ .JSONRPC.AllowInsecureUnlock }}
 
 # MaxOpenConnections sets the maximum number of simultaneous connections
 # for the server listener.

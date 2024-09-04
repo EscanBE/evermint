@@ -50,6 +50,7 @@ const (
 	JSONRPCHTTPTimeout         = "json-rpc.http-timeout"
 	JSONRPCHTTPIdleTimeout     = "json-rpc.http-idle-timeout"
 	JSONRPCAllowUnprotectedTxs = "json-rpc.allow-unprotected-txs"
+	JSONRPCAllowInsecureUnlock = "json-rpc.allow-insecure-unlock"
 	JSONRPCMaxOpenConnections  = "json-rpc.max-open-connections"
 	// JSONRPCEnableMetrics enables EVM RPC metrics server.
 	// Set to `metrics` which is hardcoded flag from go-ethereum.
