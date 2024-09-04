@@ -22,13 +22,13 @@ import (
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
-// PrepareEthTx creates an ethereum tx and signs it with the provided messages and private key.
+// PrepareEthTx creates an ethereum tx and signs it with the provided message and private key.
 // It returns the signed transaction and an error
 func PrepareEthTx(
 	txCfg client.TxConfig,
 	chainApp *app.Evermint,
 	priv cryptotypes.PrivKey,
-	msgs ...sdk.Msg,
+	msg sdk.Msg,
 ) (authsigning.Tx, error) {
 	txBuilder := txCfg.NewTxBuilder()
 
@@ -37,26 +37,26 @@ func PrepareEthTx(
 	txGasLimit := uint64(0)
 
 	// Sign messages and compute gas/fees.
-	for _, m := range msgs {
-		msg, ok := m.(*evmtypes.MsgEthereumTx)
+	{
+		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
 		if !ok {
 			return nil, errorsmod.Wrapf(errorsmod.Error{}, "cannot mix Ethereum and Cosmos messages in one Tx")
 		}
 
 		if priv != nil {
-			err := msg.Sign(signer, NewSigner(priv))
+			err := msgEthTx.Sign(signer, NewSigner(priv))
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		msg.From = ""
+		msgEthTx.From = ""
 
-		txGasLimit += msg.GetGas()
-		txFee = txFee.Add(sdk.Coin{Denom: constants.BaseDenom, Amount: sdkmath.NewIntFromBigInt(msg.GetFee())})
+		txGasLimit += msgEthTx.GetGas()
+		txFee = txFee.Add(sdk.Coin{Denom: constants.BaseDenom, Amount: sdkmath.NewIntFromBigInt(msgEthTx.GetFee())})
 	}
 
-	if err := txBuilder.SetMsgs(msgs...); err != nil {
+	if err := txBuilder.SetMsgs(msg); err != nil {
 		return nil, err
 	}
 

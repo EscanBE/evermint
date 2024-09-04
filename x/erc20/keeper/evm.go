@@ -222,15 +222,24 @@ func (k Keeper) CallEVMWithData(
 // monitorApprovalEvent returns an error if the given transactions logs include
 // an unexpected `Approval` event
 func (k Keeper) monitorApprovalEvent(res *evmtypes.MsgEthereumTxResponse) error {
-	if res == nil || len(res.Logs) == 0 {
+	if res == nil {
+		return nil
+	}
+
+	receipt := &ethtypes.Receipt{}
+	if err := receipt.UnmarshalBinary(res.MarshalledReceipt); err != nil {
+		return errorsmod.Wrap(err, "failed to unmarshal receipt")
+	}
+
+	if len(receipt.Logs) == 0 {
 		return nil
 	}
 
 	logApprovalSig := []byte("Approval(address,address,uint256)")
 	logApprovalSigHash := crypto.Keccak256Hash(logApprovalSig)
 
-	for _, log := range res.Logs {
-		if log.Topics[0] == logApprovalSigHash.Hex() {
+	for _, log := range receipt.Logs {
+		if log.Topics[0] == logApprovalSigHash {
 			return errorsmod.Wrapf(
 				types.ErrUnexpectedEvent, "unexpected Approval event",
 			)

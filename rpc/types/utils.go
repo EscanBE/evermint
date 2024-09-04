@@ -3,9 +3,9 @@ package types
 import (
 	"context"
 	"fmt"
+	"github.com/EscanBE/evermint/v12/utils"
 	"github.com/cometbft/cometbft/libs/log"
 	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/pkg/errors"
 	"math/big"
@@ -262,30 +262,12 @@ func NewRPCTransaction(
 	return result, nil
 }
 
-func NewRPCReceipt(
+func NewRPCReceiptFromReceipt(
 	ethMsg *evmtypes.MsgEthereumTx,
-	transactionIndex hexutil.Uint64,
-	success bool,
-	gasUsed hexutil.Uint64,
-	cumulativeGasUsed hexutil.Uint64,
-	baseFee *big.Int,
-	logs []*ethtypes.Log,
-	blockHash common.Hash,
-	blockNumber hexutil.Uint64,
+	ethReceipt *ethtypes.Receipt,
+	effectiveGasPrice *big.Int,
 	chainID *big.Int,
 ) (receipt *RPCReceipt, err error) {
-	var status hexutil.Uint
-
-	if success {
-		status = hexutil.Uint(ethtypes.ReceiptStatusSuccessful)
-	} else {
-		status = hexutil.Uint(ethtypes.ReceiptStatusFailed)
-	}
-
-	if logs == nil {
-		logs = []*ethtypes.Log{}
-	}
-
 	from, err := ethMsg.GetSender(chainID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get sender")
@@ -297,32 +279,23 @@ func NewRPCReceipt(
 	}
 
 	rpcReceipt := RPCReceipt{
-		Status:            status,
-		CumulativeGasUsed: cumulativeGasUsed,
-		Bloom:             ethtypes.BytesToBloom(ethtypes.LogsBloom(logs)),
-		Logs:              logs,
+		Status:            hexutil.Uint(ethReceipt.Status),
+		CumulativeGasUsed: hexutil.Uint64(ethReceipt.CumulativeGasUsed),
+		Bloom:             ethReceipt.Bloom,
+		Logs:              ethReceipt.Logs,
 		TransactionHash:   ethMsg.AsTransaction().Hash(),
-		ContractAddress:   nil,
-		GasUsed:           gasUsed,
-		BlockHash:         blockHash,
-		BlockNumber:       blockNumber,
-		TransactionIndex:  transactionIndex,
-		Type:              hexutil.Uint(ethMsg.AsTransaction().Type()),
+		GasUsed:           hexutil.Uint64(ethReceipt.GasUsed),
+		BlockHash:         ethReceipt.BlockHash,
+		BlockNumber:       hexutil.Uint64(ethReceipt.BlockNumber.Uint64()),
+		TransactionIndex:  hexutil.Uint64(ethReceipt.TransactionIndex),
+		Type:              hexutil.Uint(ethReceipt.Type),
 		From:              from,
 		To:                txData.GetTo(),
-		EffectiveGasPrice: nil,
+		EffectiveGasPrice: utils.Ptr(hexutil.Big(*effectiveGasPrice)),
 	}
 
-	if rpcReceipt.To == nil {
-		newContractAddress := crypto.CreateAddress(from, txData.GetNonce())
-		rpcReceipt.ContractAddress = &newContractAddress
-	}
-
-	if baseFee != nil {
-		if dynamicTx, ok := txData.(*evmtypes.DynamicFeeTx); ok {
-			effectiveGasPrice := hexutil.Big(*dynamicTx.EffectiveGasPrice(baseFee))
-			rpcReceipt.EffectiveGasPrice = &effectiveGasPrice
-		}
+	if newContractAddr := ethReceipt.ContractAddress; newContractAddr != (common.Address{}) {
+		rpcReceipt.ContractAddress = &newContractAddr
 	}
 
 	return &rpcReceipt, nil

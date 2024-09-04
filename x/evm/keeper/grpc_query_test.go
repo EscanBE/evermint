@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"encoding/json"
 	"fmt"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
@@ -347,7 +348,7 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 }
 
 func (suite *KeeperTestSuite) TestQueryTxLogs() {
-	var expLogs []*types.Log
+	var expLogs []*ethtypes.Log
 	txHash := common.BytesToHash([]byte("tx_hash"))
 	txIndex := uint(1)
 	logIndex := uint(1)
@@ -365,21 +366,21 @@ func (suite *KeeperTestSuite) TestQueryTxLogs() {
 		{
 			"success",
 			func(vmdb vm.StateDB) {
-				expLogs = []*types.Log{
+				expLogs = []*ethtypes.Log{
 					{
-						Address:     suite.address.String(),
-						Topics:      []string{common.BytesToHash([]byte("topic")).String()},
+						Address:     suite.address,
+						Topics:      []common.Hash{common.BytesToHash([]byte("topic"))},
 						Data:        []byte("data"),
 						BlockNumber: 1,
-						TxHash:      txHash.String(),
-						TxIndex:     uint64(txIndex),
-						BlockHash:   common.BytesToHash(suite.ctx.HeaderHash()).Hex(),
-						Index:       uint64(logIndex),
+						TxHash:      txHash,
+						TxIndex:     txIndex,
+						BlockHash:   common.BytesToHash(suite.ctx.HeaderHash()),
+						Index:       logIndex,
 						Removed:     false,
 					},
 				}
 
-				for _, log := range types.LogsToEthereum(expLogs) {
+				for _, log := range expLogs {
 					vmdb.AddLog(log)
 				}
 			},
@@ -395,7 +396,7 @@ func (suite *KeeperTestSuite) TestQueryTxLogs() {
 			suite.Require().NoError(vmdb.Commit())
 
 			logs := vmdb.Logs()
-			suite.Require().Equal(expLogs, types.NewLogsFromEth(logs))
+			suite.Require().Equal(expLogs, logs)
 		})
 	}
 }

@@ -2,8 +2,13 @@ package keeper
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"github.com/EscanBE/evermint/v12/utils"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	"math/big"
 	"strconv"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -30,7 +35,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 
 	sender := msg.From
 	tx := msg.AsTransaction()
-	txIndex := k.GetTxIndexTransient(ctx)
+	txIndex := k.GetTxCountTransient(ctx) - 1
 
 	labels := []metrics.Label{
 		telemetry.NewLabel("tx_type", fmt.Sprintf("%d", tx.Type())),
@@ -98,13 +103,27 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 		attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyEthereumTxFailed, response.VmError))
 	}
 
-	txLogAttrs := make([]sdk.Attribute, len(response.Logs))
-	for i, log := range response.Logs {
-		value, err := json.Marshal(log)
-		if err != nil {
-			return nil, errorsmod.Wrap(err, "failed to encode log")
-		}
-		txLogAttrs[i] = sdk.NewAttribute(types.AttributeKeyTxLog, string(value))
+	var contractAddr string
+	if tx.To() == nil && !response.Failed() {
+		contractAddr = crypto.CreateAddress(common.HexToAddress(sender), tx.Nonce()).String()
+	}
+	txData, err := types.UnpackTxData(msg.Data)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "failed to unpack tx data")
+	}
+	var baseFee *big.Int
+	if tx.Type() == ethtypes.DynamicFeeTxType {
+		baseFee = utils.Coalesce(k.feeMarketKeeper.GetBaseFee(ctx), common.Big0)
+	}
+	txReceiptAttrs := []sdk.Attribute{
+		sdk.NewAttribute(types.AttributeKeyReceiptMarshalled, hexutil.Encode(response.MarshalledReceipt)),
+		sdk.NewAttribute(types.AttributeKeyReceiptTxHash, response.Hash),
+		sdk.NewAttribute(types.AttributeKeyReceiptContractAddress, contractAddr),
+		sdk.NewAttribute(types.AttributeKeyReceiptGasUsed, strconv.FormatUint(response.GasUsed, 10)),
+		sdk.NewAttribute(types.AttributeKeyReceiptEffectiveGasPrice, txData.EffectiveGasPrice(baseFee).String()),
+		sdk.NewAttribute(types.AttributeKeyReceiptBlockNumber, strconv.FormatInt(ctx.BlockHeight(), 10)),
+		sdk.NewAttribute(types.AttributeKeyReceiptTxIndex, strconv.FormatUint(txIndex, 10)),
+		sdk.NewAttribute(types.AttributeKeyReceiptStartLogIndex, strconv.FormatUint(k.GetCumulativeLogCountTransient(ctx, true), 10)),
 	}
 
 	// emit events
@@ -114,14 +133,13 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 			attrs...,
 		),
 		sdk.NewEvent(
-			types.EventTypeTxLog,
-			txLogAttrs...,
+			types.EventTypeTxReceipt,
+			txReceiptAttrs...,
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, sender),
-			sdk.NewAttribute(types.AttributeKeyTxType, fmt.Sprintf("%d", tx.Type())),
 		),
 	})
 

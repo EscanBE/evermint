@@ -709,7 +709,8 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 
 				ethMsg := types.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
-				ethMsg.Sign(msgSigner, suite.signer)
+				err = ethMsg.Sign(msgSigner, suite.signer)
+				suite.Require().NoError(err)
 
 				var err error
 				msg, err = ethMsg.AsMessage(msgSigner, nil)
@@ -776,9 +777,9 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 
 				ethMsg := types.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
-				ethMsg.Sign(msgSigner, suite.signer)
+				err = ethMsg.Sign(msgSigner, suite.signer)
+				suite.Require().NoError(err)
 
-				var err error
 				msg, err = ethMsg.AsMessage(msgSigner, nil)
 				suite.Require().NoError(err)
 			},
@@ -810,9 +811,9 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 
 				ethMsg := types.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
-				ethMsg.Sign(msgSigner, suite.signer)
+				err = ethMsg.Sign(msgSigner, suite.signer)
+				suite.Require().NoError(err)
 
-				var err error
 				msg, err = ethMsg.AsMessage(msgSigner, nil)
 				suite.Require().NoError(err)
 			},
@@ -955,9 +956,9 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 
 				ethMsg := types.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
-				ethMsg.Sign(msgSigner, suite.signer)
+				err = ethMsg.Sign(msgSigner, suite.signer)
+				suite.Require().NoError(err)
 
-				var err error
 				msg, err = ethMsg.AsMessage(msgSigner, nil)
 				suite.Require().NoError(err)
 			},
@@ -988,9 +989,9 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 
 				ethMsg := types.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
-				ethMsg.Sign(msgSigner, suite.signer)
+				err = ethMsg.Sign(msgSigner, suite.signer)
+				suite.Require().NoError(err)
 
-				var err error
 				msg, err = ethMsg.AsMessage(msgSigner, nil)
 				suite.Require().NoError(err)
 			},
@@ -1021,9 +1022,9 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 
 				ethMsg := types.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
-				ethMsg.Sign(msgSigner, suite.signer)
+				err = ethMsg.Sign(msgSigner, suite.signer)
+				suite.Require().NoError(err)
 
-				var err error
 				msg, err = ethMsg.AsMessage(msgSigner, nil)
 				suite.Require().NoError(err)
 			},
@@ -1055,9 +1056,9 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 
 				ethMsg := types.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
-				ethMsg.Sign(msgSigner, suite.signer)
+				err = ethMsg.Sign(msgSigner, suite.signer)
+				suite.Require().NoError(err)
 
-				var err error
 				msg, err = ethMsg.AsMessage(msgSigner, nil)
 				suite.Require().NoError(err)
 			},
@@ -1077,9 +1078,9 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 			keeperParams = suite.app.EvmKeeper.GetParams(suite.ctx)
 			chainCfg = keeperParams.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
 			signer = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
-			txConfig = suite.app.EvmKeeper.TxConfig(suite.ctx, common.Hash{})
 
 			tc.malleate()
+			txConfig = suite.app.EvmKeeper.TxConfig(suite.ctx, common.Hash{}).WithTxTypeFromMessage(msg)
 			suite.ctx = suite.ctx.WithGasMeter(cointypes.NewInfiniteGasMeterWithLimit(msg.Gas()))
 
 			if tc.simulateCommitDbError {

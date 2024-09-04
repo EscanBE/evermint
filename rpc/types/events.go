@@ -148,11 +148,9 @@ func ParseTxIndexerResult(txResult *tmrpctypes.ResultTx, tx sdk.Tx, getter func(
 	if parsedTx == nil {
 		return nil, fmt.Errorf("ethereum tx not found in msgs: block %d, index %d", txResult.Height, txResult.Index)
 	}
-	index := uint32(parsedTx.MsgIndex) // #nosec G701
 	return &types.TxResult{
 		Height:            txResult.Height,
 		TxIndex:           txResult.Index,
-		MsgIndex:          index,
 		EthTxIndex:        parsedTx.EthTxIndex,
 		Failed:            parsedTx.Failed,
 		GasUsed:           parsedTx.GasUsed,
@@ -229,7 +227,7 @@ func (p *ParsedTxs) AccumulativeGasUsed(msgIndex int) (result uint64) {
 // fillTxAttribute parse attributes by name, less efficient than hardcode the index, but more stable against event
 // format changes.
 func fillTxAttribute(tx *ParsedTx, key string, value string) error {
-	switch string(key) {
+	switch key {
 	case evmtypes.AttributeKeyEthereumTxHash:
 		tx.Hash = common.HexToHash(value)
 	case evmtypes.AttributeKeyTxIndex:

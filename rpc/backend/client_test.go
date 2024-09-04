@@ -2,6 +2,10 @@ package backend
 
 import (
 	"context"
+	"cosmossdk.io/errors"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"strconv"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -178,23 +182,122 @@ func TestRegisterConsensusParams(t *testing.T) {
 
 // BlockResults
 
-func RegisterBlockResultsWithEventLog(client *mocks.Client, height int64) (*tmrpctypes.ResultBlockResults, error) {
-	res := &tmrpctypes.ResultBlockResults{
+func BuildBlockResultsWithEventReceipt(height int64, receipt *ethtypes.Receipt) (*tmrpctypes.ResultBlockResults, error) {
+	bzReceipt, err := receipt.MarshalBinary()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal receipt")
+	}
+	return &tmrpctypes.ResultBlockResults{
 		Height: height,
 		TxsResults: []*abci.ResponseDeliverTx{
-			{Code: 0, GasUsed: 0, Events: []abci.Event{{
-				Type: evmtypes.EventTypeTxLog,
-				Attributes: []abci.EventAttribute{{
-					Key:   evmtypes.AttributeKeyTxLog,
-					Value: "{\"test\": \"hello\"}",
-					Index: true,
-				}},
-			}}},
+			{
+				Code:    0,
+				GasUsed: 0,
+				Events: []abci.Event{
+					{
+						Type: evmtypes.EventTypeEthereumTx,
+						Attributes: []abci.EventAttribute{
+							{
+								Key:   evmtypes.AttributeKeyEthereumTxHash,
+								Value: receipt.TxHash.Hex(),
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyTxIndex,
+								Value: strconv.FormatUint(uint64(receipt.TransactionIndex), 10),
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyTxGasUsed,
+								Value: strconv.FormatUint(receipt.GasUsed, 10),
+								Index: true,
+							},
+						},
+					},
+					{
+						Type: evmtypes.EventTypeTxReceipt,
+						Attributes: []abci.EventAttribute{
+							{
+								Key:   evmtypes.AttributeKeyReceiptMarshalled,
+								Value: hexutil.Encode(bzReceipt),
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyReceiptTxHash,
+								Value: receipt.TxHash.Hex(),
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyReceiptBlockNumber,
+								Value: strconv.FormatInt(height, 10),
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyReceiptTxIndex,
+								Value: strconv.FormatUint(uint64(receipt.TransactionIndex), 10),
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyReceiptContractAddress,
+								Value: "",
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyReceiptGasUsed,
+								Value: strconv.FormatUint(receipt.GasUsed, 10),
+								Index: true,
+							},
+							{
+								Key:   evmtypes.AttributeKeyReceiptEffectiveGasPrice,
+								Value: "0",
+								Index: true,
+							},
+							{
+								Key: evmtypes.AttributeKeyReceiptStartLogIndex,
+								Value: func() string {
+									if len(receipt.Logs) == 0 {
+										return "0"
+									}
+									return strconv.FormatUint(uint64(receipt.Logs[0].Index), 10)
+								}(),
+								Index: true,
+							},
+						},
+					},
+				},
+			},
 		},
+	}, nil
+}
+
+func RegisterBlockResultsWithEventReceipt(client *mocks.Client, height int64, receipt *ethtypes.Receipt) (*tmrpctypes.ResultBlockResults, error) {
+	blockRes, err := BuildBlockResultsWithEventReceipt(height, receipt)
+	if err != nil {
+		return nil, err
 	}
 	client.On("BlockResults", rpc.ContextWithHeight(height), mock.AnythingOfType("*int64")).
-		Return(res, nil)
-	return res, nil
+		Return(blockRes, nil)
+	return blockRes, nil
+}
+
+func RegisterBlockResultsWithEventLog(client *mocks.Client, height int64) (*tmrpctypes.ResultBlockResults, error) {
+	receipt := &ethtypes.Receipt{
+		Type:              ethtypes.LegacyTxType,
+		PostState:         nil,
+		Status:            ethtypes.ReceiptStatusSuccessful,
+		CumulativeGasUsed: 0,
+		Bloom:             ethtypes.Bloom{},
+		Logs: []*ethtypes.Log{
+			{
+				Address: common.HexToAddress("0x4fea76427b8345861e80a3540a8a9d936fd39398"),
+				Topics: []common.Hash{
+					common.HexToHash("0x4fea76427b8345861e80a3540a8a9d936fd393981e80a3540a8a9d936fd39398"),
+				},
+				Data: []byte{0x12, 0x34, 0x56},
+			},
+		},
+	}
+	return RegisterBlockResultsWithEventReceipt(client, height, receipt)
 }
 
 func RegisterBlockResults(

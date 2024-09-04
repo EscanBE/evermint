@@ -256,14 +256,11 @@ func (b *Backend) EthMsgsFromTendermintBlock(
 			continue
 		}
 
-		for _, msg := range tx.GetMsgs() {
-			ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
-			if !ok {
-				continue
+		if msgs := tx.GetMsgs(); len(msgs) == 1 {
+			if ethMsg, isEthTx := msgs[0].(*evmtypes.MsgEthereumTx); isEthTx {
+				ethMsg.Hash = ethMsg.AsTransaction().Hash().Hex()
+				result = append(result, ethMsg)
 			}
-
-			ethMsg.Hash = ethMsg.AsTransaction().Hash().Hex()
-			result = append(result, ethMsg)
 		}
 	}
 
@@ -379,31 +376,11 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 
 	validatorAddr := common.BytesToAddress(validatorAccAddr)
 
-	chainID, err := b.ChainID()
-	if err != nil {
-		return nil, err
-	}
-
 	// prepare gas & fee information
 
 	gasLimit, err := rpctypes.BlockMaxGasFromConsensusParams(ctx, b.clientCtx, block.Height)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to query consensus params")
-	}
-
-	var gasUsed uint64
-	var gasUsedByTxs []uint64
-	for _, txResult := range blockRes.TxsResults {
-		gasUsedByTx := uint64(txResult.GetGasUsed()) // #nosec G701 -- checked for int overflow already
-
-		// workaround for cosmos-sdk bug. https://github.com/cosmos/cosmos-sdk/issues/10832
-		if ShouldIgnoreGasUsed(txResult) {
-			// block gas limit has exceeded, other txs must have failed with same reason.
-			gasUsedByTx = 0
-		}
-
-		gasUsed += gasUsedByTx
-		gasUsedByTxs = append(gasUsedByTxs, gasUsedByTx)
 	}
 
 	baseFee, err := b.BaseFee(blockRes)
@@ -417,7 +394,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 
 	var transactions ethtypes.Transactions
 	var receipts ethtypes.Receipts
-	for transactionIndex, ethMsg := range ethMsgs {
+	for _, ethMsg := range ethMsgs {
 		transaction := ethMsg.AsTransaction()
 
 		transactions = append(transactions, transaction)
@@ -427,38 +404,20 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 			return nil, err
 		}
 
-		var cumulativeGasUsed uint64
-		for _, gasUsedByTx := range gasUsedByTxs[0:indexedTxByHash.TxIndex] { // previous txs
-			cumulativeGasUsed += gasUsedByTx
-		}
-		cumulativeGasUsed += indexedTxByHash.CumulativeGasUsed
-
-		logs, err := TxLogsFromEvents(blockRes.TxsResults[indexedTxByHash.TxIndex].Events, int(indexedTxByHash.MsgIndex))
+		icReceipt, err := TxReceiptFromEvent(blockRes.TxsResults[indexedTxByHash.TxIndex].Events)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to parse logs from events")
+			return nil, errors.Wrap(err, "failed to parse receipt from events")
 		}
 
-		txData, err := evmtypes.UnpackTxData(ethMsg.Data)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to unpack tx data")
-		}
+		icReceipt.Fill(common.BytesToHash(resBlock.BlockID.Hash.Bytes()))
 
-		receipt, err := rpctypes.NewRPCReceipt(
-			ethMsg,
-			hexutil.Uint64(transactionIndex),
-			!indexedTxByHash.Failed,
-			hexutil.Uint64(b.GetGasUsed(indexedTxByHash, txData.GetGasPrice(), txData.GetGas())),
-			hexutil.Uint64(cumulativeGasUsed),
-			baseFee,
-			logs,
-			common.BytesToHash(resBlock.BlockID.Hash.Bytes()),
-			hexutil.Uint64(indexedTxByHash.Height),
-			chainID.ToInt(),
-		)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to create transaction receipt")
-		}
-		receipts = append(receipts, receipt.AsEthReceipt())
+		receipts = append(receipts, icReceipt.Receipt)
+	}
+
+	// prepare gas used
+	var blockGasUsed uint64
+	if len(receipts) > 0 {
+		blockGasUsed = receipts[len(receipts)-1].CumulativeGasUsed
 	}
 
 	// prepare block-bloom information
@@ -471,7 +430,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 		block.Header,
 		b.chainID,
 		block.Size(),
-		gasLimit, new(big.Int).SetUint64(gasUsed), baseFee,
+		gasLimit, new(big.Int).SetUint64(blockGasUsed), baseFee,
 		transactions, fullTx,
 		receipts,
 		bloom,

@@ -308,8 +308,12 @@ func (suite *EvmTestSuite) TestHandlerLogs() {
 	err = proto.Unmarshal(result.Data, &txResponse)
 	suite.Require().NoError(err, "failed to decode result data")
 
-	suite.Require().Equal(len(txResponse.Logs), 1)
-	suite.Require().Equal(len(txResponse.Logs[0].Topics), 2)
+	receipt := &ethtypes.Receipt{}
+	err = receipt.UnmarshalBinary(txResponse.MarshalledReceipt)
+	suite.Require().NoError(err, "failed to unmarshal receipt")
+
+	suite.Require().Equal(len(receipt.Logs), 1)
+	suite.Require().Equal(len(receipt.Logs[0].Topics), 2)
 }
 
 func (suite *EvmTestSuite) TestDeployAndCallContract() {
@@ -684,7 +688,13 @@ func (suite *EvmTestSuite) TestERC20TransferReverted() {
 
 			suite.Require().True(res.Failed())
 			suite.Require().Equal(tc.expErr, res.VmError)
-			suite.Require().Empty(res.Logs)
+
+			receipt := &ethtypes.Receipt{}
+			err = receipt.UnmarshalBinary(res.MarshalledReceipt)
+			suite.Require().NoError(err, "failed to unmarshal receipt")
+			suite.Require().Equal(ethtypes.ReceiptStatusFailed, receipt.Status)
+			suite.Require().Empty(receipt.Logs)
+			suite.Require().Equal(types.EmptyBlockBloom, receipt.Bloom)
 
 			after := k.GetBalance(suite.ctx, suite.from)
 

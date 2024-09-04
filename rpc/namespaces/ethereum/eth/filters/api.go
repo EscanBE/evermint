@@ -171,11 +171,9 @@ func (api *PublicFilterAPI) NewPendingTransactionFilter() rpc.ID {
 
 				api.filtersMu.Lock()
 				if f, found := api.filters[pendingTxSub.ID()]; found {
-					for _, msg := range tx.GetMsgs() {
-						ethTx, ok := msg.(*evmtypes.MsgEthereumTx)
-						if ok {
-							f.hashes = append(f.hashes, ethTx.AsTransaction().Hash())
-						}
+					ethTx, ok := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+					if ok {
+						f.hashes = append(f.hashes, ethTx.AsTransaction().Hash())
 					}
 				}
 				api.filtersMu.Unlock()
@@ -235,11 +233,9 @@ func (api *PublicFilterAPI) NewPendingTransactions(ctx context.Context) (*rpc.Su
 					continue
 				}
 
-				for _, msg := range tx.GetMsgs() {
-					ethTx, ok := msg.(*evmtypes.MsgEthereumTx)
-					if ok {
-						_ = notifier.Notify(rpcSub.ID, ethTx.AsTransaction().Hash()) // #nosec G703
-					}
+				ethTx, ok := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+				if ok {
+					_ = notifier.Notify(rpcSub.ID, ethTx.AsTransaction().Hash()) // #nosec G703
 				}
 			case <-rpcSub.Err():
 				pendingTxSub.Unsubscribe(api.events)
@@ -407,7 +403,13 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 					return
 				}
 
-				logs := FilterLogs(evmtypes.LogsToEthereum(txResponse.Logs), crit.FromBlock, crit.ToBlock, crit.Addresses, crit.Topics)
+				receipt := &ethtypes.Receipt{}
+				if err := receipt.UnmarshalBinary(txResponse.MarshalledReceipt); err != nil {
+					api.logger.Error("fail to unmarshal receipt from tx response", "error", err)
+					return
+				}
+
+				logs := FilterLogs(receipt.Logs, crit.FromBlock, crit.ToBlock, crit.Addresses, crit.Topics)
 
 				for _, log := range logs {
 					_ = notifier.Notify(rpcSub.ID, log) // #nosec G703
@@ -490,7 +492,13 @@ func (api *PublicFilterAPI) NewFilter(criteria filters.FilterCriteria) (rpc.ID, 
 					return
 				}
 
-				logs := FilterLogs(evmtypes.LogsToEthereum(txResponse.Logs), criteria.FromBlock, criteria.ToBlock, criteria.Addresses, criteria.Topics)
+				receipt := &ethtypes.Receipt{}
+				if err := receipt.UnmarshalBinary(txResponse.MarshalledReceipt); err != nil {
+					api.logger.Error("fail to unmarshal receipt from tx response", "error", err)
+					return
+				}
+
+				logs := FilterLogs(receipt.Logs, criteria.FromBlock, criteria.ToBlock, criteria.Addresses, criteria.Topics)
 
 				api.filtersMu.Lock()
 				if f, found := api.filters[filterID]; found {

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/EscanBE/evermint/v12/utils"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -161,35 +162,75 @@ func (k Keeper) SetBlockBloomTransient(ctx sdk.Context, bloom *big.Int) {
 // Tx
 // ----------------------------------------------------------------------------
 
-// SetTxIndexTransient set the index of processing transaction
-func (k Keeper) SetTxIndexTransient(ctx sdk.Context, index uint64) {
+// IncreaseTxCountTransient increase the count of transaction being processed in the current block
+func (k Keeper) IncreaseTxCountTransient(ctx sdk.Context) {
 	store := ctx.TransientStore(k.transientKey)
-	store.Set(types.KeyPrefixTransientTxIndex, sdk.Uint64ToBigEndian(index))
+	bz := store.Get(types.KeyTransientTxCount)
+	curCount := sdk.BigEndianToUint64(bz)
+	store.Set(types.KeyTransientTxCount, sdk.Uint64ToBigEndian(curCount+1))
 }
 
-// GetTxIndexTransient returns EVM transaction index on the current block.
-func (k Keeper) GetTxIndexTransient(ctx sdk.Context) uint64 {
+// GetTxCountTransient returns the count of transaction being processed in the current block.
+// Notice: if not set, it returns 1
+func (k Keeper) GetTxCountTransient(ctx sdk.Context) uint64 {
 	store := ctx.TransientStore(k.transientKey)
-	bz := store.Get(types.KeyPrefixTransientTxIndex)
+	bz := store.Get(types.KeyTransientTxCount)
+	count := sdk.BigEndianToUint64(bz)
+	if count < 1 {
+		count = 1
+	}
+	return count
+}
+
+// SetGasUsedForCurrentTxTransient sets the gas used for the current transaction in the transient store,
+// based on the transient tx counter.
+func (k Keeper) SetGasUsedForCurrentTxTransient(ctx sdk.Context, gas uint64) {
+	txIdx := k.GetTxCountTransient(ctx) - 1
+
+	store := ctx.TransientStore(k.transientKey)
+	store.Set(types.TxGasTransientKey(txIdx), sdk.Uint64ToBigEndian(gas))
+}
+
+// GetGasUsedForTdxIndexTransient returns gas used for tx by index from the transient store.
+func (k Keeper) GetGasUsedForTdxIndexTransient(ctx sdk.Context, txIdx uint64) uint64 {
+	store := ctx.TransientStore(k.transientKey)
+	bz := store.Get(types.TxGasTransientKey(txIdx))
 	return sdk.BigEndianToUint64(bz)
 }
 
-// ----------------------------------------------------------------------------
-// Log
-// ----------------------------------------------------------------------------
+// SetLogCountForCurrentTxTransient sets the log count for the current transaction in the transient store,
+// based on the transient tx counter.
+func (k Keeper) SetLogCountForCurrentTxTransient(ctx sdk.Context, count uint64) {
+	txIdx := k.GetTxCountTransient(ctx) - 1
 
-// GetLogSizeTransient returns EVM log index on the current block.
-func (k Keeper) GetLogSizeTransient(ctx sdk.Context) uint64 {
 	store := ctx.TransientStore(k.transientKey)
-	bz := store.Get(types.KeyPrefixTransientLogSize)
+	store.Set(types.TxLogCountTransientKey(txIdx), sdk.Uint64ToBigEndian(count))
+}
+
+// GetLogCountForTdxIndexTransient returns log count for tx by index from the transient store.
+func (k Keeper) GetLogCountForTdxIndexTransient(ctx sdk.Context, txIdx uint64) uint64 {
+	store := ctx.TransientStore(k.transientKey)
+	bz := store.Get(types.TxLogCountTransientKey(txIdx))
 	return sdk.BigEndianToUint64(bz)
 }
 
-// SetLogSizeTransient fetches the current EVM log index from the transient store, increases its
-// value by one and then sets the new index back to the transient store.
-func (k Keeper) SetLogSizeTransient(ctx sdk.Context, logSize uint64) {
+// GetCumulativeLogCountTransient returns the total log count for all transactions in the current block.
+func (k Keeper) GetCumulativeLogCountTransient(ctx sdk.Context, exceptCurrent bool) uint64 {
 	store := ctx.TransientStore(k.transientKey)
-	store.Set(types.KeyPrefixTransientLogSize, sdk.Uint64ToBigEndian(logSize))
+
+	var total uint64
+
+	txCount := k.GetTxCountTransient(ctx)
+	for i := uint64(0); i < txCount; i++ {
+		if exceptCurrent && i == txCount-1 {
+			continue
+		}
+
+		bz := store.Get(types.TxLogCountTransientKey(i))
+		total += sdk.BigEndianToUint64(bz)
+	}
+
+	return total
 }
 
 // ----------------------------------------------------------------------------
@@ -313,4 +354,16 @@ func (k Keeper) GetBaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int
 	}
 
 	return baseFee
+}
+
+// SetupExecutionContext setups the execution context for the EVM transaction execution:
+//   - Use zero gas config
+//   - Increase the count of transaction being processed in the current block
+//   - Set the gas used for the current transaction, assume tx failed so gas used = tx gas
+func (k Keeper) SetupExecutionContext(ctx sdk.Context, txGas uint64) sdk.Context {
+	ctx = utils.UseZeroGasConfig(ctx)
+	k.IncreaseTxCountTransient(ctx)
+	k.SetGasUsedForCurrentTxTransient(ctx, txGas)
+
+	return ctx
 }

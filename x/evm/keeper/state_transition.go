@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"github.com/EscanBE/evermint/v12/utils"
+	"math"
 	"math/big"
 
 	tmtypes "github.com/cometbft/cometbft/types"
@@ -143,6 +145,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to return ethereum transaction as core message")
 	}
+	txConfig = txConfig.WithTxTypeFromMessage(msg)
 
 	// snapshot to contain the tx processing and post processing in same scope
 	var commit func()
@@ -167,38 +170,21 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 		return nil, errorsmod.Wrap(err, "failed to apply ethereum core message")
 	}
 
-	cumulativeGasUsed := res.GasUsed
-	if ctx.BlockGasMeter() != nil {
-		limit := ctx.BlockGasMeter().Limit()
-		cumulativeGasUsed += ctx.BlockGasMeter().GasConsumed()
-		if cumulativeGasUsed > limit {
-			cumulativeGasUsed = limit
+	receipt := &ethtypes.Receipt{}
+	if err := receipt.UnmarshalBinary(res.MarshalledReceipt); err != nil {
+		return nil, errorsmod.Wrap(err, "failed to unmarshal receipt")
+	}
+
+	// fill other non-consensus fields
+	{
+		receipt.TxHash = txConfig.TxHash
+		if msg.To() == nil {
+			receipt.ContractAddress = crypto.CreateAddress(msg.From(), msg.Nonce())
 		}
-	}
-
-	var contractAddr common.Address
-	if msg.To() == nil {
-		contractAddr = crypto.CreateAddress(msg.From(), msg.Nonce())
-	}
-
-	receipt := &ethtypes.Receipt{
-		Type:              tx.Type(),
-		PostState:         nil, // TODO: intermediate state root
-		CumulativeGasUsed: cumulativeGasUsed,
-		TxHash:            txConfig.TxHash,
-		ContractAddress:   contractAddr,
-		GasUsed:           res.GasUsed,
-		BlockHash:         txConfig.BlockHash,
-		BlockNumber:       big.NewInt(ctx.BlockHeight()),
-		TransactionIndex:  txConfig.TxIndex,
-	}
-
-	if !res.Failed() {
-		receipt.Status = ethtypes.ReceiptStatusSuccessful
-		receipt.Logs = types.LogsToEthereum(res.Logs)
-	} else {
-		receipt.Status = ethtypes.ReceiptStatusFailed
-		receipt.Logs = []*ethtypes.Log{}
+		receipt.GasUsed = res.GasUsed
+		receipt.BlockHash = txConfig.BlockHash
+		receipt.BlockNumber = big.NewInt(ctx.BlockHeight())
+		receipt.TransactionIndex = txConfig.TxIndex
 	}
 
 	isSuccess := func() bool {
@@ -206,8 +192,10 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 	}
 
 	if isSuccess() {
-		receipt.Status = ethtypes.ReceiptStatusSuccessful
+		k.SetGasUsedForCurrentTxTransient(ctx, res.GasUsed)
+	}
 
+	if isSuccess() {
 		// Only call hooks if tx executed successfully.
 		if err = k.PostTxProcessing(tmpCtx, msg, receipt); err != nil {
 			// If hooks return error, revert the whole tx.
@@ -215,21 +203,25 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 			k.Logger(ctx).Error("tx post processing failed", "error", err)
 
 			// If the tx failed in post-processing hooks, we should update receipt and clear the logs
-			receipt.Status = ethtypes.ReceiptStatusFailed
-			receipt.Logs = []*ethtypes.Log{}
-			res.Logs = nil
+			newReceipt := utils.MoveReceiptStatusToFailed(*receipt, res.GasUsed, tx.Gas())
+			receipt = &newReceipt
+			k.SetGasUsedForCurrentTxTransient(ctx, tx.Gas())
 		}
 
 		if isSuccess() && commit != nil {
 			// PostTxProcessing is successful, commit the tmpCtx
 			commit()
-			// Since the post-processing can alter the log, we need to update the result
-			res.Logs = types.NewLogsFromEth(receipt.Logs)
 			ctx.EventManager().EmitEvents(tmpCtx.EventManager().Events())
 		}
-	}
 
-	receipt.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{receipt})
+		// update receipt
+		receipt.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{receipt})
+		bzReceipt, err := receipt.MarshalBinary()
+		if err != nil {
+			return nil, errorsmod.Wrap(err, "failed to marshal receipt")
+		}
+		res.MarshalledReceipt = bzReceipt
+	}
 
 	// Update transient block bloom filter
 	if len(receipt.Logs) > 0 {
@@ -238,10 +230,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 
 		// Update transient block bloom filter
 		k.SetBlockBloomTransient(ctx, blockBloom)
-		k.SetLogSizeTransient(ctx, uint64(txConfig.LogIndex)+uint64(len(receipt.Logs)))
 	}
-
-	k.SetTxIndexTransient(ctx, uint64(txConfig.TxIndex)+1)
 
 	// reset the gas meter for current cosmos transaction
 	k.ResetGasMeterAndConsumeGas(ctx, res.GasUsed)
@@ -256,6 +245,7 @@ func (k *Keeper) ApplyMessage(ctx sdk.Context, msg core.Message, tracer vm.EVMLo
 	}
 
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
+	txConfig = txConfig.WithTxTypeFromMessage(msg)
 	return k.ApplyMessageWithConfig(ctx, msg, tracer, commit, cfg, txConfig)
 }
 
@@ -383,11 +373,43 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 	leftoverGas += refund
 	gasUsed -= refund
 
+	var success bool
 	// EVM execution error needs to be available for the JSON-RPC client
 	var vmError string
 	if vmErr != nil {
 		vmError = vmErr.Error()
+	} else {
+		success = true
 	}
+
+	var txType uint8
+	if txConfig.TxType < 0 || txConfig.TxType > math.MaxUint8 {
+		panic("require tx type set")
+	} else {
+		txType = uint8(txConfig.TxType)
+	}
+
+	cumulativeGasUsed := gasUsed
+	var prevTxIdx uint64
+	for prevTxIdx = 0; prevTxIdx < uint64(txConfig.TxIndex); prevTxIdx++ {
+		cumulativeGasUsed += k.GetGasUsedForTdxIndexTransient(ctx, prevTxIdx)
+	}
+
+	receipt := ethtypes.Receipt{
+		// consensus fields only
+		Type:              txType,
+		PostState:         nil, // TODO: intermediate state root
+		Status:            0,   // to be filled below
+		CumulativeGasUsed: cumulativeGasUsed,
+		Bloom:             ethtypes.Bloom{}, // to be filled bellow
+		Logs:              stateDB.Logs(),
+	}
+	if success {
+		receipt.Status = ethtypes.ReceiptStatusSuccessful
+	} else {
+		receipt.Status = ethtypes.ReceiptStatusFailed
+	}
+	receipt.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{&receipt})
 
 	// The dirty states in `StateDB` is either committed or discarded after return
 	if commit {
@@ -396,11 +418,18 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		}
 	}
 
+	k.SetLogCountForCurrentTxTransient(ctx, uint64(len(receipt.Logs)))
+
+	bzReceipt, err := receipt.MarshalBinary()
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "failed to marshal receipt")
+	}
+
 	return &types.MsgEthereumTxResponse{
-		GasUsed: gasUsed,
-		VmError: vmError,
-		Ret:     ret,
-		Logs:    types.NewLogsFromEth(stateDB.Logs()),
-		Hash:    txConfig.TxHash.Hex(),
+		GasUsed:           gasUsed,
+		VmError:           vmError,
+		Ret:               ret,
+		Hash:              txConfig.TxHash.Hex(),
+		MarshalledReceipt: bzReceipt,
 	}, nil
 }

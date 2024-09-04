@@ -582,7 +582,13 @@ func (api *pubSubAPI) subscribeLogs(wsConn *wsConn, subID rpc.ID, extra interfac
 					return
 				}
 
-				logs := rpcfilters.FilterLogs(evmtypes.LogsToEthereum(txResponse.Logs), crit.FromBlock, crit.ToBlock, crit.Addresses, crit.Topics)
+				receipt := &ethtypes.Receipt{}
+				if err := receipt.UnmarshalBinary(txResponse.MarshalledReceipt); err != nil {
+					api.logger.Error("failed to unmarshal receipt from tx response", "error", err.Error())
+					return
+				}
+
+				logs := rpcfilters.FilterLogs(receipt.Logs, crit.FromBlock, crit.ToBlock, crit.Addresses, crit.Topics)
 				if len(logs) == 0 {
 					continue
 				}

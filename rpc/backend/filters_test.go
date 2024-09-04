@@ -1,11 +1,8 @@
 package backend
 
 import (
-	"encoding/json"
-
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
 	ethrpc "github.com/EscanBE/evermint/v12/rpc/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -14,12 +11,6 @@ import (
 func (suite *BackendTestSuite) TestGetLogs() {
 	_, bz := suite.buildEthereumTx()
 	block := tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil)
-	logs := make([]*evmtypes.Log, 0, 1)
-	var log evmtypes.Log
-	err := json.Unmarshal([]byte{0x7b, 0x22, 0x74, 0x65, 0x73, 0x74, 0x22, 0x3a, 0x20, 0x22, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x22, 0x7d}, &log)
-	suite.Require().NoError(err)
-
-	logs = append(logs, &log)
 
 	testCases := []struct {
 		name         string
@@ -70,7 +61,20 @@ func (suite *BackendTestSuite) TestGetLogs() {
 				suite.Require().NoError(err)
 			},
 			common.BytesToHash(block.Hash()),
-			[][]*ethtypes.Log{evmtypes.LogsToEthereum(logs)},
+			[][]*ethtypes.Log{
+				{
+					{
+						Address: common.HexToAddress("0x4fea76427b8345861e80a3540a8a9d936fd39398"),
+						Topics: []common.Hash{
+							common.HexToHash("0x4fea76427b8345861e80a3540a8a9d936fd393981e80a3540a8a9d936fd39398"),
+						},
+						Data:        []byte{0x12, 0x34, 0x56},
+						BlockNumber: 1,
+						TxHash:      common.Hash{},
+						TxIndex:     0,
+					},
+				},
+			},
 			true,
 		},
 	}

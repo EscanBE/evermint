@@ -84,11 +84,11 @@ func DeliverTx(
 func DeliverEthTx(
 	chainApp *app.Evermint,
 	priv cryptotypes.PrivKey,
-	msgs ...sdk.Msg,
+	msg sdk.Msg,
 ) (abci.ResponseDeliverTx, error) {
 	txConfig := encoding.MakeConfig(app.ModuleBasics).TxConfig
 
-	tx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msgs...)
+	tx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msg)
 	if err != nil {
 		return abci.ResponseDeliverTx{}, err
 	}
@@ -127,11 +127,11 @@ func CheckTx(
 func CheckEthTx(
 	chainApp *app.Evermint,
 	priv cryptotypes.PrivKey,
-	msgs ...sdk.Msg,
+	msg sdk.Msg,
 ) (abci.ResponseCheckTx, error) {
 	txConfig := encoding.MakeConfig(app.ModuleBasics).TxConfig
 
-	tx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msgs...)
+	tx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msg)
 	if err != nil {
 		return abci.ResponseCheckTx{}, err
 	}

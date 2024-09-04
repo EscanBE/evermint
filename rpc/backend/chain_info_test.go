@@ -398,11 +398,6 @@ func (suite *BackendTestSuite) TestFeeHistory() {
 				RegisterBaseFeeError(queryClient)
 				RegisterValidatorAccount(queryClient, validator)
 				RegisterConsensusParams(client, 1)
-
-				RegisterParamsWithoutHeader(queryClient, 1)
-
-				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
-				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
 			1,
 			1,

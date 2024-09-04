@@ -94,14 +94,13 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 		}
 
 		var cumulativeGasUsed uint64
-		for msgIndex, msg := range tx.GetMsgs() {
-			ethMsg := msg.(*evmtypes.MsgEthereumTx)
+		{
+			ethMsg := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 			txHash := common.HexToHash(ethMsg.Hash)
 
 			txResult := evertypes.TxResult{
 				Height:     height,
 				TxIndex:    uint32(txIndex),
-				MsgIndex:   uint32(msgIndex),
 				EthTxIndex: ethTxIndex,
 			}
 			if result.Code != abci.CodeTypeOK {
@@ -110,9 +109,9 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 				txResult.GasUsed = ethMsg.GetGas()
 				txResult.Failed = true
 			} else {
-				parsedTx := txs.GetTxByMsgIndex(msgIndex)
+				parsedTx := txs.GetTxByMsgIndex(0)
 				if parsedTx == nil {
-					kv.logger.Error("msg index not found in events", "msgIndex", msgIndex)
+					kv.logger.Error("msg index not found in events", "msgIndex", 0)
 					continue
 				}
 				if parsedTx.EthTxIndex >= 0 && parsedTx.EthTxIndex != ethTxIndex {

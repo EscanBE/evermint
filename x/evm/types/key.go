@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -31,10 +32,13 @@ const (
 
 // prefix bytes for the EVM transient store
 const (
-	prefixTransientBloom = iota + 1
-	prefixTransientTxIndex
-	prefixTransientLogSize
+	prefixTransientBloom   = iota + 1
+	prefixTransientTxIndex // deprecated
+	prefixTransientLogSize // deprecated
 	prefixTransientGasUsed // deprecated
+	prefixTransientTxCount
+	prefixTransientTxGas
+	prefixTransientTxLogCount
 )
 
 // KVStore key prefixes
@@ -47,9 +51,14 @@ var (
 
 // Transient Store key prefixes
 var (
-	KeyPrefixTransientBloom   = []byte{prefixTransientBloom}
-	KeyPrefixTransientTxIndex = []byte{prefixTransientTxIndex}
-	KeyPrefixTransientLogSize = []byte{prefixTransientLogSize}
+	KeyPrefixTransientBloom      = []byte{prefixTransientBloom}
+	KeyPrefixTransientTxGas      = []byte{prefixTransientTxGas}
+	KeyPrefixTransientTxLogCount = []byte{prefixTransientTxLogCount}
+)
+
+// Transient Store key
+var (
+	KeyTransientTxCount = []byte{prefixTransientTxCount}
 )
 
 // AddressStoragePrefix returns a prefix to iterate over a given account storage.
@@ -60,4 +69,12 @@ func AddressStoragePrefix(address common.Address) []byte {
 // StateKey defines the full key under which an account state is stored.
 func StateKey(address common.Address, key []byte) []byte {
 	return append(AddressStoragePrefix(address), key...)
+}
+
+func TxGasTransientKey(txIdx uint64) []byte {
+	return append(KeyPrefixTransientTxGas, sdk.Uint64ToBigEndian(txIdx)...)
+}
+
+func TxLogCountTransientKey(txIdx uint64) []byte {
+	return append(KeyPrefixTransientTxLogCount, sdk.Uint64ToBigEndian(txIdx)...)
 }
