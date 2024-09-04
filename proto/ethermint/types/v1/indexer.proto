@@ -26,8 +26,8 @@ message TxResult {
   // it's set to gas limit, which is what's actually deducted by ante handler.
   // TODO ES: consider remove?
   uint64 gas_used = 6;
-  // cumulative_gas_used specifies the cumulated amount of gas used for all
+  // DEPRECATED: cumulative_gas_used specifies the cumulated amount of gas used for all
   // processed messages within the current batch transaction.
-  // TODO ES: consider remove?
-  uint64 cumulative_gas_used = 7;
+  reserved 7;
+  reserved "cumulative_gas_used";
 }

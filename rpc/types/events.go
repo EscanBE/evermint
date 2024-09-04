@@ -149,12 +149,11 @@ func ParseTxIndexerResult(txResult *tmrpctypes.ResultTx, tx sdk.Tx, getter func(
 		return nil, fmt.Errorf("ethereum tx not found in msgs: block %d, index %d", txResult.Height, txResult.Index)
 	}
 	return &types.TxResult{
-		Height:            txResult.Height,
-		TxIndex:           txResult.Index,
-		EthTxIndex:        parsedTx.EthTxIndex,
-		Failed:            parsedTx.Failed,
-		GasUsed:           parsedTx.GasUsed,
-		CumulativeGasUsed: txs.AccumulativeGasUsed(parsedTx.MsgIndex),
+		Height:     txResult.Height,
+		TxIndex:    txResult.Index,
+		EthTxIndex: parsedTx.EthTxIndex,
+		Failed:     parsedTx.Failed,
+		GasUsed:    parsedTx.GasUsed,
 	}, nil
 }
 
@@ -214,14 +213,6 @@ func (p *ParsedTxs) GetTxByTxIndex(txIndex int) *ParsedTx {
 	msgIndex := txIndex - int(p.Txs[0].EthTxIndex)
 	// GetTxByMsgIndex will check the bound
 	return p.GetTxByMsgIndex(msgIndex)
-}
-
-// AccumulativeGasUsed calculates the accumulated gas used within the batch of txs
-func (p *ParsedTxs) AccumulativeGasUsed(msgIndex int) (result uint64) {
-	for i := 0; i <= msgIndex; i++ {
-		result += p.Txs[i].GasUsed
-	}
-	return result
 }
 
 // fillTxAttribute parse attributes by name, less efficient than hardcode the index, but more stable against event

@@ -93,7 +93,6 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 			continue
 		}
 
-		var cumulativeGasUsed uint64
 		{
 			ethMsg := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 			txHash := common.HexToHash(ethMsg.Hash)
@@ -121,8 +120,6 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 				txResult.Failed = parsedTx.Failed
 			}
 
-			cumulativeGasUsed += txResult.GasUsed
-			txResult.CumulativeGasUsed = cumulativeGasUsed
 			ethTxIndex++
 
 			if err := saveTxResult(kv.clientCtx.Codec, batch, txHash, &txResult); err != nil {
