@@ -21,7 +21,7 @@ const (
 	AttributeKeyTxIndex        = "txIndex"
 	// receipt
 	AttributeKeyReceiptMarshalled        = "marshalled"
-	AttributeKeyReceiptTxHash            = "txHash"
+	AttributeKeyReceiptEvmTxHash         = "evmTxHash"
 	AttributeKeyReceiptContractAddress   = "contractAddr"
 	AttributeKeyReceiptGasUsed           = "gasUsed"
 	AttributeKeyReceiptEffectiveGasPrice = "effectiveGasPrice"
@@ -60,7 +60,7 @@ func GetSdkEventForReceipt(
 
 	attrs := []sdk.Attribute{
 		sdk.NewAttribute(AttributeKeyReceiptMarshalled, hexutil.Encode(bzReceipt)),
-		sdk.NewAttribute(AttributeKeyReceiptTxHash, receipt.TxHash.Hex()),
+		sdk.NewAttribute(AttributeKeyReceiptEvmTxHash, receipt.TxHash.Hex()),
 		sdk.NewAttribute(AttributeKeyReceiptContractAddress, contractAddr),
 		sdk.NewAttribute(AttributeKeyReceiptGasUsed, strconv.FormatUint(receipt.GasUsed, 10)),
 		sdk.NewAttribute(AttributeKeyReceiptEffectiveGasPrice, effectiveGasPrice.String()),

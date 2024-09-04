@@ -272,9 +272,9 @@ func ParseTxReceiptFromEvent(event abci.Event) (*InCompletedEthReceipt, error) {
 		return nil, errors.Wrap(err, "failed to unmarshal receipt")
 	}
 
-	txHashRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptTxHash)
+	txHashRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptEvmTxHash)
 	if !found {
-		return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptTxHash)
+		return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptEvmTxHash)
 	}
 	txHash := common.HexToHash(txHashRaw)
 
