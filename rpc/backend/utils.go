@@ -213,12 +213,16 @@ func AllTxLogsFromEvents(events []abci.Event) ([][]*ethtypes.Log, error) {
 			continue
 		}
 
-		receipt, err := ParseTxReceiptFromEvent(event)
+		icReceipt, err := ParseTxReceiptFromEvent(event)
 		if err != nil {
 			return nil, err
 		}
+		if icReceipt == nil {
+			// tx was aborted due to block gas limit
+			continue
+		}
 
-		allLogs = append(allLogs, receipt.Logs)
+		allLogs = append(allLogs, icReceipt.Logs)
 	}
 	return allLogs, nil
 }

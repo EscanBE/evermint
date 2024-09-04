@@ -1,6 +1,7 @@
 package backend
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"fmt"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	"github.com/EscanBE/evermint/v12/types"
@@ -9,8 +10,10 @@ import (
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/pkg/errors"
 	"math"
+	"math/big"
 )
 
 // GetTransactionByHash returns the Ethereum format transaction identified by Ethereum transaction hash
@@ -138,6 +141,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 		b.logger.Debug("failed to retrieve block results", "height", res.Height, "error", err.Error())
 		return nil, nil
 	}
+	blockHash := common.BytesToHash(resBlock.BlockID.Hash.Bytes())
 
 	if res.EthTxIndex == -1 {
 		// Fallback to find tx index by iterating all valid eth transactions
@@ -154,13 +158,13 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 		return nil, errors.New("can't find index of ethereum tx")
 	}
 
-	tx, err := b.clientCtx.TxConfig.TxDecoder()(resBlock.Block.Txs[res.TxIndex])
+	cosmosTx, err := b.clientCtx.TxConfig.TxDecoder()(resBlock.Block.Txs[res.TxIndex])
 	if err != nil {
 		b.logger.Debug("decoding failed", "error", err.Error())
 		return nil, fmt.Errorf("failed to decode tx: %w", err)
 	}
 
-	ethMsg := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+	ethMsg := cosmosTx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
 	chainID, err := b.ChainID()
 	if err != nil {
@@ -171,12 +175,89 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse receipt from events")
 	}
-	icReceipt.Fill(common.BytesToHash(resBlock.BlockID.Hash.Bytes()))
+
+	var receipt *ethtypes.Receipt
+	var effectiveGasPrice *big.Int
+	var baseFee *big.Int
+
+	if icReceipt != nil {
+		icReceipt.Fill(blockHash)
+		receipt = icReceipt.Receipt
+		effectiveGasPrice = icReceipt.EffectiveGasPrice
+	} else {
+		// tx failed, possible out of block gas:
+		//  - during apply tx
+		//  - before exec tx (before ante handle)
+
+		// in this case, we craft the receipt manually
+		ethTx := ethMsg.AsTransaction()
+
+		txData, err := evmtypes.UnpackTxData(ethMsg.Data)
+		if err != nil {
+			return nil, errorsmod.Wrap(err, "failed to unpack tx data")
+		}
+
+		// compute cumulative gas used
+		cumulativeGasUsed := ethTx.Gas()
+		if res.EthTxIndex > 0 {
+			// get gas used of previous txs
+			for txIdx, prevTx := range resBlock.Block.Txs[:res.TxIndex] {
+				prevCosmosTx, err := b.clientCtx.TxConfig.TxDecoder()(prevTx)
+				if err != nil {
+					b.logger.Debug("decoding failed", "error", err.Error())
+					continue
+				}
+				msgs := prevCosmosTx.GetMsgs()
+				if len(msgs) != 1 {
+					continue
+				}
+				prevEthMsg, isEthTx := msgs[0].(*evmtypes.MsgEthereumTx)
+				if !isEthTx {
+					continue
+				}
+				prevReceipt, err := TxReceiptFromEvent(blockRes.TxsResults[txIdx].Events)
+				if err != nil {
+					b.logger.Debug("failed to parse receipt from events", "tx-hash", prevEthMsg.Hash, "error", err.Error())
+					continue
+				}
+				if prevReceipt == nil {
+					cumulativeGasUsed += prevEthMsg.AsTransaction().Gas()
+				} else {
+					cumulativeGasUsed += prevReceipt.Receipt.GasUsed
+				}
+			}
+		}
+
+		receipt = &ethtypes.Receipt{
+			Type:              ethTx.Type(),
+			PostState:         nil,
+			Status:            ethtypes.ReceiptStatusFailed,
+			CumulativeGasUsed: cumulativeGasUsed,
+			Bloom:             evmtypes.EmptyBlockBloom,
+			Logs:              []*ethtypes.Log{},
+			TxHash:            ethTx.Hash(),
+			ContractAddress:   common.Address{},
+			GasUsed:           ethTx.Gas(),
+			BlockHash:         blockHash,
+			BlockNumber:       big.NewInt(blockRes.Height),
+			TransactionIndex:  uint(res.EthTxIndex),
+		}
+
+		if ethTx.Type() == ethtypes.DynamicFeeTxType {
+			if baseFee == nil {
+				baseFee, err = b.BaseFee(blockRes)
+				if err != nil {
+					return nil, errors.Wrapf(err, "failed to fetch base fee. Pruned block %d?", blockRes.Height)
+				}
+			}
+		}
+		effectiveGasPrice = txData.EffectiveGasPrice(baseFee)
+	}
 
 	return rpctypes.NewRPCReceiptFromReceipt(
 		ethMsg,
-		icReceipt.Receipt,
-		icReceipt.EffectiveGasPrice,
+		receipt,
+		effectiveGasPrice,
 		chainID.ToInt(),
 	)
 }

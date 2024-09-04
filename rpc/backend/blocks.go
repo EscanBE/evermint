@@ -347,6 +347,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 	// prepare block information
 
 	block := resBlock.Block
+	blockHash := common.BytesToHash(resBlock.BlockID.Hash.Bytes())
 
 	req := &evmtypes.QueryValidatorAccountRequest{
 		ConsAddress: sdk.ConsAddress(block.Header.ProposerAddress).String(),
@@ -408,9 +409,34 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 			return nil, errors.Wrap(err, "failed to parse receipt from events")
 		}
 
-		icReceipt.Fill(common.BytesToHash(resBlock.BlockID.Hash.Bytes()))
+		var receipt *ethtypes.Receipt
+		if icReceipt == nil {
+			// tx was aborted due to block gas limit
+			// Need to build receipt
+			receipt = &ethtypes.Receipt{
+				Type:              transaction.Type(),
+				PostState:         nil,
+				Status:            ethtypes.ReceiptStatusFailed,
+				CumulativeGasUsed: transaction.Gas(),
+				Bloom:             evmtypes.EmptyBlockBloom,
+				Logs:              []*ethtypes.Log{},
+				TxHash:            transaction.Hash(),
+				ContractAddress:   common.Address{},
+				GasUsed:           transaction.Gas(),
+				BlockHash:         blockHash,
+				BlockNumber:       big.NewInt(block.Height),
+				TransactionIndex:  uint(len(receipts)),
+			}
 
-		receipts = append(receipts, icReceipt.Receipt)
+			for _, prevReceipt := range receipts {
+				receipt.CumulativeGasUsed += prevReceipt.GasUsed
+			}
+		} else {
+			icReceipt.Fill(blockHash)
+			receipt = icReceipt.Receipt
+		}
+
+		receipts = append(receipts, receipt)
 	}
 
 	// prepare gas used
