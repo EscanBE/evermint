@@ -19,12 +19,10 @@ const mockGasUsed = 100
 func RegisterIndexerGetByBlockAndIndex(queryClient *mocks.EVMTxIndexer, height int64, index int32) {
 	queryClient.On("GetByBlockAndIndex", height, index).
 		Return(&types.TxResult{
-			Height:            height,
-			TxIndex:           uint32(index),
-			EthTxIndex:        index,
-			Failed:            false,
-			GasUsed:           mockGasUsed,
-			CumulativeGasUsed: mockGasUsed,
+			Height:     height,
+			TxIndex:    uint32(index),
+			EthTxIndex: index,
+			Failed:     false,
 		}, nil)
 }
 
@@ -36,12 +34,10 @@ func RegisterIndexerGetByBlockAndIndexError(queryClient *mocks.EVMTxIndexer, hei
 func RegisterIndexerGetByTxHash(queryClient *mocks.EVMTxIndexer, hash common.Hash, height int64) {
 	queryClient.On("GetByTxHash", hash).
 		Return(&types.TxResult{
-			Height:            height,
-			TxIndex:           0,
-			EthTxIndex:        0,
-			Failed:            false,
-			GasUsed:           mockGasUsed,
-			CumulativeGasUsed: mockGasUsed,
+			Height:     height,
+			TxIndex:    0,
+			EthTxIndex: 0,
+			Failed:     false,
 		}, nil)
 }
 

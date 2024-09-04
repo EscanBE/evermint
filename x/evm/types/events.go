@@ -10,7 +10,6 @@ const (
 	AttributeKeyTxHash         = "txHash"
 	AttributeKeyEthereumTxHash = "ethereumTxHash"
 	AttributeKeyTxIndex        = "txIndex"
-	AttributeKeyTxGasUsed      = "txGasUsed"
 	// receipt
 	AttributeKeyReceiptMarshalled        = "marshalled"
 	AttributeKeyReceiptTxHash            = "txHash"
@@ -24,7 +23,4 @@ const (
 	AttributeKeyEthereumTxFailed = "ethereumTxFailed"
 	AttributeValueCategory       = ModuleName
 	AttributeKeyEthereumBloom    = "bloom"
-
-	MetricKeyTransitionDB = "transition_db"
-	MetricKeyStaticCall   = "static_call"
 )

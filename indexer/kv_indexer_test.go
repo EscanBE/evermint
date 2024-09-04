@@ -11,7 +11,7 @@ import (
 	evmenc "github.com/EscanBE/evermint/v12/encoding"
 	"github.com/EscanBE/evermint/v12/indexer"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmlog "github.com/cometbft/cometbft/libs/log"
@@ -30,13 +30,13 @@ func TestKVIndexer(t *testing.T) {
 	ethSigner := ethtypes.LatestSignerForChainID(nil)
 
 	to := common.BigToAddress(big.NewInt(1))
-	ethTxParams := types.EvmTxArgs{
+	ethTxParams := evmtypes.EvmTxArgs{
 		Nonce:    0,
 		To:       &to,
 		Amount:   big.NewInt(1000),
 		GasLimit: 21000,
 	}
-	tx := types.NewTx(&ethTxParams)
+	tx := evmtypes.NewTx(&ethTxParams)
 	tx.From = from.Hex()
 	require.NoError(t, tx.Sign(ethSigner, signer))
 	txHash := tx.AsTransaction().Hash()
@@ -64,92 +64,88 @@ func TestKVIndexer(t *testing.T) {
 		expSuccess  bool
 	}{
 		{
-			"success, format 1",
-			&tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			[]*abci.ResponseDeliverTx{
+			name:  "success",
+			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
+			blockResult: []*abci.ResponseDeliverTx{
 				{
 					Code: 0,
 					Events: []abci.Event{
-						{Type: types.EventTypeEthereumTx, Attributes: []abci.EventAttribute{
-							{Key: "ethereumTxHash", Value: txHash.Hex()},
-							{Key: "txIndex", Value: "0"},
-							{Key: "amount", Value: "1000"},
-							{Key: "txGasUsed", Value: "21000"},
-							{Key: "txHash", Value: ""},
-							{Key: "recipient", Value: "0x775b87ef5D82ca211811C1a02CE0fE0CA3a455d7"},
-						}},
+						{
+							Type: evmtypes.EventTypeEthereumTx,
+							Attributes: []abci.EventAttribute{
+								{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash.Hex()},
+								{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
+							},
+						},
+						{
+							Type: evmtypes.EventTypeEthereumTx,
+							Attributes: []abci.EventAttribute{
+								{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash.Hex()},
+								{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
+								{Key: "amount", Value: "1000"},
+								{Key: evmtypes.AttributeKeyTxHash, Value: "14A84ED06282645EFBF080E0B7ED80D8D8D6A36337668A12B5F229F81CDD3F57"},
+								{Key: evmtypes.AttributeKeyRecipient, Value: "0x775b87ef5D82ca211811C1a02CE0fE0CA3a455d7"},
+							},
+						},
 					},
 				},
 			},
-			true,
+			expSuccess: true,
 		},
 		{
-			"success, format 2",
-			&tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			[]*abci.ResponseDeliverTx{
+			name:  "success, exceed block gas limit",
+			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
+			blockResult: []*abci.ResponseDeliverTx{
 				{
-					Code: 0,
+					Code: 11,
+					Log:  "out of gas in location: block gas meter; gasWanted: 21000",
 					Events: []abci.Event{
-						{Type: types.EventTypeEthereumTx, Attributes: []abci.EventAttribute{
-							{Key: "ethereumTxHash", Value: txHash.Hex()},
-							{Key: "txIndex", Value: "0"},
-						}},
-						{Type: types.EventTypeEthereumTx, Attributes: []abci.EventAttribute{
-							{Key: "amount", Value: "1000"},
-							{Key: "txGasUsed", Value: "21000"},
-							{Key: "txHash", Value: "14A84ED06282645EFBF080E0B7ED80D8D8D6A36337668A12B5F229F81CDD3F57"},
-							{Key: "recipient", Value: "0x775b87ef5D82ca211811C1a02CE0fE0CA3a455d7"},
-						}},
+
+						{
+							Type: evmtypes.EventTypeEthereumTx,
+							Attributes: []abci.EventAttribute{
+								{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash.Hex()},
+								{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
+							},
+						},
 					},
 				},
 			},
-			true,
+			expSuccess: true,
 		},
 		{
-			"success, exceed block gas limit",
-			&tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			[]*abci.ResponseDeliverTx{
-				{
-					Code:   11,
-					Log:    "out of gas in location: block gas meter; gasWanted: 21000",
-					Events: []abci.Event{},
-				},
-			},
-			true,
-		},
-		{
-			"fail, failed eth tx",
-			&tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			[]*abci.ResponseDeliverTx{
+			name:  "fail, failed eth tx",
+			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
+			blockResult: []*abci.ResponseDeliverTx{
 				{
 					Code:   15,
 					Log:    "nonce mismatch",
 					Events: []abci.Event{},
 				},
 			},
-			false,
+			expSuccess: false,
 		},
 		{
-			"fail, invalid events",
-			&tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			[]*abci.ResponseDeliverTx{
+			name:  "success, no events (simulate case tx aborted before ante, due to block gas maxed out)",
+			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
+			blockResult: []*abci.ResponseDeliverTx{
 				{
 					Code:   0,
 					Events: []abci.Event{},
 				},
 			},
-			false,
+			expSuccess: true,
 		},
 		{
-			"fail, not eth tx",
-			&tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz2}}},
-			[]*abci.ResponseDeliverTx{
+			name:  "fail, not eth tx",
+			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz2}}},
+			blockResult: []*abci.ResponseDeliverTx{
 				{
 					Code:   0,
 					Events: []abci.Event{},
 				},
 			},
-			false,
+			expSuccess: false,
 		},
 	}
 

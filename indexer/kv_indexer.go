@@ -87,13 +87,12 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 			continue
 		}
 
-		txs, err := rpctypes.ParseTxResult(result, tx)
+		parsedTx, err := rpctypes.ParseTxResult(result, tx)
 		if err != nil {
 			kv.logger.Error("Fail to parse event", "err", err, "block", height, "txIndex", txIndex)
 			continue
 		}
 
-		var cumulativeGasUsed uint64
 		{
 			ethMsg := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 			txHash := common.HexToHash(ethMsg.Hash)
@@ -103,30 +102,37 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 				TxIndex:    uint32(txIndex),
 				EthTxIndex: ethTxIndex,
 			}
-			if result.Code != abci.CodeTypeOK {
-				// exceeds block gas limit scenario, set gas used to gas limit because that's what's charged by ante handler.
-				// some old versions don't emit any events, so workaround here directly.
-				txResult.GasUsed = ethMsg.GetGas()
-				txResult.Failed = true
-			} else {
-				parsedTx := txs.GetTxByMsgIndex(0)
-				if parsedTx == nil {
-					kv.logger.Error("msg index not found in events", "msgIndex", 0)
-					continue
+
+			err = func(txResult evertypes.TxResult, ethTxIndex int32) (resErr error) {
+				defer func() {
+					resErr = saveTxResult(kv.clientCtx.Codec, batch, txHash, &txResult)
+				}()
+
+				if result.Code != abci.CodeTypeOK {
+					// exceeds block gas limit scenario
+					txResult.Failed = true
+					return
 				}
+
+				if parsedTx == nil {
+					// exceeds block gas limit (before ante) scenario
+					kv.logger.Error("Fail to parse event", "err", "not found", "block", height, "txIndex", txIndex)
+					txResult.Failed = true
+					return
+				}
+
 				if parsedTx.EthTxIndex >= 0 && parsedTx.EthTxIndex != ethTxIndex {
 					kv.logger.Error("eth tx index don't match", "expect", ethTxIndex, "found", parsedTx.EthTxIndex)
 				}
-				txResult.GasUsed = parsedTx.GasUsed
 				txResult.Failed = parsedTx.Failed
-			}
 
-			cumulativeGasUsed += txResult.GasUsed
-			txResult.CumulativeGasUsed = cumulativeGasUsed
+				return
+			}(txResult, ethTxIndex)
+
 			ethTxIndex++
 
-			if err := saveTxResult(kv.clientCtx.Codec, batch, txHash, &txResult); err != nil {
-				return errorsmod.Wrapf(err, "IndexBlock %d", height)
+			if err != nil {
+				return err
 			}
 		}
 	}

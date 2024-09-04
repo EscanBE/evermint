@@ -74,9 +74,6 @@ max-open-connections = {{ .JSONRPC.MaxOpenConnections }}
 # Prometheus metrics path: /debug/metrics/prometheus
 metrics-address = "{{ .JSONRPC.MetricsAddress }}"
 
-# Upgrade height for fix of revert gas refund logic when transaction reverted.
-fix-revert-gas-refund-height = {{ .JSONRPC.FixRevertGasRefundHeight }}
-
 ###############################################################################
 ###                             TLS Configuration                           ###
 ###############################################################################
