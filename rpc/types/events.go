@@ -46,8 +46,8 @@ func ParseTxResult(result *abci.ResponseDeliverTx, tx sdk.Tx) (*ParsedTx, error)
 	}
 
 	if p != nil {
-		// this could only happen if tx exceeds block gas limit
 		if result.Code != 0 && tx != nil {
+			// this could only happen if tx exceeds block gas limit
 			p.Failed = true
 		} else if eventSetCount < 2 {
 			// if the second part of the event is missing, tx was failed
@@ -70,8 +70,6 @@ func fillTxAttribute(tx *ParsedTx, _type, key, value string) error {
 				return err
 			}
 			tx.EthTxIndex = int32(txIndex) // #nosec G701
-		case evmtypes.AttributeKeyEthereumTxFailed:
-			tx.Failed = len(value) > 0
 		}
 	} else if _type == evmtypes.EventTypeTxReceipt {
 		switch key {

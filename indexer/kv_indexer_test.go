@@ -78,11 +78,11 @@ func TestKVIndexer(t *testing.T) {
 							},
 						},
 						{
-							Type: evmtypes.EventTypeEthereumTx,
+							Type: evmtypes.EventTypeTxReceipt,
 							Attributes: []abci.EventAttribute{
-								{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash.Hex()},
-								{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
-								{Key: evmtypes.AttributeKeyTxHash, Value: "14A84ED06282645EFBF080E0B7ED80D8D8D6A36337668A12B5F229F81CDD3F57"},
+								{Key: evmtypes.AttributeKeyReceiptEvmTxHash, Value: txHash.Hex()},
+								{Key: evmtypes.AttributeKeyReceiptTxIndex, Value: "0"},
+								{Key: evmtypes.AttributeKeyReceiptTendermintTxHash, Value: "14A84ED06282645EFBF080E0B7ED80D8D8D6A36337668A12B5F229F81CDD3F57"},
 							},
 						},
 					},

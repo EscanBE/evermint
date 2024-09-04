@@ -37,11 +37,11 @@ func (suite *BackendTestSuite) TestGetTransactionByHash() {
 					},
 				},
 				{
-					Type: evmtypes.EventTypeEthereumTx,
+					Type: evmtypes.EventTypeTxReceipt,
 					Attributes: []abci.EventAttribute{
-						{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash.Hex()},
-						{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
-						{Key: evmtypes.AttributeKeyTxHash, Value: ""},
+						{Key: evmtypes.AttributeKeyReceiptEvmTxHash, Value: txHash.Hex()},
+						{Key: evmtypes.AttributeKeyReceiptTxIndex, Value: "0"},
+						{Key: evmtypes.AttributeKeyReceiptTendermintTxHash, Value: ""},
 					},
 				},
 			},
@@ -302,11 +302,11 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 					},
 				},
 				{
-					Type: evmtypes.EventTypeEthereumTx,
+					Type: evmtypes.EventTypeTxReceipt,
 					Attributes: []abci.EventAttribute{
-						{Key: evmtypes.AttributeKeyEthereumTxHash, Value: common.HexToHash(msgEthTx.Hash).Hex()},
-						{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
-						{Key: evmtypes.AttributeKeyTxHash, Value: ""},
+						{Key: evmtypes.AttributeKeyReceiptEvmTxHash, Value: common.HexToHash(msgEthTx.Hash).Hex()},
+						{Key: evmtypes.AttributeKeyReceiptTxIndex, Value: "0"},
+						{Key: evmtypes.AttributeKeyReceiptTendermintTxHash, Value: ""},
 					},
 				},
 			},

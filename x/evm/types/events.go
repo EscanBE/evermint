@@ -17,10 +17,13 @@ const (
 	EventTypeBlockBloom = "block_bloom"
 	EventTypeTxReceipt  = "tx_receipt"
 
-	AttributeKeyTxHash         = "txHash"
+	// eth tx event emitted in AnteHandler
+
 	AttributeKeyEthereumTxHash = "ethereumTxHash"
 	AttributeKeyTxIndex        = "txIndex"
-	// receipt
+
+	// receipt event emitted after tx executed
+
 	AttributeKeyReceiptMarshalled        = "marshalled"
 	AttributeKeyReceiptEvmTxHash         = "evmTxHash"
 	AttributeKeyReceiptTendermintTxHash  = "tmTxHash"
@@ -31,10 +34,8 @@ const (
 	AttributeKeyReceiptTxIndex           = "txIdx"
 	AttributeKeyReceiptStartLogIndex     = "logIdx"
 	AttributeKeyReceiptVmError           = "error"
-	// tx failed in eth vm execution
-	AttributeKeyEthereumTxFailed = "ethereumTxFailed"
-	AttributeValueCategory       = ModuleName
-	AttributeKeyEthereumBloom    = "bloom"
+	AttributeValueCategory               = ModuleName
+	AttributeKeyEthereumBloom            = "bloom"
 )
 
 // GetSdkEventForReceipt construct event for given receipt.

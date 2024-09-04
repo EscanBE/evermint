@@ -215,21 +215,6 @@ func BuildBlockResultsWithEventReceipt(height int64, receipt *ethtypes.Receipt) 
 							},
 						},
 					},
-					{
-						Type: evmtypes.EventTypeEthereumTx,
-						Attributes: []abci.EventAttribute{
-							{
-								Key:   evmtypes.AttributeKeyEthereumTxHash,
-								Value: receipt.TxHash.Hex(),
-								Index: true,
-							},
-							{
-								Key:   evmtypes.AttributeKeyTxIndex,
-								Value: strconv.FormatUint(uint64(receipt.TransactionIndex), 10),
-								Index: true,
-							},
-						},
-					},
 					receiptSdkEventABCI,
 				},
 			},

@@ -4,13 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/EscanBE/evermint/v12/utils"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"math/big"
-	"strconv"
-
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	tmtypes "github.com/cometbft/cometbft/types"
@@ -78,21 +76,9 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 		}
 	}()
 
-	txAttrs := []sdk.Attribute{
-		// add event for ethereum transaction hash format
-		sdk.NewAttribute(types.AttributeKeyEthereumTxHash, response.Hash),
-		// add event for index of valid ethereum tx
-		sdk.NewAttribute(types.AttributeKeyTxIndex, strconv.FormatUint(txIndex, 10)),
-	}
-
 	var tmTxHash *tmbytes.HexBytes
 	if len(ctx.TxBytes()) > 0 {
 		tmTxHash = utils.Ptr[tmbytes.HexBytes](tmtypes.Tx(ctx.TxBytes()).Hash())
-		txAttrs = append(txAttrs, sdk.NewAttribute(types.AttributeKeyTxHash, tmTxHash.String()))
-	}
-
-	if response.Failed() {
-		txAttrs = append(txAttrs, sdk.NewAttribute(types.AttributeKeyEthereumTxFailed, response.VmError))
 	}
 
 	txData, err := types.UnpackTxData(msg.Data)
@@ -134,10 +120,6 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 
 	// emit events
 	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeEthereumTx,
-			txAttrs...,
-		),
 		receiptSdkEvent,
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
