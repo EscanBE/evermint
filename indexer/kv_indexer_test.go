@@ -124,7 +124,7 @@ func TestKVIndexer(t *testing.T) {
 			expSuccess: false,
 		},
 		{
-			name:  "success, no events (simulate case tx aborted before ante, due to block gas maxed out)",
+			name:  "fail, no events (simulate case tx aborted before ante, due to block gas maxed out)",
 			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
 			blockResult: []*abci.ResponseDeliverTx{
 				{
@@ -132,7 +132,7 @@ func TestKVIndexer(t *testing.T) {
 					Events: []abci.Event{},
 				},
 			},
-			expSuccess: true,
+			expSuccess: false,
 		},
 		{
 			name:  "fail, not eth tx",
