@@ -185,7 +185,7 @@ func (k Keeper) GetTxCountTransient(ctx sdk.Context) uint64 {
 // SetGasUsedForCurrentTxTransient sets the gas used for the current transaction in the transient store,
 // based on the transient tx counter.
 func (k Keeper) SetGasUsedForCurrentTxTransient(ctx sdk.Context, gas uint64) {
-	txIdx := k.GetTxCountTransient(ctx)
+	txIdx := k.GetTxCountTransient(ctx) - 1
 
 	store := ctx.TransientStore(k.transientKey)
 	store.Set(types.TxGasTransientKey(txIdx), sdk.Uint64ToBigEndian(gas))
