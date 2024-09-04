@@ -122,7 +122,16 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 	receipt.BlockNumber = big.NewInt(ctx.BlockHeight())
 	receipt.TransactionIndex = uint(txIndex)
 
-	receiptSdkEvent, err := types.GetSdkEventForReceipt(receipt, txData.EffectiveGasPrice(baseFee))
+	receiptSdkEvent, err := types.GetSdkEventForReceipt(
+		receipt,                           // receipt
+		txData.EffectiveGasPrice(baseFee), // effective gas price
+		func() error { // vm error
+			if response.Failed() {
+				return fmt.Errorf(response.VmError)
+			}
+			return nil
+		}(),
+	)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to get sdk event for receipt")
 	}

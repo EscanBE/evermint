@@ -186,7 +186,7 @@ func TestRegisterConsensusParams(t *testing.T) {
 func BuildBlockResultsWithEventReceipt(height int64, receipt *ethtypes.Receipt) (*tmrpctypes.ResultBlockResults, error) {
 	receipt.BlockNumber = big.NewInt(height)
 
-	receiptSdkEvent, err := evmtypes.GetSdkEventForReceipt(receipt, big.NewInt(0))
+	receiptSdkEvent, err := evmtypes.GetSdkEventForReceipt(receipt, big.NewInt(0), nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get sdk event for receipt")
 	}

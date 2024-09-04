@@ -29,6 +29,7 @@ const (
 	AttributeKeyReceiptBlockNumber       = "blockNumber"
 	AttributeKeyReceiptTxIndex           = "txIdx"
 	AttributeKeyReceiptStartLogIndex     = "logIdx"
+	AttributeKeyReceiptVmError           = "error"
 	// tx failed in eth vm execution
 	AttributeKeyEthereumTxFailed = "ethereumTxFailed"
 	AttributeValueCategory       = ModuleName
@@ -43,7 +44,11 @@ const (
 //   - Effective Gas Price
 //   - Block Number
 //   - Transaction Index
-func GetSdkEventForReceipt(receipt *ethtypes.Receipt, effectiveGasPrice *big.Int) (sdk.Event, error) {
+func GetSdkEventForReceipt(
+	receipt *ethtypes.Receipt,
+	effectiveGasPrice *big.Int,
+	vmErr error,
+) (sdk.Event, error) {
 	bzReceipt, err := receipt.MarshalBinary()
 	if err != nil {
 		return sdk.Event{}, errors.Wrap(err, "failed to marshal receipt")
@@ -63,9 +68,11 @@ func GetSdkEventForReceipt(receipt *ethtypes.Receipt, effectiveGasPrice *big.Int
 		sdk.NewAttribute(AttributeKeyReceiptBlockNumber, receipt.BlockNumber.String()),
 		sdk.NewAttribute(AttributeKeyReceiptTxIndex, strconv.FormatUint(uint64(receipt.TransactionIndex), 10)),
 	}
-
 	if len(receipt.Logs) > 0 {
 		attrs = append(attrs, sdk.NewAttribute(AttributeKeyReceiptStartLogIndex, strconv.FormatUint(uint64(receipt.Logs[0].Index), 10)))
+	}
+	if vmErr != nil {
+		attrs = append(attrs, sdk.NewAttribute(AttributeKeyReceiptVmError, vmErr.Error()))
 	}
 
 	return sdk.NewEvent(
