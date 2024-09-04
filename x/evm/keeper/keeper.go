@@ -370,14 +370,14 @@ func (k Keeper) GetBaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int
 //   - Increase the count of transaction being processed in the current block
 //   - Set the gas used for the current transaction, assume tx failed so gas used = tx gas
 //   - Set the failed receipt for the current transaction, assume tx failed
-func (k Keeper) SetupExecutionContext(ctx sdk.Context, txGas uint64) sdk.Context {
+func (k Keeper) SetupExecutionContext(ctx sdk.Context, txGas uint64, txType uint8) sdk.Context {
 	ctx = utils.UseZeroGasConfig(ctx)
 	k.IncreaseTxCountTransient(ctx)
 	k.SetGasUsedForCurrentTxTransient(ctx, txGas)
 
 	bzFailedReceipt := func() []byte {
 		failedReceipt := &ethtypes.Receipt{
-			Type:              0,
+			Type:              txType,
 			PostState:         nil,
 			Status:            ethtypes.ReceiptStatusFailed,
 			CumulativeGasUsed: k.GetCumulativeLogCountTransient(ctx, false),

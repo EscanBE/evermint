@@ -437,7 +437,7 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 
 		// reset gas meter per transaction to avoid stacking the gas used of every predecessor in the same gas meter
 		ctx = ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(msg.Gas()))
-		ctx = k.SetupExecutionContext(ctx, msg.Gas())
+		ctx = k.SetupExecutionContext(ctx, msg.Gas(), ethTx.Type())
 		rsp, err := k.ApplyMessageWithConfig(ctx, msg, types.NewNoOpTracer(), true, cfg, txConfig)
 		if err != nil {
 			continue
@@ -627,7 +627,7 @@ func (k *Keeper) traceTx(
 
 	// reset gas meter per transaction to avoid stacking the gas used of every predecessor in the same gas meter
 	ctx = ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(msg.Gas()))
-	ctx = k.SetupExecutionContext(ctx, msg.Gas())
+	ctx = k.SetupExecutionContext(ctx, msg.Gas(), tx.Type())
 	res, err := k.ApplyMessageWithConfig(ctx, msg, tracer, commitMessage, cfg, txConfig)
 	if err != nil {
 		return nil, 0, status.Error(codes.Internal, err.Error())
