@@ -106,6 +106,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (vesting) [#128](https://github.com/EscanBE/evermint/pull/128) Remove `x/vesting` module and disable vesting
 - (evm) [#129](https://github.com/EscanBE/evermint/pull/129) Use generic base account instead of EthAccount
 - (evm) [#132](https://github.com/EscanBE/evermint/pull/132) Emit tx receipt and miscellaneous deprecation
+- (evm) [#133](https://github.com/EscanBE/evermint/pull/133) Remove some fields from EVM tx indexer and adjust emits legacy events
 
 # Evermint changelog
 
