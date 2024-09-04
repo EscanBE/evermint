@@ -404,7 +404,13 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 			return nil, err
 		}
 
-		icReceipt, err := TxReceiptFromEvent(blockRes.TxsResults[indexedTxByHash.TxIndex].Events)
+		events := blockRes.TxsResults[indexedTxByHash.TxIndex].Events
+		if !ContainsEthereumEventOfAnteHandle(events) {
+			// tx ignore pre-ante-handle due to block gas limit
+			break
+		}
+
+		icReceipt, err := TxReceiptFromEvent(events)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to parse receipt from events")
 		}

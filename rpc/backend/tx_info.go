@@ -158,6 +158,12 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 		return nil, errors.New("can't find index of ethereum tx")
 	}
 
+	events := blockRes.TxsResults[res.TxIndex].Events
+	if !ContainsEthereumEventOfAnteHandle(events) {
+		// tx ignore pre-ante-handle due to block gas limit
+		return nil, nil
+	}
+
 	cosmosTx, err := b.clientCtx.TxConfig.TxDecoder()(resBlock.Block.Txs[res.TxIndex])
 	if err != nil {
 		b.logger.Debug("decoding failed", "error", err.Error())
@@ -171,7 +177,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 		return nil, err
 	}
 
-	icReceipt, err := TxReceiptFromEvent(blockRes.TxsResults[res.TxIndex].Events)
+	icReceipt, err := TxReceiptFromEvent(events)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse receipt from events")
 	}
@@ -185,9 +191,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 		receipt = icReceipt.Receipt
 		effectiveGasPrice = icReceipt.EffectiveGasPrice
 	} else {
-		// tx failed, possible out of block gas:
-		//  - during apply tx
-		//  - before exec tx (before ante handle)
+		// tx failed, possible out of block gas
 
 		// in this case, we craft the receipt manually
 		ethTx := ethMsg.AsTransaction()
