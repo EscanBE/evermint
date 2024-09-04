@@ -77,7 +77,6 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 							Attributes: []abci.EventAttribute{
 								{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash.Hex()},
 								{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
-								{Key: "amount", Value: "1000"},
 								{Key: evmtypes.AttributeKeyTxHash, Value: ""},
 								{Key: evmtypes.AttributeKeyRecipient, Value: "0x775b87ef5D82ca211811C1a02CE0fE0CA3a455d7"},
 							},
@@ -112,7 +111,6 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 							Attributes: []abci.EventAttribute{
 								{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash.Hex()},
 								{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
-								{Key: "amount", Value: "1000"},
 								{Key: evmtypes.AttributeKeyTxHash, Value: ""},
 								{Key: evmtypes.AttributeKeyRecipient, Value: "0x775b87ef5D82ca211811C1a02CE0fE0CA3a455d7"},
 							},
@@ -151,7 +149,6 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 							Attributes: []abci.EventAttribute{
 								{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash.Hex()},
 								{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
-								{Key: "amount", Value: "1000"},
 								{Key: evmtypes.AttributeKeyTxHash, Value: ""},
 								{Key: evmtypes.AttributeKeyRecipient, Value: "0x775b87ef5D82ca211811C1a02CE0fE0CA3a455d7"},
 							},
@@ -173,7 +170,6 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 							Attributes: []abci.EventAttribute{
 								{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash2.Hex()},
 								{Key: evmtypes.AttributeKeyTxIndex, Value: "1"},
-								{Key: "amount", Value: "1000"},
 								{Key: evmtypes.AttributeKeyTxHash, Value: ""},
 								{Key: evmtypes.AttributeKeyRecipient, Value: "0x775b87ef5D82ca211811C1a02CE0fE0CA3a455d7"},
 							},
@@ -212,7 +208,6 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 							Attributes: []abci.EventAttribute{
 								{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash.Hex()},
 								{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
-								{Key: "amount", Value: "1000"},
 								{Key: evmtypes.AttributeKeyTxHash, Value: ""},
 								{Key: evmtypes.AttributeKeyRecipient, Value: "0x775b87ef5D82ca211811C1a02CE0fE0CA3a455d7"},
 							},

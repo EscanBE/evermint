@@ -41,7 +41,6 @@ func (suite *BackendTestSuite) TestGetTransactionByHash() {
 					Attributes: []abci.EventAttribute{
 						{Key: evmtypes.AttributeKeyEthereumTxHash, Value: txHash.Hex()},
 						{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
-						{Key: "amount", Value: "1000"},
 						{Key: evmtypes.AttributeKeyTxHash, Value: ""},
 						{Key: evmtypes.AttributeKeyRecipient, Value: ""},
 					},
@@ -308,7 +307,6 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 					Attributes: []abci.EventAttribute{
 						{Key: evmtypes.AttributeKeyEthereumTxHash, Value: common.HexToHash(msgEthTx.Hash).Hex()},
 						{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
-						{Key: "amount", Value: "1000"},
 						{Key: evmtypes.AttributeKeyTxHash, Value: ""},
 						{Key: evmtypes.AttributeKeyRecipient, Value: ""},
 					},
