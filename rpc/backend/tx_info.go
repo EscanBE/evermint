@@ -159,7 +159,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 	}
 
 	events := blockRes.TxsResults[res.TxIndex].Events
-	if !ContainsEthereumEventOfAnteHandle(events) {
+	if !evmtypes.ContainsEventTypeEthereumTx(events) {
 		// tx ignore pre-ante-handle due to block gas limit
 		return nil, nil
 	}

@@ -429,7 +429,7 @@ func (e *PublicAPI) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, err
 	}
 
 	events := resBlockResult.TxsResults[res.TxIndex].Events
-	if !backend.ContainsEthereumEventOfAnteHandle(events) {
+	if !evmtypes.ContainsEventTypeEthereumTx(events) {
 		// tx ignore pre-ante-handle due to block gas limit
 		return nil, errors.Wrap(err, "tx was aborted before ante handle")
 	}

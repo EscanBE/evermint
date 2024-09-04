@@ -342,13 +342,8 @@ func CheckTxFee(gasPrice *big.Int, gas uint64, cap float64) error {
 	return nil
 }
 
-// TxExceedBlockGasLimit returns true if the tx exceeds block gas limit.
-func TxExceedBlockGasLimit(res *abci.ResponseDeliverTx) bool {
-	return strings.Contains(res.Log, ExceedBlockGasLimitError)
-}
-
-// TxSuccessOrExceedsBlockGasLimit returnsrue if the transaction was successful
+// TxSuccessOrExceedsBlockGasLimit returns true if the transaction was successful
 // or if it failed with an ExceedBlockGasLimit error
 func TxSuccessOrExceedsBlockGasLimit(res *abci.ResponseDeliverTx) bool {
-	return res.Code == 0 || TxExceedBlockGasLimit(res)
+	return res.Code == 0 || strings.Contains(res.Log, ExceedBlockGasLimitError)
 }

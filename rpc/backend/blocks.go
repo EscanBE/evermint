@@ -405,7 +405,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 		}
 
 		events := blockRes.TxsResults[indexedTxByHash.TxIndex].Events
-		if !ContainsEthereumEventOfAnteHandle(events) {
+		if !evmtypes.ContainsEventTypeEthereumTx(events) {
 			// tx ignore pre-ante-handle due to block gas limit
 			break
 		}

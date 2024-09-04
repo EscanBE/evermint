@@ -3,15 +3,13 @@ package backend
 import (
 	"cosmossdk.io/errors"
 	"fmt"
-	"math/big"
-	"sort"
-	"strconv"
-	"strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"math/big"
+	"sort"
+	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -368,23 +366,6 @@ func findAttribute(attrs []abci.EventAttribute, key string) (value string, found
 		}
 	}
 	return
-}
-
-func ContainsEthereumEventOfAnteHandle(events []abci.Event) bool {
-	for _, event := range events {
-		if event.Type == evmtypes.EventTypeEthereumTx {
-			return true
-		}
-	}
-
-	return false
-}
-
-// ShouldIgnoreGasUsed returns true if the gasUsed in result should be ignored
-// workaround for issue: https://github.com/cosmos/cosmos-sdk/issues/10832
-// TODO ES: check logic
-func ShouldIgnoreGasUsed(res *abci.ResponseDeliverTx) bool {
-	return res.GetCode() == 11 && strings.Contains(res.GetLog(), "no block gas left to run tx: out of gas")
 }
 
 // GetLogsFromBlockResults returns the list of event logs from the tendermint block result response
