@@ -242,11 +242,8 @@ func (b *Backend) EthMsgsFromTendermintBlock(
 	txResults := blockRes.TxsResults
 
 	for i, tx := range block.Txs {
-		// Check if tx exists on EVM by cross checking with blockResults:
-		//  - Include unsuccessful tx that exceeds block gas limit
-		//  - Exclude unsuccessful tx with any other error but ExceedBlockGasLimit
-		if !rpctypes.TxSuccessOrExceedsBlockGasLimit(txResults[i]) {
-			b.logger.Debug("invalid tx result code", "cosmos-hash", hexutil.Encode(tx.Hash()))
+		// ignore the dropped tx
+		if evmtypes.TxWasDroppedPreAnteHandleDueToBlockGasExcess(txResults[i]) {
 			continue
 		}
 
@@ -404,13 +401,13 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 			return nil, err
 		}
 
-		events := blockRes.TxsResults[indexedTxByHash.TxIndex].Events
-		if !evmtypes.ContainsEventTypeEthereumTx(events) {
-			// tx ignore pre-ante-handle due to block gas limit
-			break
+		txResult := blockRes.TxsResults[indexedTxByHash.TxIndex]
+		// ignore the dropped tx
+		if evmtypes.TxWasDroppedPreAnteHandleDueToBlockGasExcess(txResult) {
+			continue
 		}
 
-		icReceipt, err := TxReceiptFromEvent(events)
+		icReceipt, err := TxReceiptFromEvent(txResult.Events)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to parse receipt from events")
 		}

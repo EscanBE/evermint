@@ -1317,7 +1317,11 @@ func (suite *BackendTestSuite) TestEthMsgsFromTendermintBlock() {
 				TxsResults: []*types.ResponseDeliverTx{
 					{
 						Code: 1,
-						Log:  ethrpc.ExceedBlockGasLimitError,
+						Events: []types.Event{
+							{
+								Type: evmtypes.EventTypeEthereumTx,
+							},
+						},
 					},
 				},
 			},
@@ -1332,7 +1336,11 @@ func (suite *BackendTestSuite) TestEthMsgsFromTendermintBlock() {
 				TxsResults: []*types.ResponseDeliverTx{
 					{
 						Code: 0,
-						Log:  ethrpc.ExceedBlockGasLimitError,
+						Events: []types.Event{
+							{
+								Type: evmtypes.EventTypeEthereumTx,
+							},
+						},
 					},
 				},
 			},

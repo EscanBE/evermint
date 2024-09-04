@@ -158,9 +158,9 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 		return nil, errors.New("can't find index of ethereum tx")
 	}
 
-	events := blockRes.TxsResults[res.TxIndex].Events
-	if !evmtypes.ContainsEventTypeEthereumTx(events) {
-		// tx ignore pre-ante-handle due to block gas limit
+	txResult := blockRes.TxsResults[res.TxIndex]
+	// ignore the dropped tx
+	if evmtypes.TxWasDroppedPreAnteHandleDueToBlockGasExcess(txResult) {
 		return nil, nil
 	}
 
@@ -177,7 +177,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 		return nil, err
 	}
 
-	icReceipt, err := TxReceiptFromEvent(events)
+	icReceipt, err := TxReceiptFromEvent(txResult.Events)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse receipt from events")
 	}
