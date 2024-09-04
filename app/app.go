@@ -471,7 +471,7 @@ func NewEvermint(
 
 	chainApp.EvmKeeper = chainApp.EvmKeeper.SetHooks(
 		evmkeeper.NewMultiEvmHooks(
-			chainApp.Erc20Keeper.Hooks(),
+		//
 		),
 	)
 
