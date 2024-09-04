@@ -107,6 +107,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evm) [#129](https://github.com/EscanBE/evermint/pull/129) Use generic base account instead of EthAccount
 - (evm) [#132](https://github.com/EscanBE/evermint/pull/132) Emit tx receipt and miscellaneous deprecation
 - (evm) [#133](https://github.com/EscanBE/evermint/pull/133) Remove some fields from EVM tx indexer and adjust emits legacy events
+- (evm) [#134](https://github.com/EscanBE/evermint/pull/134) Remove the 2nd ethereum event, use receipt event only
 
 # Evermint changelog
 
