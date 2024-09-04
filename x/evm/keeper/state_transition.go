@@ -230,7 +230,6 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 
 		// Update transient block bloom filter
 		k.SetBlockBloomTransient(ctx, blockBloom)
-		k.SetLogSizeTransient(ctx, uint64(txConfig.LogIndex)+uint64(len(receipt.Logs)))
 	}
 
 	// reset the gas meter for current cosmos transaction

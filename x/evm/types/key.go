@@ -34,7 +34,7 @@ const (
 const (
 	prefixTransientBloom   = iota + 1
 	prefixTransientTxIndex // deprecated
-	prefixTransientLogSize
+	prefixTransientLogSize // deprecated
 	prefixTransientGasUsed // deprecated
 	prefixTransientTxCount
 	prefixTransientTxGas
@@ -52,7 +52,6 @@ var (
 // Transient Store key prefixes
 var (
 	KeyPrefixTransientBloom      = []byte{prefixTransientBloom}
-	KeyPrefixTransientLogSize    = []byte{prefixTransientLogSize}
 	KeyPrefixTransientTxGas      = []byte{prefixTransientTxGas}
 	KeyPrefixTransientTxLogCount = []byte{prefixTransientTxLogCount}
 )

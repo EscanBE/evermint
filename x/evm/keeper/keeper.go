@@ -215,14 +215,14 @@ func (k Keeper) GetLogCountForTdxIndexTransient(ctx sdk.Context, txIdx uint64) u
 }
 
 // GetCumulativeLogCountTransient returns the total log count for all transactions in the current block.
-func (k Keeper) GetCumulativeLogCountTransient(ctx sdk.Context, exceptLast bool) uint64 {
+func (k Keeper) GetCumulativeLogCountTransient(ctx sdk.Context, exceptCurrent bool) uint64 {
 	store := ctx.TransientStore(k.transientKey)
 
 	var total uint64
 
 	txCount := k.GetTxCountTransient(ctx)
 	for i := uint64(0); i < txCount; i++ {
-		if exceptLast && i == txCount-1 {
+		if exceptCurrent && i == txCount-1 {
 			continue
 		}
 
@@ -231,25 +231,6 @@ func (k Keeper) GetCumulativeLogCountTransient(ctx sdk.Context, exceptLast bool)
 	}
 
 	return total
-}
-
-// ----------------------------------------------------------------------------
-// Log
-// ----------------------------------------------------------------------------
-
-// GetLogSizeTransient returns EVM log index on the current block.
-// TODO LOG: consider remove
-func (k Keeper) GetLogSizeTransient(ctx sdk.Context) uint64 {
-	store := ctx.TransientStore(k.transientKey)
-	bz := store.Get(types.KeyPrefixTransientLogSize)
-	return sdk.BigEndianToUint64(bz)
-}
-
-// SetLogSizeTransient fetches the current EVM log index from the transient store, increases its
-// value by one and then sets the new index back to the transient store.
-func (k Keeper) SetLogSizeTransient(ctx sdk.Context, logSize uint64) {
-	store := ctx.TransientStore(k.transientKey)
-	store.Set(types.KeyPrefixTransientLogSize, sdk.Uint64ToBigEndian(logSize))
 }
 
 // ----------------------------------------------------------------------------
