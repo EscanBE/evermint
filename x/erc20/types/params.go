@@ -5,27 +5,22 @@ import (
 )
 
 // Parameter store key
+
 var (
-	ParamStoreKeyEnableErc20   = []byte("EnableErc20")
-	ParamStoreKeyEnableEVMHook = []byte("EnableEVMHook")
+	ParamStoreKeyEnableErc20 = []byte("EnableErc20")
 )
 
 // NewParams creates a new Params object
 func NewParams(
 	enableErc20 bool,
-	enableEVMHook bool,
 ) Params {
 	return Params{
-		EnableErc20:   enableErc20,
-		EnableEVMHook: enableEVMHook,
+		EnableErc20: enableErc20,
 	}
 }
 
 func DefaultParams() Params {
-	return Params{
-		EnableErc20:   true,
-		EnableEVMHook: true,
-	}
+	return NewParams(true)
 }
 
 func ValidateBool(i interface{}) error {
@@ -38,9 +33,5 @@ func ValidateBool(i interface{}) error {
 }
 
 func (p Params) Validate() error {
-	if err := ValidateBool(p.EnableEVMHook); err != nil {
-		return err
-	}
-
 	return ValidateBool(p.EnableErc20)
 }
