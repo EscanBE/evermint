@@ -3,8 +3,9 @@ package backend
 import (
 	"context"
 	"cosmossdk.io/errors"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"math/big"
 	"strconv"
 	"testing"
 
@@ -183,10 +184,15 @@ func TestRegisterConsensusParams(t *testing.T) {
 // BlockResults
 
 func BuildBlockResultsWithEventReceipt(height int64, receipt *ethtypes.Receipt) (*tmrpctypes.ResultBlockResults, error) {
-	bzReceipt, err := receipt.MarshalBinary()
+	receipt.BlockNumber = big.NewInt(height)
+
+	receiptSdkEvent, err := evmtypes.GetSdkEventForReceipt(receipt, big.NewInt(0), nil, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal receipt")
+		return nil, errors.Wrap(err, "failed to get sdk event for receipt")
 	}
+
+	receiptSdkEventABCI := sdk.Events{receiptSdkEvent}.ToABCIEvents()[0]
+
 	return &tmrpctypes.ResultBlockResults{
 		Height: height,
 		TxsResults: []*abci.ResponseDeliverTx{
@@ -209,71 +215,7 @@ func BuildBlockResultsWithEventReceipt(height int64, receipt *ethtypes.Receipt) 
 							},
 						},
 					},
-					{
-						Type: evmtypes.EventTypeEthereumTx,
-						Attributes: []abci.EventAttribute{
-							{
-								Key:   evmtypes.AttributeKeyEthereumTxHash,
-								Value: receipt.TxHash.Hex(),
-								Index: true,
-							},
-							{
-								Key:   evmtypes.AttributeKeyTxIndex,
-								Value: strconv.FormatUint(uint64(receipt.TransactionIndex), 10),
-								Index: true,
-							},
-						},
-					},
-					{
-						Type: evmtypes.EventTypeTxReceipt,
-						Attributes: []abci.EventAttribute{
-							{
-								Key:   evmtypes.AttributeKeyReceiptMarshalled,
-								Value: hexutil.Encode(bzReceipt),
-								Index: true,
-							},
-							{
-								Key:   evmtypes.AttributeKeyReceiptTxHash,
-								Value: receipt.TxHash.Hex(),
-								Index: true,
-							},
-							{
-								Key:   evmtypes.AttributeKeyReceiptBlockNumber,
-								Value: strconv.FormatInt(height, 10),
-								Index: true,
-							},
-							{
-								Key:   evmtypes.AttributeKeyReceiptTxIndex,
-								Value: strconv.FormatUint(uint64(receipt.TransactionIndex), 10),
-								Index: true,
-							},
-							{
-								Key:   evmtypes.AttributeKeyReceiptContractAddress,
-								Value: "",
-								Index: true,
-							},
-							{
-								Key:   evmtypes.AttributeKeyReceiptGasUsed,
-								Value: strconv.FormatUint(receipt.GasUsed, 10),
-								Index: true,
-							},
-							{
-								Key:   evmtypes.AttributeKeyReceiptEffectiveGasPrice,
-								Value: "0",
-								Index: true,
-							},
-							{
-								Key: evmtypes.AttributeKeyReceiptStartLogIndex,
-								Value: func() string {
-									if len(receipt.Logs) == 0 {
-										return "0"
-									}
-									return strconv.FormatUint(uint64(receipt.Logs[0].Index), 10)
-								}(),
-								Index: true,
-							},
-						},
-					},
+					receiptSdkEventABCI,
 				},
 			},
 		},

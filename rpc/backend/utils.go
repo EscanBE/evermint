@@ -272,9 +272,9 @@ func ParseTxReceiptFromEvent(event abci.Event) (*InCompletedEthReceipt, error) {
 		return nil, errors.Wrap(err, "failed to unmarshal receipt")
 	}
 
-	txHashRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptTxHash)
+	txHashRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptEvmTxHash)
 	if !found {
-		return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptTxHash)
+		return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptEvmTxHash)
 	}
 	txHash := common.HexToHash(txHashRaw)
 
@@ -323,15 +323,6 @@ func ParseTxReceiptFromEvent(event abci.Event) (*InCompletedEthReceipt, error) {
 		return nil, fmt.Errorf("bad event attribute value: %s = %s", evmtypes.AttributeKeyReceiptEffectiveGasPrice, effectiveGasPriceRaw)
 	}
 
-	startLogIndexRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptStartLogIndex)
-	if !found {
-		return nil, fmt.Errorf("missing event attribute: %s", evmtypes.AttributeKeyReceiptStartLogIndex)
-	}
-	startLogIndex, err := strconv.ParseUint(startLogIndexRaw, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("bad event attribute value: %s = %s", evmtypes.AttributeKeyReceiptStartLogIndex, startLogIndexRaw)
-	}
-
 	// fill data
 	receipt.TxHash = txHash
 	receipt.ContractAddress = contractAddr
@@ -339,11 +330,23 @@ func ParseTxReceiptFromEvent(event abci.Event) (*InCompletedEthReceipt, error) {
 	receipt.BlockNumber = new(big.Int).SetUint64(blockNumber)
 	receipt.TransactionIndex = uint(txIndex)
 
-	for i, log := range receipt.Logs {
+	for _, log := range receipt.Logs {
 		log.BlockNumber = blockNumber
 		log.TxHash = receipt.TxHash
 		log.TxIndex = receipt.TransactionIndex
-		log.Index = uint(startLogIndex + uint64(i))
+	}
+
+	// fill log index
+	startLogIndexRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptStartLogIndex)
+	if found {
+		startLogIndex, err := strconv.ParseUint(startLogIndexRaw, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("bad event attribute value: %s = %s", evmtypes.AttributeKeyReceiptStartLogIndex, startLogIndexRaw)
+		}
+
+		for i, log := range receipt.Logs {
+			log.Index = uint(startLogIndex + uint64(i))
+		}
 	}
 
 	return &InCompletedEthReceipt{
