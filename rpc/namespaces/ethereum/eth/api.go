@@ -427,12 +427,19 @@ func (e *PublicAPI) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, err
 		e.logger.Debug("block result not found", "number", res.Height, "error", err.Error())
 		return nil, errors.Wrap(err, "block result not found")
 	}
+
+	events := resBlockResult.TxsResults[res.TxIndex].Events
+	if !evmtypes.ContainsEventTypeEthereumTx(events) {
+		// tx ignore pre-ante-handle due to block gas limit
+		return nil, errors.Wrap(err, "tx was aborted before ante handle")
+	}
+
 	resBlock, err := e.backend.TendermintBlockByNumber(rpctypes.BlockNumber(res.Height))
 	if err != nil {
 		return nil, errors.Wrap(err, "block not found")
 	}
 
-	icReceipt, err := backend.TxReceiptFromEvent(resBlockResult.TxsResults[res.TxIndex].Events)
+	icReceipt, err := backend.TxReceiptFromEvent(events)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get receipt from event")
 	}

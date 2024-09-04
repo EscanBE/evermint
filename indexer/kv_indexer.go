@@ -104,8 +104,11 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 			}
 
 			err = func(txResult evertypes.TxResult, ethTxIndex int32) (resErr error) {
+				var noPersist bool
 				defer func() {
-					resErr = saveTxResult(kv.clientCtx.Codec, batch, txHash, &txResult)
+					if !noPersist {
+						resErr = saveTxResult(kv.clientCtx.Codec, batch, txHash, &txResult)
+					}
 				}()
 
 				if result.Code != abci.CodeTypeOK {
@@ -117,7 +120,7 @@ func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.Response
 				if parsedTx == nil {
 					// exceeds block gas limit (before ante) scenario
 					kv.logger.Error("Fail to parse event", "err", "not found", "block", height, "txIndex", txIndex)
-					txResult.Failed = true
+					noPersist = true
 					return
 				}
 

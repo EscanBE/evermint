@@ -2,6 +2,7 @@ package types
 
 import (
 	"cosmossdk.io/errors"
+	abci "github.com/cometbft/cometbft/abci/types"
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -85,4 +86,14 @@ func GetSdkEventForReceipt(
 		EventTypeTxReceipt,
 		attrs...,
 	), nil
+}
+
+func ContainsEventTypeEthereumTx(events []abci.Event) bool {
+	for _, event := range events {
+		if event.Type == EventTypeEthereumTx {
+			return true
+		}
+	}
+
+	return false
 }
