@@ -22,18 +22,17 @@ func NewResponseDeliverEthTx(responseDeliverTx *abci.ResponseDeliverTx) *Respons
 	}
 
 	for _, event := range responseDeliverTx.Events {
-		if event.Type == evmtypes.TypeMsgEthereumTx {
+		if event.Type == evmtypes.EventTypeTxReceipt {
 			for _, attribute := range event.Attributes {
-				//fmt.Println(evmtypes.TypeMsgEthereumTx, "attribute.Key", attribute.Key, "attribute.Value", attribute.Value)
-				if attribute.Key == evmtypes.AttributeKeyTxHash {
+				if attribute.Key == evmtypes.AttributeKeyReceiptTendermintTxHash {
 					if len(attribute.Value) > 0 && response.CosmosTxHash == "" {
 						response.CosmosTxHash = attribute.Value
 					}
-				} else if attribute.Key == evmtypes.AttributeKeyEthereumTxHash {
+				} else if attribute.Key == evmtypes.AttributeKeyReceiptEvmTxHash {
 					if len(attribute.Value) > 0 && response.EthTxHash == "" {
 						response.EthTxHash = attribute.Value
 					}
-				} else if attribute.Key == evmtypes.AttributeKeyEthereumTxFailed {
+				} else if attribute.Key == evmtypes.AttributeKeyReceiptVmError {
 					if len(attribute.Value) > 0 && response.EvmError == "" {
 						response.EvmError = attribute.Value
 					}

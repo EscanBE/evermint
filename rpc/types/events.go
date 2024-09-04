@@ -25,7 +25,10 @@ func ParseTxResult(result *abci.ResponseDeliverTx, tx sdk.Tx) (*ParsedTx, error)
 
 	var eventSetCount int
 	for _, event := range result.Events {
-		if event.Type != evmtypes.EventTypeEthereumTx {
+		switch event.Type {
+		case evmtypes.EventTypeEthereumTx, evmtypes.EventTypeTxReceipt:
+		// ok
+		default:
 			continue
 		}
 
@@ -37,7 +40,7 @@ func ParseTxResult(result *abci.ResponseDeliverTx, tx sdk.Tx) (*ParsedTx, error)
 			}
 		}
 
-		if err := fillTxAttributes(p, event.Attributes); err != nil {
+		if err := fillTxAttributes(p, event.Type, event.Attributes); err != nil {
 			return nil, err
 		}
 	}
@@ -56,25 +59,40 @@ func ParseTxResult(result *abci.ResponseDeliverTx, tx sdk.Tx) (*ParsedTx, error)
 
 // fillTxAttribute parse attributes by name, less efficient than hardcode the index, but more stable against event
 // format changes.
-func fillTxAttribute(tx *ParsedTx, key string, value string) error {
-	switch key {
-	case evmtypes.AttributeKeyEthereumTxHash:
-		tx.Hash = common.HexToHash(value)
-	case evmtypes.AttributeKeyTxIndex:
-		txIndex, err := strconv.ParseUint(value, 10, 31) // #nosec G701
-		if err != nil {
-			return err
+func fillTxAttribute(tx *ParsedTx, _type, key, value string) error {
+	if _type == evmtypes.EventTypeEthereumTx {
+		switch key {
+		case evmtypes.AttributeKeyEthereumTxHash:
+			tx.Hash = common.HexToHash(value)
+		case evmtypes.AttributeKeyTxIndex:
+			txIndex, err := strconv.ParseUint(value, 10, 31) // #nosec G701
+			if err != nil {
+				return err
+			}
+			tx.EthTxIndex = int32(txIndex) // #nosec G701
+		case evmtypes.AttributeKeyEthereumTxFailed:
+			tx.Failed = len(value) > 0
 		}
-		tx.EthTxIndex = int32(txIndex) // #nosec G701
-	case evmtypes.AttributeKeyEthereumTxFailed:
-		tx.Failed = len(value) > 0
+	} else if _type == evmtypes.EventTypeTxReceipt {
+		switch key {
+		case evmtypes.AttributeKeyReceiptEvmTxHash:
+			tx.Hash = common.HexToHash(value)
+		case evmtypes.AttributeKeyReceiptTxIndex:
+			txIndex, err := strconv.ParseUint(value, 10, 31) // #nosec G701
+			if err != nil {
+				return err
+			}
+			tx.EthTxIndex = int32(txIndex) // #nosec G701
+		case evmtypes.AttributeKeyReceiptVmError:
+			tx.Failed = true
+		}
 	}
 	return nil
 }
 
-func fillTxAttributes(tx *ParsedTx, attrs []abci.EventAttribute) error {
+func fillTxAttributes(tx *ParsedTx, _type string, attrs []abci.EventAttribute) error {
 	for _, attr := range attrs {
-		if err := fillTxAttribute(tx, attr.Key, attr.Value); err != nil {
+		if err := fillTxAttribute(tx, _type, attr.Key, attr.Value); err != nil {
 			return err
 		}
 	}
