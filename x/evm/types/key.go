@@ -39,6 +39,7 @@ const (
 	prefixTransientTxCount
 	prefixTransientTxGas
 	prefixTransientTxLogCount
+	prefixTransientTxReceipt
 )
 
 // KVStore key prefixes
@@ -54,6 +55,7 @@ var (
 	KeyPrefixTransientBloom      = []byte{prefixTransientBloom}
 	KeyPrefixTransientTxGas      = []byte{prefixTransientTxGas}
 	KeyPrefixTransientTxLogCount = []byte{prefixTransientTxLogCount}
+	KeyPrefixTransientTxReceipt  = []byte{prefixTransientTxReceipt}
 )
 
 // Transient Store key
@@ -77,4 +79,8 @@ func TxGasTransientKey(txIdx uint64) []byte {
 
 func TxLogCountTransientKey(txIdx uint64) []byte {
 	return append(KeyPrefixTransientTxLogCount, sdk.Uint64ToBigEndian(txIdx)...)
+}
+
+func TxReceiptTransientKey(txIdx uint64) []byte {
+	return append(KeyPrefixTransientTxReceipt, sdk.Uint64ToBigEndian(txIdx)...)
 }

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"cosmossdk.io/errors"
 	"github.com/EscanBE/evermint/v12/utils"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -233,6 +234,14 @@ func (k Keeper) GetCumulativeLogCountTransient(ctx sdk.Context, exceptCurrent bo
 	return total
 }
 
+// SetTxReceiptForCurrentTxTransient sets the receipt for the current transaction in the transient store.
+func (k Keeper) SetTxReceiptForCurrentTxTransient(ctx sdk.Context, receiptBz []byte) {
+	txIdx := k.GetTxCountTransient(ctx) - 1
+
+	store := ctx.TransientStore(k.transientKey)
+	store.Set(types.TxReceiptTransientKey(txIdx), receiptBz)
+}
+
 // ----------------------------------------------------------------------------
 // Storage
 // ----------------------------------------------------------------------------
@@ -360,10 +369,29 @@ func (k Keeper) GetBaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int
 //   - Use zero gas config
 //   - Increase the count of transaction being processed in the current block
 //   - Set the gas used for the current transaction, assume tx failed so gas used = tx gas
+//   - Set the failed receipt for the current transaction, assume tx failed
 func (k Keeper) SetupExecutionContext(ctx sdk.Context, txGas uint64) sdk.Context {
 	ctx = utils.UseZeroGasConfig(ctx)
 	k.IncreaseTxCountTransient(ctx)
 	k.SetGasUsedForCurrentTxTransient(ctx, txGas)
+
+	bzFailedReceipt := func() []byte {
+		failedReceipt := &ethtypes.Receipt{
+			Type:              0,
+			PostState:         nil,
+			Status:            ethtypes.ReceiptStatusFailed,
+			CumulativeGasUsed: k.GetCumulativeLogCountTransient(ctx, false),
+			Bloom:             ethtypes.Bloom{}, // compute below
+			Logs:              []*ethtypes.Log{},
+		}
+		failedReceipt.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{failedReceipt})
+		bzReceipt, err := failedReceipt.MarshalBinary()
+		if err != nil {
+			panic(errors.Wrap(err, "failed to marshal receipt"))
+		}
+		return bzReceipt
+	}()
+	k.SetTxReceiptForCurrentTxTransient(ctx, bzFailedReceipt)
 
 	return ctx
 }

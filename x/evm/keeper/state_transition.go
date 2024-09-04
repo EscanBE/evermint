@@ -401,7 +401,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		PostState:         nil, // TODO: intermediate state root
 		Status:            0,   // to be filled below
 		CumulativeGasUsed: cumulativeGasUsed,
-		Bloom:             ethtypes.Bloom{}, // to be filled bellow
+		Bloom:             ethtypes.Bloom{}, // compute bellow
 		Logs:              stateDB.Logs(),
 	}
 	if success {

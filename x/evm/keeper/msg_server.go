@@ -76,6 +76,8 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 		}
 	}()
 
+	k.SetTxReceiptForCurrentTxTransient(ctx, response.MarshalledReceipt)
+
 	var tmTxHash *tmbytes.HexBytes
 	if len(ctx.TxBytes()) > 0 {
 		tmTxHash = utils.Ptr[tmbytes.HexBytes](tmtypes.Tx(ctx.TxBytes()).Hash())

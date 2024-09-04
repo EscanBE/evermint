@@ -88,12 +88,16 @@ func UseZeroGasConfig(ctx sdk.Context) sdk.Context {
 
 // MoveReceiptStatusToFailed switch state of Ethereum receipt to failed, consensus fields only
 func MoveReceiptStatusToFailed(receipt ethtypes.Receipt, existingGasUsed, newGasUsed uint64) ethtypes.Receipt {
-	return ethtypes.Receipt{
+	receiptOfFailed := ethtypes.Receipt{
 		Type:              receipt.Type,
 		PostState:         receipt.PostState,
 		Status:            ethtypes.ReceiptStatusFailed,
 		CumulativeGasUsed: receipt.CumulativeGasUsed - existingGasUsed + newGasUsed,
-		Bloom:             ethtypes.CreateBloom(ethtypes.Receipts{}),
+		Bloom:             ethtypes.Bloom{}, // compute bellow
 		Logs:              []*ethtypes.Log{},
 	}
+
+	receiptOfFailed.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{&receiptOfFailed})
+
+	return receiptOfFailed
 }
