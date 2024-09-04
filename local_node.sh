@@ -165,7 +165,7 @@ fi
   --metrics "$TRACE" --log_level "$LOGLEVEL" \
   --minimum-gas-prices="0.0001$MIN_DENOM" \
   --json-rpc.api eth,txpool,personal,net,debug,web3 \
-  --json-rpc.allow-insecure-unlock true \
+  --allow-insecure-unlock true \
   --api.enable \
   --grpc.enable true \
   --home "$HOMEDIR" \
