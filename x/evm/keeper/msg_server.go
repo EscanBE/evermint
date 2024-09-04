@@ -3,9 +3,12 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"github.com/EscanBE/evermint/v12/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"math/big"
 	"strconv"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -108,9 +111,9 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to unpack tx data")
 	}
-	baseFee := k.feeMarketKeeper.GetBaseFee(ctx)
-	if baseFee == nil {
-		baseFee = common.Big0
+	var baseFee *big.Int
+	if tx.Type() == ethtypes.DynamicFeeTxType {
+		baseFee = utils.Coalesce(k.feeMarketKeeper.GetBaseFee(ctx), common.Big0)
 	}
 	txReceiptAttrs := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeyReceiptMarshalled, hexutil.Encode(response.MarshalledReceipt)),
