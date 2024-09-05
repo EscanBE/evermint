@@ -469,7 +469,7 @@ func (suite *ChainIntegrationTestSuite) RpcBackendAt(height int64) *rpcbackend.B
 	queryClients := suite.QueryClientsAt(height)
 	rpcServerCtx := server.NewDefaultContext()
 
-	rpcBackend := rpcbackend.NewBackend(rpcServerCtx, rpcServerCtx.Logger, queryClients.ClientQueryCtx, false, suite.EvmTxIndexer)
+	rpcBackend := rpcbackend.NewBackend(rpcServerCtx, rpcServerCtx.Logger, queryClients.ClientQueryCtx, suite.EvmTxIndexer)
 
 	// override the query client with the mock query client, for changing query context
 	getFieldQueryClient := func() reflect.Value {
