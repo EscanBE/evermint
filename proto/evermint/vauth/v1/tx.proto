@@ -1,0 +1,34 @@
+syntax = "proto3";
+package evermint.vauth.v1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/EscanBE/evermint/v12/x/vauth/types";
+
+// Msg defines the vauth Msg service.
+service Msg {
+  // SubmitProofExternalOwnedAccount submit proof that an account is external owned account (EOA)
+  rpc SubmitProofExternalOwnedAccount(MsgSubmitProofExternalOwnedAccount) returns (MsgSubmitProofExternalOwnedAccountResponse) {
+    option (google.api.http).get = "/evermint/vauth/v1/tx/submit_proof_external_owned_account";
+  };
+}
+
+// MsgSubmitProofExternalOwnedAccount defines a Msg to submit EOA proof
+message MsgSubmitProofExternalOwnedAccount {
+  option (cosmos.msg.v1.signer) = "submitter";
+
+  // submitter is the cosmos bech32 address of the account who submitted the proof
+  string submitter = 1;
+
+  // account is the cosmos bech32 address that submit proof for
+  string account = 2;
+
+  // signature is the Ethereum signed message, used to proof that the account is EOA
+  string signature = 3;
+}
+
+// MsgSubmitProofExternalOwnedAccountResponse returns no fields
+message MsgSubmitProofExternalOwnedAccountResponse {}

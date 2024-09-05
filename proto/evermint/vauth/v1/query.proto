@@ -1,0 +1,28 @@
+syntax = "proto3";
+package evermint.vauth.v1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "evermint/vauth/v1/vauth.proto";
+
+option go_package = "github.com/EscanBE/evermint/v12/x/vauth/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // ProofExternalOwnedAccount returns proof of external owned account (EOA)
+  rpc ProofExternalOwnedAccount(QueryProofExternalOwnedAccountRequest) returns (QueryProofExternalOwnedAccountResponse) {
+    option (google.api.http).get = "/evermint/vauth/v1/proof_external_owned_account";
+  }
+}
+
+// QueryProofExternalOwnedAccountRequest is the request type for the Query/ProofExternalOwnedAccount RPC method.
+message QueryProofExternalOwnedAccountRequest {
+  // account to query for
+  string account = 1;
+}
+
+// QueryProofExternalOwnedAccountResponse is the response type for the Query/ProofExternalOwnedAccount RPC method.
+message QueryProofExternalOwnedAccountResponse {
+  // proof is the proof account is EOA
+  ProofExternalOwnedAccount proof = 1 [(gogoproto.nullable) = false];
+}

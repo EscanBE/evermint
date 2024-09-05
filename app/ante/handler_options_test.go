@@ -112,6 +112,21 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 			false,
 		},
 		{
+			"fail - empty VAuth keeper",
+			ante.HandlerOptions{
+				Cdc:                suite.app.AppCodec(),
+				AccountKeeper:      suite.app.AccountKeeper,
+				BankKeeper:         suite.app.BankKeeper,
+				DistributionKeeper: suite.app.DistrKeeper,
+				IBCKeeper:          suite.app.IBCKeeper,
+				StakingKeeper:      suite.app.StakingKeeper,
+				FeeMarketKeeper:    suite.app.FeeMarketKeeper,
+				EvmKeeper:          suite.app.EvmKeeper,
+				VAuthKeeper:        &suite.app.VAuthKeeper,
+			},
+			false,
+		},
+		{
 			"fail - empty signature gas consumer",
 			ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
@@ -188,6 +203,7 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 				DistributionKeeper:     suite.app.DistrKeeper,
 				ExtensionOptionChecker: types.HasDynamicFeeExtensionOption,
 				EvmKeeper:              suite.app.EvmKeeper,
+				VAuthKeeper:            &suite.app.VAuthKeeper,
 				StakingKeeper:          suite.app.StakingKeeper,
 				FeegrantKeeper:         suite.app.FeeGrantKeeper,
 				IBCKeeper:              suite.app.IBCKeeper,
@@ -202,11 +218,13 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 	}
 
 	for _, tc := range cases {
-		err := tc.options.Validate()
-		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-		}
+		suite.Run(tc.name, func() {
+			err := tc.options.Validate()
+			if tc.expPass {
+				suite.Require().NoError(err, tc.name)
+			} else {
+				suite.Require().Error(err, tc.name)
+			}
+		})
 	}
 }

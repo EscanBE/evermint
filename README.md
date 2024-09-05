@@ -61,7 +61,8 @@ evmd convert-address evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz evmos
 # alias: "ca"
 ```
 2. [Rename chain](https://github.com/EscanBE/evermint/blob/main/RENAME_CHAIN.md)
-3. [`snapshots` command](https://github.com/EscanBE/evermint/pull/12)
-4. [`inspect` command](https://github.com/EscanBE/evermint/pull/14)
-5. [Flag `--allow-insecure-unlock`](https://github.com/EscanBE/evermint/pull/142)
-6. Dependencies updated: `Cosmos-SDK v0.47.13`, `CometBFT v0.37.5`, `ibc-go v7.8.0`, `go-ethereum v1.10.26`
+3. [Support vesting account creation](https://github.com/EscanBE/evermint/pull/144) with help from module `x/vauth`
+4. [`snapshots` command](https://github.com/EscanBE/evermint/pull/12)
+5. [`inspect` command](https://github.com/EscanBE/evermint/pull/14)
+6. [Flag `--allow-insecure-unlock`](https://github.com/EscanBE/evermint/pull/142)
+7. Dependencies updated: `Cosmos-SDK v0.47.13`, `CometBFT v0.37.5`, `ibc-go v7.8.0`, `go-ethereum v1.10.26`
