@@ -5,7 +5,6 @@ import (
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 )
 
 // RejectMessagesDecorator prevents invalid msg types from being executed
@@ -19,11 +18,6 @@ func (rmd RejectMessagesDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 			return ctx, errorsmod.Wrapf(
 				errortypes.ErrInvalidType,
 				"MsgEthereumTx needs to be contained within a tx with 'ExtensionOptionsEthereumTx' option",
-			)
-		case *vestingtypes.MsgCreateVestingAccount, *vestingtypes.MsgCreatePeriodicVestingAccount, *vestingtypes.MsgCreatePermanentLockedAccount:
-			return ctx, errorsmod.Wrapf(
-				errortypes.ErrInvalidType,
-				"vesting messages are prohibited from execution: %T", msg,
 			)
 		default:
 			continue

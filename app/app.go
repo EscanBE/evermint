@@ -714,6 +714,7 @@ func (app *Evermint) setAnteHandler(txConfig client.TxConfig, maxGasWanted uint6
 		BankKeeper:             app.BankKeeper,
 		ExtensionOptionChecker: evertypes.HasDynamicFeeExtensionOption,
 		EvmKeeper:              app.EvmKeeper,
+		VAuthKeeper:            &app.VAuthKeeper,
 		StakingKeeper:          app.StakingKeeper,
 		FeegrantKeeper:         app.FeeGrantKeeper,
 		DistributionKeeper:     app.DistrKeeper,
