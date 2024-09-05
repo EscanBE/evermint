@@ -480,6 +480,8 @@ func (suite *ChainIntegrationTestSuite) RpcBackendAt(height int64) *rpcbackend.B
 		Elem().
 		Set(reflect.ValueOf(queryClients.Rpc))
 
+	rpcBackend.AllowInsecureUnlock(true)
+
 	return rpcBackend
 }
 

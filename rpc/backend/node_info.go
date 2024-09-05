@@ -301,6 +301,15 @@ func (b Backend) UnprotectedAllowed() bool {
 	return b.allowUnprotectedTxs
 }
 
+func (b *Backend) AllowInsecureUnlock(allow bool) {
+	if b.cfg.JSONRPC.AllowInsecureUnlock == allow {
+		return
+	}
+
+	jsonRpc := &b.cfg.JSONRPC
+	jsonRpc.AllowInsecureUnlock = true
+}
+
 // RPCGasCap is the global gas cap for eth-call variants.
 func (b *Backend) RPCGasCap() uint64 {
 	return b.cfg.JSONRPC.GasCap

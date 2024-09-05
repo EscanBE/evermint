@@ -88,6 +88,7 @@ func (suite *BackendTestSuite) SetupTest() {
 	suite.backend.queryClient.FeeMarket = mocks.NewFeeMarketQueryClient(suite.T())
 	suite.backend.ctx = rpctypes.ContextWithHeight(1)
 	suite.backend.indexer = mocks.NewEVMTxIndexer(suite.T())
+	suite.backend.AllowInsecureUnlock(true)
 
 	// Add codec
 	encCfg := encoding.MakeConfig(app.ModuleBasics)
