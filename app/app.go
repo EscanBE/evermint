@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/cosmos/cosmos-sdk/x/mint"
 	"io"
 	"net/http"
 	"os"
@@ -44,6 +42,8 @@ import (
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
@@ -54,6 +54,8 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/cosmos-sdk/x/consensus"
+	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
+	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
@@ -74,6 +76,9 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
@@ -90,8 +95,6 @@ import (
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
-
 	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -100,44 +103,42 @@ import (
 	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 
 	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
 	icahost "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host"
 	icahostkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 
+	// unnamed import of statik for swagger UI support
+	_ "github.com/EscanBE/evermint/v12/client/docs/statik"
+
+	"github.com/EscanBE/evermint/v12/app/ante"
 	ethante "github.com/EscanBE/evermint/v12/app/ante/evm"
+	"github.com/EscanBE/evermint/v12/app/upgrades/v3_sample"
+	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/encoding"
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
 	srvflags "github.com/EscanBE/evermint/v12/server/flags"
 	evertypes "github.com/EscanBE/evermint/v12/types"
+	"github.com/EscanBE/evermint/v12/x/erc20"
+	erc20client "github.com/EscanBE/evermint/v12/x/erc20/client"
+	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	"github.com/EscanBE/evermint/v12/x/evm"
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/EscanBE/evermint/v12/x/feemarket"
 	feemarketkeeper "github.com/EscanBE/evermint/v12/x/feemarket/keeper"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
-
-	// unnamed import of statik for swagger UI support
-	_ "github.com/EscanBE/evermint/v12/client/docs/statik"
-
-	"github.com/EscanBE/evermint/v12/app/ante"
-	"github.com/EscanBE/evermint/v12/app/upgrades/v3_sample"
-	"github.com/EscanBE/evermint/v12/x/erc20"
-	erc20client "github.com/EscanBE/evermint/v12/x/erc20/client"
-	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
-	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/EscanBE/evermint/v12/x/vauth"
+	vauthkeeper "github.com/EscanBE/evermint/v12/x/vauth/keeper"
+	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
 
 	// Force-load the tracer engines to trigger registration due to Go-Ethereum v1.10.15 changes
 	_ "github.com/ethereum/go-ethereum/eth/tracers/js"
@@ -197,6 +198,7 @@ var (
 		evm.AppModuleBasic{},
 		feemarket.AppModuleBasic{},
 		erc20.AppModuleBasic{},
+		vauth.AppModuleBasic{},
 		consensus.AppModuleBasic{},
 	)
 
@@ -212,6 +214,7 @@ var (
 		icatypes.ModuleName:            nil,
 		evmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
 		erc20types.ModuleName:          {authtypes.Minter, authtypes.Burner},
+		vauthtypes.ModuleName:          {authtypes.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -272,6 +275,7 @@ type Evermint struct {
 
 	// Evermint keepers
 	Erc20Keeper erc20keeper.Keeper
+	VAuthKeeper vauthkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -327,7 +331,7 @@ func NewEvermint(
 		// ethermint keys
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
 		// evermint module keys
-		erc20types.StoreKey,
+		erc20types.StoreKey, vauthtypes.StoreKey,
 	)
 
 	// Add the EVM transient store key
@@ -461,9 +465,13 @@ func NewEvermint(
 		chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.EvmKeeper, chainApp.StakingKeeper,
 	)
 
+	chainApp.VAuthKeeper = vauthkeeper.NewKeeper(
+		appCodec, keys[vauthtypes.StoreKey], chainApp.BankKeeper, *chainApp.EvmKeeper,
+	)
+
 	chainApp.GovKeeper = *govKeeper.SetHooks(
 		govtypes.NewMultiGovHooks(
-		//
+			//
 		),
 	)
 
@@ -529,6 +537,7 @@ func NewEvermint(
 		slashing.NewAppModule(appCodec, chainApp.SlashingKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.StakingKeeper, chainApp.GetSubspace(slashingtypes.ModuleName)),
 		distr.NewAppModule(appCodec, chainApp.DistrKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.StakingKeeper, chainApp.GetSubspace(distrtypes.ModuleName)),
 		staking.NewAppModule(appCodec, chainApp.StakingKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.GetSubspace(stakingtypes.ModuleName)),
+		vesting.NewAppModule(chainApp.AccountKeeper, chainApp.BankKeeper),
 		upgrade.NewAppModule(&chainApp.UpgradeKeeper),
 		evidence.NewAppModule(chainApp.EvidenceKeeper),
 		params.NewAppModule(chainApp.ParamsKeeper),
@@ -545,9 +554,8 @@ func NewEvermint(
 		evm.NewAppModule(chainApp.EvmKeeper, chainApp.AccountKeeper, chainApp.GetSubspace(evmtypes.ModuleName)),
 		feemarket.NewAppModule(chainApp.FeeMarketKeeper, chainApp.GetSubspace(feemarkettypes.ModuleName)),
 		// Evermint app modules
-		erc20.NewAppModule(chainApp.Erc20Keeper, chainApp.AccountKeeper,
-			chainApp.GetSubspace(erc20types.ModuleName)),
-		vesting.NewAppModule(chainApp.AccountKeeper, chainApp.BankKeeper),
+		erc20.NewAppModule(chainApp.Erc20Keeper, chainApp.AccountKeeper, chainApp.GetSubspace(erc20types.ModuleName)),
+		vauth.NewAppModule(appCodec, chainApp.VAuthKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -580,6 +588,7 @@ func NewEvermint(
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
 		erc20types.ModuleName,
+		vauthtypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 
@@ -597,6 +606,7 @@ func NewEvermint(
 		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
+		vestingtypes.ModuleName,
 		distrtypes.ModuleName,
 		slashingtypes.ModuleName,
 		minttypes.ModuleName,
@@ -607,8 +617,8 @@ func NewEvermint(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		// Evermint modules
-		vestingtypes.ModuleName,
 		erc20types.ModuleName,
+		vauthtypes.ModuleName,
 		consensusparamtypes.ModuleName,
 	)
 
@@ -641,9 +651,10 @@ func NewEvermint(
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
-		// Evermint modules
 		vestingtypes.ModuleName,
+		// Evermint modules
 		erc20types.ModuleName,
+		vauthtypes.ModuleName,
 		consensusparamtypes.ModuleName,
 		// NOTE: crisis module must go at the end to check for invariants on each module
 		crisistypes.ModuleName,
