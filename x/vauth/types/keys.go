@@ -15,11 +15,11 @@ const (
 
 // prefix bytes for the VAuth persistent store.
 const (
-	prefixProvedAccountOwnershipByAddress = iota + 1
+	prefixProofExternalOwnedAccount = iota + 1
 )
 
-var KeyPrefixProvedAccountOwnershipByAddress = []byte{prefixProvedAccountOwnershipByAddress}
+var KeyPrefixProofExternalOwnedAccount = []byte{prefixProofExternalOwnedAccount}
 
-func KeyProvedAccountOwnershipByAddress(accAddr sdk.AccAddress) []byte {
-	return append(KeyPrefixProvedAccountOwnershipByAddress, accAddr.Bytes()...)
+func KeyProofExternalOwnedAccountByAddress(accAddr sdk.AccAddress) []byte {
+	return append(KeyPrefixProofExternalOwnedAccount, accAddr.Bytes()...)
 }

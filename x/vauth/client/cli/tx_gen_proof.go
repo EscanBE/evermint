@@ -21,11 +21,11 @@ import (
 // NewGenProofTxCmd is the CLI command for generate proof.
 func NewGenProofTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "generate-prove-account-ownership",
+		Use:     "generate-proof-eoa",
 		Aliases: []string{"gen-proof"},
-		Short:   "Generate account ownership proof",
+		Short:   "Generate proof external owned account",
 		Example: fmt.Sprintf(
-			"$ %s tx %s generate-prove-account-ownership --%s fresher",
+			"$ %s tx %s generate-proof-eoa --%s fresher",
 			version.AppName, vauthtypes.ModuleName,
 			flags.FlagFrom,
 		),

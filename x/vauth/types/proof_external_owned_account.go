@@ -12,10 +12,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func (m *ProvedAccountOwnership) ValidateBasic() error {
-	address, err := sdk.AccAddressFromBech32(m.Address)
+func (m *ProofExternalOwnedAccount) ValidateBasic() error {
+	accAddr, err := sdk.AccAddressFromBech32(m.Account)
 	if err != nil {
-		return errorsmod.Wrapf(errors.ErrInvalidRequest, "address is not a valid bech32 account address: %s", m.Address)
+		return errorsmod.Wrapf(errors.ErrInvalidRequest, "account is not a valid bech32 account address: %s", m.Account)
 	}
 
 	if !strings.HasPrefix(m.Hash, "0x") {
@@ -38,12 +38,12 @@ func (m *ProvedAccountOwnership) ValidateBasic() error {
 		return errorsmod.Wrap(errors.ErrInvalidRequest, "bad signature")
 	}
 
-	verified, err := vauthutils.VerifySignature(common.BytesToAddress(address), bzSignature, MessageToSign)
+	verified, err := vauthutils.VerifySignature(common.BytesToAddress(accAddr), bzSignature, MessageToSign)
 	if err != nil {
 		return errorsmod.Wrap(errors.ErrInvalidRequest, "bad signature or mis-match")
 	}
 	if !verified {
-		return errorsmod.Wrapf(errors.ErrInvalidRequest, "mis-match signature with provided address: %s", common.BytesToAddress(address))
+		return errorsmod.Wrapf(errors.ErrInvalidRequest, "mis-match signature with provided address: %s", common.BytesToAddress(accAddr))
 	}
 
 	return nil

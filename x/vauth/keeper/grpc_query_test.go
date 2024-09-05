@@ -8,20 +8,20 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func (s *KeeperTestSuite) Test_queryServer_ProvedAccountOwnershipByAddress() {
-	proof := vauthtypes.ProvedAccountOwnership{
-		Address:   s.accAddr.String(),
+func (s *KeeperTestSuite) Test_queryServer_ProofExternalOwnedAccount() {
+	proof := vauthtypes.ProofExternalOwnedAccount{
+		Account:   s.accAddr.String(),
 		Hash:      s.HashToStr(vauthtypes.MessageToSign),
 		Signature: s.SignToStr(vauthtypes.MessageToSign),
 	}
 
-	err := s.keeper.SetProvedAccountOwnershipByAddress(s.ctx, proof)
+	err := s.keeper.SaveProofExternalOwnedAccount(s.ctx, proof)
 	s.Require().NoError(err)
 
 	queryServer := vauthkeeper.NewQueryServerImpl(s.keeper)
-	query := func(addr string) (*vauthtypes.QueryProvedAccountOwnershipByAddressResponse, error) {
-		return queryServer.ProvedAccountOwnershipByAddress(s.ctx, &vauthtypes.QueryProvedAccountOwnershipByAddressRequest{
-			Address: addr,
+	query := func(addr string) (*vauthtypes.QueryProofExternalOwnedAccountResponse, error) {
+		return queryServer.ProofExternalOwnedAccount(s.ctx, &vauthtypes.QueryProofExternalOwnedAccountRequest{
+			Account: addr,
 		})
 	}
 

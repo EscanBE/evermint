@@ -14,7 +14,7 @@ import (
 )
 
 //goland:noinspection SpellCheckingInspection
-func TestProvedAccountOwnership_ValidateBasic(t *testing.T) {
+func TestProofExternalOwnedAccount_ValidateBasic(t *testing.T) {
 	privateKey, err := crypto.HexToECDSA("fad9c8855b740a0b7ed4c221dbad0f33a83a49cad6b3fe8d5817ac83d38b6a19")
 	require.NoError(t, err)
 
@@ -63,7 +63,7 @@ func TestProvedAccountOwnership_ValidateBasic(t *testing.T) {
 			hash:            common.BytesToHash(crypto.Keccak256([]byte(MessageToSign))).String(),
 			signature:       "0x" + hex.EncodeToString(signature(MessageToSign)),
 			wantErr:         true,
-			wantErrContains: "address is not a valid bech32 account address",
+			wantErrContains: "account is not a valid bech32 account address",
 		},
 		{
 			name:            "fail - bad hash, missing 0x prefix",
@@ -116,8 +116,8 @@ func TestProvedAccountOwnership_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &ProvedAccountOwnership{
-				Address:   tt.address,
+			m := &ProofExternalOwnedAccount{
+				Account:   tt.address,
 				Hash:      tt.hash,
 				Signature: tt.signature,
 			}

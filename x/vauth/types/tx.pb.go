@@ -31,28 +31,28 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgSubmitProveAccountOwnership defines a Msg to submit account ownership proof
-type MsgSubmitProveAccountOwnership struct {
+// MsgSubmitProofExternalOwnedAccount defines a Msg to submit EOA proof
+type MsgSubmitProofExternalOwnedAccount struct {
 	// submitter is the cosmos bech32 address of the account who submitted the proof
 	Submitter string `protobuf:"bytes,1,opt,name=submitter,proto3" json:"submitter,omitempty"`
-	// address is the cosmos bech32 address that submit proof for
-	Address string `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
-	// signature is the Ethereum signed message
+	// account is the cosmos bech32 address that submit proof for
+	Account string `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
+	// signature is the Ethereum signed message, used to proof that the account is EOA
 	Signature string `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
-func (m *MsgSubmitProveAccountOwnership) Reset()         { *m = MsgSubmitProveAccountOwnership{} }
-func (m *MsgSubmitProveAccountOwnership) String() string { return proto.CompactTextString(m) }
-func (*MsgSubmitProveAccountOwnership) ProtoMessage()    {}
-func (*MsgSubmitProveAccountOwnership) Descriptor() ([]byte, []int) {
+func (m *MsgSubmitProofExternalOwnedAccount) Reset()         { *m = MsgSubmitProofExternalOwnedAccount{} }
+func (m *MsgSubmitProofExternalOwnedAccount) String() string { return proto.CompactTextString(m) }
+func (*MsgSubmitProofExternalOwnedAccount) ProtoMessage()    {}
+func (*MsgSubmitProofExternalOwnedAccount) Descriptor() ([]byte, []int) {
 	return fileDescriptor_74b474a4acdc4171, []int{0}
 }
-func (m *MsgSubmitProveAccountOwnership) XXX_Unmarshal(b []byte) error {
+func (m *MsgSubmitProofExternalOwnedAccount) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgSubmitProveAccountOwnership) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgSubmitProofExternalOwnedAccount) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgSubmitProveAccountOwnership.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgSubmitProofExternalOwnedAccount.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -62,57 +62,59 @@ func (m *MsgSubmitProveAccountOwnership) XXX_Marshal(b []byte, deterministic boo
 		return b[:n], nil
 	}
 }
-func (m *MsgSubmitProveAccountOwnership) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgSubmitProveAccountOwnership.Merge(m, src)
+func (m *MsgSubmitProofExternalOwnedAccount) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSubmitProofExternalOwnedAccount.Merge(m, src)
 }
-func (m *MsgSubmitProveAccountOwnership) XXX_Size() int {
+func (m *MsgSubmitProofExternalOwnedAccount) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgSubmitProveAccountOwnership) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgSubmitProveAccountOwnership.DiscardUnknown(m)
+func (m *MsgSubmitProofExternalOwnedAccount) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSubmitProofExternalOwnedAccount.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgSubmitProveAccountOwnership proto.InternalMessageInfo
+var xxx_messageInfo_MsgSubmitProofExternalOwnedAccount proto.InternalMessageInfo
 
-func (m *MsgSubmitProveAccountOwnership) GetSubmitter() string {
+func (m *MsgSubmitProofExternalOwnedAccount) GetSubmitter() string {
 	if m != nil {
 		return m.Submitter
 	}
 	return ""
 }
 
-func (m *MsgSubmitProveAccountOwnership) GetAddress() string {
+func (m *MsgSubmitProofExternalOwnedAccount) GetAccount() string {
 	if m != nil {
-		return m.Address
+		return m.Account
 	}
 	return ""
 }
 
-func (m *MsgSubmitProveAccountOwnership) GetSignature() string {
+func (m *MsgSubmitProofExternalOwnedAccount) GetSignature() string {
 	if m != nil {
 		return m.Signature
 	}
 	return ""
 }
 
-// MsgSubmitProveAccountOwnershipResponse returns no fields
-type MsgSubmitProveAccountOwnershipResponse struct {
+// MsgSubmitProofExternalOwnedAccountResponse returns no fields
+type MsgSubmitProofExternalOwnedAccountResponse struct {
 }
 
-func (m *MsgSubmitProveAccountOwnershipResponse) Reset() {
-	*m = MsgSubmitProveAccountOwnershipResponse{}
+func (m *MsgSubmitProofExternalOwnedAccountResponse) Reset() {
+	*m = MsgSubmitProofExternalOwnedAccountResponse{}
 }
-func (m *MsgSubmitProveAccountOwnershipResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgSubmitProveAccountOwnershipResponse) ProtoMessage()    {}
-func (*MsgSubmitProveAccountOwnershipResponse) Descriptor() ([]byte, []int) {
+func (m *MsgSubmitProofExternalOwnedAccountResponse) String() string {
+	return proto.CompactTextString(m)
+}
+func (*MsgSubmitProofExternalOwnedAccountResponse) ProtoMessage() {}
+func (*MsgSubmitProofExternalOwnedAccountResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_74b474a4acdc4171, []int{1}
 }
-func (m *MsgSubmitProveAccountOwnershipResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgSubmitProofExternalOwnedAccountResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgSubmitProveAccountOwnershipResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgSubmitProofExternalOwnedAccountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgSubmitProveAccountOwnershipResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgSubmitProofExternalOwnedAccountResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -122,50 +124,50 @@ func (m *MsgSubmitProveAccountOwnershipResponse) XXX_Marshal(b []byte, determini
 		return b[:n], nil
 	}
 }
-func (m *MsgSubmitProveAccountOwnershipResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgSubmitProveAccountOwnershipResponse.Merge(m, src)
+func (m *MsgSubmitProofExternalOwnedAccountResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSubmitProofExternalOwnedAccountResponse.Merge(m, src)
 }
-func (m *MsgSubmitProveAccountOwnershipResponse) XXX_Size() int {
+func (m *MsgSubmitProofExternalOwnedAccountResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgSubmitProveAccountOwnershipResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgSubmitProveAccountOwnershipResponse.DiscardUnknown(m)
+func (m *MsgSubmitProofExternalOwnedAccountResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSubmitProofExternalOwnedAccountResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgSubmitProveAccountOwnershipResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgSubmitProofExternalOwnedAccountResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*MsgSubmitProveAccountOwnership)(nil), "evermint.vauth.v1.MsgSubmitProveAccountOwnership")
-	proto.RegisterType((*MsgSubmitProveAccountOwnershipResponse)(nil), "evermint.vauth.v1.MsgSubmitProveAccountOwnershipResponse")
+	proto.RegisterType((*MsgSubmitProofExternalOwnedAccount)(nil), "evermint.vauth.v1.MsgSubmitProofExternalOwnedAccount")
+	proto.RegisterType((*MsgSubmitProofExternalOwnedAccountResponse)(nil), "evermint.vauth.v1.MsgSubmitProofExternalOwnedAccountResponse")
 }
 
 func init() { proto.RegisterFile("evermint/vauth/v1/tx.proto", fileDescriptor_74b474a4acdc4171) }
 
 var fileDescriptor_74b474a4acdc4171 = []byte{
-	// 357 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x91, 0x31, 0x4b, 0xc3, 0x40,
-	0x14, 0xc7, 0x7b, 0x2d, 0x28, 0xcd, 0x20, 0x18, 0x04, 0x63, 0x2c, 0x41, 0x3a, 0x48, 0x11, 0xcc,
-	0x91, 0x2a, 0x82, 0xe2, 0x62, 0xa1, 0x38, 0x15, 0xa5, 0x6e, 0x2e, 0xe5, 0x9a, 0x1e, 0xd7, 0x80,
-	0xb9, 0x17, 0xf2, 0x2e, 0xb1, 0xae, 0x1d, 0x9c, 0x05, 0xbf, 0x88, 0x1f, 0x43, 0xb7, 0x8a, 0x8b,
-	0xa3, 0xb4, 0x82, 0x5f, 0x43, 0x9a, 0x4b, 0xa8, 0xa0, 0x14, 0xdc, 0xee, 0xbd, 0xdf, 0xbd, 0xff,
-	0xfb, 0xdf, 0xfd, 0x0d, 0x9b, 0xa7, 0x3c, 0x0e, 0x03, 0xa9, 0x68, 0xca, 0x12, 0x35, 0xa4, 0xa9,
-	0x47, 0xd5, 0xc8, 0x8d, 0x62, 0x50, 0x60, 0xae, 0x17, 0xcc, 0xcd, 0x98, 0x9b, 0x7a, 0xf6, 0x86,
-	0x00, 0x01, 0x19, 0xa5, 0xf3, 0x93, 0xbe, 0x68, 0xd7, 0x04, 0x80, 0xb8, 0xe1, 0x94, 0x45, 0x01,
-	0x65, 0x52, 0x82, 0x62, 0x2a, 0x00, 0x89, 0x39, 0xdd, 0xf4, 0x01, 0x43, 0x40, 0x1a, 0xa2, 0x98,
-	0xcb, 0x87, 0x28, 0x72, 0xb0, 0xa5, 0x41, 0x4f, 0xeb, 0xe9, 0x42, 0xa3, 0xfa, 0x3d, 0x31, 0x9c,
-	0x0e, 0x8a, 0xab, 0xa4, 0x1f, 0x06, 0xea, 0x32, 0x86, 0x94, 0x9f, 0xf9, 0x3e, 0x24, 0x52, 0x5d,
-	0xdc, 0x4a, 0x1e, 0xe3, 0x30, 0x88, 0xcc, 0x9a, 0x51, 0xc5, 0x0c, 0x2b, 0x1e, 0x5b, 0x64, 0x87,
-	0x34, 0xaa, 0xdd, 0x45, 0xc3, 0xb4, 0x8c, 0x55, 0x36, 0x18, 0xc4, 0x1c, 0xd1, 0x2a, 0x67, 0xac,
-	0x28, 0xb3, 0xb9, 0x40, 0x48, 0xa6, 0x92, 0x98, 0x5b, 0x95, 0x7c, 0xae, 0x68, 0x9c, 0xac, 0x8d,
-	0xbf, 0x9e, 0xf6, 0x16, 0x3a, 0xf5, 0x86, 0xb1, 0xbb, 0xdc, 0x47, 0x97, 0x63, 0x04, 0x12, 0x79,
-	0xf3, 0x95, 0x18, 0x95, 0x0e, 0x0a, 0xf3, 0x85, 0x18, 0xdb, 0xcb, 0x7c, 0x7b, 0xee, 0xaf, 0x6f,
-	0x75, 0x97, 0xaf, 0xb0, 0x8f, 0xff, 0x3d, 0x52, 0xb8, 0xaa, 0x9f, 0x8e, 0xdf, 0x3e, 0x1f, 0xcb,
-	0x47, 0xe6, 0x21, 0xfd, 0x2b, 0x68, 0xaa, 0x1f, 0x3a, 0x4f, 0x20, 0xe5, 0x3d, 0xa6, 0x45, 0x7a,
-	0x50, 0xa8, 0xb4, 0xce, 0x9f, 0xa7, 0x0e, 0x99, 0x4c, 0x1d, 0xf2, 0x31, 0x75, 0xc8, 0xc3, 0xcc,
-	0x29, 0x4d, 0x66, 0x4e, 0xe9, 0x7d, 0xe6, 0x94, 0xae, 0xf7, 0x45, 0xa0, 0x86, 0x49, 0xdf, 0xf5,
-	0x21, 0xa4, 0x6d, 0xf4, 0x99, 0x6c, 0xb5, 0x7f, 0x6c, 0xf0, 0x9a, 0x74, 0x94, 0xef, 0x51, 0x77,
-	0x11, 0xc7, 0xfe, 0x4a, 0x16, 0xeb, 0xc1, 0x77, 0x00, 0x00, 0x00, 0xff, 0xff, 0x23, 0x94, 0x87,
-	0xde, 0x6f, 0x02, 0x00, 0x00,
+	// 361 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x91, 0x31, 0x4b, 0xc3, 0x40,
+	0x14, 0xc7, 0x7b, 0x2d, 0x28, 0xcd, 0x20, 0x18, 0x04, 0x63, 0x28, 0x51, 0x32, 0x49, 0xd1, 0x1c,
+	0xad, 0x38, 0xa8, 0x38, 0xb4, 0x50, 0x9c, 0x8a, 0x52, 0x37, 0x97, 0x70, 0x8d, 0xd7, 0x6b, 0xa0,
+	0xb9, 0x17, 0x72, 0x97, 0x58, 0xd7, 0x8e, 0x4e, 0x82, 0x5f, 0xc4, 0x8f, 0xe1, 0x58, 0x70, 0x11,
+	0x27, 0x49, 0x05, 0xbf, 0x86, 0x24, 0x97, 0x50, 0x41, 0xa1, 0xe0, 0x76, 0xef, 0xfd, 0xde, 0xfb,
+	0xbf, 0x77, 0xef, 0xaf, 0x99, 0x34, 0xa1, 0x51, 0xe0, 0x73, 0x89, 0x13, 0x12, 0xcb, 0x31, 0x4e,
+	0x5a, 0x58, 0x4e, 0x9d, 0x30, 0x02, 0x09, 0xfa, 0x66, 0xc9, 0x9c, 0x9c, 0x39, 0x49, 0xcb, 0xdc,
+	0x62, 0xc0, 0x20, 0xa7, 0x38, 0x7b, 0xa9, 0x42, 0xb3, 0xc1, 0x00, 0xd8, 0x84, 0x62, 0x12, 0xfa,
+	0x98, 0x70, 0x0e, 0x92, 0x48, 0x1f, 0xb8, 0x28, 0xe8, 0xb6, 0x07, 0x22, 0x00, 0x81, 0x03, 0xc1,
+	0x32, 0xf9, 0x40, 0xb0, 0x02, 0xec, 0x28, 0xe0, 0x2a, 0x3d, 0x15, 0x28, 0x64, 0x3f, 0x20, 0xcd,
+	0xee, 0x0b, 0x76, 0x1d, 0x0f, 0x03, 0x5f, 0x5e, 0x45, 0x00, 0xa3, 0xde, 0x54, 0xd2, 0x88, 0x93,
+	0xc9, 0xe5, 0x1d, 0xa7, 0xb7, 0x1d, 0xcf, 0x83, 0x98, 0x4b, 0xbd, 0xa1, 0xd5, 0x45, 0x5e, 0x22,
+	0x69, 0x64, 0xa0, 0x3d, 0xb4, 0x5f, 0x1f, 0x2c, 0x13, 0xba, 0xa1, 0xad, 0x13, 0x55, 0x68, 0x54,
+	0x73, 0x56, 0x86, 0x79, 0x9f, 0xcf, 0x38, 0x91, 0x71, 0x44, 0x8d, 0x5a, 0xd1, 0x57, 0x26, 0x4e,
+	0x37, 0x66, 0x5f, 0xcf, 0xcd, 0xa5, 0x8e, 0x7d, 0xa0, 0x35, 0x57, 0xef, 0x32, 0xa0, 0x22, 0x04,
+	0x2e, 0x68, 0x3b, 0x45, 0x5a, 0xad, 0x2f, 0x98, 0xfe, 0x8e, 0xb4, 0xdd, 0x55, 0xfb, 0x1f, 0x3b,
+	0xbf, 0x4e, 0xec, 0xac, 0x1e, 0x65, 0x9e, 0xff, 0xab, 0xad, 0xdc, 0xd0, 0xee, 0xcc, 0x5e, 0x3f,
+	0x9f, 0xaa, 0x67, 0xfa, 0x09, 0xfe, 0xcb, 0x7c, 0xac, 0x3e, 0x9e, 0xb9, 0x02, 0x23, 0x97, 0x16,
+	0x42, 0x2e, 0x64, 0x4a, 0x6e, 0x71, 0xc0, 0xee, 0xc5, 0x4b, 0x6a, 0xa1, 0x79, 0x6a, 0xa1, 0x8f,
+	0xd4, 0x42, 0x8f, 0x0b, 0xab, 0x32, 0x5f, 0x58, 0x95, 0xb7, 0x85, 0x55, 0xb9, 0x39, 0x64, 0xbe,
+	0x1c, 0xc7, 0x43, 0xc7, 0x83, 0x00, 0xf7, 0x84, 0x47, 0x78, 0xb7, 0xf7, 0x63, 0x4c, 0xab, 0x8d,
+	0xa7, 0xc5, 0x30, 0x79, 0x1f, 0x52, 0x31, 0x5c, 0xcb, 0xfd, 0x3e, 0xfa, 0x0e, 0x00, 0x00, 0xff,
+	0xff, 0xc1, 0xe7, 0x51, 0x55, 0x88, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -180,8 +182,8 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	// SubmitProveAccountOwnership submit account ownership proof and persist to store.
-	SubmitProveAccountOwnership(ctx context.Context, in *MsgSubmitProveAccountOwnership, opts ...grpc.CallOption) (*MsgSubmitProveAccountOwnershipResponse, error)
+	// SubmitProofExternalOwnedAccount submit proof that an account is external owned account (EOA)
+	SubmitProofExternalOwnedAccount(ctx context.Context, in *MsgSubmitProofExternalOwnedAccount, opts ...grpc.CallOption) (*MsgSubmitProofExternalOwnedAccountResponse, error)
 }
 
 type msgClient struct {
@@ -192,9 +194,9 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) SubmitProveAccountOwnership(ctx context.Context, in *MsgSubmitProveAccountOwnership, opts ...grpc.CallOption) (*MsgSubmitProveAccountOwnershipResponse, error) {
-	out := new(MsgSubmitProveAccountOwnershipResponse)
-	err := c.cc.Invoke(ctx, "/evermint.vauth.v1.Msg/SubmitProveAccountOwnership", in, out, opts...)
+func (c *msgClient) SubmitProofExternalOwnedAccount(ctx context.Context, in *MsgSubmitProofExternalOwnedAccount, opts ...grpc.CallOption) (*MsgSubmitProofExternalOwnedAccountResponse, error) {
+	out := new(MsgSubmitProofExternalOwnedAccountResponse)
+	err := c.cc.Invoke(ctx, "/evermint.vauth.v1.Msg/SubmitProofExternalOwnedAccount", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -203,36 +205,36 @@ func (c *msgClient) SubmitProveAccountOwnership(ctx context.Context, in *MsgSubm
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	// SubmitProveAccountOwnership submit account ownership proof and persist to store.
-	SubmitProveAccountOwnership(context.Context, *MsgSubmitProveAccountOwnership) (*MsgSubmitProveAccountOwnershipResponse, error)
+	// SubmitProofExternalOwnedAccount submit proof that an account is external owned account (EOA)
+	SubmitProofExternalOwnedAccount(context.Context, *MsgSubmitProofExternalOwnedAccount) (*MsgSubmitProofExternalOwnedAccountResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
 type UnimplementedMsgServer struct {
 }
 
-func (*UnimplementedMsgServer) SubmitProveAccountOwnership(ctx context.Context, req *MsgSubmitProveAccountOwnership) (*MsgSubmitProveAccountOwnershipResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SubmitProveAccountOwnership not implemented")
+func (*UnimplementedMsgServer) SubmitProofExternalOwnedAccount(ctx context.Context, req *MsgSubmitProofExternalOwnedAccount) (*MsgSubmitProofExternalOwnedAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SubmitProofExternalOwnedAccount not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
 }
 
-func _Msg_SubmitProveAccountOwnership_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgSubmitProveAccountOwnership)
+func _Msg_SubmitProofExternalOwnedAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgSubmitProofExternalOwnedAccount)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).SubmitProveAccountOwnership(ctx, in)
+		return srv.(MsgServer).SubmitProofExternalOwnedAccount(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/evermint.vauth.v1.Msg/SubmitProveAccountOwnership",
+		FullMethod: "/evermint.vauth.v1.Msg/SubmitProofExternalOwnedAccount",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).SubmitProveAccountOwnership(ctx, req.(*MsgSubmitProveAccountOwnership))
+		return srv.(MsgServer).SubmitProofExternalOwnedAccount(ctx, req.(*MsgSubmitProofExternalOwnedAccount))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -242,15 +244,15 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SubmitProveAccountOwnership",
-			Handler:    _Msg_SubmitProveAccountOwnership_Handler,
+			MethodName: "SubmitProofExternalOwnedAccount",
+			Handler:    _Msg_SubmitProofExternalOwnedAccount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "evermint/vauth/v1/tx.proto",
 }
 
-func (m *MsgSubmitProveAccountOwnership) Marshal() (dAtA []byte, err error) {
+func (m *MsgSubmitProofExternalOwnedAccount) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -260,12 +262,12 @@ func (m *MsgSubmitProveAccountOwnership) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgSubmitProveAccountOwnership) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgSubmitProofExternalOwnedAccount) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgSubmitProveAccountOwnership) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgSubmitProofExternalOwnedAccount) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -277,10 +279,10 @@ func (m *MsgSubmitProveAccountOwnership) MarshalToSizedBuffer(dAtA []byte) (int,
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.Address) > 0 {
-		i -= len(m.Address)
-		copy(dAtA[i:], m.Address)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Address)))
+	if len(m.Account) > 0 {
+		i -= len(m.Account)
+		copy(dAtA[i:], m.Account)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Account)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -294,7 +296,7 @@ func (m *MsgSubmitProveAccountOwnership) MarshalToSizedBuffer(dAtA []byte) (int,
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgSubmitProveAccountOwnershipResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgSubmitProofExternalOwnedAccountResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -304,12 +306,12 @@ func (m *MsgSubmitProveAccountOwnershipResponse) Marshal() (dAtA []byte, err err
 	return dAtA[:n], nil
 }
 
-func (m *MsgSubmitProveAccountOwnershipResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgSubmitProofExternalOwnedAccountResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgSubmitProveAccountOwnershipResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgSubmitProofExternalOwnedAccountResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -328,7 +330,7 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *MsgSubmitProveAccountOwnership) Size() (n int) {
+func (m *MsgSubmitProofExternalOwnedAccount) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -338,7 +340,7 @@ func (m *MsgSubmitProveAccountOwnership) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.Address)
+	l = len(m.Account)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -349,7 +351,7 @@ func (m *MsgSubmitProveAccountOwnership) Size() (n int) {
 	return n
 }
 
-func (m *MsgSubmitProveAccountOwnershipResponse) Size() (n int) {
+func (m *MsgSubmitProofExternalOwnedAccountResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -364,7 +366,7 @@ func sovTx(x uint64) (n int) {
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *MsgSubmitProveAccountOwnership) Unmarshal(dAtA []byte) error {
+func (m *MsgSubmitProofExternalOwnedAccount) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -387,10 +389,10 @@ func (m *MsgSubmitProveAccountOwnership) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgSubmitProveAccountOwnership: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgSubmitProofExternalOwnedAccount: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgSubmitProveAccountOwnership: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgSubmitProofExternalOwnedAccount: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -427,7 +429,7 @@ func (m *MsgSubmitProveAccountOwnership) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Account", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -455,7 +457,7 @@ func (m *MsgSubmitProveAccountOwnership) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Address = string(dAtA[iNdEx:postIndex])
+			m.Account = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -510,7 +512,7 @@ func (m *MsgSubmitProveAccountOwnership) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgSubmitProveAccountOwnershipResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgSubmitProofExternalOwnedAccountResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -533,10 +535,10 @@ func (m *MsgSubmitProveAccountOwnershipResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgSubmitProveAccountOwnershipResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgSubmitProofExternalOwnedAccountResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgSubmitProveAccountOwnershipResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgSubmitProofExternalOwnedAccountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

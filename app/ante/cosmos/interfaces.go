@@ -12,5 +12,5 @@ type BankKeeper interface {
 }
 
 type VAuthKeeper interface {
-	HasProveAccountOwnershipByAddress(ctx sdk.Context, accAddr sdk.AccAddress) bool
+	HasProofExternalOwnedAccount(ctx sdk.Context, accAddr sdk.AccAddress) bool
 }

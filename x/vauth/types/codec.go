@@ -9,14 +9,14 @@ import (
 
 // RegisterCodec registers the necessary types and interfaces for the module
 func RegisterCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgSubmitProveAccountOwnership{}, "vauth/SubmitProveAccountOwnership", nil)
+	cdc.RegisterConcrete(&MsgSubmitProofExternalOwnedAccount{}, "vauth/SubmitProofExternalOwnedAccount", nil)
 }
 
 // RegisterInterfaces registers implementations by its interface, for the module
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
-		&MsgSubmitProveAccountOwnership{},
+		&MsgSubmitProofExternalOwnedAccount{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

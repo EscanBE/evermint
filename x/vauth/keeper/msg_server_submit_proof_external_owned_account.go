@@ -12,22 +12,22 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-// SubmitProveAccountOwnership submit account ownership proof and persist to store.
-func (m msgServer) SubmitProveAccountOwnership(goCtx context.Context, msg *vauthtypes.MsgSubmitProveAccountOwnership) (*vauthtypes.MsgSubmitProveAccountOwnershipResponse, error) {
+// SubmitProofExternalOwnedAccount submit proof that an account is external owned account (EOA)
+func (m msgServer) SubmitProofExternalOwnedAccount(goCtx context.Context, msg *vauthtypes.MsgSubmitProofExternalOwnedAccount) (*vauthtypes.MsgSubmitProofExternalOwnedAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
 	}
 
-	if m.HasProveAccountOwnershipByAddress(ctx, sdk.MustAccAddressFromBech32(msg.Address)) {
-		return nil, errorsmod.Wrapf(errors.ErrConflict, "account already have prove: %s", msg.Address)
+	if m.HasProofExternalOwnedAccount(ctx, sdk.MustAccAddressFromBech32(msg.Account)) {
+		return nil, errorsmod.Wrapf(errors.ErrConflict, "account already have proof: %s", msg.Account)
 	}
 
 	// charge fee
 
 	evmParams := m.evmKeeper.GetParams(ctx)
-	fees := sdk.NewCoins(sdk.NewInt64Coin(evmParams.EvmDenom, CostSubmitProveAccountOwnership))
+	fees := sdk.NewCoins(sdk.NewInt64Coin(evmParams.EvmDenom, CostSubmitProofExternalOwnedAccount))
 	err := m.bankKeeper.SendCoinsFromAccountToModule(
 		ctx,
 		sdk.MustAccAddressFromBech32(msg.Submitter), vauthtypes.ModuleName,
@@ -43,15 +43,15 @@ func (m msgServer) SubmitProveAccountOwnership(goCtx context.Context, msg *vauth
 
 	// persist
 
-	proof := vauthtypes.ProvedAccountOwnership{
-		Address:   msg.Address,
+	proof := vauthtypes.ProofExternalOwnedAccount{
+		Account:   msg.Account,
 		Hash:      "0x" + hex.EncodeToString(crypto.Keccak256([]byte(vauthtypes.MessageToSign))),
 		Signature: msg.Signature,
 	}
 
-	if err := m.SetProvedAccountOwnershipByAddress(ctx, proof); err != nil {
+	if err := m.SaveProofExternalOwnedAccount(ctx, proof); err != nil {
 		panic(err)
 	}
 
-	return &vauthtypes.MsgSubmitProveAccountOwnershipResponse{}, nil
+	return &vauthtypes.MsgSubmitProofExternalOwnedAccountResponse{}, nil
 }

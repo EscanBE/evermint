@@ -10,10 +10,10 @@ import (
 )
 
 //goland:noinspection SpellCheckingInspection
-func (s *KeeperTestSuite) Test_msgServer_SubmitProveAccountOwnership() {
+func (s *KeeperTestSuite) Test_msgServer_SubmitProofExternalOwnedAccount() {
 	tests := []struct {
 		name             string
-		msg              *vauthtypes.MsgSubmitProveAccountOwnership
+		msg              *vauthtypes.MsgSubmitProofExternalOwnedAccount
 		submitterBalance int64
 		preRunFunc       func(s *KeeperTestSuite)
 		wantErr          bool
@@ -22,112 +22,112 @@ func (s *KeeperTestSuite) Test_msgServer_SubmitProveAccountOwnership() {
 	}{
 		{
 			name: "pass - can submit and persist",
-			msg: &vauthtypes.MsgSubmitProveAccountOwnership{
+			msg: &vauthtypes.MsgSubmitProofExternalOwnedAccount{
 				Submitter: s.submitterAccAddr.String(),
-				Address:   s.accAddr.String(),
+				Account:   s.accAddr.String(),
 				Signature: s.SignToStr(vauthtypes.MessageToSign),
 			},
-			submitterBalance: vauthkeeper.CostSubmitProveAccountOwnership,
+			submitterBalance: vauthkeeper.CostSubmitProofExternalOwnedAccount,
 			wantErr:          false,
 			postRunFunc: func(s *KeeperTestSuite) {
-				s.Require().True(s.keeper.HasProveAccountOwnershipByAddress(s.ctx, s.accAddr))
-				s.Equal(vauthtypes.ProvedAccountOwnership{
-					Address:   s.accAddr.String(),
+				s.Require().True(s.keeper.HasProofExternalOwnedAccount(s.ctx, s.accAddr))
+				s.Equal(vauthtypes.ProofExternalOwnedAccount{
+					Account:   s.accAddr.String(),
 					Hash:      s.HashToStr(vauthtypes.MessageToSign),
 					Signature: s.SignToStr(vauthtypes.MessageToSign),
-				}, *s.keeper.GetProvedAccountOwnershipByAddress(s.ctx, s.accAddr))
+				}, *s.keeper.GetProofExternalOwnedAccount(s.ctx, s.accAddr))
 
-				s.False(s.keeper.HasProveAccountOwnershipByAddress(s.ctx, s.submitterAccAddr))
-				s.Nil(s.keeper.GetProvedAccountOwnershipByAddress(s.ctx, s.submitterAccAddr))
+				s.False(s.keeper.HasProofExternalOwnedAccount(s.ctx, s.submitterAccAddr))
+				s.Nil(s.keeper.GetProofExternalOwnedAccount(s.ctx, s.submitterAccAddr))
 			},
 		},
 		{
 			name: "fail - can not proof twice",
-			msg: &vauthtypes.MsgSubmitProveAccountOwnership{
+			msg: &vauthtypes.MsgSubmitProofExternalOwnedAccount{
 				Submitter: s.submitterAccAddr.String(),
-				Address:   s.accAddr.String(),
+				Account:   s.accAddr.String(),
 				Signature: s.SignToStr(vauthtypes.MessageToSign),
 			},
-			submitterBalance: vauthkeeper.CostSubmitProveAccountOwnership,
+			submitterBalance: vauthkeeper.CostSubmitProofExternalOwnedAccount,
 			preRunFunc: func(s *KeeperTestSuite) {
-				err := s.keeper.SetProvedAccountOwnershipByAddress(s.ctx, vauthtypes.ProvedAccountOwnership{
-					Address:   s.accAddr.String(),
+				err := s.keeper.SaveProofExternalOwnedAccount(s.ctx, vauthtypes.ProofExternalOwnedAccount{
+					Account:   s.accAddr.String(),
 					Hash:      s.HashToStr(vauthtypes.MessageToSign),
 					Signature: s.SignToStr(vauthtypes.MessageToSign),
 				})
 				s.Require().NoError(err)
 
-				s.Require().True(s.keeper.HasProveAccountOwnershipByAddress(s.ctx, s.accAddr))
+				s.Require().True(s.keeper.HasProofExternalOwnedAccount(s.ctx, s.accAddr))
 			},
 			wantErr:         true,
-			wantErrContains: "account already have prove",
+			wantErrContains: "account already have proof",
 			postRunFunc: func(s *KeeperTestSuite) {
-				s.Require().True(s.keeper.HasProveAccountOwnershipByAddress(s.ctx, s.accAddr))
+				s.Require().True(s.keeper.HasProofExternalOwnedAccount(s.ctx, s.accAddr))
 			},
 		},
 		{
 			name: "fail - fail tx does not persist, mis-match message",
-			msg: &vauthtypes.MsgSubmitProveAccountOwnership{
+			msg: &vauthtypes.MsgSubmitProofExternalOwnedAccount{
 				Submitter: s.submitterAccAddr.String(),
-				Address:   s.accAddr.String(),
+				Account:   s.accAddr.String(),
 				Signature: s.SignToStr("invalid"),
 			},
-			submitterBalance: vauthkeeper.CostSubmitProveAccountOwnership,
+			submitterBalance: vauthkeeper.CostSubmitProofExternalOwnedAccount,
 			wantErr:          true,
 			wantErrContains:  errors.ErrInvalidRequest.Error(),
 			postRunFunc: func(s *KeeperTestSuite) {
-				s.False(s.keeper.HasProveAccountOwnershipByAddress(s.ctx, s.accAddr))
-				s.Nil(s.keeper.GetProvedAccountOwnershipByAddress(s.ctx, s.accAddr))
+				s.False(s.keeper.HasProofExternalOwnedAccount(s.ctx, s.accAddr))
+				s.Nil(s.keeper.GetProofExternalOwnedAccount(s.ctx, s.accAddr))
 			},
 		},
 		{
-			name: "fail - fail tx does not persist, submitter and prove address are equals",
-			msg: &vauthtypes.MsgSubmitProveAccountOwnership{
+			name: "fail - fail tx does not persist, submitter and account to prove are equals",
+			msg: &vauthtypes.MsgSubmitProofExternalOwnedAccount{
 				Submitter: s.accAddr.String(),
-				Address:   s.accAddr.String(),
+				Account:   s.accAddr.String(),
 				Signature: s.SignToStr(vauthtypes.MessageToSign),
 			},
-			submitterBalance: vauthkeeper.CostSubmitProveAccountOwnership,
+			submitterBalance: vauthkeeper.CostSubmitProofExternalOwnedAccount,
 			wantErr:          true,
 			wantErrContains:  errors.ErrInvalidRequest.Error(),
 			postRunFunc: func(s *KeeperTestSuite) {
-				s.False(s.keeper.HasProveAccountOwnershipByAddress(s.ctx, s.accAddr))
-				s.Nil(s.keeper.GetProvedAccountOwnershipByAddress(s.ctx, s.accAddr))
+				s.False(s.keeper.HasProofExternalOwnedAccount(s.ctx, s.accAddr))
+				s.Nil(s.keeper.GetProofExternalOwnedAccount(s.ctx, s.accAddr))
 			},
 		},
 		{
 			name: "fail - fail tx does not persist, mis-match address",
-			msg: &vauthtypes.MsgSubmitProveAccountOwnership{
+			msg: &vauthtypes.MsgSubmitProofExternalOwnedAccount{
 				Submitter: s.submitterAccAddr.String(),
-				Address:   marker.ReplaceAbleAddress("evm13zqksjwyjdvtzqjhed2m9r4xq0y8fvz79xjsqd"),
+				Account:   marker.ReplaceAbleAddress("evm13zqksjwyjdvtzqjhed2m9r4xq0y8fvz79xjsqd"),
 				Signature: s.SignToStr(vauthtypes.MessageToSign),
 			},
-			submitterBalance: vauthkeeper.CostSubmitProveAccountOwnership,
+			submitterBalance: vauthkeeper.CostSubmitProofExternalOwnedAccount,
 			wantErr:          true,
 			wantErrContains:  errors.ErrInvalidRequest.Error(),
 			postRunFunc: func(s *KeeperTestSuite) {
-				s.False(s.keeper.HasProveAccountOwnershipByAddress(s.ctx, s.accAddr))
-				s.Nil(s.keeper.GetProvedAccountOwnershipByAddress(s.ctx, s.accAddr))
+				s.False(s.keeper.HasProofExternalOwnedAccount(s.ctx, s.accAddr))
+				s.Nil(s.keeper.GetProofExternalOwnedAccount(s.ctx, s.accAddr))
 			},
 		},
 		{
 			name: "fail - insufficient balance",
-			msg: &vauthtypes.MsgSubmitProveAccountOwnership{
+			msg: &vauthtypes.MsgSubmitProofExternalOwnedAccount{
 				Submitter: s.submitterAccAddr.String(),
-				Address:   s.accAddr.String(),
+				Account:   s.accAddr.String(),
 				Signature: s.SignToStr(vauthtypes.MessageToSign),
 			},
-			submitterBalance: vauthkeeper.CostSubmitProveAccountOwnership - 1,
+			submitterBalance: vauthkeeper.CostSubmitProofExternalOwnedAccount - 1,
 			wantErr:          true,
 			wantErrContains:  "failed to deduct fee from submitter",
 			postRunFunc: func(s *KeeperTestSuite) {
-				s.False(s.keeper.HasProveAccountOwnershipByAddress(s.ctx, s.accAddr))
-				s.Nil(s.keeper.GetProvedAccountOwnershipByAddress(s.ctx, s.accAddr))
+				s.False(s.keeper.HasProofExternalOwnedAccount(s.ctx, s.accAddr))
+				s.Nil(s.keeper.GetProofExternalOwnedAccount(s.ctx, s.accAddr))
 			},
 		},
 		{
 			name:            "fail - reject bad message",
-			msg:             &vauthtypes.MsgSubmitProveAccountOwnership{},
+			msg:             &vauthtypes.MsgSubmitProofExternalOwnedAccount{},
 			wantErr:         true,
 			wantErrContains: errors.ErrInvalidRequest.Error(),
 		},
@@ -146,7 +146,7 @@ func (s *KeeperTestSuite) Test_msgServer_SubmitProveAccountOwnership() {
 				tt.preRunFunc(s)
 			}
 
-			resp, err := vauthkeeper.NewMsgServerImpl(s.keeper).SubmitProveAccountOwnership(s.ctx, tt.msg)
+			resp, err := vauthkeeper.NewMsgServerImpl(s.keeper).SubmitProofExternalOwnedAccount(s.ctx, tt.msg)
 
 			defer func() {
 				if tt.postRunFunc != nil {

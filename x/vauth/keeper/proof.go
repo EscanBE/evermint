@@ -5,40 +5,40 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// SetProvedAccountOwnershipByAddress persists proof into KVStore.
-func (k Keeper) SetProvedAccountOwnershipByAddress(ctx sdk.Context, proof vauthtypes.ProvedAccountOwnership) error {
+// SaveProofExternalOwnedAccount persists proof into KVStore.
+func (k Keeper) SaveProofExternalOwnedAccount(ctx sdk.Context, proof vauthtypes.ProofExternalOwnedAccount) error {
 	if err := proof.ValidateBasic(); err != nil {
 		return err
 	}
 
 	// persist record
 	store := ctx.KVStore(k.storeKey)
-	key := vauthtypes.KeyProvedAccountOwnershipByAddress(sdk.MustAccAddressFromBech32(proof.Address))
+	key := vauthtypes.KeyProofExternalOwnedAccountByAddress(sdk.MustAccAddressFromBech32(proof.Account))
 	bz := k.cdc.MustMarshal(&proof)
 	store.Set(key, bz)
 
 	return nil
 }
 
-// GetProvedAccountOwnershipByAddress retrieves proof from KVStore.
+// GetProofExternalOwnedAccount retrieves proof from KVStore.
 // It returns nil if not found
-func (k Keeper) GetProvedAccountOwnershipByAddress(ctx sdk.Context, accAddr sdk.AccAddress) *vauthtypes.ProvedAccountOwnership {
+func (k Keeper) GetProofExternalOwnedAccount(ctx sdk.Context, accAddr sdk.AccAddress) *vauthtypes.ProofExternalOwnedAccount {
 	store := ctx.KVStore(k.storeKey)
-	key := vauthtypes.KeyProvedAccountOwnershipByAddress(accAddr)
+	key := vauthtypes.KeyProofExternalOwnedAccountByAddress(accAddr)
 	bz := store.Get(key)
 	if len(bz) == 0 {
 		return nil
 	}
 
-	var proof vauthtypes.ProvedAccountOwnership
+	var proof vauthtypes.ProofExternalOwnedAccount
 	k.cdc.MustUnmarshal(bz, &proof)
 
 	return &proof
 }
 
-// HasProveAccountOwnershipByAddress check if proof of the account exists in KVStore.
-func (k Keeper) HasProveAccountOwnershipByAddress(ctx sdk.Context, accAddr sdk.AccAddress) bool {
+// HasProofExternalOwnedAccount check if proof of EOA of the account exists in KVStore.
+func (k Keeper) HasProofExternalOwnedAccount(ctx sdk.Context, accAddr sdk.AccAddress) bool {
 	store := ctx.KVStore(k.storeKey)
-	key := vauthtypes.KeyProvedAccountOwnershipByAddress(accAddr)
+	key := vauthtypes.KeyProofExternalOwnedAccountByAddress(accAddr)
 	return store.Has(key)
 }

@@ -29,28 +29,24 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// QueryProvedAccountOwnershipByAddressRequest is the request type for the Query/ProvedAccountOwnershipByAddress RPC method.
-type QueryProvedAccountOwnershipByAddressRequest struct {
-	// address is the address query for
-	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+// QueryProofExternalOwnedAccountRequest is the request type for the Query/ProofExternalOwnedAccount RPC method.
+type QueryProofExternalOwnedAccountRequest struct {
+	// account to query for
+	Account string `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
 }
 
-func (m *QueryProvedAccountOwnershipByAddressRequest) Reset() {
-	*m = QueryProvedAccountOwnershipByAddressRequest{}
-}
-func (m *QueryProvedAccountOwnershipByAddressRequest) String() string {
-	return proto.CompactTextString(m)
-}
-func (*QueryProvedAccountOwnershipByAddressRequest) ProtoMessage() {}
-func (*QueryProvedAccountOwnershipByAddressRequest) Descriptor() ([]byte, []int) {
+func (m *QueryProofExternalOwnedAccountRequest) Reset()         { *m = QueryProofExternalOwnedAccountRequest{} }
+func (m *QueryProofExternalOwnedAccountRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryProofExternalOwnedAccountRequest) ProtoMessage()    {}
+func (*QueryProofExternalOwnedAccountRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_466659dc6fde2434, []int{0}
 }
-func (m *QueryProvedAccountOwnershipByAddressRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryProofExternalOwnedAccountRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryProvedAccountOwnershipByAddressRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryProofExternalOwnedAccountRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryProvedAccountOwnershipByAddressRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryProofExternalOwnedAccountRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -60,47 +56,45 @@ func (m *QueryProvedAccountOwnershipByAddressRequest) XXX_Marshal(b []byte, dete
 		return b[:n], nil
 	}
 }
-func (m *QueryProvedAccountOwnershipByAddressRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryProvedAccountOwnershipByAddressRequest.Merge(m, src)
+func (m *QueryProofExternalOwnedAccountRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryProofExternalOwnedAccountRequest.Merge(m, src)
 }
-func (m *QueryProvedAccountOwnershipByAddressRequest) XXX_Size() int {
+func (m *QueryProofExternalOwnedAccountRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryProvedAccountOwnershipByAddressRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryProvedAccountOwnershipByAddressRequest.DiscardUnknown(m)
+func (m *QueryProofExternalOwnedAccountRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryProofExternalOwnedAccountRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryProvedAccountOwnershipByAddressRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryProofExternalOwnedAccountRequest proto.InternalMessageInfo
 
-func (m *QueryProvedAccountOwnershipByAddressRequest) GetAddress() string {
+func (m *QueryProofExternalOwnedAccountRequest) GetAccount() string {
 	if m != nil {
-		return m.Address
+		return m.Account
 	}
 	return ""
 }
 
-// QueryProvedAccountOwnershipByAddressResponse is the response type for the Query/ProvedAccountOwnershipByAddress RPC method.
-type QueryProvedAccountOwnershipByAddressResponse struct {
-	// proof is the proved account ownership
-	Proof ProvedAccountOwnership `protobuf:"bytes,1,opt,name=proof,proto3" json:"proof"`
+// QueryProofExternalOwnedAccountResponse is the response type for the Query/ProofExternalOwnedAccount RPC method.
+type QueryProofExternalOwnedAccountResponse struct {
+	// proof is the proof account is EOA
+	Proof ProofExternalOwnedAccount `protobuf:"bytes,1,opt,name=proof,proto3" json:"proof"`
 }
 
-func (m *QueryProvedAccountOwnershipByAddressResponse) Reset() {
-	*m = QueryProvedAccountOwnershipByAddressResponse{}
+func (m *QueryProofExternalOwnedAccountResponse) Reset() {
+	*m = QueryProofExternalOwnedAccountResponse{}
 }
-func (m *QueryProvedAccountOwnershipByAddressResponse) String() string {
-	return proto.CompactTextString(m)
-}
-func (*QueryProvedAccountOwnershipByAddressResponse) ProtoMessage() {}
-func (*QueryProvedAccountOwnershipByAddressResponse) Descriptor() ([]byte, []int) {
+func (m *QueryProofExternalOwnedAccountResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryProofExternalOwnedAccountResponse) ProtoMessage()    {}
+func (*QueryProofExternalOwnedAccountResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_466659dc6fde2434, []int{1}
 }
-func (m *QueryProvedAccountOwnershipByAddressResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryProofExternalOwnedAccountResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryProvedAccountOwnershipByAddressResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryProofExternalOwnedAccountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryProvedAccountOwnershipByAddressResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryProofExternalOwnedAccountResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -110,55 +104,55 @@ func (m *QueryProvedAccountOwnershipByAddressResponse) XXX_Marshal(b []byte, det
 		return b[:n], nil
 	}
 }
-func (m *QueryProvedAccountOwnershipByAddressResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryProvedAccountOwnershipByAddressResponse.Merge(m, src)
+func (m *QueryProofExternalOwnedAccountResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryProofExternalOwnedAccountResponse.Merge(m, src)
 }
-func (m *QueryProvedAccountOwnershipByAddressResponse) XXX_Size() int {
+func (m *QueryProofExternalOwnedAccountResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryProvedAccountOwnershipByAddressResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryProvedAccountOwnershipByAddressResponse.DiscardUnknown(m)
+func (m *QueryProofExternalOwnedAccountResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryProofExternalOwnedAccountResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryProvedAccountOwnershipByAddressResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryProofExternalOwnedAccountResponse proto.InternalMessageInfo
 
-func (m *QueryProvedAccountOwnershipByAddressResponse) GetProof() ProvedAccountOwnership {
+func (m *QueryProofExternalOwnedAccountResponse) GetProof() ProofExternalOwnedAccount {
 	if m != nil {
 		return m.Proof
 	}
-	return ProvedAccountOwnership{}
+	return ProofExternalOwnedAccount{}
 }
 
 func init() {
-	proto.RegisterType((*QueryProvedAccountOwnershipByAddressRequest)(nil), "evermint.vauth.v1.QueryProvedAccountOwnershipByAddressRequest")
-	proto.RegisterType((*QueryProvedAccountOwnershipByAddressResponse)(nil), "evermint.vauth.v1.QueryProvedAccountOwnershipByAddressResponse")
+	proto.RegisterType((*QueryProofExternalOwnedAccountRequest)(nil), "evermint.vauth.v1.QueryProofExternalOwnedAccountRequest")
+	proto.RegisterType((*QueryProofExternalOwnedAccountResponse)(nil), "evermint.vauth.v1.QueryProofExternalOwnedAccountResponse")
 }
 
 func init() { proto.RegisterFile("evermint/vauth/v1/query.proto", fileDescriptor_466659dc6fde2434) }
 
 var fileDescriptor_466659dc6fde2434 = []byte{
-	// 336 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x91, 0x4f, 0x4b, 0xc3, 0x30,
-	0x18, 0xc6, 0x1b, 0x71, 0x8a, 0xf1, 0x64, 0xf1, 0x30, 0x86, 0x76, 0xb2, 0x93, 0xa2, 0x36, 0x6c,
-	0x82, 0x78, 0x9a, 0x6c, 0x30, 0x76, 0x54, 0x77, 0xf4, 0x52, 0xb2, 0x2e, 0x76, 0x05, 0x97, 0x37,
-	0x4b, 0xd2, 0x6a, 0xaf, 0x7e, 0x02, 0xc1, 0x2f, 0xb5, 0xe3, 0xc0, 0x8b, 0x27, 0x91, 0xce, 0xa3,
-	0x1f, 0x42, 0x96, 0x6c, 0x20, 0x6c, 0xe2, 0x9f, 0x5b, 0x9b, 0x27, 0xef, 0xef, 0xc7, 0x93, 0x17,
-	0xef, 0xb2, 0x94, 0xc9, 0x41, 0xcc, 0x35, 0x49, 0x69, 0xa2, 0xfb, 0x24, 0xad, 0x92, 0x61, 0xc2,
-	0x64, 0xe6, 0x0b, 0x09, 0x1a, 0xdc, 0xad, 0x79, 0xec, 0x9b, 0xd8, 0x4f, 0xab, 0xa5, 0xed, 0x08,
-	0x22, 0x30, 0x29, 0x99, 0x7e, 0xd9, 0x8b, 0xa5, 0x9d, 0x08, 0x20, 0xba, 0x65, 0x84, 0x8a, 0x98,
-	0x50, 0xce, 0x41, 0x53, 0x1d, 0x03, 0x57, 0xb3, 0x74, 0x89, 0xc5, 0xf2, 0x4c, 0x5c, 0x69, 0xe3,
-	0xc3, 0xab, 0xa9, 0xf4, 0x52, 0x42, 0xca, 0x7a, 0x8d, 0x30, 0x84, 0x84, 0xeb, 0x8b, 0x3b, 0xce,
-	0xa4, 0xea, 0xc7, 0xa2, 0x99, 0x35, 0x7a, 0x3d, 0xc9, 0x94, 0xea, 0xb0, 0x61, 0xc2, 0x94, 0x76,
-	0x8b, 0x78, 0x9d, 0xda, 0x93, 0x22, 0xda, 0x43, 0xfb, 0x1b, 0x9d, 0xf9, 0x6f, 0x25, 0xc1, 0x47,
-	0xbf, 0x03, 0x29, 0x01, 0x5c, 0x31, 0xb7, 0x85, 0x0b, 0x42, 0x02, 0xdc, 0x18, 0xce, 0x66, 0xed,
-	0xc0, 0x5f, 0xa8, 0xeb, 0x7f, 0x83, 0x5a, 0x1d, 0xbd, 0x96, 0x9d, 0x8e, 0x9d, 0xae, 0x7d, 0x20,
-	0x5c, 0x30, 0x5e, 0x37, 0x47, 0xb8, 0xfc, 0x83, 0xdc, 0xad, 0x2f, 0xb1, 0xfc, 0xa1, 0x7e, 0xe9,
-	0xfc, 0xdf, 0xf3, 0xb6, 0x75, 0xa5, 0xfe, 0xf0, 0xfc, 0xfe, 0xb4, 0x72, 0xe6, 0x9e, 0x92, 0xc5,
-	0xb5, 0x08, 0xc3, 0x08, 0xa8, 0x85, 0x04, 0x30, 0xa7, 0x04, 0xdd, 0x2c, 0x98, 0xbd, 0x72, 0xb3,
-	0x3d, 0xca, 0x3d, 0x34, 0xce, 0x3d, 0xf4, 0x96, 0x7b, 0xe8, 0x71, 0xe2, 0x39, 0xe3, 0x89, 0xe7,
-	0xbc, 0x4c, 0x3c, 0xe7, 0xfa, 0x38, 0x8a, 0x75, 0x3f, 0xe9, 0xfa, 0x21, 0x0c, 0x48, 0x4b, 0x85,
-	0x94, 0x37, 0x5b, 0x5f, 0x1c, 0xd5, 0x1a, 0xb9, 0x9f, 0x99, 0x74, 0x26, 0x98, 0xea, 0xae, 0x99,
-	0xf5, 0x9f, 0x7c, 0x06, 0x00, 0x00, 0xff, 0xff, 0xb1, 0x96, 0x02, 0xfb, 0x85, 0x02, 0x00, 0x00,
+	// 327 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0x4d, 0x2d, 0x4b, 0x2d,
+	0xca, 0xcd, 0xcc, 0x2b, 0xd1, 0x2f, 0x4b, 0x2c, 0x2d, 0xc9, 0xd0, 0x2f, 0x33, 0xd4, 0x2f, 0x2c,
+	0x4d, 0x2d, 0xaa, 0xd4, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12, 0x84, 0x49, 0xeb, 0x81, 0xa5,
+	0xf5, 0xca, 0x0c, 0xa5, 0x44, 0xd2, 0xf3, 0xd3, 0xf3, 0xc1, 0xb2, 0xfa, 0x20, 0x16, 0x44, 0xa1,
+	0x94, 0x4c, 0x7a, 0x7e, 0x7e, 0x7a, 0x4e, 0xaa, 0x7e, 0x62, 0x41, 0xa6, 0x7e, 0x62, 0x5e, 0x5e,
+	0x7e, 0x49, 0x62, 0x49, 0x66, 0x7e, 0x5e, 0x31, 0x54, 0x16, 0x8b, 0x2d, 0x10, 0xf3, 0xc0, 0xd2,
+	0x4a, 0x8e, 0x5c, 0xaa, 0x81, 0x20, 0x4b, 0x03, 0x8a, 0xf2, 0xf3, 0xd3, 0x5c, 0x2b, 0x4a, 0x52,
+	0x8b, 0xf2, 0x12, 0x73, 0xfc, 0xcb, 0xf3, 0x52, 0x53, 0x1c, 0x93, 0x93, 0xf3, 0x4b, 0xf3, 0x4a,
+	0x82, 0x52, 0x0b, 0x4b, 0x53, 0x8b, 0x4b, 0x84, 0x24, 0xb8, 0xd8, 0x13, 0x21, 0x22, 0x12, 0x8c,
+	0x0a, 0x8c, 0x1a, 0x9c, 0x41, 0x30, 0xae, 0x52, 0x11, 0x97, 0x1a, 0x21, 0x23, 0x8a, 0x0b, 0xf2,
+	0xf3, 0x8a, 0x53, 0x85, 0x3c, 0xb8, 0x58, 0x0b, 0x40, 0x8a, 0xc0, 0x26, 0x70, 0x1b, 0xe9, 0xe8,
+	0x61, 0x78, 0x51, 0x0f, 0xa7, 0x21, 0x4e, 0x2c, 0x27, 0xee, 0xc9, 0x33, 0x04, 0x41, 0x0c, 0x30,
+	0xba, 0xcc, 0xc8, 0xc5, 0x0a, 0xb6, 0x54, 0xe8, 0x24, 0x23, 0x97, 0x24, 0x4e, 0x4d, 0x42, 0x16,
+	0x58, 0xac, 0x20, 0xca, 0xbf, 0x52, 0x96, 0x64, 0xe8, 0x84, 0x78, 0x53, 0xc9, 0xbc, 0xe9, 0xf2,
+	0x93, 0xc9, 0x4c, 0x86, 0x42, 0xfa, 0xfa, 0x98, 0x61, 0x0f, 0x76, 0x7e, 0x7c, 0x2a, 0x54, 0x7b,
+	0x7c, 0x3e, 0x48, 0x7f, 0x3c, 0x34, 0x24, 0x9d, 0xdc, 0x4f, 0x3c, 0x92, 0x63, 0xbc, 0xf0, 0x48,
+	0x8e, 0xf1, 0xc1, 0x23, 0x39, 0xc6, 0x09, 0x8f, 0xe5, 0x18, 0x2e, 0x3c, 0x96, 0x63, 0xb8, 0xf1,
+	0x58, 0x8e, 0x21, 0x4a, 0x37, 0x3d, 0xb3, 0x24, 0xa3, 0x34, 0x49, 0x2f, 0x39, 0x3f, 0x57, 0xdf,
+	0xb5, 0x38, 0x39, 0x31, 0xcf, 0xc9, 0x15, 0xc9, 0x70, 0x43, 0x23, 0xfd, 0x0a, 0xa8, 0x15, 0x25,
+	0x95, 0x05, 0xa9, 0xc5, 0x49, 0x6c, 0xe0, 0xc8, 0x35, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0xdf,
+	0x98, 0xd4, 0x6c, 0x63, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -173,8 +167,8 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryClient interface {
-	// Address retrieves the proof by account address
-	ProvedAccountOwnershipByAddress(ctx context.Context, in *QueryProvedAccountOwnershipByAddressRequest, opts ...grpc.CallOption) (*QueryProvedAccountOwnershipByAddressResponse, error)
+	// ProofExternalOwnedAccount returns proof of external owned account (EOA)
+	ProofExternalOwnedAccount(ctx context.Context, in *QueryProofExternalOwnedAccountRequest, opts ...grpc.CallOption) (*QueryProofExternalOwnedAccountResponse, error)
 }
 
 type queryClient struct {
@@ -185,9 +179,9 @@ func NewQueryClient(cc grpc1.ClientConn) QueryClient {
 	return &queryClient{cc}
 }
 
-func (c *queryClient) ProvedAccountOwnershipByAddress(ctx context.Context, in *QueryProvedAccountOwnershipByAddressRequest, opts ...grpc.CallOption) (*QueryProvedAccountOwnershipByAddressResponse, error) {
-	out := new(QueryProvedAccountOwnershipByAddressResponse)
-	err := c.cc.Invoke(ctx, "/evermint.vauth.v1.Query/ProvedAccountOwnershipByAddress", in, out, opts...)
+func (c *queryClient) ProofExternalOwnedAccount(ctx context.Context, in *QueryProofExternalOwnedAccountRequest, opts ...grpc.CallOption) (*QueryProofExternalOwnedAccountResponse, error) {
+	out := new(QueryProofExternalOwnedAccountResponse)
+	err := c.cc.Invoke(ctx, "/evermint.vauth.v1.Query/ProofExternalOwnedAccount", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -196,36 +190,36 @@ func (c *queryClient) ProvedAccountOwnershipByAddress(ctx context.Context, in *Q
 
 // QueryServer is the server API for Query service.
 type QueryServer interface {
-	// Address retrieves the proof by account address
-	ProvedAccountOwnershipByAddress(context.Context, *QueryProvedAccountOwnershipByAddressRequest) (*QueryProvedAccountOwnershipByAddressResponse, error)
+	// ProofExternalOwnedAccount returns proof of external owned account (EOA)
+	ProofExternalOwnedAccount(context.Context, *QueryProofExternalOwnedAccountRequest) (*QueryProofExternalOwnedAccountResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
 type UnimplementedQueryServer struct {
 }
 
-func (*UnimplementedQueryServer) ProvedAccountOwnershipByAddress(ctx context.Context, req *QueryProvedAccountOwnershipByAddressRequest) (*QueryProvedAccountOwnershipByAddressResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ProvedAccountOwnershipByAddress not implemented")
+func (*UnimplementedQueryServer) ProofExternalOwnedAccount(ctx context.Context, req *QueryProofExternalOwnedAccountRequest) (*QueryProofExternalOwnedAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ProofExternalOwnedAccount not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
 	s.RegisterService(&_Query_serviceDesc, srv)
 }
 
-func _Query_ProvedAccountOwnershipByAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryProvedAccountOwnershipByAddressRequest)
+func _Query_ProofExternalOwnedAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryProofExternalOwnedAccountRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).ProvedAccountOwnershipByAddress(ctx, in)
+		return srv.(QueryServer).ProofExternalOwnedAccount(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/evermint.vauth.v1.Query/ProvedAccountOwnershipByAddress",
+		FullMethod: "/evermint.vauth.v1.Query/ProofExternalOwnedAccount",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).ProvedAccountOwnershipByAddress(ctx, req.(*QueryProvedAccountOwnershipByAddressRequest))
+		return srv.(QueryServer).ProofExternalOwnedAccount(ctx, req.(*QueryProofExternalOwnedAccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -235,15 +229,15 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "ProvedAccountOwnershipByAddress",
-			Handler:    _Query_ProvedAccountOwnershipByAddress_Handler,
+			MethodName: "ProofExternalOwnedAccount",
+			Handler:    _Query_ProofExternalOwnedAccount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "evermint/vauth/v1/query.proto",
 }
 
-func (m *QueryProvedAccountOwnershipByAddressRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryProofExternalOwnedAccountRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -253,27 +247,27 @@ func (m *QueryProvedAccountOwnershipByAddressRequest) Marshal() (dAtA []byte, er
 	return dAtA[:n], nil
 }
 
-func (m *QueryProvedAccountOwnershipByAddressRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryProofExternalOwnedAccountRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryProvedAccountOwnershipByAddressRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryProofExternalOwnedAccountRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.Address) > 0 {
-		i -= len(m.Address)
-		copy(dAtA[i:], m.Address)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.Address)))
+	if len(m.Account) > 0 {
+		i -= len(m.Account)
+		copy(dAtA[i:], m.Account)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Account)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryProvedAccountOwnershipByAddressResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryProofExternalOwnedAccountResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -283,12 +277,12 @@ func (m *QueryProvedAccountOwnershipByAddressResponse) Marshal() (dAtA []byte, e
 	return dAtA[:n], nil
 }
 
-func (m *QueryProvedAccountOwnershipByAddressResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryProofExternalOwnedAccountResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryProvedAccountOwnershipByAddressResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryProofExternalOwnedAccountResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -317,20 +311,20 @@ func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *QueryProvedAccountOwnershipByAddressRequest) Size() (n int) {
+func (m *QueryProofExternalOwnedAccountRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Address)
+	l = len(m.Account)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
 }
 
-func (m *QueryProvedAccountOwnershipByAddressResponse) Size() (n int) {
+func (m *QueryProofExternalOwnedAccountResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -347,7 +341,7 @@ func sovQuery(x uint64) (n int) {
 func sozQuery(x uint64) (n int) {
 	return sovQuery(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *QueryProvedAccountOwnershipByAddressRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryProofExternalOwnedAccountRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -370,15 +364,15 @@ func (m *QueryProvedAccountOwnershipByAddressRequest) Unmarshal(dAtA []byte) err
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryProvedAccountOwnershipByAddressRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryProofExternalOwnedAccountRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryProvedAccountOwnershipByAddressRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryProofExternalOwnedAccountRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Account", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -406,7 +400,7 @@ func (m *QueryProvedAccountOwnershipByAddressRequest) Unmarshal(dAtA []byte) err
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Address = string(dAtA[iNdEx:postIndex])
+			m.Account = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -429,7 +423,7 @@ func (m *QueryProvedAccountOwnershipByAddressRequest) Unmarshal(dAtA []byte) err
 	}
 	return nil
 }
-func (m *QueryProvedAccountOwnershipByAddressResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryProofExternalOwnedAccountResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -452,10 +446,10 @@ func (m *QueryProvedAccountOwnershipByAddressResponse) Unmarshal(dAtA []byte) er
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryProvedAccountOwnershipByAddressResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryProofExternalOwnedAccountResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryProvedAccountOwnershipByAddressResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryProofExternalOwnedAccountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

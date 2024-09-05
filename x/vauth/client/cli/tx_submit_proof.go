@@ -20,14 +20,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const cmdSubmitProof = "submit-prove-account-ownership"
+const cmdSubmitProof = "submit-proof-eoa"
 
 // NewSubmitProofTxCmd is the CLI command for submit proof.
 func NewSubmitProofTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     fmt.Sprintf("%s [address] [signature]", cmdSubmitProof),
 		Aliases: []string{"submit-proof"},
-		Short:   "Submit account ownership proof",
+		Short:   "Submit proof account is EOA",
 		Example: fmt.Sprintf(
 			"$ %s tx %s %s %s1... 0x1234... --%s submitter",
 			version.AppName, vauthtypes.ModuleName, cmdSubmitProof,
@@ -85,9 +85,9 @@ func NewSubmitProofTxCmd() *cobra.Command {
 				return fmt.Errorf("un-expected error, signature does not match")
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &vauthtypes.MsgSubmitProveAccountOwnership{
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &vauthtypes.MsgSubmitProofExternalOwnedAccount{
 				Submitter: submitter,
-				Address:   account,
+				Account:   account,
 				Signature: signature,
 			})
 		},

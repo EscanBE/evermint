@@ -18,8 +18,8 @@ import (
 
 //goland:noinspection ALL
 func (suite *AnteTestSuite) TestNewVestingMessagesAuthorizationDecorator() {
-	proof := vauthtypes.ProvedAccountOwnership{
-		Address:   marker.ReplaceAbleAddress("evm1xx2enpw8wzlr64xkdz2gh3c7epucfdftnqtcem"),
+	proof := vauthtypes.ProofExternalOwnedAccount{
+		Account:   marker.ReplaceAbleAddress("evm1xx2enpw8wzlr64xkdz2gh3c7epucfdftnqtcem"),
 		Hash:      "0x" + hex.EncodeToString(crypto.Keccak256([]byte(vauthtypes.MessageToSign))),
 		Signature: "0xe665110439b1d18002ef866285f7e532090065ad74274560db5e8373d0cdb6297afefc70a5dd46c23e74bd3f0f262195f089b2923242a14e8e0791f4b0621a2c00",
 	}
@@ -45,11 +45,11 @@ func (suite *AnteTestSuite) TestNewVestingMessagesAuthorizationDecorator() {
 		{
 			name: "pass - account has proof",
 			malleate: func(ctx sdk.Context) sdk.Tx {
-				suite.app.VAuthKeeper.SetProvedAccountOwnershipByAddress(ctx, proof)
+				suite.app.VAuthKeeper.SaveProofExternalOwnedAccount(ctx, proof)
 
 				txBuilder := suite.CreateTestCosmosTxBuilder(sdkmath.NewInt(0), constants.BaseDenom, &vestingtypes.MsgCreateVestingAccount{
 					FromAddress: submitter,
-					ToAddress:   proof.Address,
+					ToAddress:   proof.Account,
 					Amount:      amount,
 					EndTime:     time.Now().Add(24 * time.Hour).Unix(),
 					Delayed:     true,
@@ -71,7 +71,7 @@ func (suite *AnteTestSuite) TestNewVestingMessagesAuthorizationDecorator() {
 				return txBuilder.GetTx()
 			},
 			expPass: false,
-			errMsg:  "account must be proved account ownership via",
+			errMsg:  "must prove account is external owned account (EOA)",
 		},
 	}
 

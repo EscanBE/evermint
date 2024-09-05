@@ -4,12 +4,12 @@ package evermint.vauth.v1;
 import "gogoproto/gogo.proto";
 option go_package = "github.com/EscanBE/evermint/v12/x/vauth/types";
 
-// ProvedAccountOwnership store the proved ownership
-message ProvedAccountOwnership {
-  // address is account that has prove
-  string address = 1;
-  // hash is the transaction hash that the prove was submitted
+// ProofExternalOwnedAccount store the proof that account is external owned account (EOA)
+message ProofExternalOwnedAccount {
+  // account is the cosmos bech32 address of the account that has proof
+  string account = 1;
+  // hash is the keccak256 of the message that was signed on
   string hash = 2;
-  // signature is the signed message that prove the ownership
+  // signature is the signed message using private key
   string signature = 3;
 }

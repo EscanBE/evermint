@@ -9,7 +9,7 @@ import (
 )
 
 // VestingMessagesAuthorizationDecorator authorize vesting account creation msg execution.
-//   - If the target account was proved via `x/vauth`, the message can keep going.
+//   - If the target account has proof of EOA via `x/vauth`, the message can keep going.
 //   - Otherwise, the message will be rejected.
 type VestingMessagesAuthorizationDecorator struct {
 	vAuthKeeper VAuthKeeper
@@ -36,13 +36,13 @@ func (vd VestingMessagesAuthorizationDecorator) AnteHandle(ctx sdk.Context, tx s
 			continue
 		}
 
-		if vd.vAuthKeeper.HasProveAccountOwnershipByAddress(ctx, sdk.MustAccAddressFromBech32(account)) {
+		if vd.vAuthKeeper.HasProofExternalOwnedAccount(ctx, sdk.MustAccAddressFromBech32(account)) {
 			continue
 		}
 
 		return ctx, errorsmod.Wrapf(
 			errortypes.ErrUnauthorized,
-			"account must be proved account ownership via `x/%s` module before able to create vesting account: %s", vauthtypes.ModuleName, account,
+			"must prove account is external owned account (EOA) via `x/%s` module before able to create vesting account: %s", vauthtypes.ModuleName, account,
 		)
 	}
 	return next(ctx, tx, simulate)

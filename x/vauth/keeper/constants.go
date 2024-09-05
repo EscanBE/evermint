@@ -1,4 +1,4 @@
 package keeper
 
-// CostSubmitProveAccountOwnership cost for each submission
-const CostSubmitProveAccountOwnership int64 = 1e18
+// CostSubmitProofExternalOwnedAccount cost for each submission
+const CostSubmitProofExternalOwnedAccount int64 = 1e18

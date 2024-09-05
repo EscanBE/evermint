@@ -13,22 +13,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-var _ sdk.Msg = &MsgSubmitProveAccountOwnership{}
+var _ sdk.Msg = &MsgSubmitProofExternalOwnedAccount{}
 
-// ValidateBasic performs basic validation for the MsgSubmitProveAccountOwnership.
-func (m *MsgSubmitProveAccountOwnership) ValidateBasic() error {
+// ValidateBasic performs basic validation for the MsgSubmitProofExternalOwnedAccount.
+func (m *MsgSubmitProofExternalOwnedAccount) ValidateBasic() error {
 	submitterAccAddr, err := sdk.AccAddressFromBech32(m.Submitter)
 	if err != nil {
 		return errorsmod.Wrapf(errors.ErrInvalidRequest, "submitter is not a valid bech32 account address: %s", m.Submitter)
 	}
 
-	accAddr, err := sdk.AccAddressFromBech32(m.Address)
+	accAddr, err := sdk.AccAddressFromBech32(m.Account)
 	if err != nil {
-		return errorsmod.Wrapf(errors.ErrInvalidRequest, "prove address is not a valid bech32 account address: %s", m.Address)
+		return errorsmod.Wrapf(errors.ErrInvalidRequest, "account to prove is not a valid bech32 account address: %s", m.Account)
 	}
 
 	if bytes.Equal(submitterAccAddr, accAddr) {
-		return errorsmod.Wrapf(errors.ErrInvalidRequest, "submitter and prove address are equals: %s", m.Address)
+		return errorsmod.Wrapf(errors.ErrInvalidRequest, "submitter and account to prove are equals: %s", m.Account)
 	}
 
 	if !strings.HasPrefix(m.Signature, "0x") {
@@ -45,14 +45,14 @@ func (m *MsgSubmitProveAccountOwnership) ValidateBasic() error {
 		return errorsmod.Wrap(errors.ErrInvalidRequest, "bad signature or mis-match")
 	}
 	if !verified {
-		return errorsmod.Wrapf(errors.ErrInvalidRequest, "mis-match signature with provided address: %s", common.BytesToAddress(accAddr))
+		return errorsmod.Wrapf(errors.ErrInvalidRequest, "mis-match signature with provided account: %s", common.BytesToAddress(accAddr))
 	}
 
 	return nil
 }
 
-// GetSigners returns the required signers for the MsgSubmitProveAccountOwnership.
-func (m *MsgSubmitProveAccountOwnership) GetSigners() []sdk.AccAddress {
+// GetSigners returns the required signers for the MsgSubmitProofExternalOwnedAccount.
+func (m *MsgSubmitProofExternalOwnedAccount) GetSigners() []sdk.AccAddress {
 	owner, err := sdk.AccAddressFromBech32(m.Submitter)
 	if err != nil {
 		panic(err)
@@ -60,18 +60,18 @@ func (m *MsgSubmitProveAccountOwnership) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{owner}
 }
 
-// Route returns the message router key for the MsgSubmitProveAccountOwnership.
-func (m *MsgSubmitProveAccountOwnership) Route() string {
+// Route returns the message router key for the MsgSubmitProofExternalOwnedAccount.
+func (m *MsgSubmitProofExternalOwnedAccount) Route() string {
 	return RouterKey
 }
 
-// Type returns the message type for the MsgSubmitProveAccountOwnership.
-func (m *MsgSubmitProveAccountOwnership) Type() string {
-	return TypeMsgSubmitProveAccountOwnership
+// Type returns the message type for the MsgSubmitProofExternalOwnedAccount.
+func (m *MsgSubmitProofExternalOwnedAccount) Type() string {
+	return TypeMsgSubmitProofExternalOwnedAccount
 }
 
-// GetSignBytes returns the raw bytes for the MsgSubmitProveAccountOwnership.
-func (m *MsgSubmitProveAccountOwnership) GetSignBytes() []byte {
+// GetSignBytes returns the raw bytes for the MsgSubmitProofExternalOwnedAccount.
+func (m *MsgSubmitProofExternalOwnedAccount) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)
 }

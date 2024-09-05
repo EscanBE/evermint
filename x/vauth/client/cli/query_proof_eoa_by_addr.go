@@ -7,20 +7,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CmdQueryProvedByAddress is the CLI command for querying the proved account ownership by address
-func CmdQueryProvedByAddress() *cobra.Command {
+// CmdQueryProofExternalOwnedAccountByAddress is the CLI command for querying the proof EOA by address
+func CmdQueryProofExternalOwnedAccountByAddress() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "proved-account-ownership-by-address [bech32/eth address]",
+		Use:     "proof-eoa [bech32/eth address]",
 		Aliases: []string{"proof"},
-		Short:   "Querying the proved account ownership by address",
+		Short:   "Querying the proof external owned account by address",
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			queryClient := vauthtypes.NewQueryClient(clientCtx)
 
-			res, err := queryClient.ProvedAccountOwnershipByAddress(cmd.Context(), &vauthtypes.QueryProvedAccountOwnershipByAddressRequest{
-				Address: args[0],
+			res, err := queryClient.ProofExternalOwnedAccount(cmd.Context(), &vauthtypes.QueryProofExternalOwnedAccountRequest{
+				Account: args[0],
 			})
 			if err != nil {
 				return err

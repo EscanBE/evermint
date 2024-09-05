@@ -12,7 +12,7 @@ import (
 )
 
 //goland:noinspection SpellCheckingInspection
-func TestMsgSubmitProveAccountOwnership_ValidateBasic(t *testing.T) {
+func TestMsgSubmitProofExternalOwnedAccount_ValidateBasic(t *testing.T) {
 	privateKey, err := crypto.HexToECDSA("fad9c8855b740a0b7ed4c221dbad0f33a83a49cad6b3fe8d5817ac83d38b6a19")
 	require.NoError(t, err)
 
@@ -46,7 +46,7 @@ func TestMsgSubmitProveAccountOwnership_ValidateBasic(t *testing.T) {
 			address:         addressBech32,
 			signature:       "0x" + hex.EncodeToString(signature(MessageToSign)),
 			wantErr:         true,
-			wantErrContains: "submitter and prove address are equals",
+			wantErrContains: "submitter and account to prove are equals",
 		},
 		{
 			name:            "fail - not address of the signature",
@@ -54,7 +54,7 @@ func TestMsgSubmitProveAccountOwnership_ValidateBasic(t *testing.T) {
 			address:         marker.ReplaceAbleAddress("evm13zqksjwyjdvtzqjhed2m9r4xq0y8fvz79xjsqd"),
 			signature:       "0x" + hex.EncodeToString(signature(MessageToSign)),
 			wantErr:         true,
-			wantErrContains: "mis-match signature with provided address:",
+			wantErrContains: "mis-match signature with provided account:",
 		},
 		{
 			name:            "fail - signature of another message",
@@ -62,7 +62,7 @@ func TestMsgSubmitProveAccountOwnership_ValidateBasic(t *testing.T) {
 			address:         addressBech32,
 			signature:       "0x" + hex.EncodeToString(signature("another")),
 			wantErr:         true,
-			wantErrContains: "mis-match signature with provided address:",
+			wantErrContains: "mis-match signature with provided account:",
 		},
 		{
 			name:            "fail - bad submitter",
@@ -78,7 +78,7 @@ func TestMsgSubmitProveAccountOwnership_ValidateBasic(t *testing.T) {
 			address:         "",
 			signature:       "0x" + hex.EncodeToString(signature(MessageToSign)),
 			wantErr:         true,
-			wantErrContains: "prove address is not a valid bech32 account address",
+			wantErrContains: "account to prove is not a valid bech32 account address",
 		},
 		{
 			name:            "fail - bad signature, missing 0x prefix",
@@ -99,9 +99,9 @@ func TestMsgSubmitProveAccountOwnership_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &MsgSubmitProveAccountOwnership{
+			m := &MsgSubmitProofExternalOwnedAccount{
 				Submitter: tt.submitter,
-				Address:   tt.address,
+				Account:   tt.address,
 				Signature: tt.signature,
 			}
 

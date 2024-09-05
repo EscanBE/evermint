@@ -22,7 +22,7 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		CmdQueryProvedByAddress(),
+		CmdQueryProofExternalOwnedAccountByAddress(),
 	)
 
 	return cmd

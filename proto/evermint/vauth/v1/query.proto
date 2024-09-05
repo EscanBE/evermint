@@ -9,20 +9,20 @@ option go_package = "github.com/EscanBE/evermint/v12/x/vauth/types";
 
 // Query defines the gRPC querier service.
 service Query {
-  // Address retrieves the proof by account address
-  rpc ProvedAccountOwnershipByAddress(QueryProvedAccountOwnershipByAddressRequest) returns (QueryProvedAccountOwnershipByAddressResponse) {
-    option (google.api.http).get = "/evermint/vauth/v1/proved_account_ownership_by_address";
+  // ProofExternalOwnedAccount returns proof of external owned account (EOA)
+  rpc ProofExternalOwnedAccount(QueryProofExternalOwnedAccountRequest) returns (QueryProofExternalOwnedAccountResponse) {
+    option (google.api.http).get = "/evermint/vauth/v1/proof_external_owned_account";
   }
 }
 
-// QueryProvedAccountOwnershipByAddressRequest is the request type for the Query/ProvedAccountOwnershipByAddress RPC method.
-message QueryProvedAccountOwnershipByAddressRequest {
-  // address is the address query for
-  string address = 1;
+// QueryProofExternalOwnedAccountRequest is the request type for the Query/ProofExternalOwnedAccount RPC method.
+message QueryProofExternalOwnedAccountRequest {
+  // account to query for
+  string account = 1;
 }
 
-// QueryProvedAccountOwnershipByAddressResponse is the response type for the Query/ProvedAccountOwnershipByAddress RPC method.
-message QueryProvedAccountOwnershipByAddressResponse {
-  // proof is the proved account ownership
-  ProvedAccountOwnership proof = 1 [(gogoproto.nullable) = false];
+// QueryProofExternalOwnedAccountResponse is the response type for the Query/ProofExternalOwnedAccount RPC method.
+message QueryProofExternalOwnedAccountResponse {
+  // proof is the proof account is EOA
+  ProofExternalOwnedAccount proof = 1 [(gogoproto.nullable) = false];
 }
