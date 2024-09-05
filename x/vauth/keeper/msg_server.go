@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"context"
-
 	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
 )
 
@@ -16,9 +14,4 @@ type msgServer struct {
 // for the provided Keeper.
 func NewMsgServerImpl(keeper Keeper) vauthtypes.MsgServer {
 	return &msgServer{Keeper: keeper}
-}
-
-func (m msgServer) SubmitProveAccountOwnership(goCtx context.Context, msg *vauthtypes.MsgSubmitProveAccountOwnership) (*vauthtypes.MsgSubmitProveAccountOwnershipResponse, error) {
-	// TODO implement me
-	panic("implement me")
 }
