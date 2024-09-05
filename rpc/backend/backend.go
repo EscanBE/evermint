@@ -50,7 +50,8 @@ type EVMBackend interface {
 	ImportRawKey(privkey, password string) (common.Address, error)
 	ListAccounts() ([]common.Address, error)
 	NewMnemonic(uid string, language keyring.Language, hdPath, bip39Passphrase string, algo keyring.SignatureAlgo) (*keyring.Record, error)
-	UnprotectedAllowed() bool
+	AllowUnprotectedTxs(allow bool)
+	AllowInsecureUnlock(allow bool)
 	RPCGasCap() uint64            // global gas cap for eth_call over rpc: DoS protection
 	RPCEVMTimeout() time.Duration // global timeout for eth_call over rpc: DoS protection
 	RPCTxFeeCap() float64         // RPCTxFeeCap is the global transaction fee(price * gaslimit) cap for send-transaction variants. The unit is ether.
@@ -129,14 +130,13 @@ var _ BackendI = (*Backend)(nil)
 
 // Backend implements the BackendI interface
 type Backend struct {
-	ctx                 context.Context
-	clientCtx           client.Context
-	queryClient         *rpctypes.QueryClient // gRPC query client
-	logger              log.Logger
-	chainID             *big.Int
-	cfg                 config.Config
-	allowUnprotectedTxs bool
-	indexer             evertypes.EVMTxIndexer
+	ctx         context.Context
+	clientCtx   client.Context
+	queryClient *rpctypes.QueryClient // gRPC query client
+	logger      log.Logger
+	chainID     *big.Int
+	cfg         config.Config
+	indexer     evertypes.EVMTxIndexer
 }
 
 // NewBackend creates a new Backend instance for cosmos and ethereum namespaces
@@ -144,7 +144,6 @@ func NewBackend(
 	ctx *server.Context,
 	logger log.Logger,
 	clientCtx client.Context,
-	allowUnprotectedTxs bool,
 	indexer evertypes.EVMTxIndexer,
 ) *Backend {
 	chainID, err := evertypes.ParseChainID(clientCtx.ChainID)
@@ -162,13 +161,12 @@ func NewBackend(
 	}
 
 	return &Backend{
-		ctx:                 context.Background(),
-		clientCtx:           clientCtx,
-		queryClient:         rpctypes.NewQueryClient(clientCtx),
-		logger:              logger.With("module", "backend"),
-		chainID:             chainID,
-		cfg:                 appConf,
-		allowUnprotectedTxs: allowUnprotectedTxs,
-		indexer:             indexer,
+		ctx:         context.Background(),
+		clientCtx:   clientCtx,
+		queryClient: rpctypes.NewQueryClient(clientCtx),
+		logger:      logger.With("module", "backend"),
+		chainID:     chainID,
+		cfg:         appConf,
+		indexer:     indexer,
 	}
 }

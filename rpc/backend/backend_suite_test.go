@@ -79,15 +79,15 @@ func (suite *BackendTestSuite) SetupTest() {
 		WithKeyring(keyRing).
 		WithAccountRetriever(client.TestAccountRetriever{Accounts: accounts})
 
-	allowUnprotectedTxs := false
 	idxer := indexer.NewKVIndexer(dbm.NewMemDB(), ctx.Logger, clientCtx)
 
-	suite.backend = NewBackend(ctx, ctx.Logger, clientCtx, allowUnprotectedTxs, idxer)
+	suite.backend = NewBackend(ctx, ctx.Logger, clientCtx, idxer)
 	suite.backend.queryClient.QueryClient = mocks.NewEVMQueryClient(suite.T())
 	suite.backend.clientCtx.Client = mocks.NewClient(suite.T())
 	suite.backend.queryClient.FeeMarket = mocks.NewFeeMarketQueryClient(suite.T())
 	suite.backend.ctx = rpctypes.ContextWithHeight(1)
 	suite.backend.indexer = mocks.NewEVMTxIndexer(suite.T())
+	suite.backend.AllowInsecureUnlock(true)
 
 	// Add codec
 	encCfg := encoding.MakeConfig(app.ModuleBasics)
