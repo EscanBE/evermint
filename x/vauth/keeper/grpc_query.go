@@ -2,11 +2,12 @@ package keeper
 
 import (
 	"context"
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"strings"
 
 	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
 )
@@ -23,7 +24,7 @@ func NewQueryServerImpl(keeper Keeper) vauthtypes.QueryServer {
 }
 
 func (q queryServer) ProvedAccountOwnershipByAddress(goCtx context.Context, req *vauthtypes.QueryProvedAccountOwnershipByAddressRequest) (*vauthtypes.QueryProvedAccountOwnershipByAddressResponse, error) {
-	if req == nil {
+	if req == nil || req.Address == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 

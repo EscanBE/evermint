@@ -1,10 +1,11 @@
 package keeper_test
 
 import (
+	"strings"
+
 	vauthkeeper "github.com/EscanBE/evermint/v12/x/vauth/keeper"
 	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
 	"github.com/ethereum/go-ethereum/common"
-	"strings"
 )
 
 func (s *KeeperTestSuite) Test_queryServer_ProvedAccountOwnershipByAddress() {

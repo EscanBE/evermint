@@ -20,7 +20,10 @@ func GetTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand()
+	cmd.AddCommand(
+		NewGenProofTxCmd(),
+		NewSubmitProofTxCmd(),
+	)
 
 	return cmd
 }
