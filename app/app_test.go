@@ -1,7 +1,8 @@
-package app
+package app_test
 
 import (
 	"encoding/json"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
@@ -44,14 +45,14 @@ func TestEvermintExport(t *testing.T) {
 
 	chainID := constants.TestnetFullChainId
 	db := dbm.NewMemDB()
-	chainApp := NewEvermint(
-		log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, DefaultNodeHome, 0, encoding.MakeConfig(ModuleBasics),
-		simtestutil.NewAppOptionsWithFlagHome(DefaultNodeHome),
+	chainApp := chainapp.NewEvermint(
+		log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, chainapp.DefaultNodeHome, 0, encoding.MakeConfig(chainapp.ModuleBasics),
+		simtestutil.NewAppOptionsWithFlagHome(chainapp.DefaultNodeHome),
 		baseapp.SetChainID(chainID),
 	)
 
-	genesisState := NewDefaultGenesisState()
-	genesisState = GenesisStateWithValSet(chainApp, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
+	genesisState := chainapp.NewDefaultGenesisState()
+	genesisState = chainapp.GenesisStateWithValSet(chainApp, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
 	stateBytes, err := json.MarshalIndent(genesisState, "", "  ")
 	require.NoError(t, err)
 
@@ -66,9 +67,9 @@ func TestEvermintExport(t *testing.T) {
 	chainApp.Commit()
 
 	// Making a new app object with the db, so that initchain hasn't been called
-	app2 := NewEvermint(
-		log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, DefaultNodeHome, 0, encoding.MakeConfig(ModuleBasics),
-		simtestutil.NewAppOptionsWithFlagHome(DefaultNodeHome),
+	app2 := chainapp.NewEvermint(
+		log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, chainapp.DefaultNodeHome, 0, encoding.MakeConfig(chainapp.ModuleBasics),
+		simtestutil.NewAppOptionsWithFlagHome(chainapp.DefaultNodeHome),
 		baseapp.SetChainID(chainID),
 	)
 	_, err = app2.ExportAppStateAndValidators(false, []string{}, []string{})

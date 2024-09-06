@@ -64,6 +64,9 @@ func RetrieveUpgradesList(upgradesPath string) ([]string, error) {
 	pattern := regexp.MustCompile(`"(.*?)"`)
 
 	for i, d := range dirs {
+		if d.Name() == "types.go" {
+			continue
+		}
 		// creating path to upgrade dir file with constant upgrade version
 		constantsPath := fmt.Sprintf("%s/%s/constants.go", upgradesPath, d.Name())
 		f, err := os.ReadFile(constantsPath)
