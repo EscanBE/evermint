@@ -629,36 +629,34 @@ func NewEvermint(
 	// so that other modules that want to create or claim capabilities afterwards in InitChain
 	// can do so safely.
 	chainApp.mm.SetOrderInitGenesis(
-		// SDK modules
+		// SDK & external modules
 		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
+		govtypes.ModuleName,
 		stakingtypes.ModuleName,
 		slashingtypes.ModuleName,
 		minttypes.ModuleName,
-		govtypes.ModuleName,
-		ibcexported.ModuleName,
-		// Ethermint modules
+		crisistypes.ModuleName,
+		// Evermint modules
 		evmtypes.ModuleName,
-		// NOTE: feemarket module needs to be initialized before genutil module:
-		// gentx transactions use MinGasPriceDecorator.AnteHandle
+		erc20types.ModuleName,
+		vauthtypes.ModuleName,
+		// NOTE: feemarket module needs to be initialized before genutil module as gentx transactions use MinGasPriceDecorator.AnteHandle
 		feemarkettypes.ModuleName,
+		// end of Evermint modules
 		genutiltypes.ModuleName,
-		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
+		ibcexported.ModuleName,
 		icatypes.ModuleName,
+		evidencetypes.ModuleName,
 		authz.ModuleName,
 		feegrant.ModuleName,
 		sdkparamstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
-		// Evermint modules
-		erc20types.ModuleName,
-		vauthtypes.ModuleName,
 		consensusparamtypes.ModuleName,
-		// NOTE: crisis module must go at the end to check for invariants on each module
-		crisistypes.ModuleName,
 	)
 
 	chainApp.mm.RegisterInvariants(chainApp.CrisisKeeper)
@@ -978,10 +976,10 @@ func initParamsKeeper(
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibcexported.ModuleName)
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
-	// ethermint subspaces
+	// Ethermint subspaces
 	paramsKeeper.Subspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable()) //nolint: staticcheck
 	paramsKeeper.Subspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())
-	// evermint subspaces
+	// Evermint subspaces
 	paramsKeeper.Subspace(erc20types.ModuleName)
 	return paramsKeeper
 }
