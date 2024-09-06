@@ -4,6 +4,9 @@ package integration_test_util
 import (
 	"crypto/ed25519"
 	"fmt"
+	"math/big"
+	"time"
+
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 	cosmosed25519 "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -11,8 +14,6 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
-	"math/big"
-	"time"
 )
 
 // ChainsIbcIntegrationTestSuite is a wrapper of ChainIntegrationTestSuite for IBC testing.

@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"encoding/hex"
+
 	"github.com/cosmos/cosmos-sdk/types/errors"
 
 	errorsmod "cosmossdk.io/errors"

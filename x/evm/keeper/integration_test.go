@@ -2,10 +2,11 @@ package keeper_test
 
 import (
 	"encoding/json"
+	"math/big"
+
 	"github.com/EscanBE/evermint/v12/app/helpers"
 	"github.com/EscanBE/evermint/v12/constants"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-	"math/big"
 
 	"cosmossdk.io/math"
 	. "github.com/onsi/ginkgo/v2"

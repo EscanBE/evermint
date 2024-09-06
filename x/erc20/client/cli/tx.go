@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/spf13/cobra"
 

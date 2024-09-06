@@ -1,8 +1,9 @@
 package ante_test
 
 import (
-	chainapp "github.com/EscanBE/evermint/v12/app"
 	"testing"
+
+	chainapp "github.com/EscanBE/evermint/v12/app"
 
 	"github.com/stretchr/testify/require"
 

@@ -2,10 +2,11 @@ package app
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-	"time"
 
 	"cosmossdk.io/simapp"
 	dbm "github.com/cometbft/cometbft-db"

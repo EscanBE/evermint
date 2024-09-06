@@ -2,12 +2,16 @@ package types
 
 //goland:noinspection SpellCheckingInspection
 import (
-	sdkmath "cosmossdk.io/math"
-	"cosmossdk.io/simapp"
-	simappparams "cosmossdk.io/simapp/params"
 	"crypto/ed25519"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
+
+	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/simapp"
+	simappparams "cosmossdk.io/simapp/params"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	itutilutils "github.com/EscanBE/evermint/v12/integration_test_util/utils"
@@ -32,8 +36,6 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"strings"
-	"time"
 )
 
 var defaultConsensusParams = &tmtypes.ConsensusParams{

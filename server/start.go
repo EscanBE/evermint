@@ -3,9 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/indexer"
-	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	"io"
 	"net"
 	"net/http"
@@ -13,6 +10,10 @@ import (
 	"path/filepath"
 	"runtime/pprof"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/v12/indexer"
+	rpcclient "github.com/cometbft/cometbft/rpc/client"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"

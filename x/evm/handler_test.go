@@ -1,11 +1,12 @@
 package evm_test
 
 import (
-	"github.com/EscanBE/evermint/v12/app/helpers"
-	"github.com/EscanBE/evermint/v12/constants"
 	"math/big"
 	"testing"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/app/helpers"
+	"github.com/EscanBE/evermint/v12/constants"
 
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 

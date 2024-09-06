@@ -1,12 +1,13 @@
 package evm_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"math"
 	"math/big"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/constants"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

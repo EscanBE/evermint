@@ -4,9 +4,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
 	"strconv"
 	"strings"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
 	evertypes "github.com/EscanBE/evermint/v12/types"

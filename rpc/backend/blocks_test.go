@@ -2,8 +2,9 @@ package backend
 
 import (
 	"fmt"
-	"github.com/cometbft/cometbft/libs/log"
 	"math/big"
+
+	"github.com/cometbft/cometbft/libs/log"
 
 	"cosmossdk.io/math"
 

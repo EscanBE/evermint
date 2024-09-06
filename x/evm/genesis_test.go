@@ -1,8 +1,9 @@
 package evm_test
 
 import (
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"math/big"
+
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
 	"github.com/ethereum/go-ethereum/common"
 

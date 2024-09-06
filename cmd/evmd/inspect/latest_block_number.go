@@ -1,13 +1,15 @@
 package inspect
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"fmt"
+	"path/filepath"
+
+	errorsmod "cosmossdk.io/errors"
+
 	dbm "github.com/cometbft/cometbft-db"
 	tmstore "github.com/cometbft/cometbft/store"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
-	"path/filepath"
 )
 
 func LatestBlockNumberCmd() *cobra.Command {

@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"

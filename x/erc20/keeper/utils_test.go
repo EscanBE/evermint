@@ -2,12 +2,13 @@ package keeper_test
 
 import (
 	"encoding/json"
-	"github.com/EscanBE/evermint/v12/app/helpers"
-	"github.com/EscanBE/evermint/v12/constants"
 	"math"
 	"math/big"
 	"strconv"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/app/helpers"
+	"github.com/EscanBE/evermint/v12/constants"
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/contracts"

@@ -2,11 +2,12 @@ package helpers
 
 import (
 	"encoding/json"
+	"time"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-	"time"
 
 	"cosmossdk.io/simapp"
 	"github.com/cosmos/cosmos-sdk/codec"

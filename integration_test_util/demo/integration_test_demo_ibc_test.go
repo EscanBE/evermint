@@ -2,12 +2,13 @@ package demo
 
 //goland:noinspection SpellCheckingInspection
 import (
+	"math"
+
 	sdkmath "cosmossdk.io/math"
 	"github.com/EscanBE/evermint/v12/integration_test_util"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibcconntypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	"math"
 )
 
 //goland:noinspection SpellCheckingInspection

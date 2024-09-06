@@ -14,7 +14,7 @@ import (
 )
 
 type mockSubspace struct {
-	//ps           v3types.V3Params
+	// ps           v3types.V3Params
 	storeKey     storetypes.StoreKey
 	transientKey storetypes.StoreKey
 }

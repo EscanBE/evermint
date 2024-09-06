@@ -2,9 +2,10 @@ package types
 
 import (
 	"fmt"
+	"math/big"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"math/big"
 
 	"github.com/ethereum/go-ethereum/core/vm"
 	ethparams "github.com/ethereum/go-ethereum/params"

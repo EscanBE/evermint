@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/app/helpers"
-	"github.com/EscanBE/evermint/v12/constants"
 	"io"
 	"testing"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/app/helpers"
+	"github.com/EscanBE/evermint/v12/constants"
 
 	simappparams "cosmossdk.io/simapp/params"
 	"github.com/cosmos/cosmos-sdk/client"

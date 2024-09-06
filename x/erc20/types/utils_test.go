@@ -1,9 +1,10 @@
 package types_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
 	"strings"
 	"testing"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"

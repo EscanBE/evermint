@@ -3,12 +3,13 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
-	"github.com/spf13/cobra"
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
+	"github.com/spf13/cobra"
 )
 
 // NewConvertAddressCmd creates a helper command that convert account bech32 address into hex address or vice versa

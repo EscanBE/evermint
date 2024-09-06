@@ -1,10 +1,11 @@
 package indexer_test
 
 import (
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/constants"
 	"math/big"
 	"testing"
+
+	chainapp "github.com/EscanBE/evermint/v12/app"
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/EscanBE/evermint/v12/indexer"
@@ -96,7 +97,6 @@ func TestKVIndexer(t *testing.T) {
 					Code: 11,
 					Log:  "out of gas in location: block gas meter; gasWanted: 21000",
 					Events: []abci.Event{
-
 						{
 							Type: evmtypes.EventTypeEthereumTx,
 							Attributes: []abci.EventAttribute{

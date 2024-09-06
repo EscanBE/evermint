@@ -3,8 +3,21 @@ package integration_test_util
 //goland:noinspection SpellCheckingInspection
 import (
 	"context"
-	simappparams "cosmossdk.io/simapp/params"
 	"fmt"
+	"math"
+	"math/big"
+	"os"
+	"reflect"
+	"runtime"
+	"strconv"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+	"unsafe"
+
+	simappparams "cosmossdk.io/simapp/params"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	etherminthd "github.com/EscanBE/evermint/v12/crypto/hd"
@@ -46,17 +59,6 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/require"
-	"math"
-	"math/big"
-	"os"
-	"reflect"
-	"runtime"
-	"strconv"
-	"strings"
-	"sync"
-	"testing"
-	"time"
-	"unsafe"
 )
 
 func init() {

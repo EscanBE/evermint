@@ -3,9 +3,10 @@ package ledger_test
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
 	"regexp"
 	"testing"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/stretchr/testify/suite"
 

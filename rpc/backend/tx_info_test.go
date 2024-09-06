@@ -1,8 +1,9 @@
 package backend
 
 import (
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
+
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/EscanBE/evermint/v12/indexer"
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"

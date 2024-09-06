@@ -2,6 +2,9 @@ package keeper_test
 
 import (
 	"fmt"
+	"math"
+	"math/big"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
@@ -20,8 +23,6 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
-	"math"
-	"math/big"
 )
 
 func (suite *KeeperTestSuite) TestGetHashFn() {

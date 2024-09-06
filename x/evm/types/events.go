@@ -1,6 +1,9 @@
 package types
 
 import (
+	"math/big"
+	"strconv"
+
 	errorsmod "cosmossdk.io/errors"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
@@ -8,8 +11,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"math/big"
-	"strconv"
 )
 
 // Evm module events

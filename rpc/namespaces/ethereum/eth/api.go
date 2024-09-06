@@ -2,6 +2,7 @@ package eth
 
 import (
 	"context"
+
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"

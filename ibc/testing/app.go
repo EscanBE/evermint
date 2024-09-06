@@ -2,10 +2,11 @@ package ibctesting
 
 import (
 	"encoding/json"
-	"github.com/EscanBE/evermint/v12/app/helpers"
-	"github.com/EscanBE/evermint/v12/constants"
 	"testing"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/app/helpers"
+	"github.com/EscanBE/evermint/v12/constants"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"

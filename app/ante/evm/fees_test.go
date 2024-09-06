@@ -1,9 +1,10 @@
 package evm_test
 
 import (
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
 	"math"
 	"math/big"
+
+	"github.com/EscanBE/evermint/v12/rename_chain/marker"
 
 	sdkmath "cosmossdk.io/math"
 	evmante "github.com/EscanBE/evermint/v12/app/ante/evm"

@@ -1,8 +1,9 @@
 package types
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
 	"math/big"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	sdkmath "cosmossdk.io/math"
 

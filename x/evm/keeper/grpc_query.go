@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/utils"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"math/big"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/utils"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/ethereum/go-ethereum/eth/tracers"
 	"github.com/ethereum/go-ethereum/eth/tracers/logger"

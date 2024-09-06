@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/stretchr/testify/suite"
 

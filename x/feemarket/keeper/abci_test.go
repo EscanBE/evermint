@@ -1,10 +1,11 @@
 package keeper_test
 
 import (
+	"math/big"
+
 	"github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
-	"math/big"
 )
 
 func (suite *KeeperTestSuite) TestEndBlock() {

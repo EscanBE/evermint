@@ -3,12 +3,13 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"math/big"
+
 	"github.com/EscanBE/evermint/v12/utils"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"math/big"
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	tmtypes "github.com/cometbft/cometbft/types"

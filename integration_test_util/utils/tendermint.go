@@ -4,6 +4,8 @@ package utils
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	cdb "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -19,7 +21,6 @@ import (
 	rpctest "github.com/cometbft/cometbft/rpc/test"
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/google/uuid"
-	"time"
 )
 
 // StartTendermintNode starts a Tendermint node for the given ABCI Application, used for testing purposes.

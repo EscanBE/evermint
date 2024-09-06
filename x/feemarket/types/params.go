@@ -9,10 +9,8 @@ import (
 	ethparams "github.com/ethereum/go-ethereum/params"
 )
 
-var (
-	// DefaultMinGasPrice is 0 (i.e disabled)
-	DefaultMinGasPrice = sdk.ZeroDec()
-)
+// DefaultMinGasPrice is 0 (i.e disabled)
+var DefaultMinGasPrice = sdk.ZeroDec()
 
 // Parameter keys
 var (

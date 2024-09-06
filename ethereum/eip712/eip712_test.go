@@ -3,9 +3,10 @@ package eip712_test
 import (
 	"bytes"
 	"fmt"
+	"testing"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
-	"testing"
 
 	"cosmossdk.io/math"
 

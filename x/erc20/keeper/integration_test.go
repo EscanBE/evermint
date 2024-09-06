@@ -1,9 +1,10 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
 	"math/big"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"

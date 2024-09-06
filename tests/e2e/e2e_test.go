@@ -2,8 +2,9 @@ package e2e
 
 import (
 	"context"
-	"github.com/EscanBE/evermint/v12/constants"
 	"strings"
+
+	"github.com/EscanBE/evermint/v12/constants"
 )
 
 // TestUpgrade tests if out chain node can be upgraded from one version to another.

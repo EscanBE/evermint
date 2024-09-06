@@ -3,9 +3,12 @@ package integration_test_util
 //goland:noinspection SpellCheckingInspection
 import (
 	"context"
+	"fmt"
+	"time"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"fmt"
+
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -18,7 +21,6 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/pkg/errors"
-	"time"
 )
 
 // commitAndCreateNewCtx commits a block at a given time, creating and return a new ctx for the next block

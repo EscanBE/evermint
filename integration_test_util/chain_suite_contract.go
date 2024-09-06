@@ -2,9 +2,14 @@ package integration_test_util
 
 //goland:noinspection SpellCheckingInspection
 import (
-	sdkmath "cosmossdk.io/math"
-	_ "embed" // embed compiled smart contract
+	_ "embed"
 	"encoding/json"
+	"math"
+	"math/big"
+
+	sdkmath "cosmossdk.io/math"
+	// embed compiled smart contract
+
 	"github.com/EscanBE/evermint/v12/contracts"
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
@@ -13,8 +18,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"math"
-	"math/big"
 )
 
 var (

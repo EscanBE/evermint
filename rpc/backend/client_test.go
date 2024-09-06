@@ -2,12 +2,13 @@ package backend
 
 import (
 	"context"
-	errorsmod "cosmossdk.io/errors"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strconv"
 	"testing"
+
+	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"

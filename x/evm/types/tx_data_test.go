@@ -1,9 +1,10 @@
 package types
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
 	"math/big"
 	"testing"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/require"

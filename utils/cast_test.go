@@ -1,10 +1,11 @@
 package utils
 
 import (
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/stretchr/testify/require"
 )
 
 //goland:noinspection GoVarAndConstTypeMayBeOmitted

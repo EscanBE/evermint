@@ -1,11 +1,12 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/app/helpers"
-	"github.com/EscanBE/evermint/v12/constants"
 	"math"
 	"testing"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/app/helpers"
+	"github.com/EscanBE/evermint/v12/constants"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

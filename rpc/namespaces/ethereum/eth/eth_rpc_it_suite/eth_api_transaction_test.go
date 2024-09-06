@@ -4,6 +4,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/big"
+	"math/rand"
+	"reflect"
+
 	"github.com/EscanBE/evermint/v12/integration_test_util"
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
@@ -13,9 +17,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
-	"math/big"
-	"math/rand"
-	"reflect"
 )
 
 //goland:noinspection SpellCheckingInspection
@@ -700,7 +701,7 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByBlockNumberAndHashAndIndex() 
 		suite.Require().NoError(err)
 		assertValidResult(rpcTx2, testRpcTx2)
 
-		//GetTransactionByBlockHashAndIndex
+		// GetTransactionByBlockHashAndIndex
 		testRpcTx1, err = suite.GetEthPublicAPI().GetTransactionByBlockHashAndIndex(*rpcTx1.BlockHash, hexutil.Uint(0))
 		suite.Require().NoError(err)
 		assertValidResult(rpcTx1, testRpcTx1)
@@ -722,7 +723,7 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByBlockNumberAndHashAndIndex() 
 		suite.Require().NoError(err)
 		suite.Nil(testRpcTx2QueryByOutOfBoundIndex)
 
-		//GetTransactionByBlockHashAndIndex
+		// GetTransactionByBlockHashAndIndex
 		testRpcTx1QueryByOutOfBoundIndex, err = suite.GetEthPublicAPI().GetTransactionByBlockHashAndIndex(*rpcTx1.BlockHash, hexutil.Uint(1))
 		suite.Require().NoError(err)
 		suite.Nil(testRpcTx1QueryByOutOfBoundIndex)
@@ -738,7 +739,7 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByBlockNumberAndHashAndIndex() 
 		suite.Require().NoError(err)
 		suite.Nil(testRpcTxQueryByNotCorrectBlockNumber)
 
-		//GetTransactionByBlockHashAndIndex
+		// GetTransactionByBlockHashAndIndex
 		testRpcTxQueryByNotCorrectBlockHash, err := suite.GetEthPublicAPI().GetTransactionByBlockHashAndIndex(blockHashOfBlockWithoutTxs, hexutil.Uint(0))
 		suite.Require().NoError(err)
 		suite.Nil(testRpcTxQueryByNotCorrectBlockHash)

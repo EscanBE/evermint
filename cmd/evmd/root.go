@@ -3,16 +3,17 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"time"
+
 	"github.com/EscanBE/evermint/v12/cmd/evmd/inspect"
 	cmdutils "github.com/EscanBE/evermint/v12/cmd/evmd/utils"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/viper"
-	"io"
-	"os"
-	"path/filepath"
-	"time"
 
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"

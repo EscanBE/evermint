@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
 	"os"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"

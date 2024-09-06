@@ -1,8 +1,9 @@
 package ibctesting
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
 	"testing"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/stretchr/testify/require"
 

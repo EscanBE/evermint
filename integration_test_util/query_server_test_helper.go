@@ -3,6 +3,7 @@ package integration_test_util
 import (
 	gocontext "context"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
@@ -60,7 +61,7 @@ func (q *QueryServiceTestHelper) Invoke(_ gocontext.Context, method string, args
 
 		if header, ok := option.(grpc.HeaderCallOption); ok {
 			if header.HeaderAddr != nil {
-				var mdI = metadata.New(map[string]string{
+				mdI := metadata.New(map[string]string{
 					grpctypes.GRPCBlockHeightHeader: fmt.Sprintf("%d", q.Ctx.BlockHeight()),
 				})
 				*header.HeaderAddr = mdI

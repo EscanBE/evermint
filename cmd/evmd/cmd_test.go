@@ -2,10 +2,11 @@ package main_test
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/spf13/cobra"
 	"strings"
 	"testing"
+
+	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"

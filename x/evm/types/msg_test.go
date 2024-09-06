@@ -2,13 +2,14 @@ package types_test
 
 import (
 	"fmt"
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/constants"
 	"math"
 	"math/big"
 	"reflect"
 	"strings"
 	"testing"
+
+	chainapp "github.com/EscanBE/evermint/v12/app"
+	"github.com/EscanBE/evermint/v12/constants"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"

@@ -3,9 +3,10 @@ package config
 import (
 	"errors"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/server/flags"
 	"path"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/server/flags"
 
 	"github.com/spf13/viper"
 

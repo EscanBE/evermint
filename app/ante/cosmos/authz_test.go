@@ -2,12 +2,13 @@ package cosmos_test
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/app/ante"
-	"github.com/EscanBE/evermint/v12/constants"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"testing"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/app/ante"
+	"github.com/EscanBE/evermint/v12/constants"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/stretchr/testify/require"

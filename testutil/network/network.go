@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,6 +14,9 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/constants"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
 	"cosmossdk.io/math"
 	dbm "github.com/cometbft/cometbft-db"

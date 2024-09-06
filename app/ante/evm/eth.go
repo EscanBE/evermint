@@ -381,8 +381,7 @@ func (issd EthIncrementSenderSequenceDecorator) AnteHandle(ctx sdk.Context, tx s
 }
 
 // EthBasicValidationDecorator performs some validation for Ethereum transaction
-type EthBasicValidationDecorator struct {
-}
+type EthBasicValidationDecorator struct{}
 
 // NewEthBasicValidationDecorator creates a new EthBasicValidationDecorator.
 func NewEthBasicValidationDecorator() EthBasicValidationDecorator {

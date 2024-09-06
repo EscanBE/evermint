@@ -2,9 +2,10 @@ package keeper_test
 
 import (
 	"encoding/json"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	"math/big"
 	"time"
+
+	evertypes "github.com/EscanBE/evermint/v12/types"
 
 	"github.com/EscanBE/evermint/v12/server/config"
 	"github.com/EscanBE/evermint/v12/testutil"

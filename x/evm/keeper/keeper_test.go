@@ -2,9 +2,10 @@ package keeper_test
 
 import (
 	_ "embed"
+	"math/big"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"math/big"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 

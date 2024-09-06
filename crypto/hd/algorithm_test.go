@@ -1,11 +1,12 @@
 package hd
 
 import (
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/constants"
 	"os"
 	"strings"
 	"testing"
+
+	chainapp "github.com/EscanBE/evermint/v12/app"
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/stretchr/testify/require"
 

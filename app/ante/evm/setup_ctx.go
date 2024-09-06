@@ -2,8 +2,9 @@ package evm
 
 import (
 	"errors"
-	"github.com/EscanBE/evermint/v12/utils"
 	"strconv"
+
+	"github.com/EscanBE/evermint/v12/utils"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -41,8 +42,7 @@ func (esc EthSetupContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 }
 
 // SingleEthTxDecorator check if the transaction contains one and only one EthereumTx
-type SingleEthTxDecorator struct {
-}
+type SingleEthTxDecorator struct{}
 
 func NewSingleEthTxDecorator() SingleEthTxDecorator {
 	return SingleEthTxDecorator{}

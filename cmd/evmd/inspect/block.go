@@ -1,16 +1,18 @@
 package inspect
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
+	"strconv"
+	"strings"
+
+	errorsmod "cosmossdk.io/errors"
+
 	dbm "github.com/cometbft/cometbft-db"
 	tmstore "github.com/cometbft/cometbft/store"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
-	"path/filepath"
-	"strconv"
-	"strings"
 )
 
 func BlockCmd() *cobra.Command {

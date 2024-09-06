@@ -2,11 +2,12 @@ package eip712_test
 
 import (
 	"encoding/hex"
+	"strings"
+	"testing"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/rename_chain/marker"
-	"strings"
-	"testing"
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"

@@ -1,8 +1,12 @@
 package backend
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"fmt"
+	"math"
+	"math/big"
+
+	errorsmod "cosmossdk.io/errors"
+
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
@@ -12,8 +16,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/pkg/errors"
-	"math"
-	"math/big"
 )
 
 // GetTransactionByHash returns the Ethereum format transaction identified by Ethereum transaction hash

@@ -2,8 +2,9 @@ package tx
 
 import (
 	"encoding/json"
-	"github.com/EscanBE/evermint/v12/constants"
 	"math/big"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"

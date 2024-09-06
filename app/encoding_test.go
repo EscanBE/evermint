@@ -1,13 +1,14 @@
 package app_test
 
 import (
+	"math/big"
+	"testing"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/require"
-	"math/big"
-	"testing"
 )
 
 func TestRegisterEncodingConfig(t *testing.T) {

@@ -1,10 +1,11 @@
 package ibctesting
 
 import (
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"math/rand"
 	"testing"
 	"time"
+
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/cosmos/cosmos-sdk/baseapp"

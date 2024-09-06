@@ -2,8 +2,9 @@ package utils
 
 import (
 	cryptorand "crypto/rand"
-	"github.com/pkg/errors"
 	"math/rand"
+
+	"github.com/pkg/errors"
 )
 
 // RandomPositiveInt64 returns a random int64, value >= 0.

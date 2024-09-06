@@ -1,8 +1,9 @@
 package tx
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
 	"math"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -15,11 +16,9 @@ import (
 	chainapp "github.com/EscanBE/evermint/v12/app"
 )
 
-var (
-	DefaultFee = sdk.NewCoin(
-		constants.BaseDenom,
-		sdk.NewIntFromUint64(uint64(math.Pow10(16))), // 0.01
-	)
+var DefaultFee = sdk.NewCoin(
+	constants.BaseDenom,
+	sdk.NewIntFromUint64(uint64(math.Pow10(16))), // 0.01
 )
 
 // CosmosTxArgs contains the params to create a cosmos tx

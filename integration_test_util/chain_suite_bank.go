@@ -2,6 +2,8 @@ package integration_test_util
 
 //goland:noinspection SpellCheckingInspection
 import (
+	"math"
+
 	sdkmath "cosmossdk.io/math"
 	"github.com/EscanBE/evermint/v12/constants"
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
@@ -11,7 +13,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	"math"
 )
 
 // TxSend sends amount of base coin from one to another.

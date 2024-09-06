@@ -2,13 +2,14 @@ package app_test
 
 import (
 	"encoding/json"
+	"os"
+	"testing"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/app/helpers"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-	"os"
-	"testing"
 
 	"github.com/stretchr/testify/require"
 

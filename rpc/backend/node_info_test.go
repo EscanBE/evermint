@@ -2,8 +2,9 @@ package backend
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
 	"math/big"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"

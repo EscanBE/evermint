@@ -2,9 +2,10 @@ package statedb
 
 import (
 	"bytes"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"math/big"
 	"sort"
+
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
 	"github.com/ethereum/go-ethereum/common"
 )

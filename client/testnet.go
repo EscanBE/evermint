@@ -4,16 +4,18 @@ package client
 
 import (
 	"bufio"
-	errorsmod "cosmossdk.io/errors"
 	"encoding/json"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
-	clientconfig "github.com/cosmos/cosmos-sdk/client/config"
-	"github.com/spf13/viper"
 	"net"
 	"os"
 	"path/filepath"
 	"strings"
+
+	errorsmod "cosmossdk.io/errors"
+
+	"github.com/EscanBE/evermint/v12/constants"
+	clientconfig "github.com/cosmos/cosmos-sdk/client/config"
+	"github.com/spf13/viper"
 
 	tmconfig "github.com/cometbft/cometbft/config"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
@@ -239,7 +241,7 @@ func initTestnetFiles(
 		genFiles    []string
 	)
 
-	var validatorMnemonics = map[int]string{
+	validatorMnemonics := map[int]string{
 		0: "camera foster skate whisper faith opera axis false van urban clean pet shove census surface injury phone alley cup school pet edge trial pony",
 		1: "explain captain crucial fault symptom degree divorce beyond path security jewel alien beach finish bridge decide toast scene pelican sorry achieve off denial wall",
 		2: "worth talent fire announce file skull acquire ethics injury yard home list clap guard busy describe bag front grass noise index vacuum govern number",
@@ -247,7 +249,7 @@ func initTestnetFiles(
 		4: "tornado fuel drill critic indicate pool few wheat omit sight stage focus mountain amused neck surge post giant vague nut marine spoon fragile outdoor",
 	}
 
-	var normalAccountMnemonics = []string{
+	normalAccountMnemonics := []string{
 		// 0x89760f514DCfCCCf1E4c5eDC6Bf6041931c4c183
 		"curtain hat remain song receive tower stereo hope frog cheap brown plate raccoon post reflect wool sail salmon game salon group glimpse adult shift",
 		// 0x21b661c8A270ed83D2826aD49b1E3B78F515E25C
@@ -260,7 +262,7 @@ func initTestnetFiles(
 		"museum stumble kingdom impulse replace angle exercise trial spring sphere cube brief foil bridge dish earn practice surprise quantum hunt scale solve october scout",
 	}
 
-	var normalAccountAddresses = make(map[string]sdk.AccAddress)
+	normalAccountAddresses := make(map[string]sdk.AccAddress)
 
 	inBuf := bufio.NewReader(cmd.InOrStdin())
 	// generate private keys, node IDs, and initial transactions

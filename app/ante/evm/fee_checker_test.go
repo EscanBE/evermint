@@ -1,11 +1,12 @@
 package evm_test
 
 import (
+	"math/big"
+	"testing"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	evmante "github.com/EscanBE/evermint/v12/app/ante/evm"
 	"github.com/EscanBE/evermint/v12/constants"
-	"math/big"
-	"testing"
 
 	"github.com/stretchr/testify/require"
 

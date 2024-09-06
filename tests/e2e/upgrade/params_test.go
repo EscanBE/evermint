@@ -1,9 +1,10 @@
 package upgrade
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
 	"os"
 	"testing"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/stretchr/testify/require"
 )

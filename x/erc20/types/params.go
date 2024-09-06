@@ -6,9 +6,7 @@ import (
 
 // Parameter store key
 
-var (
-	ParamStoreKeyEnableErc20 = []byte("EnableErc20")
-)
+var ParamStoreKeyEnableErc20 = []byte("EnableErc20")
 
 // NewParams creates a new Params object
 func NewParams(

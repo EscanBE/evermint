@@ -3,10 +3,11 @@ package evm_test
 import (
 	"errors"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
 	"math/big"
 	"strings"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	sdkmath "cosmossdk.io/math"
 	kmultisig "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"

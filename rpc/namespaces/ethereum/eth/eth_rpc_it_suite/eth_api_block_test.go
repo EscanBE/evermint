@@ -5,6 +5,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/big"
+	"math/rand"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/EscanBE/evermint/v12/integration_test_util"
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
@@ -14,11 +20,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/trie"
-	"math/big"
-	"math/rand"
-	"strconv"
-	"strings"
-	"time"
 )
 
 //goland:noinspection SpellCheckingInspection
@@ -694,8 +695,8 @@ func (suite *EthRpcTestSuite) Test_GetBlockTransactionCountByNumberAndHash() {
 	}
 
 	// prepare txs
-	var nonEvmTxsCount = 1
-	var evmTxsCount = len(suite.CITS.WalletAccounts) - nonEvmTxsCount
+	nonEvmTxsCount := 1
+	evmTxsCount := len(suite.CITS.WalletAccounts) - nonEvmTxsCount
 	var senderEvmTxs, senderNonEvmTxs []*itutiltypes.TestAccount
 
 	// prepare senders

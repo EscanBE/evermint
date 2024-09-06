@@ -2,8 +2,9 @@ package keeper_test
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
 	"math/big"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"

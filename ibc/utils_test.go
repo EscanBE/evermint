@@ -1,9 +1,10 @@
 package ibc
 
 import (
+	"testing"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/rename_chain/marker"
-	"testing"
 
 	"github.com/stretchr/testify/require"
 

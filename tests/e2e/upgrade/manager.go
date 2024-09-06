@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
@@ -133,7 +134,6 @@ func (m *Manager) RunNode(node *Node) error {
 			return nil
 		},
 	)
-
 	if err != nil {
 		stdOut, stdErr, _ := m.GetLogs(resource.Container.ID)
 		return fmt.Errorf(

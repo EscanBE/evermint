@@ -3,9 +3,11 @@ package integration_test_util
 //goland:noinspection SpellCheckingInspection
 import (
 	"context"
+	"encoding/hex"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"encoding/hex"
+
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	tmtypes "github.com/cometbft/cometbft/types"

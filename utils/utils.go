@@ -1,10 +1,11 @@
 package utils
 
 import (
+	"strings"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"strings"
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 

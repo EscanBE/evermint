@@ -2,9 +2,10 @@ package types_test
 
 import (
 	"errors"
-	chainapp "github.com/EscanBE/evermint/v12/app"
 	"math/big"
 	"testing"
+
+	chainapp "github.com/EscanBE/evermint/v12/app"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"

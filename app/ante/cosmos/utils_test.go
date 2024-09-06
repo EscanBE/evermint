@@ -1,8 +1,9 @@
 package cosmos_test
 
 import (
-	chainapp "github.com/EscanBE/evermint/v12/app"
 	"time"
+
+	chainapp "github.com/EscanBE/evermint/v12/app"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"

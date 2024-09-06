@@ -2,11 +2,12 @@ package backend
 
 import (
 	"bufio"
-	"github.com/EscanBE/evermint/v12/constants"
 	"math/big"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	dbm "github.com/cometbft/cometbft-db"
 

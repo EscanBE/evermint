@@ -2,6 +2,8 @@ package integration_test_util
 
 //goland:noinspection GoSnakeCaseUsage,SpellCheckingInspection
 import (
+	"testing"
+
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	etherminthd "github.com/EscanBE/evermint/v12/crypto/hd"
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
@@ -9,7 +11,6 @@ import (
 	cosmoshd "github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 // newValidatorAccounts inits and return predefined validator accounts.
@@ -130,8 +131,10 @@ func NewTestAccount(t *testing.T, nilAblePrivKey *ethsecp256k1.PrivKey) *itutilt
 	return testAccount
 }
 
-var supportedKeyringAlgorithms = keyring.SigningAlgoList{etherminthd.EthSecp256k1, cosmoshd.Secp256k1}
-var hdPath = cosmoshd.CreateHDPath(60, 0, 0).String()
+var (
+	supportedKeyringAlgorithms = keyring.SigningAlgoList{etherminthd.EthSecp256k1, cosmoshd.Secp256k1}
+	hdPath                     = cosmoshd.CreateHDPath(60, 0, 0).String()
+)
 
 //goland:noinspection GoSnakeCaseUsage,SpellCheckingInspection
 var (

@@ -3,10 +3,11 @@ package personal
 import (
 	"context"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
 	"os"
 	"path"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/EscanBE/evermint/v12/rpc/backend"
 

@@ -3,8 +3,9 @@ package backend
 import (
 	"encoding/json"
 	"fmt"
-	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
 	"math"
+
+	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
 
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"

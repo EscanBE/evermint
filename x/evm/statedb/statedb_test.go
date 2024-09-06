@@ -1,9 +1,10 @@
 package statedb_test
 
 import (
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"math/big"
 	"testing"
+
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	sdk "github.com/cosmos/cosmos-sdk/types"

@@ -3,8 +3,9 @@ package keeper_test
 import (
 	"encoding/json"
 	"fmt"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
+
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"

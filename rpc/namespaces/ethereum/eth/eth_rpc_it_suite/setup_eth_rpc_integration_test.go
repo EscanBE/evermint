@@ -3,6 +3,8 @@ package eth_rpc_it_suite
 //goland:noinspection SpellCheckingInspection
 import (
 	"encoding/json"
+	"testing"
+
 	"github.com/EscanBE/evermint/v12/integration_test_util"
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	"github.com/EscanBE/evermint/v12/rpc/namespaces/ethereum/eth"
@@ -11,7 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 //goland:noinspection GoSnakeCaseUsage,SpellCheckingInspection

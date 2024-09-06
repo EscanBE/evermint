@@ -3,6 +3,7 @@ package utils
 //goland:noinspection SpellCheckingInspection
 import (
 	"encoding/hex"
+
 	gethcrypto "github.com/ethereum/go-ethereum/crypto"
 )
 

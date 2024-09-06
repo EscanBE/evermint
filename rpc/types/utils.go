@@ -3,6 +3,8 @@ package types
 import (
 	"context"
 	"fmt"
+	"math/big"
+
 	"github.com/EscanBE/evermint/v12/utils"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
@@ -10,7 +12,6 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/pkg/errors"
-	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"

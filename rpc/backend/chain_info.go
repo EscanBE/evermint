@@ -3,6 +3,8 @@ package backend
 import (
 	"errors"
 	"fmt"
+	"math/big"
+
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
@@ -14,7 +16,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
-	"math/big"
 )
 
 // ChainID is the EIP-155 replay-protection chain id for the current ethereum chain config.

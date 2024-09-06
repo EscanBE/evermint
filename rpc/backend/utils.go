@@ -1,8 +1,13 @@
 package backend
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"fmt"
+	"math/big"
+	"sort"
+	"strconv"
+
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -11,9 +16,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"math/big"
-	"sort"
-	"strconv"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
