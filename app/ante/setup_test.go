@@ -8,9 +8,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/encoding"
 	"github.com/EscanBE/evermint/v12/testutil"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -26,7 +25,7 @@ type AnteTestSuite struct {
 
 	ctx       sdk.Context
 	clientCtx client.Context
-	app       *app.Evermint
+	app       *chainapp.Evermint
 	denom     string
 }
 
@@ -38,7 +37,7 @@ func (suite *AnteTestSuite) SetupTest() {
 
 	isCheckTx := false
 	chainID := constants.TestnetFullChainId
-	suite.app = app.Setup(isCheckTx, feemarkettypes.DefaultGenesisState(), chainID)
+	suite.app = chainapp.Setup(isCheckTx, feemarkettypes.DefaultGenesisState(), chainID)
 	suite.Require().NotNil(suite.app.AppCodec())
 
 	header := testutil.NewHeader(
@@ -50,7 +49,7 @@ func (suite *AnteTestSuite) SetupTest() {
 	evmParams.EvmDenom = suite.denom
 	_ = suite.app.EvmKeeper.SetParams(suite.ctx, evmParams)
 
-	encodingConfig := encoding.MakeConfig(app.ModuleBasics)
+	encodingConfig := chainapp.RegisterEncodingConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 }
 

@@ -17,7 +17,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/EscanBE/evermint/v12/encoding"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
@@ -32,6 +31,8 @@ func EthSetup(isCheckTx bool, patchGenesis func(*Evermint, simapp.GenesisState) 
 
 // EthSetupWithDB initializes a new Evermint app. A Nop logger is set in Evermint app.
 func EthSetupWithDB(isCheckTx bool, patchGenesis func(*Evermint, simapp.GenesisState) simapp.GenesisState, db dbm.DB) *Evermint {
+	encodingConfig := RegisterEncodingConfig()
+
 	chainID := constants.TestnetFullChainId
 	chainApp := NewEvermint(log.NewNopLogger(),
 		db,
@@ -40,7 +41,7 @@ func EthSetupWithDB(isCheckTx bool, patchGenesis func(*Evermint, simapp.GenesisS
 		map[int64]bool{},
 		DefaultNodeHome,
 		5,
-		encoding.MakeConfig(ModuleBasics),
+		encodingConfig,
 		simtestutil.NewAppOptionsWithFlagHome(DefaultNodeHome),
 		baseapp.SetChainID(chainID),
 	)
@@ -77,7 +78,7 @@ func NewTestGenesisState(codec codec.Codec) simapp.GenesisState {
 	if err != nil {
 		panic(err)
 	}
-	encodingConfig := encoding.MakeConfig(ModuleBasics)
+	encodingConfig := RegisterEncodingConfig()
 
 	// create validator set with single validator
 	validator := tmtypes.NewValidator(pubKey, 1)

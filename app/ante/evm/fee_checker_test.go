@@ -1,25 +1,25 @@
-package evm
+package evm_test
 
 import (
+	chainapp "github.com/EscanBE/evermint/v12/app"
+	evmante "github.com/EscanBE/evermint/v12/app/ante/evm"
 	"github.com/EscanBE/evermint/v12/constants"
 	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/EscanBE/evermint/v12/encoding"
 	"github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/ethereum/go-ethereum/params"
 )
 
-var _ DynamicFeeEVMKeeper = MockEVMKeeper{}
+var _ evmante.DynamicFeeEVMKeeper = MockEVMKeeper{}
 
 type MockEVMKeeper struct {
 	BaseFee        *big.Int
@@ -51,7 +51,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 	//      with extension option
 	//      without extension option
 	//      london hardfork enableness
-	encodingConfig := encoding.MakeConfig(module.NewBasicManager())
+	encodingConfig := chainapp.RegisterEncodingConfig()
 	minGasPrices := sdk.NewDecCoins(sdk.NewDecCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(10)))
 
 	genesisCtx := sdk.NewContext(nil, tmproto.Header{}, false, log.NewNopLogger())
@@ -61,7 +61,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 	testCases := []struct {
 		name        string
 		ctx         sdk.Context
-		keeper      DynamicFeeEVMKeeper
+		keeper      evmante.DynamicFeeEVMKeeper
 		buildTx     func() sdk.FeeTx
 		expFees     string
 		expPriority int64
@@ -230,7 +230,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			fees, priority, err := NewDynamicFeeChecker(tc.keeper)(tc.ctx, tc.buildTx())
+			fees, priority, err := evmante.NewDynamicFeeChecker(tc.keeper)(tc.ctx, tc.buildTx())
 			if tc.expSuccess {
 				require.Equal(t, tc.expFees, fees.String())
 				require.Equal(t, tc.expPriority, priority)

@@ -30,8 +30,8 @@ import (
 	"google.golang.org/grpc"
 
 	"cosmossdk.io/simapp"
-	"cosmossdk.io/simapp/params"
-	"github.com/EscanBE/evermint/v12/app"
+	simappparams "cosmossdk.io/simapp/params"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -52,7 +52,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/EscanBE/evermint/v12/encoding"
 	"github.com/EscanBE/evermint/v12/server/config"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 )
@@ -97,16 +96,16 @@ type Config struct {
 // DefaultConfig returns a sane default configuration suitable for nearly all
 // testing requirements.
 func DefaultConfig() Config {
-	encCfg := encoding.MakeConfig(app.ModuleBasics)
+	encodingConfig := chainapp.RegisterEncodingConfig()
 
 	return Config{
-		Codec:             encCfg.Codec,
-		TxConfig:          encCfg.TxConfig,
-		LegacyAmino:       encCfg.Amino,
-		InterfaceRegistry: encCfg.InterfaceRegistry,
+		Codec:             encodingConfig.Codec,
+		TxConfig:          encodingConfig.TxConfig,
+		LegacyAmino:       encodingConfig.Amino,
+		InterfaceRegistry: encodingConfig.InterfaceRegistry,
 		AccountRetriever:  authtypes.AccountRetriever{},
-		AppConstructor:    NewAppConstructor(encCfg),
-		GenesisState:      app.ModuleBasics.DefaultGenesis(encCfg.Codec),
+		AppConstructor:    NewAppConstructor(encodingConfig),
+		GenesisState:      chainapp.ModuleBasics.DefaultGenesis(encodingConfig.Codec),
 		TimeoutCommit:     3 * time.Second,
 		ChainID:           fmt.Sprintf("%s_%d-1", constants.ChainIdPrefix, tmrand.Int63n(9999999999999)+1),
 		NumValidators:     4,
@@ -124,9 +123,9 @@ func DefaultConfig() Config {
 }
 
 // NewAppConstructor returns a new Evermint AppConstructor
-func NewAppConstructor(encodingCfg params.EncodingConfig) AppConstructor {
+func NewAppConstructor(encodingCfg simappparams.EncodingConfig) AppConstructor {
 	return func(val Validator) servertypes.Application {
-		return app.NewEvermint(
+		return chainapp.NewEvermint(
 			val.Ctx.Logger, dbm.NewMemDB(), nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
 			encodingCfg,
 			simtestutil.EmptyAppOptions{},

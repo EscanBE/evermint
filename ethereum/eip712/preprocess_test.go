@@ -2,6 +2,7 @@ package eip712_test
 
 import (
 	"encoding/hex"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/rename_chain/marker"
 	"strings"
@@ -16,8 +17,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/encoding"
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	"github.com/EscanBE/evermint/v12/types"
@@ -28,7 +27,7 @@ import (
 var (
 	chainID = constants.TestnetFullChainId
 	ctx     = client.Context{}.WithTxConfig(
-		encoding.MakeConfig(app.ModuleBasics).TxConfig,
+		chainapp.RegisterEncodingConfig().TxConfig,
 	)
 )
 var feePayerAddress = marker.ReplaceAbleAddress("evm17xpfvakm2amg962yls6f84z3kell8c5lcryk68")

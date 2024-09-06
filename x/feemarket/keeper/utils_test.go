@@ -18,7 +18,6 @@ import (
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/encoding"
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
@@ -75,7 +74,7 @@ func (suite *KeeperTestSuite) SetupApp(checkTx bool) {
 	stakingParams.BondDenom = constants.BaseDenom
 	suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
 
-	encodingConfig := encoding.MakeConfig(chainapp.ModuleBasics)
+	encodingConfig := chainapp.RegisterEncodingConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 	suite.appCodec = encodingConfig.Codec
@@ -149,7 +148,7 @@ func setupChain(localMinGasPricesStr string) {
 		map[int64]bool{},
 		chainapp.DefaultNodeHome,
 		5,
-		encoding.MakeConfig(chainapp.ModuleBasics),
+		chainapp.RegisterEncodingConfig(),
 		simtestutil.EmptyAppOptions{},
 		baseapp.SetMinGasPrices(localMinGasPricesStr),
 		baseapp.SetChainID(chainID),

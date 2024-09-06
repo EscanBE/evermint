@@ -2,12 +2,10 @@ package app
 
 import (
 	"cosmossdk.io/simapp"
-	"cosmossdk.io/simapp/params"
-	"github.com/EscanBE/evermint/v12/encoding"
+	simappparams "cosmossdk.io/simapp/params"
 )
 
 // NewDefaultGenesisState generates the default state for the application.
-func NewDefaultGenesisState(encodingConfig params.EncodingConfig) simapp.GenesisState {
-	encCfg := encoding.MakeConfig(ModuleBasics)
-	return ModuleBasics.DefaultGenesis(encCfg.Codec)
+func NewDefaultGenesisState(encodingConfig simappparams.EncodingConfig) simapp.GenesisState {
+	return ModuleBasics.DefaultGenesis(encodingConfig.Codec)
 }

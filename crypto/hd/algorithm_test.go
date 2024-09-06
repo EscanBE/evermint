@@ -1,6 +1,7 @@
 package hd
 
 import (
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	"os"
 	"strings"
@@ -15,7 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 
 	cryptocodec "github.com/EscanBE/evermint/v12/crypto/codec"
-	enccodec "github.com/EscanBE/evermint/v12/encoding/codec"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 )
 
@@ -27,7 +27,7 @@ func init() {
 
 	interfaceRegistry := types.NewInterfaceRegistry()
 	TestCodec = amino.NewProtoCodec(interfaceRegistry)
-	enccodec.RegisterInterfaces(interfaceRegistry)
+	chainapp.RegisterInterfaces(interfaceRegistry)
 }
 
 const (

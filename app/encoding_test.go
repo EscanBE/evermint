@@ -1,20 +1,16 @@
-package encoding_test
+package app_test
 
 import (
-	"math/big"
-	"testing"
-
-	"github.com/stretchr/testify/require"
-
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/encoding"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/stretchr/testify/require"
+	"math/big"
+	"testing"
 )
 
-func TestTxEncoding(t *testing.T) {
+func TestRegisterEncodingConfig(t *testing.T) {
 	addr, key := utiltx.NewAddrKey()
 	signer := utiltx.NewSigner(key)
 
@@ -34,13 +30,13 @@ func TestTxEncoding(t *testing.T) {
 	err := msg.Sign(ethSigner, signer)
 	require.NoError(t, err)
 
-	cfg := encoding.MakeConfig(app.ModuleBasics)
+	cfg := chainapp.RegisterEncodingConfig()
 
 	_, err = cfg.TxConfig.TxEncoder()(msg)
 	require.Error(t, err, "encoding failed")
 
 	// FIXME: transaction hashing is hardcoded on Tendermint:
-	// See https://github.com/cometbft/cometbft/issues/6539 for reference
+	// See https://github.com/tendermint/tendermint/issues/6539 for reference
 	// txHash := msg.AsTransaction().Hash()
 	// tmTx := tmtypes.Tx(bz)
 

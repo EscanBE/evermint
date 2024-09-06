@@ -3,12 +3,11 @@ package integration_test_util
 //goland:noinspection SpellCheckingInspection
 import (
 	"context"
-	"cosmossdk.io/simapp/params"
+	simappparams "cosmossdk.io/simapp/params"
 	"fmt"
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	etherminthd "github.com/EscanBE/evermint/v12/crypto/hd"
-	"github.com/EscanBE/evermint/v12/encoding"
 	kvindexer "github.com/EscanBE/evermint/v12/indexer"
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	rpcbackend "github.com/EscanBE/evermint/v12/rpc/backend"
@@ -71,7 +70,7 @@ type ChainIntegrationTestSuite struct {
 	useKeyring           bool
 	tempHolder           *itutiltypes.TemporaryHolder
 	logger               log.Logger
-	EncodingConfig       params.EncodingConfig
+	EncodingConfig       simappparams.EncodingConfig
 	ChainConstantsConfig itutiltypes.ChainConstantConfig
 	DB                   *itutiltypes.MemDB
 	TendermintApp        itutiltypes.TendermintApp
@@ -120,7 +119,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 
 	chainCfg.EvmChainIdBigInt = big.NewInt(chainCfg.EvmChainId)
 
-	encodingCfg := encoding.MakeConfig(chainapp.ModuleBasics)
+	encodingConfig := chainapp.RegisterEncodingConfig()
 
 	//goland:noinspection SpellCheckingInspection
 	testConfig := itutiltypes.TestConfig{
@@ -141,10 +140,10 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 
 	clientCtx := cosmosclient.Context{}.
 		WithChainID(chainCfg.CosmosChainId).
-		WithCodec(encodingCfg.Codec).
-		WithInterfaceRegistry(encodingCfg.InterfaceRegistry).
-		WithTxConfig(encodingCfg.TxConfig).
-		WithLegacyAmino(encodingCfg.Amino).
+		WithCodec(encodingConfig.Codec).
+		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
+		WithTxConfig(encodingConfig.TxConfig).
+		WithLegacyAmino(encodingConfig.Amino).
 		WithKeyringOptions(etherminthd.EthSecp256k1Option())
 
 	tempHolder := itutiltypes.NewTemporaryHolder()
@@ -181,7 +180,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 	}
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 	logger = log.NewFilter(logger, log.AllowError())
-	app, tmApp, valSet := itutiltypes.NewChainApp(chainCfg, disableTendermint, testConfig, encodingCfg, sharedDb, validatorAccounts, walletAccounts, genesisAccountBalance, tempHolder, logger)
+	app, tmApp, valSet := itutiltypes.NewChainApp(chainCfg, disableTendermint, testConfig, encodingConfig, sharedDb, validatorAccounts, walletAccounts, genesisAccountBalance, tempHolder, logger)
 	baseApp := app.BaseApp()
 
 	header := createFirstBlockHeader(
@@ -219,7 +218,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 		historicalContext: make(map[int64]sdk.Context),
 		tempHolder:        tempHolder,
 		logger:            logger,
-		EncodingConfig:    encodingCfg,
+		EncodingConfig:    encodingConfig,
 		ChainConstantsConfig: itutiltypes.NewChainConstantConfig(
 			chainCfg.CosmosChainId,
 			chainCfg.BaseDenom,
@@ -250,7 +249,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 	accounts, _ := result.QueryClients.Auth.ModuleAccounts(context.Background(), &authtypes.QueryModuleAccountsRequest{})
 	for _, acc := range accounts.Accounts {
 		var account authtypes.AccountI
-		err = encodingCfg.InterfaceRegistry.UnpackAny(acc, &account)
+		err = encodingConfig.InterfaceRegistry.UnpackAny(acc, &account)
 		require.NoError(t, err)
 		moduleAccount, ok := account.(authtypes.ModuleAccountI)
 		require.True(t, ok)

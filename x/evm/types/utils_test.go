@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"errors"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"math/big"
 	"testing"
 
@@ -14,8 +15,6 @@ import (
 
 	"github.com/cosmos/gogoproto/proto"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/encoding"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
 	"github.com/stretchr/testify/require"
@@ -49,7 +48,7 @@ func TestUnwrapEthererumMsg(t *testing.T) {
 	_, err := evmtypes.UnwrapEthereumMsg(nil, common.Hash{})
 	require.NotNil(t, err)
 
-	encodingConfig := encoding.MakeConfig(app.ModuleBasics)
+	encodingConfig := chainapp.RegisterEncodingConfig()
 	clientCtx := client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 	builder, _ := clientCtx.TxConfig.NewTxBuilder().(authtx.ExtensionOptionsTxBuilder)
 

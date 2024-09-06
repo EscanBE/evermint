@@ -12,7 +12,6 @@ import (
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/encoding"
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	"github.com/EscanBE/evermint/v12/x/feemarket/types"
@@ -183,7 +182,7 @@ func setupChain(localMinGasPricesStr string) {
 		map[int64]bool{},
 		chainapp.DefaultNodeHome,
 		5,
-		encoding.MakeConfig(chainapp.ModuleBasics),
+		chainapp.RegisterEncodingConfig(),
 		simtestutil.NewAppOptionsWithFlagHome(chainapp.DefaultNodeHome),
 		baseapp.SetChainID(chainID),
 		baseapp.SetMinGasPrices(localMinGasPricesStr),

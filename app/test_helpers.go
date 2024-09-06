@@ -24,7 +24,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/EscanBE/evermint/v12/encoding"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 
 	"github.com/EscanBE/evermint/v12/cmd/config"
@@ -73,7 +72,7 @@ func Setup(
 ) *Evermint {
 	privVal := mock.NewPV()
 	pubKey, _ := privVal.GetPubKey()
-	encodingConfig := encoding.MakeConfig(ModuleBasics)
+	encodingConfig := RegisterEncodingConfig()
 
 	// create validator set with single validator
 	validator := tmtypes.NewValidator(pubKey, 1)
@@ -201,7 +200,7 @@ func GenesisStateWithValSet(app *Evermint, genesisState simapp.GenesisState,
 func SetupTestingApp(chainID string) func() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	return func() (ibctesting.TestingApp, map[string]json.RawMessage) {
 		db := dbm.NewMemDB()
-		encodingConfig := encoding.MakeConfig(ModuleBasics)
+		encodingConfig := RegisterEncodingConfig()
 		app := NewEvermint(
 			log.NewNopLogger(),
 			db,

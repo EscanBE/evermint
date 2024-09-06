@@ -21,8 +21,6 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	tmtypes "github.com/cometbft/cometbft/types"
-
-	"github.com/EscanBE/evermint/v12/encoding"
 )
 
 func TestEvermintExport(t *testing.T) {
@@ -30,7 +28,7 @@ func TestEvermintExport(t *testing.T) {
 	privVal := mock.NewPV()
 	pubKey, err := privVal.GetPubKey()
 	require.NoError(t, err, "public key should be created without error")
-	encodingConfig := encoding.MakeConfig(chainapp.ModuleBasics)
+	encodingConfig := chainapp.RegisterEncodingConfig()
 
 	// create validator set with single validator
 	validator := tmtypes.NewValidator(pubKey, 1)
@@ -69,7 +67,7 @@ func TestEvermintExport(t *testing.T) {
 
 	// Making a new app object with the db, so that initchain hasn't been called
 	app2 := chainapp.NewEvermint(
-		log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, chainapp.DefaultNodeHome, 0, encoding.MakeConfig(chainapp.ModuleBasics),
+		log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, chainapp.DefaultNodeHome, 0, encodingConfig,
 		simtestutil.NewAppOptionsWithFlagHome(chainapp.DefaultNodeHome),
 		baseapp.SetChainID(chainID),
 	)
