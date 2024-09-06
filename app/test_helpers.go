@@ -73,6 +73,7 @@ func Setup(
 ) *Evermint {
 	privVal := mock.NewPV()
 	pubKey, _ := privVal.GetPubKey()
+	encodingConfig := encoding.MakeConfig(ModuleBasics)
 
 	// create validator set with single validator
 	validator := tmtypes.NewValidator(pubKey, 1)
@@ -96,13 +97,13 @@ func Setup(
 		map[int64]bool{},
 		DefaultNodeHome,
 		5,
-		encoding.MakeConfig(ModuleBasics),
+		encodingConfig,
 		simtestutil.NewAppOptionsWithFlagHome(DefaultNodeHome),
 		baseapp.SetChainID(chainID),
 	)
 	if !isCheckTx {
 		// init chain must be called to stop deliverState from being nil
-		genesisState := NewDefaultGenesisState()
+		genesisState := NewDefaultGenesisState(encodingConfig)
 
 		genesisState = GenesisStateWithValSet(chainApp, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
 
@@ -200,7 +201,7 @@ func GenesisStateWithValSet(app *Evermint, genesisState simapp.GenesisState,
 func SetupTestingApp(chainID string) func() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	return func() (ibctesting.TestingApp, map[string]json.RawMessage) {
 		db := dbm.NewMemDB()
-		cfg := encoding.MakeConfig(ModuleBasics)
+		encodingConfig := encoding.MakeConfig(ModuleBasics)
 		app := NewEvermint(
 			log.NewNopLogger(),
 			db,
@@ -209,10 +210,10 @@ func SetupTestingApp(chainID string) func() (ibctesting.TestingApp, map[string]j
 			map[int64]bool{},
 			DefaultNodeHome,
 			5,
-			cfg,
+			encodingConfig,
 			simtestutil.NewAppOptionsWithFlagHome(DefaultNodeHome),
 			baseapp.SetChainID(chainID),
 		)
-		return app, NewDefaultGenesisState()
+		return app, NewDefaultGenesisState(encodingConfig)
 	}
 }

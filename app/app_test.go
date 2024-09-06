@@ -30,6 +30,7 @@ func TestEvermintExport(t *testing.T) {
 	privVal := mock.NewPV()
 	pubKey, err := privVal.GetPubKey()
 	require.NoError(t, err, "public key should be created without error")
+	encodingConfig := encoding.MakeConfig(chainapp.ModuleBasics)
 
 	// create validator set with single validator
 	validator := tmtypes.NewValidator(pubKey, 1)
@@ -46,12 +47,12 @@ func TestEvermintExport(t *testing.T) {
 	chainID := constants.TestnetFullChainId
 	db := dbm.NewMemDB()
 	chainApp := chainapp.NewEvermint(
-		log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, chainapp.DefaultNodeHome, 0, encoding.MakeConfig(chainapp.ModuleBasics),
+		log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, chainapp.DefaultNodeHome, 0, encodingConfig,
 		simtestutil.NewAppOptionsWithFlagHome(chainapp.DefaultNodeHome),
 		baseapp.SetChainID(chainID),
 	)
 
-	genesisState := chainapp.NewDefaultGenesisState()
+	genesisState := chainapp.NewDefaultGenesisState(encodingConfig)
 	genesisState = chainapp.GenesisStateWithValSet(chainApp, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
 	stateBytes, err := json.MarshalIndent(genesisState, "", "  ")
 	require.NoError(t, err)
