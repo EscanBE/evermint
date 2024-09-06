@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"io"
 	"net/http"
 	"os"
@@ -79,11 +80,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
-	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	sdkparams "github.com/cosmos/cosmos-sdk/x/params"
+	sdkparamsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	sdkparamskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
+	sdkparamstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	sdkparamproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -105,7 +106,6 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 
@@ -173,28 +173,28 @@ var (
 		bank.AppModuleBasic{},
 		capability.AppModuleBasic{},
 		staking.AppModuleBasic{},
+		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
 		gov.NewAppModuleBasic(
 			[]govclient.ProposalHandler{
-				paramsclient.ProposalHandler, upgradeclient.LegacyProposalHandler, upgradeclient.LegacyCancelProposalHandler,
+				sdkparamsclient.ProposalHandler, upgradeclient.LegacyProposalHandler, upgradeclient.LegacyCancelProposalHandler,
 				ibcclientclient.UpdateClientProposalHandler, ibcclientclient.UpgradeProposalHandler,
 				// Evermint proposal types
 				erc20client.RegisterCoinProposalHandler, erc20client.RegisterERC20ProposalHandler, erc20client.ToggleTokenConversionProposalHandler,
 			},
 		),
-		params.AppModuleBasic{},
+		sdkparams.AppModuleBasic{},
 		crisis.AppModuleBasic{},
-		mint.AppModuleBasic{},
 		slashing.AppModuleBasic{},
+		feegrantmodule.AppModuleBasic{},
+		authzmodule.AppModuleBasic{},
 		ibc.AppModuleBasic{},
 		ibctm.AppModuleBasic{},
-		ibctransfer.AppModuleBasic{},
-		ica.AppModuleBasic{},
-		authzmodule.AppModuleBasic{},
-		feegrantmodule.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
+		ibctransfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
+		ica.AppModuleBasic{},
 		evm.AppModuleBasic{},
 		feemarket.AppModuleBasic{},
 		erc20.AppModuleBasic{},
@@ -254,7 +254,7 @@ type Evermint struct {
 	GovKeeper             govkeeper.Keeper
 	CrisisKeeper          *crisiskeeper.Keeper
 	UpgradeKeeper         upgradekeeper.Keeper
-	ParamsKeeper          paramskeeper.Keeper
+	ParamsKeeper          sdkparamskeeper.Keeper
 	FeeGrantKeeper        feegrantkeeper.Keeper
 	AuthzKeeper           authzkeeper.Keeper
 	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
@@ -321,7 +321,7 @@ func NewEvermint(
 		// SDK keys
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		distrtypes.StoreKey, slashingtypes.StoreKey,
-		govtypes.StoreKey, paramstypes.StoreKey, upgradetypes.StoreKey,
+		govtypes.StoreKey, sdkparamstypes.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, capabilitytypes.StoreKey, consensusparamtypes.StoreKey,
 		feegrant.StoreKey, authzkeeper.StoreKey, crisistypes.StoreKey, minttypes.StoreKey,
 		// ibc keys
@@ -335,7 +335,7 @@ func NewEvermint(
 	)
 
 	// Add the EVM transient store key
-	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
+	tkeys := sdk.NewTransientStoreKeys(sdkparamstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	// load state streaming if enabled
@@ -356,7 +356,7 @@ func NewEvermint(
 	}
 
 	// init params keeper and subspaces
-	chainApp.ParamsKeeper = initParamsKeeper(appCodec, cdc, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
+	chainApp.ParamsKeeper = initParamsKeeper(appCodec, cdc, keys[sdkparamstypes.StoreKey], tkeys[sdkparamstypes.TStoreKey])
 
 	// get authority address
 	authAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
@@ -431,7 +431,7 @@ func NewEvermint(
 	// register the proposal types
 	govRouter := govv1beta1.NewRouter()
 	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
-		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(chainApp.ParamsKeeper)).
+		AddRoute(sdkparamproposal.RouterKey, sdkparams.NewParamChangeProposalHandler(chainApp.ParamsKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(&chainApp.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(chainApp.IBCKeeper.ClientKeeper)).
 		AddRoute(erc20types.RouterKey, erc20.NewErc20ProposalHandler(&chainApp.Erc20Keeper))
@@ -471,7 +471,7 @@ func NewEvermint(
 
 	chainApp.GovKeeper = *govKeeper.SetHooks(
 		govtypes.NewMultiGovHooks(
-			//
+		//
 		),
 	)
 
@@ -540,7 +540,7 @@ func NewEvermint(
 		vesting.NewAppModule(chainApp.AccountKeeper, chainApp.BankKeeper),
 		upgrade.NewAppModule(&chainApp.UpgradeKeeper),
 		evidence.NewAppModule(chainApp.EvidenceKeeper),
-		params.NewAppModule(chainApp.ParamsKeeper),
+		sdkparams.NewAppModule(chainApp.ParamsKeeper),
 		feegrantmodule.NewAppModule(appCodec, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.FeeGrantKeeper, chainApp.interfaceRegistry),
 		authzmodule.NewAppModule(appCodec, chainApp.AuthzKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.interfaceRegistry),
 		consensus.NewAppModule(appCodec, chainApp.ConsensusParamsKeeper),
@@ -585,7 +585,7 @@ func NewEvermint(
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		feegrant.ModuleName,
-		paramstypes.ModuleName,
+		sdkparamstypes.ModuleName,
 		vestingtypes.ModuleName,
 		erc20types.ModuleName,
 		vauthtypes.ModuleName,
@@ -614,7 +614,7 @@ func NewEvermint(
 		evidencetypes.ModuleName,
 		authz.ModuleName,
 		feegrant.ModuleName,
-		paramstypes.ModuleName,
+		sdkparamstypes.ModuleName,
 		upgradetypes.ModuleName,
 		// Evermint modules
 		erc20types.ModuleName,
@@ -649,7 +649,7 @@ func NewEvermint(
 		icatypes.ModuleName,
 		authz.ModuleName,
 		feegrant.ModuleName,
-		paramstypes.ModuleName,
+		sdkparamstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 		// Evermint modules
@@ -869,7 +869,7 @@ func (app *Evermint) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 // GetSubspace returns a param subspace for a given module name.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (app *Evermint) GetSubspace(moduleName string) paramstypes.Subspace {
+func (app *Evermint) GetSubspace(moduleName string) sdkparamstypes.Subspace {
 	subspace, _ := app.ParamsKeeper.GetSubspace(moduleName)
 	return subspace
 }
@@ -962,8 +962,8 @@ func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router) {
 // initParamsKeeper init params keeper and its subspaces
 func initParamsKeeper(
 	appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey storetypes.StoreKey,
-) paramskeeper.Keeper {
-	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
+) sdkparamskeeper.Keeper {
+	paramsKeeper := sdkparamskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 
 	// SDK subspaces
 	paramsKeeper.Subspace(authtypes.ModuleName)
