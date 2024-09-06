@@ -27,7 +27,7 @@ import (
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
 	"github.com/EscanBE/evermint/v12/testutil"
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
@@ -118,7 +118,7 @@ func (suite *AnteTestSuite) SetupTest() {
 		FeeMarketKeeper:        suite.app.FeeMarketKeeper,
 		SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
 		SigGasConsumer:         ante.SigVerificationGasConsumer,
-		ExtensionOptionChecker: types.HasDynamicFeeExtensionOption,
+		ExtensionOptionChecker: evertypes.HasDynamicFeeExtensionOption,
 		TxFeeChecker:           evmante.NewDynamicFeeChecker(suite.app.EvmKeeper),
 	}.WithDefaultDisabledAuthzMsgs())
 

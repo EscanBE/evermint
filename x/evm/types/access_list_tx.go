@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 )
 
 func newAccessListTx(tx *ethtypes.Transaction) (*AccessListTx, error) {
@@ -26,7 +26,7 @@ func newAccessListTx(tx *ethtypes.Transaction) (*AccessListTx, error) {
 	}
 
 	if tx.Value() != nil {
-		amountInt, err := types.SafeNewIntFromBigInt(tx.Value())
+		amountInt, err := evertypes.SafeNewIntFromBigInt(tx.Value())
 		if err != nil {
 			return nil, err
 		}
@@ -34,7 +34,7 @@ func newAccessListTx(tx *ethtypes.Transaction) (*AccessListTx, error) {
 	}
 
 	if tx.GasPrice() != nil {
-		gasPriceInt, err := types.SafeNewIntFromBigInt(tx.GasPrice())
+		gasPriceInt, err := evertypes.SafeNewIntFromBigInt(tx.GasPrice())
 		if err != nil {
 			return nil, err
 		}
@@ -186,7 +186,7 @@ func (tx AccessListTx) Validate() error {
 	if gasPrice == nil {
 		return errorsmod.Wrap(ErrInvalidGasPrice, "cannot be nil")
 	}
-	if !types.IsValidInt256(gasPrice) {
+	if !evertypes.IsValidInt256(gasPrice) {
 		return errorsmod.Wrap(ErrInvalidGasPrice, "out of bound")
 	}
 
@@ -199,16 +199,16 @@ func (tx AccessListTx) Validate() error {
 	if amount != nil && amount.Sign() == -1 {
 		return errorsmod.Wrapf(ErrInvalidAmount, "amount cannot be negative %s", amount)
 	}
-	if !types.IsValidInt256(amount) {
+	if !evertypes.IsValidInt256(amount) {
 		return errorsmod.Wrap(ErrInvalidAmount, "out of bound")
 	}
 
-	if !types.IsValidInt256(tx.Fee()) {
+	if !evertypes.IsValidInt256(tx.Fee()) {
 		return errorsmod.Wrap(ErrInvalidGasFee, "out of bound")
 	}
 
 	if tx.To != "" {
-		if err := types.ValidateAddress(tx.To); err != nil {
+		if err := evertypes.ValidateAddress(tx.To); err != nil {
 			return errorsmod.Wrap(err, "invalid to address")
 		}
 	}

@@ -9,7 +9,7 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	vauthclient "github.com/EscanBE/evermint/v12/x/vauth/client/cli"
+	vauthcli "github.com/EscanBE/evermint/v12/x/vauth/client/cli"
 	vauthkeeper "github.com/EscanBE/evermint/v12/x/vauth/keeper"
 	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -70,12 +70,12 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 
 // GetTxCmd returns the root Tx command for the module. The subcommands of this root command are used by end-users to generate new transactions containing messages defined in the module
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
-	return vauthclient.GetTxCmd()
+	return vauthcli.GetTxCmd()
 }
 
 // GetQueryCmd returns the root query command for the module. The subcommands of this root command are used by end-users to generate new queries to the subset of the state defined by the module
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return vauthclient.GetQueryCmd()
+	return vauthcli.GetQueryCmd()
 }
 
 // ----------------------------------------------------------------------------

@@ -9,14 +9,14 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	"github.com/ethereum/go-ethereum/params"
+	ethparams "github.com/ethereum/go-ethereum/params"
 )
 
 var _ evmante.DynamicFeeEVMKeeper = MockEVMKeeper{}
@@ -26,7 +26,7 @@ type MockEVMKeeper struct {
 	EnableLondonHF bool
 }
 
-func (m MockEVMKeeper) GetBaseFee(_ sdk.Context, _ *params.ChainConfig) *big.Int {
+func (m MockEVMKeeper) GetBaseFee(_ sdk.Context, _ *ethparams.ChainConfig) *big.Int {
 	if m.EnableLondonHF {
 		return m.BaseFee
 	}
@@ -172,7 +172,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 				txBuilder.SetGasLimit(1)
 				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(10).Mul(evmtypes.DefaultPriorityReduction))))
 
-				option, err := codectypes.NewAnyWithValue(&types.ExtensionOptionDynamicFeeTx{})
+				option, err := codectypes.NewAnyWithValue(&evertypes.ExtensionOptionDynamicFeeTx{})
 				require.NoError(t, err)
 				txBuilder.SetExtensionOptions(option)
 				return txBuilder.GetTx()
@@ -192,7 +192,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 				txBuilder.SetGasLimit(1)
 				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(10).Mul(evmtypes.DefaultPriorityReduction).Add(sdk.NewInt(10)))))
 
-				option, err := codectypes.NewAnyWithValue(&types.ExtensionOptionDynamicFeeTx{
+				option, err := codectypes.NewAnyWithValue(&evertypes.ExtensionOptionDynamicFeeTx{
 					MaxPriorityPrice: sdk.NewInt(5).Mul(evmtypes.DefaultPriorityReduction),
 				})
 				require.NoError(t, err)
@@ -215,7 +215,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(10).Mul(evmtypes.DefaultPriorityReduction).Add(sdk.NewInt(10)))))
 
 				// set negative priority fee
-				option, err := codectypes.NewAnyWithValue(&types.ExtensionOptionDynamicFeeTx{
+				option, err := codectypes.NewAnyWithValue(&evertypes.ExtensionOptionDynamicFeeTx{
 					MaxPriorityPrice: sdk.NewInt(-5).Mul(evmtypes.DefaultPriorityReduction),
 				})
 				require.NoError(t, err)

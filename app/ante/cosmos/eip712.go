@@ -7,7 +7,7 @@ import (
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -28,7 +28,7 @@ var evermintCodec codec.ProtoCodecMarshaler
 
 func init() {
 	registry := codectypes.NewInterfaceRegistry()
-	types.RegisterInterfaces(registry)
+	evertypes.RegisterInterfaces(registry)
 	evermintCodec = codec.NewProtoCodec(registry)
 }
 
@@ -189,7 +189,7 @@ func VerifySignature(
 			msgs, tx.GetMemo(), tx.GetTip(),
 		)
 
-		signerChainID, err := types.ParseChainID(signerData.ChainID)
+		signerChainID, err := evertypes.ParseChainID(signerData.ChainID)
 		if err != nil {
 			return errorsmod.Wrapf(err, "failed to parse chain-id: %s", signerData.ChainID)
 		}
@@ -203,7 +203,7 @@ func VerifySignature(
 			return errorsmod.Wrap(errortypes.ErrUnknownExtensionOptions, "tx doesnt contain expected amount of extension options")
 		}
 
-		extOpt, ok := opts[0].GetCachedValue().(*types.ExtensionOptionsWeb3Tx)
+		extOpt, ok := opts[0].GetCachedValue().(*evertypes.ExtensionOptionsWeb3Tx)
 		if !ok {
 			return errorsmod.Wrap(errortypes.ErrUnknownExtensionOptions, "unknown extension option")
 		}

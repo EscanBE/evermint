@@ -11,8 +11,8 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
 	anteutils "github.com/EscanBE/evermint/v12/app/ante/utils"
-	"github.com/EscanBE/evermint/v12/types"
-	"github.com/EscanBE/evermint/v12/x/evm/keeper"
+	evertypes "github.com/EscanBE/evermint/v12/types"
+	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
@@ -99,7 +99,7 @@ func (avd ExternalOwnedAccountVerificationDecorator) AnteHandle(
 			spendableBalance = acct.Balance
 		}
 
-		if err := keeper.CheckSenderBalance(sdkmath.NewIntFromBigInt(spendableBalance), txData); err != nil {
+		if err := evmkeeper.CheckSenderBalance(sdkmath.NewIntFromBigInt(spendableBalance), txData); err != nil {
 			return ctx, errorsmod.Wrap(err, "failed to check sender balance")
 		}
 	}
@@ -159,7 +159,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		// Error: "gas wanted -1 is negative"
 		// For more information, see issue #1554
 		// https://github.com/evmos/ethermint/issues/1554
-		newCtx := ctx.WithGasMeter(types.NewInfiniteGasMeterWithLimit(gasWanted))
+		newCtx := ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(gasWanted))
 		return next(newCtx, tx, simulate)
 	}
 
@@ -196,7 +196,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 			gasWanted += txData.GetGas()
 		}
 
-		fees, err := keeper.VerifyFee(txData, evmDenom, baseFee, homestead, istanbul, ctx.IsCheckTx())
+		fees, err := evmkeeper.VerifyFee(txData, evmDenom, baseFee, homestead, istanbul, ctx.IsCheckTx())
 		if err != nil {
 			return ctx, errorsmod.Wrapf(err, "failed to verify the fees")
 		}
@@ -222,7 +222,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 
 	ctx.EventManager().EmitEvents(events)
 
-	blockGasLimit := types.BlockGasLimit(ctx)
+	blockGasLimit := evertypes.BlockGasLimit(ctx)
 
 	// return error if the tx gas is greater than the block limit (max gas)
 
@@ -245,7 +245,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	// FIXME: use a custom gas configuration that doesn't add any additional gas and only
 	// takes into account the gas consumed at the end of the EVM transaction.
 	newCtx := ctx.
-		WithGasMeter(types.NewInfiniteGasMeterWithLimit(gasWanted)).
+		WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(gasWanted)).
 		WithPriority(minPriority)
 
 	// we know that we have enough gas on the pool to cover the intrinsic gas

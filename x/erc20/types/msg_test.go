@@ -12,7 +12,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -26,14 +26,14 @@ func TestMsgsTestSuite(t *testing.T) {
 }
 
 func (suite *MsgsTestSuite) TestMsgConvertCoinGetters() {
-	msgInvalid := types.MsgConvertCoin{}
-	msg := types.NewMsgConvertCoin(
+	msgInvalid := erc20types.MsgConvertCoin{}
+	msg := erc20types.NewMsgConvertCoin(
 		sdk.NewCoin("test", sdk.NewInt(100)),
 		utiltx.GenerateAddress(),
 		sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
 	)
-	suite.Require().Equal(types.RouterKey, msg.Route())
-	suite.Require().Equal(types.TypeMsgConvertCoin, msg.Type())
+	suite.Require().Equal(erc20types.RouterKey, msg.Route())
+	suite.Require().Equal(erc20types.TypeMsgConvertCoin, msg.Type())
 	suite.Require().NotNil(msgInvalid.GetSignBytes())
 	suite.Require().NotNil(msg.GetSigners())
 }
@@ -56,7 +56,7 @@ func (suite *MsgsTestSuite) TestMsgConvertCoinNew() {
 	}
 
 	for i, tc := range testCases {
-		tx := types.NewMsgConvertCoin(tc.coin, tc.receiver, tc.sender)
+		tx := erc20types.NewMsgConvertCoin(tc.coin, tc.receiver, tc.sender)
 		err := tx.ValidateBasic()
 
 		if tc.expectPass {
@@ -133,7 +133,7 @@ func (suite *MsgsTestSuite) TestMsgConvertCoin() {
 	}
 
 	for i, tc := range testCases {
-		tx := types.MsgConvertCoin{tc.coin, tc.receiver, tc.sender}
+		tx := erc20types.MsgConvertCoin{tc.coin, tc.receiver, tc.sender}
 		err := tx.ValidateBasic()
 
 		if tc.expectPass {
@@ -145,15 +145,15 @@ func (suite *MsgsTestSuite) TestMsgConvertCoin() {
 }
 
 func (suite *MsgsTestSuite) TestMsgConvertERC20Getters() {
-	msgInvalid := types.MsgConvertERC20{}
-	msg := types.NewMsgConvertERC20(
+	msgInvalid := erc20types.MsgConvertERC20{}
+	msg := erc20types.NewMsgConvertERC20(
 		sdk.NewInt(100),
 		sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
 		utiltx.GenerateAddress(),
 		utiltx.GenerateAddress(),
 	)
-	suite.Require().Equal(types.RouterKey, msg.Route())
-	suite.Require().Equal(types.TypeMsgConvertERC20, msg.Type())
+	suite.Require().Equal(erc20types.RouterKey, msg.Route())
+	suite.Require().Equal(erc20types.TypeMsgConvertERC20, msg.Type())
 	suite.Require().NotNil(msgInvalid.GetSignBytes())
 	suite.Require().NotNil(msg.GetSigners())
 }
@@ -178,7 +178,7 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20New() {
 	}
 
 	for i, tc := range testCases {
-		tx := types.NewMsgConvertERC20(tc.amount, tc.receiver, tc.contract, tc.sender)
+		tx := erc20types.NewMsgConvertERC20(tc.amount, tc.receiver, tc.contract, tc.sender)
 		err := tx.ValidateBasic()
 
 		if tc.expectPass {
@@ -241,7 +241,7 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20() {
 	}
 
 	for i, tc := range testCases {
-		tx := types.MsgConvertERC20{tc.contract, tc.amount, tc.receiver, tc.sender}
+		tx := erc20types.MsgConvertERC20{tc.contract, tc.amount, tc.receiver, tc.sender}
 		err := tx.ValidateBasic()
 
 		if tc.expectPass {
@@ -255,22 +255,22 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20() {
 func (suite *MsgsTestSuite) TestMsgUpdateValidateBasic() {
 	testCases := []struct {
 		name      string
-		msgUpdate *types.MsgUpdateParams
+		msgUpdate *erc20types.MsgUpdateParams
 		expPass   bool
 	}{
 		{
 			"fail - invalid authority address",
-			&types.MsgUpdateParams{
+			&erc20types.MsgUpdateParams{
 				Authority: "invalid",
-				Params:    types.DefaultParams(),
+				Params:    erc20types.DefaultParams(),
 			},
 			false,
 		},
 		{
 			"pass - valid msg",
-			&types.MsgUpdateParams{
+			&erc20types.MsgUpdateParams{
 				Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-				Params:    types.DefaultParams(),
+				Params:    erc20types.DefaultParams(),
 			},
 			true,
 		},

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -124,7 +124,7 @@ func SendMsgs(chain *ibctesting.TestChain, feeAmt int64, msgs ...sdk.Msg) (*sdk.
 	// ensure the chain has the latest time
 	chain.Coordinator.UpdateTimeForChain(chain)
 
-	if evermintChain, ok := chain.App.(*app.Evermint); ok {
+	if evermintChain, ok := chain.App.(*chainapp.Evermint); ok {
 		bondDenom = evermintChain.StakingKeeper.BondDenom(chain.GetContext())
 	} else {
 		bondDenom = chain.GetSimApp().StakingKeeper.BondDenom(chain.GetContext())

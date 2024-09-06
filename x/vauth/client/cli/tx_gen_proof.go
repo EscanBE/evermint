@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 
 	vauthutils "github.com/EscanBE/evermint/v12/x/vauth/utils"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -50,12 +50,12 @@ func NewGenProofTxCmd() *cobra.Command {
 			hash := crypto.Keccak256([]byte(vauthtypes.MessageToSign))
 			signature, _, err := clientCtx.Keyring.SignByAddress(accAddr, hash)
 			if err != nil {
-				return errors.Wrap(err, "failed to sign")
+				return errorsmod.Wrap(err, "failed to sign")
 			}
 
 			verified, err := vauthutils.VerifySignature(common.BytesToAddress(accAddr), signature, vauthtypes.MessageToSign)
 			if err != nil {
-				return errors.Wrap(err, "failed to verify locally")
+				return errorsmod.Wrap(err, "failed to verify locally")
 			}
 			if !verified {
 				panic("un-expected error, signed message does not match")

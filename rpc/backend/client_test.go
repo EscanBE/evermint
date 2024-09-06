@@ -2,7 +2,7 @@ package backend
 
 import (
 	"context"
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
@@ -188,7 +188,7 @@ func BuildBlockResultsWithEventReceipt(height int64, receipt *ethtypes.Receipt) 
 
 	receiptSdkEvent, err := evmtypes.GetSdkEventForReceipt(receipt, big.NewInt(0), nil, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get sdk event for receipt")
+		return nil, errorsmod.Wrap(err, "failed to get sdk event for receipt")
 	}
 
 	receiptSdkEventABCI := sdk.Events{receiptSdkEvent}.ToABCIEvents()[0]

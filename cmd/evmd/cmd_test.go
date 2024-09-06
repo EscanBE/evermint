@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/stretchr/testify/require"
 
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	main "github.com/EscanBE/evermint/v12/cmd/evmd"
 )
 
@@ -25,7 +25,7 @@ func TestInitCmd(t *testing.T) {
 		fmt.Sprintf("--%s=%s", flags.FlagChainID, constants.TestnetFullChainId),
 	})
 
-	err := svrcmd.Execute(rootCmd, constants.ApplicationBinaryName, app.DefaultNodeHome)
+	err := svrcmd.Execute(rootCmd, constants.ApplicationBinaryName, chainapp.DefaultNodeHome)
 	require.NoError(t, err)
 }
 
@@ -38,7 +38,7 @@ func TestAddKeyLedgerCmd(t *testing.T) {
 		fmt.Sprintf("--%s", flags.FlagUseLedger),
 	})
 
-	err := svrcmd.Execute(rootCmd, constants.ApplicationBinaryName, app.DefaultNodeHome)
+	err := svrcmd.Execute(rootCmd, constants.ApplicationBinaryName, chainapp.DefaultNodeHome)
 	require.Error(t, err)
 }
 
@@ -71,8 +71,8 @@ func TestFlagGasAdjustment(t *testing.T) {
 				return nil
 			}
 
-			_ = svrcmd.Execute(rootCmd, constants.ApplicationBinaryName, app.DefaultNodeHome)
-			
+			_ = svrcmd.Execute(rootCmd, constants.ApplicationBinaryName, chainapp.DefaultNodeHome)
+
 			require.True(t, run, "test should be triggered regardless of error")
 		})
 	}

@@ -1,7 +1,7 @@
 package backend
 
 import (
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -270,7 +270,7 @@ func ParseTxReceiptFromEvent(event abci.Event) (*InCompletedEthReceipt, error) {
 	}
 	receipt := &ethtypes.Receipt{}
 	if err := receipt.UnmarshalBinary(bzReceipt); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal receipt")
+		return nil, errorsmod.Wrap(err, "failed to unmarshal receipt")
 	}
 
 	txHashRaw, found := findAttribute(event.Attributes, evmtypes.AttributeKeyReceiptEvmTxHash)

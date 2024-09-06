@@ -2,7 +2,7 @@ package backend
 
 import (
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -12,13 +12,13 @@ import (
 // to run a ethermint GRPC server.
 //
 // To use a mock method it has to be registered in a given test.
-var _ types.EVMTxIndexer = &mocks.EVMTxIndexer{}
+var _ evertypes.EVMTxIndexer = &mocks.EVMTxIndexer{}
 
 const mockGasUsed = 100
 
 func RegisterIndexerGetByBlockAndIndex(queryClient *mocks.EVMTxIndexer, height int64, index int32) {
 	queryClient.On("GetByBlockAndIndex", height, index).
-		Return(&types.TxResult{
+		Return(&evertypes.TxResult{
 			Height:     height,
 			TxIndex:    uint32(index),
 			EthTxIndex: index,
@@ -33,7 +33,7 @@ func RegisterIndexerGetByBlockAndIndexError(queryClient *mocks.EVMTxIndexer, hei
 
 func RegisterIndexerGetByTxHash(queryClient *mocks.EVMTxIndexer, hash common.Hash, height int64) {
 	queryClient.On("GetByTxHash", hash).
-		Return(&types.TxResult{
+		Return(&evertypes.TxResult{
 			Height:     height,
 			TxIndex:    0,
 			EthTxIndex: 0,

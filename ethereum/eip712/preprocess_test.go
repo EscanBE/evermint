@@ -19,7 +19,7 @@ import (
 
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -66,7 +66,7 @@ func TestLedgerPreprocessing(t *testing.T) {
 		require.True(t, ok)
 		require.True(t, len(hasExtOptsTx.GetExtensionOptions()) == 1)
 
-		expectedExt := types.ExtensionOptionsWeb3Tx{
+		expectedExt := evertypes.ExtensionOptionsWeb3Tx{
 			TypedDataChainID: constants.TestnetEIP155ChainId,
 			FeePayer:         feePayerAddress,
 			FeePayerSig:      tc.expectedSignatureBytes,

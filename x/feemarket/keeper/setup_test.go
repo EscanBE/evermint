@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -24,7 +24,7 @@ type KeeperTestSuite struct {
 
 	ctx         sdk.Context
 	app         *chainapp.Evermint
-	queryClient types.QueryClient
+	queryClient feemarkettypes.QueryClient
 	address     common.Address
 	consAddress sdk.ConsAddress
 

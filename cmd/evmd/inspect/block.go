@@ -1,7 +1,7 @@
 package inspect
 
 import (
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	"encoding/json"
 	"fmt"
 	dbm "github.com/cometbft/cometbft-db"
@@ -31,7 +31,7 @@ func BlockCmd() *cobra.Command {
 				var err error
 				reqHeight, err = strconv.ParseInt(reqHeightStr, 10, 64)
 				if err != nil {
-					panic(errors.Wrap(err, fmt.Sprintf("bad block height: %s", reqHeightStr)))
+					panic(errorsmod.Wrap(err, fmt.Sprintf("bad block height: %s", reqHeightStr)))
 				}
 				if reqHeight < 0 {
 					panic("invalid block height")
@@ -46,7 +46,7 @@ func BlockCmd() *cobra.Command {
 			dataDir := filepath.Join(home, "data")
 			db, err := dbm.NewDB("blockstore", server.GetAppDBBackend(serverCtx.Viper), dataDir)
 			if err != nil {
-				panic(errors.Wrap(err, "error while opening db"))
+				panic(errorsmod.Wrap(err, "error while opening db"))
 			}
 
 			blockStoreState := tmstore.LoadBlockStoreState(db)
@@ -71,7 +71,7 @@ func BlockCmd() *cobra.Command {
 
 			bz, err := json.Marshal(block)
 			if err != nil {
-				panic(errors.Wrap(err, "failed to marshal block to JSON"))
+				panic(errorsmod.Wrap(err, "failed to marshal block to JSON"))
 			}
 
 			fmt.Println("--- Block ---")
@@ -80,7 +80,7 @@ func BlockCmd() *cobra.Command {
 			meta := blockStore.LoadBaseMeta()
 			bz, err = json.Marshal(meta)
 			if err != nil {
-				panic(errors.Wrap(err, "failed to marshal block meta to JSON"))
+				panic(errorsmod.Wrap(err, "failed to marshal block meta to JSON"))
 			}
 
 			fmt.Println("--- Meta ---")

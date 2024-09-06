@@ -8,8 +8,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	// v3types "github.com/EscanBE/evermint/v12/x/erc20/migrations/v3/types"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -31,7 +30,7 @@ func newMockSubspace(
 	}
 }
 
-func (ms mockSubspace) GetParamSet(_ sdk.Context, ps types.LegacyParams) {
+func (ms mockSubspace) GetParamSet(_ sdk.Context, ps erc20types.LegacyParams) {
 	// *ps.(*v3types.V3Params) = ms.ps
 }
 
@@ -42,7 +41,7 @@ func (ms mockSubspace) WithKeyTable(keyTable paramtypes.KeyTable) paramtypes.Sub
 }
 
 func (suite *KeeperTestSuite) TestMigrations() {
-	storeKey := sdk.NewKVStoreKey(types.ModuleName)
+	storeKey := sdk.NewKVStoreKey(erc20types.ModuleName)
 	tKey := sdk.NewTransientStoreKey("transient_test")
 	ctx := testutil.DefaultContext(storeKey, tKey)
 

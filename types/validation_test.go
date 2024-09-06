@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +28,7 @@ func TestIsEmptyHash(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expEmpty, types.IsEmptyHash(tc.hash), tc.name)
+		require.Equal(t, tc.expEmpty, evertypes.IsEmptyHash(tc.hash), tc.name)
 	}
 }
 
@@ -51,7 +51,7 @@ func TestIsZeroAddress(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expEmpty, types.IsZeroAddress(tc.address), tc.name)
+		require.Equal(t, tc.expEmpty, evertypes.IsZeroAddress(tc.address), tc.name)
 	}
 }
 
@@ -76,7 +76,7 @@ func TestValidateAddress(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		err := types.ValidateAddress(tc.address)
+		err := evertypes.ValidateAddress(tc.address)
 
 		if tc.expError {
 			require.Error(t, err, tc.name)
@@ -107,7 +107,7 @@ func TestValidateNonZeroAddress(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		err := types.ValidateNonZeroAddress(tc.address)
+		err := evertypes.ValidateNonZeroAddress(tc.address)
 
 		if tc.expError {
 			require.Error(t, err, tc.name)
@@ -132,7 +132,7 @@ func TestSafeInt64(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		value, err := types.SafeInt64(tc.value)
+		value, err := evertypes.SafeInt64(tc.value)
 		if tc.expError {
 			require.Error(t, err, tc.name)
 			continue

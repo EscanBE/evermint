@@ -22,7 +22,7 @@ import (
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
@@ -53,8 +53,8 @@ func (suite *KeeperTestSuite) SetupApp(checkTx bool) {
 	suite.ctx = suite.app.BaseApp.NewContext(checkTx, header)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.app.FeeMarketKeeper)
-	suite.queryClient = types.NewQueryClient(queryHelper)
+	feemarkettypes.RegisterQueryServer(queryHelper, suite.app.FeeMarketKeeper)
+	suite.queryClient = feemarkettypes.NewQueryClient(queryHelper)
 
 	acc := authtypes.NewBaseAccount(suite.address.Bytes(), nil, 0, 0)
 
@@ -93,15 +93,15 @@ func (suite *KeeperTestSuite) CommitAfter(t time.Duration) {
 	suite.ctx, err = testutil.Commit(suite.ctx, suite.app, t, nil)
 	suite.Require().NoError(err)
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.app.FeeMarketKeeper)
-	suite.queryClient = types.NewQueryClient(queryHelper)
+	feemarkettypes.RegisterQueryServer(queryHelper, suite.app.FeeMarketKeeper)
+	suite.queryClient = feemarkettypes.NewQueryClient(queryHelper)
 }
 
 // setupTestWithContext sets up a test chain with an example Cosmos send msg,
 // given a local (validator config) and a global (feemarket param) minGasPrice
 func setupTestWithContext(valMinGasPrice string, minGasPrice sdk.Dec, baseFee sdkmath.Int) (*ethsecp256k1.PrivKey, banktypes.MsgSend) {
 	privKey, msg := setupTest(valMinGasPrice + s.denom)
-	params := types.DefaultParams()
+	params := feemarkettypes.DefaultParams()
 	params.MinGasPrice = minGasPrice
 	err := s.app.FeeMarketKeeper.SetParams(s.ctx, params)
 	s.Require().NoError(err)
@@ -156,7 +156,7 @@ func setupChain(localMinGasPricesStr string) {
 	)
 
 	genesisState := helpers.NewTestGenesisState(chainApp.AppCodec())
-	genesisState[types.ModuleName] = chainApp.AppCodec().MustMarshalJSON(types.DefaultGenesisState())
+	genesisState[feemarkettypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(feemarkettypes.DefaultGenesisState())
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", "  ")
 	s.Require().NoError(err)

@@ -15,7 +15,7 @@ import (
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -135,7 +135,7 @@ var _ = Describe("Feemarket", func() {
 // given a local (validator config) and a global (feemarket param) minGasPrice
 func setupTestWithContext(valMinGasPrice string, minGasPrice sdk.Dec, baseFee math.Int) (*ethsecp256k1.PrivKey, banktypes.MsgSend) {
 	privKey, msg := setupTest(valMinGasPrice + s.denom)
-	params := types.DefaultParams()
+	params := feemarkettypes.DefaultParams()
 	params.MinGasPrice = minGasPrice
 	err := s.app.FeeMarketKeeper.SetParams(s.ctx, params)
 	s.Require().NoError(err)
@@ -190,7 +190,7 @@ func setupChain(localMinGasPricesStr string) {
 	)
 
 	genesisState := helpers.NewTestGenesisState(chainApp.AppCodec())
-	genesisState[types.ModuleName] = chainApp.AppCodec().MustMarshalJSON(types.DefaultGenesisState())
+	genesisState[feemarkettypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(feemarkettypes.DefaultGenesisState())
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", "  ")
 	s.Require().NoError(err)

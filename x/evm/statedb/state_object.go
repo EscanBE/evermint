@@ -2,7 +2,7 @@ package statedb
 
 import (
 	"bytes"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"math/big"
 	"sort"
 
@@ -21,13 +21,13 @@ type Account struct {
 func NewEmptyAccount() *Account {
 	return &Account{
 		Balance:  new(big.Int),
-		CodeHash: types.EmptyCodeHash,
+		CodeHash: evmtypes.EmptyCodeHash,
 	}
 }
 
 // IsContract returns if the account contains contract code.
 func (acct Account) IsContract() bool {
-	return !types.IsEmptyCodeHash(common.BytesToHash(acct.CodeHash))
+	return !evmtypes.IsEmptyCodeHash(common.BytesToHash(acct.CodeHash))
 }
 
 // Storage represents in-memory cache/buffer of contract storage.
@@ -69,7 +69,7 @@ func newObject(db *StateDB, address common.Address, account Account) *stateObjec
 		account.Balance = new(big.Int)
 	}
 	if account.CodeHash == nil {
-		account.CodeHash = types.EmptyCodeHash
+		account.CodeHash = evmtypes.EmptyCodeHash
 	}
 	return &stateObject{
 		db:            db,

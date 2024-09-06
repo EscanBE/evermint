@@ -4,7 +4,7 @@ package main
 
 import (
 	"bufio"
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	"encoding/json"
 	"fmt"
 	"github.com/EscanBE/evermint/v12/constants"
@@ -22,7 +22,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/tx"
+	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
@@ -310,7 +310,7 @@ func initTestnetFiles(
 			normalAccountAddr, _, _ := testutil.GenerateSaveCoinKey(kb, fmt.Sprintf("wal%d", ai+1), normalAccountMnemonic, true, algo)
 			if err != nil {
 				_ = os.RemoveAll(args.outputDir)
-				return errors.Wrap(err, fmt.Sprintf("failed to import normal account idx %d", ai))
+				return errorsmod.Wrap(err, fmt.Sprintf("failed to import normal account idx %d", ai))
 			}
 			normalAccountAddresses[normalAccountAddr.String()] = normalAccountAddr
 		}
@@ -355,14 +355,14 @@ func initTestnetFiles(
 
 		txBuilder.SetMemo(memo)
 
-		txFactory := tx.Factory{}
+		txFactory := clienttx.Factory{}
 		txFactory = txFactory.
 			WithChainID(args.chainID).
 			WithMemo(memo).
 			WithKeybase(kb).
 			WithTxConfig(clientCtx.TxConfig)
 
-		if err := tx.Sign(txFactory, nodeDirName, txBuilder, true); err != nil {
+		if err := clienttx.Sign(txFactory, nodeDirName, txBuilder, true); err != nil {
 			return err
 		}
 
@@ -394,12 +394,12 @@ func initTestnetFiles(
 		clientConfigFilePath := filepath.Join(nodeDir, "config", "client.toml")
 		bzClientToml, err := os.ReadFile(clientConfigFilePath)
 		if err != nil {
-			return errors.Wrap(err, "failed to read client.toml")
+			return errorsmod.Wrap(err, "failed to read client.toml")
 		}
 		bzClientToml = []byte(strings.Replace(string(bzClientToml), "chain-id", fmt.Sprintf("chain-id = \"%s\" # ", args.chainID), 1))
 		err = os.WriteFile(clientConfigFilePath, bzClientToml, 0o644)
 		if err != nil {
-			return errors.Wrap(err, "failed to write client.toml")
+			return errorsmod.Wrap(err, "failed to write client.toml")
 		}
 	}
 

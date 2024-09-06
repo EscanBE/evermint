@@ -5,14 +5,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 // ParseRegisterCoinProposal reads and parses a ParseRegisterCoinProposal from a file.
 func ParseMetadata(cdc codec.JSONCodec, metadataFile string) ([]banktypes.Metadata, error) {
-	proposalMetadata := types.ProposalMetadata{}
+	proposalMetadata := erc20types.ProposalMetadata{}
 
 	contents, err := os.ReadFile(filepath.Clean(metadataFile))
 	if err != nil {

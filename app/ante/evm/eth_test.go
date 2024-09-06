@@ -14,7 +14,7 @@ import (
 	"github.com/EscanBE/evermint/v12/server/config"
 	"github.com/EscanBE/evermint/v12/testutil"
 	testutiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
@@ -293,7 +293,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 	tx2.From = addr.Hex()
 	tx2Priority := int64(1)
 
-	tx3GasLimit := types.BlockGasLimit(suite.ctx) + uint64(1)
+	tx3GasLimit := evertypes.BlockGasLimit(suite.ctx) + uint64(1)
 	eth3TxContractParams := &evmtypes.EvmTxArgs{
 		ChainID:  chainID,
 		Nonce:    1,

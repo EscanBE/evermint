@@ -7,7 +7,7 @@ import (
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -29,7 +29,7 @@ func (suite *BackendTestSuite) TestRPCMinGasPrice() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterParamsWithoutHeaderError(queryClient, 1)
 			},
-			types.DefaultGasPrice,
+			evertypes.DefaultGasPrice,
 			true,
 		},
 		{
@@ -38,7 +38,7 @@ func (suite *BackendTestSuite) TestRPCMinGasPrice() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterParamsWithoutHeader(queryClient, 1)
 			},
-			types.DefaultGasPrice,
+			evertypes.DefaultGasPrice,
 			true,
 		},
 	}

@@ -7,7 +7,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/tx"
+	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
@@ -99,7 +99,7 @@ func createTx(priv cryptotypes.PrivKey, msgs ...sdk.Msg) (sdk.Tx, error) {
 		AccountNumber: 0,
 		Sequence:      0,
 	}
-	sigV2, err := tx.SignWithPrivKey(
+	sigV2, err := clienttx.SignWithPrivKey(
 		encodingConfig.TxConfig.SignModeHandler().DefaultMode(), signerData,
 		txBuilder, priv, encodingConfig.TxConfig,
 		0,

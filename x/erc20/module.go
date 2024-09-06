@@ -16,9 +16,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/EscanBE/evermint/v12/x/erc20/client/cli"
-	"github.com/EscanBE/evermint/v12/x/erc20/keeper"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	erc20cli "github.com/EscanBE/evermint/v12/x/erc20/client/cli"
+	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 )
 
 // type check to ensure the interface is properly implemented
@@ -32,12 +32,12 @@ var (
 type AppModuleBasic struct{}
 
 func (AppModuleBasic) Name() string {
-	return types.ModuleName
+	return erc20types.ModuleName
 }
 
 // RegisterLegacyAminoCodec performs a no-op as the erc20 doesn't support Amino encoding
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	types.RegisterLegacyAminoCodec(cdc)
+	erc20types.RegisterLegacyAminoCodec(cdc)
 }
 
 // ConsensusVersion returns the consensus state-breaking version for the module.
@@ -47,19 +47,19 @@ func (AppModuleBasic) ConsensusVersion() uint64 {
 
 // RegisterInterfaces registers interfaces and implementations of the erc20 module.
 func (AppModuleBasic) RegisterInterfaces(interfaceRegistry codectypes.InterfaceRegistry) {
-	types.RegisterInterfaces(interfaceRegistry)
+	erc20types.RegisterInterfaces(interfaceRegistry)
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the erc20
 // module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesisState())
+	return cdc.MustMarshalJSON(erc20types.DefaultGenesisState())
 }
 
 func (b AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingConfig, bz json.RawMessage) error {
-	var genesisState types.GenesisState
+	var genesisState erc20types.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &genesisState); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", erc20types.ModuleName, err)
 	}
 
 	return genesisState.Validate()
@@ -70,34 +70,34 @@ func (b AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncoding
 func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
 
 func (b AppModuleBasic) RegisterGRPCGatewayRoutes(c client.Context, serveMux *runtime.ServeMux) {
-	if err := types.RegisterQueryHandlerClient(context.Background(), serveMux, types.NewQueryClient(c)); err != nil {
+	if err := erc20types.RegisterQueryHandlerClient(context.Background(), serveMux, erc20types.NewQueryClient(c)); err != nil {
 		panic(err)
 	}
 }
 
 // GetTxCmd returns the root tx command for the erc20 module.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.NewTxCmd()
+	return erc20cli.NewTxCmd()
 }
 
 // GetQueryCmd returns no root query command for the erc20 module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
+	return erc20cli.GetQueryCmd()
 }
 
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper erc20keeper.Keeper
 	ak     authkeeper.AccountKeeper
 	// legacySubspace is used solely for migration of x/params managed parameters
-	legacySubspace types.Subspace
+	legacySubspace erc20types.Subspace
 }
 
 // NewAppModule creates a new AppModule Object
 func NewAppModule(
-	k keeper.Keeper,
+	k erc20keeper.Keeper,
 	ak authkeeper.AccountKeeper,
-	ss types.Subspace,
+	ss erc20types.Subspace,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
@@ -108,7 +108,7 @@ func NewAppModule(
 }
 
 func (AppModule) Name() string {
-	return types.ModuleName
+	return erc20types.ModuleName
 }
 
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
@@ -118,16 +118,16 @@ func (am AppModule) NewHandler() sdk.Handler {
 }
 
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), &am.keeper)
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	erc20types.RegisterMsgServer(cfg.MsgServer(), &am.keeper)
+	erc20types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
-	migrator := keeper.NewMigrator(am.keeper, am.legacySubspace)
+	migrator := erc20keeper.NewMigrator(am.keeper, am.legacySubspace)
 
 	// NOTE: the migrations below will only run if the consensus version has changed
 	// since the last release
 
-	if err := cfg.RegisterMigration(types.ModuleName, 1, migrator.NoOpMigrate); err != nil {
-		panic(fmt.Errorf("failed to migrate %s: %w", types.ModuleName, err))
+	if err := cfg.RegisterMigration(erc20types.ModuleName, 1, migrator.NoOpMigrate); err != nil {
+		panic(fmt.Errorf("failed to migrate %s: %w", erc20types.ModuleName, err))
 	}
 }
 
@@ -139,7 +139,7 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 }
 
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState types.GenesisState
+	var genesisState erc20types.GenesisState
 
 	cdc.MustUnmarshalJSON(data, &genesisState)
 	InitGenesis(ctx, am.keeper, am.ak, genesisState)

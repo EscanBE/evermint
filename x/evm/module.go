@@ -17,9 +17,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/EscanBE/evermint/v12/x/evm/client/cli"
-	"github.com/EscanBE/evermint/v12/x/evm/keeper"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evmcli "github.com/EscanBE/evermint/v12/x/evm/client/cli"
+	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
 var (
@@ -32,12 +32,12 @@ type AppModuleBasic struct{}
 
 // Name returns the evm module's name.
 func (AppModuleBasic) Name() string {
-	return types.ModuleName
+	return evmtypes.ModuleName
 }
 
 // RegisterLegacyAminoCodec registers the module's types with the given codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	types.RegisterLegacyAminoCodec(cdc)
+	evmtypes.RegisterLegacyAminoCodec(cdc)
 }
 
 // ConsensusVersion returns the consensus state-breaking version for the module.
@@ -48,14 +48,14 @@ func (AppModuleBasic) ConsensusVersion() uint64 {
 // DefaultGenesis returns default genesis state as raw bytes for the evm
 // module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesisState())
+	return cdc.MustMarshalJSON(evmtypes.DefaultGenesisState())
 }
 
 // ValidateGenesis is the validation check of the Genesis
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingConfig, bz json.RawMessage) error {
-	var genesisState types.GenesisState
+	var genesisState evmtypes.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &genesisState); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", evmtypes.ModuleName, err)
 	}
 
 	return genesisState.Validate()
@@ -67,24 +67,24 @@ func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {
 }
 
 func (b AppModuleBasic) RegisterGRPCGatewayRoutes(c client.Context, serveMux *runtime.ServeMux) {
-	if err := types.RegisterQueryHandlerClient(context.Background(), serveMux, types.NewQueryClient(c)); err != nil {
+	if err := evmtypes.RegisterQueryHandlerClient(context.Background(), serveMux, evmtypes.NewQueryClient(c)); err != nil {
 		panic(err)
 	}
 }
 
 // GetTxCmd returns the root tx command for the evm module.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.GetTxCmd()
+	return evmcli.GetTxCmd()
 }
 
 // GetQueryCmd returns no root query command for the evm module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
+	return evmcli.GetQueryCmd()
 }
 
 // RegisterInterfaces registers interfaces and implementations of the evm module.
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	types.RegisterInterfaces(registry)
+	evmtypes.RegisterInterfaces(registry)
 }
 
 // ____________________________________________________________________________
@@ -92,14 +92,14 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 // AppModule implements an application module for the evm module.
 type AppModule struct {
 	AppModuleBasic
-	keeper *keeper.Keeper
-	ak     types.AccountKeeper
+	keeper *evmkeeper.Keeper
+	ak     evmtypes.AccountKeeper
 	// legacySubspace is used solely for migration of x/params managed parameters
-	legacySubspace types.Subspace
+	legacySubspace evmtypes.Subspace
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k *keeper.Keeper, ak types.AccountKeeper, ss types.Subspace) AppModule {
+func NewAppModule(k *evmkeeper.Keeper, ak evmtypes.AccountKeeper, ss evmtypes.Subspace) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
@@ -110,7 +110,7 @@ func NewAppModule(k *keeper.Keeper, ak types.AccountKeeper, ss types.Subspace) A
 
 // Name returns the evm module's name.
 func (AppModule) Name() string {
-	return types.ModuleName
+	return evmtypes.ModuleName
 }
 
 // RegisterInvariants interface for registering invariants. Performs a no-op
@@ -121,13 +121,13 @@ func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	evmtypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	evmtypes.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
-	m := keeper.NewMigrator(*am.keeper, am.legacySubspace)
-	err := cfg.RegisterMigration(types.ModuleName, 1, m.NoOpMigrate)
+	m := evmkeeper.NewMigrator(*am.keeper, am.legacySubspace)
+	err := cfg.RegisterMigration(evmtypes.ModuleName, 1, m.NoOpMigrate)
 	if err != nil {
-		panic(fmt.Errorf("failed to migrate %s: %w", types.ModuleName, err))
+		panic(fmt.Errorf("failed to migrate %s: %w", evmtypes.ModuleName, err))
 	}
 }
 
@@ -145,7 +145,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.V
 // InitGenesis performs genesis initialization for the evm module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState types.GenesisState
+	var genesisState evmtypes.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 	InitGenesis(ctx, am.keeper, am.ak, genesisState)
 	return []abci.ValidatorUpdate{}

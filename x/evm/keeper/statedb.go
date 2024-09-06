@@ -11,7 +11,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -36,7 +36,7 @@ func (k *Keeper) GetAccount(ctx sdk.Context, addr common.Address) *statedb.Accou
 
 // GetState loads contract state from database, implements `statedb.Keeper` interface.
 func (k *Keeper) GetState(ctx sdk.Context, addr common.Address, key common.Hash) common.Hash {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AddressStoragePrefix(addr))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), evmtypes.AddressStoragePrefix(addr))
 
 	value := store.Get(key.Bytes())
 	if len(value) == 0 {
@@ -48,14 +48,14 @@ func (k *Keeper) GetState(ctx sdk.Context, addr common.Address, key common.Hash)
 
 // GetCode loads contract code from database, implements `statedb.Keeper` interface.
 func (k *Keeper) GetCode(ctx sdk.Context, codeHash common.Hash) []byte {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixCode)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), evmtypes.KeyPrefixCode)
 	return store.Get(codeHash.Bytes())
 }
 
 // ForEachStorage iterate contract storage, callback return false to break early
 func (k *Keeper) ForEachStorage(ctx sdk.Context, addr common.Address, cb func(key, value common.Hash) bool) {
 	store := ctx.KVStore(k.storeKey)
-	prefix := types.AddressStoragePrefix(addr)
+	prefix := evmtypes.AddressStoragePrefix(addr)
 
 	iterator := sdk.KVStorePrefixIterator(store, prefix)
 	defer iterator.Close()
@@ -83,19 +83,19 @@ func (k *Keeper) SetBalance(ctx sdk.Context, addr common.Address, amount *big.In
 	case 1:
 		// mint
 		coins := sdk.NewCoins(sdk.NewCoin(params.EvmDenom, sdkmath.NewIntFromBigInt(delta)))
-		if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, coins); err != nil {
+		if err := k.bankKeeper.MintCoins(ctx, evmtypes.ModuleName, coins); err != nil {
 			return err
 		}
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, cosmosAddr, coins); err != nil {
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, evmtypes.ModuleName, cosmosAddr, coins); err != nil {
 			return err
 		}
 	case -1:
 		// burn
 		coins := sdk.NewCoins(sdk.NewCoin(params.EvmDenom, sdkmath.NewIntFromBigInt(new(big.Int).Neg(delta))))
-		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, cosmosAddr, types.ModuleName, coins); err != nil {
+		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, cosmosAddr, evmtypes.ModuleName, coins); err != nil {
 			return err
 		}
-		if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, coins); err != nil {
+		if err := k.bankKeeper.BurnCoins(ctx, evmtypes.ModuleName, coins); err != nil {
 			return err
 		}
 	default:
@@ -141,7 +141,7 @@ func (k *Keeper) SetAccount(ctx sdk.Context, addr common.Address, account stated
 
 // SetState update contract storage, delete if value is empty.
 func (k *Keeper) SetState(ctx sdk.Context, addr common.Address, key common.Hash, value []byte) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AddressStoragePrefix(addr))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), evmtypes.AddressStoragePrefix(addr))
 	action := "updated"
 	if len(value) == 0 {
 		store.Delete(key.Bytes())
@@ -158,7 +158,7 @@ func (k *Keeper) SetState(ctx sdk.Context, addr common.Address, key common.Hash,
 
 // SetCode set contract code, delete if code is empty.
 func (k *Keeper) SetCode(ctx sdk.Context, codeHash, code []byte) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixCode)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), evmtypes.KeyPrefixCode)
 
 	// store or delete code
 	action := "updated"
@@ -188,13 +188,13 @@ func (k *Keeper) DeleteAccount(ctx sdk.Context, addr common.Address) error {
 
 	// NOTE: only Ethereum accounts (contracts) can be selfdestructed
 	if isNotProhibitedAccount, reason := isNotProhibitedAccountType(acct); !isNotProhibitedAccount {
-		return errorsmod.Wrapf(types.ErrInvalidAccount, "type %T, address %s, reason: %s", acct, addr, reason)
+		return errorsmod.Wrapf(evmtypes.ErrInvalidAccount, "type %T, address %s, reason: %s", acct, addr, reason)
 	}
 
 	// clear code-hash
 	codeHash := k.GetCodeHash(ctx, addr.Bytes())
-	if types.IsEmptyCodeHash(codeHash) {
-		return errorsmod.Wrapf(types.ErrInvalidAccount, "type %T, address %s, not smart contract", acct, addr)
+	if evmtypes.IsEmptyCodeHash(codeHash) {
+		return errorsmod.Wrapf(evmtypes.ErrInvalidAccount, "type %T, address %s, not smart contract", acct, addr)
 	}
 	k.DeleteCodeHash(ctx, addr.Bytes())
 
@@ -223,12 +223,12 @@ func (k *Keeper) DeleteAccount(ctx sdk.Context, addr common.Address) error {
 
 // GetCodeHash returns the code hash for the corresponding account address.
 func (k *Keeper) GetCodeHash(ctx sdk.Context, addr []byte) common.Hash {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixCodeHash)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), evmtypes.KeyPrefixCodeHash)
 	bz := store.Get(addr)
 
 	var codeHash common.Hash
 	if len(bz) == 0 {
-		codeHash = common.BytesToHash(types.EmptyCodeHash)
+		codeHash = common.BytesToHash(evmtypes.EmptyCodeHash)
 	} else {
 		codeHash = common.BytesToHash(bz)
 	}
@@ -238,9 +238,9 @@ func (k *Keeper) GetCodeHash(ctx sdk.Context, addr []byte) common.Hash {
 
 // SetCodeHash sets the code hash for the given address.
 func (k *Keeper) SetCodeHash(ctx sdk.Context, addr common.Address, codeHash common.Hash) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixCodeHash)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), evmtypes.KeyPrefixCodeHash)
 
-	if types.IsEmptyCodeHash(codeHash) {
+	if evmtypes.IsEmptyCodeHash(codeHash) {
 		store.Delete(addr.Bytes())
 	} else {
 		store.Set(addr.Bytes(), codeHash.Bytes())
@@ -249,14 +249,14 @@ func (k *Keeper) SetCodeHash(ctx sdk.Context, addr common.Address, codeHash comm
 
 // DeleteCodeHash delete the code hash for the given address.
 func (k *Keeper) DeleteCodeHash(ctx sdk.Context, addr []byte) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixCodeHash)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), evmtypes.KeyPrefixCodeHash)
 	store.Delete(addr)
 }
 
 // IterateContracts iterating through all code hash, represents for all smart contracts
 func (k Keeper) IterateContracts(ctx sdk.Context, callback func(addr common.Address, codeHash common.Hash) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.KeyPrefixCodeHash)
+	iterator := sdk.KVStorePrefixIterator(store, evmtypes.KeyPrefixCodeHash)
 
 	defer func() {
 		_ = iterator.Close()

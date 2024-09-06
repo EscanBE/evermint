@@ -6,13 +6,13 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/tx"
+	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 )
 
 var (
@@ -46,7 +46,7 @@ type CosmosTxArgs struct {
 // It returns the signed transaction and an error
 func PrepareCosmosTx(
 	ctx sdk.Context,
-	chainApp *app.Evermint,
+	chainApp *chainapp.Evermint,
 	args CosmosTxArgs,
 ) (authsigning.Tx, error) {
 	txBuilder := args.TxCfg.NewTxBuilder()
@@ -79,7 +79,7 @@ func PrepareCosmosTx(
 // the provided private key
 func signCosmosTx(
 	ctx sdk.Context,
-	chainApp *app.Evermint,
+	chainApp *chainapp.Evermint,
 	args CosmosTxArgs,
 	txBuilder client.TxBuilder,
 ) (authsigning.Tx, error) {
@@ -113,7 +113,7 @@ func signCosmosTx(
 		AccountNumber: accNumber,
 		Sequence:      seq,
 	}
-	sigV2, err = tx.SignWithPrivKey(
+	sigV2, err = clienttx.SignWithPrivKey(
 		args.TxCfg.SignModeHandler().DefaultMode(),
 		signerData,
 		txBuilder, args.Priv, args.TxCfg,

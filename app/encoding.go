@@ -4,7 +4,7 @@ import (
 	simappparams "cosmossdk.io/simapp/params"
 	"github.com/EscanBE/evermint/v12/app/params"
 	cryptocodec "github.com/EscanBE/evermint/v12/crypto/codec"
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/std"
@@ -33,5 +33,5 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 func RegisterInterfaces(interfaceRegistry codectypes.InterfaceRegistry) {
 	std.RegisterInterfaces(interfaceRegistry)
 	cryptocodec.RegisterInterfaces(interfaceRegistry)
-	types.RegisterInterfaces(interfaceRegistry)
+	evertypes.RegisterInterfaces(interfaceRegistry)
 }

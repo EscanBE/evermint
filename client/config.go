@@ -12,7 +12,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 )
 
 // InitConfig adds the chain-id, encoding and output flags to the persistent flag set.
@@ -57,7 +57,7 @@ func ValidateChainID(baseCmd *cobra.Command) *cobra.Command {
 	validateFn := func(cmd *cobra.Command, args []string) error {
 		chainID, _ := cmd.Flags().GetString(flags.FlagChainID)
 
-		if !types.IsValidChainID(chainID) {
+		if !evertypes.IsValidChainID(chainID) {
 			return fmt.Errorf("invalid chain-id format: %s", chainID)
 		}
 

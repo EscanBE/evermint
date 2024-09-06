@@ -4,13 +4,13 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/params"
+	ethparams "github.com/ethereum/go-ethereum/params"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // GetEthIntrinsicGas returns the intrinsic gas cost for the transaction
-func (k *Keeper) GetEthIntrinsicGas(ctx sdk.Context, msg core.Message, cfg *params.ChainConfig, isContractCreation bool) (uint64, error) {
+func (k *Keeper) GetEthIntrinsicGas(ctx sdk.Context, msg core.Message, cfg *ethparams.ChainConfig, isContractCreation bool) (uint64, error) {
 	height := big.NewInt(ctx.BlockHeight())
 	homestead := cfg.IsHomestead(height)
 	istanbul := cfg.IsIstanbul(height)

@@ -7,13 +7,13 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 )
 
 func (suite *KeeperTestSuite) TestMintingEnabled() {
 	sender := sdk.AccAddress(utiltx.GenerateAddress().Bytes())
 	receiver := sdk.AccAddress(utiltx.GenerateAddress().Bytes())
-	expPair := types.NewTokenPair(utiltx.GenerateAddress(), "coin", types.OWNER_MODULE)
+	expPair := erc20types.NewTokenPair(utiltx.GenerateAddress(), "coin", erc20types.OWNER_MODULE)
 	id := expPair.GetID()
 
 	testCases := []struct {
@@ -24,7 +24,7 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 		{
 			"conversion is disabled globally",
 			func() {
-				params := types.DefaultParams()
+				params := erc20types.DefaultParams()
 				params.EnableErc20 = false
 				suite.app.Erc20Keeper.SetParams(suite.ctx, params) //nolint:errcheck
 			},
@@ -76,7 +76,7 @@ func (suite *KeeperTestSuite) TestMintingEnabled() {
 				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, expPair.Denom, id)
 				suite.app.Erc20Keeper.SetERC20Map(suite.ctx, expPair.GetERC20Contract(), id)
 
-				acc := suite.app.AccountKeeper.GetModuleAccount(suite.ctx, types.ModuleName)
+				acc := suite.app.AccountKeeper.GetModuleAccount(suite.ctx, erc20types.ModuleName)
 				receiver = acc.GetAddress()
 			},
 			false,

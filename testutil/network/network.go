@@ -35,7 +35,7 @@ import (
 	"github.com/EscanBE/evermint/v12/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/tx"
+	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -446,14 +446,14 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		txBuilder.SetGasLimit(1000000) // Need at least 100386
 		txBuilder.SetMemo(memo)
 
-		txFactory := tx.Factory{}
+		txFactory := clienttx.Factory{}
 		txFactory = txFactory.
 			WithChainID(cfg.ChainID).
 			WithMemo(memo).
 			WithKeybase(kb).
 			WithTxConfig(cfg.TxConfig)
 
-		if err := tx.Sign(txFactory, nodeDirName, txBuilder, true); err != nil {
+		if err := clienttx.Sign(txFactory, nodeDirName, txBuilder, true); err != nil {
 			return nil, err
 		}
 

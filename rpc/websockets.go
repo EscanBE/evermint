@@ -20,7 +20,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/eth/filters"
-	"github.com/ethereum/go-ethereum/params"
+	ethparams "github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 
 	"github.com/cometbft/cometbft/libs/log"
@@ -385,7 +385,7 @@ func (api *pubSubAPI) subscribeNewHeads(wsConn *wsConn, subID rpc.ID) (pubsub.Un
 	}
 
 	// TODO: use events
-	baseFee := big.NewInt(params.InitialBaseFee)
+	baseFee := big.NewInt(ethparams.InitialBaseFee)
 
 	go func() {
 		headersCh := sub.Event()

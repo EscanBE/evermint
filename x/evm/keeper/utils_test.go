@@ -2,7 +2,7 @@ package keeper_test
 
 import (
 	"encoding/json"
-	cointypes "github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	"math/big"
 	"time"
 
@@ -203,7 +203,7 @@ func (suite *KeeperTestSuite) FundDefaultAddress(amount int64) {
 		suite.ctx,
 		suite.app.BankKeeper,
 		sdk.AccAddress(suite.address.Bytes()),
-		sdk.NewCoins(cointypes.NewBaseCoinInt64(amount)),
+		sdk.NewCoins(evertypes.NewBaseCoinInt64(amount)),
 	)
 	suite.Require().NoError(err)
 }

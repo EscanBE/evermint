@@ -3,9 +3,9 @@ package keeper_test
 import (
 	"context"
 
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	evm "github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -14,15 +14,15 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-var _ types.EVMKeeper = &MockEVMKeeper{}
+var _ erc20types.EVMKeeper = &MockEVMKeeper{}
 
 type MockEVMKeeper struct {
 	mock.Mock
 }
 
-func (m *MockEVMKeeper) GetParams(_ sdk.Context) evm.Params {
+func (m *MockEVMKeeper) GetParams(_ sdk.Context) evmtypes.Params {
 	args := m.Called(mock.Anything)
-	return args.Get(0).(evm.Params)
+	return args.Get(0).(evmtypes.Params)
 }
 
 func (m *MockEVMKeeper) GetAccountWithoutBalance(_ sdk.Context, _ common.Address) *statedb.Account {
@@ -33,24 +33,24 @@ func (m *MockEVMKeeper) GetAccountWithoutBalance(_ sdk.Context, _ common.Address
 	return args.Get(0).(*statedb.Account)
 }
 
-func (m *MockEVMKeeper) EstimateGas(_ context.Context, _ *evm.EthCallRequest) (*evm.EstimateGasResponse, error) {
+func (m *MockEVMKeeper) EstimateGas(_ context.Context, _ *evmtypes.EthCallRequest) (*evmtypes.EstimateGasResponse, error) {
 	args := m.Called(mock.Anything, mock.Anything)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*evm.EstimateGasResponse), args.Error(1)
+	return args.Get(0).(*evmtypes.EstimateGasResponse), args.Error(1)
 }
 
-func (m *MockEVMKeeper) ApplyMessage(_ sdk.Context, _ core.Message, _ vm.EVMLogger, _ bool) (*evm.MsgEthereumTxResponse, error) {
+func (m *MockEVMKeeper) ApplyMessage(_ sdk.Context, _ core.Message, _ vm.EVMLogger, _ bool) (*evmtypes.MsgEthereumTxResponse, error) {
 	args := m.Called(mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*evm.MsgEthereumTxResponse), args.Error(1)
+	return args.Get(0).(*evmtypes.MsgEthereumTxResponse), args.Error(1)
 }
 
-var _ types.BankKeeper = &MockBankKeeper{}
+var _ erc20types.BankKeeper = &MockBankKeeper{}
 
 type MockBankKeeper struct {
 	mock.Mock

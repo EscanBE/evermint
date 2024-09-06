@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 )
 
 // Keeper grants access to the Fee Market module state.
@@ -23,7 +23,7 @@ type Keeper struct {
 	ss paramstypes.Subspace
 
 	// external keepers
-	evmKeeper types.EvmKeeper
+	evmKeeper feemarkettypes.EvmKeeper
 }
 
 // NewKeeper generates new fee market module keeper
@@ -44,12 +44,12 @@ func NewKeeper(
 	}
 }
 
-func (k Keeper) WithEvmKeeper(evmKeeper types.EvmKeeper) Keeper {
+func (k Keeper) WithEvmKeeper(evmKeeper feemarkettypes.EvmKeeper) Keeper {
 	k.evmKeeper = evmKeeper
 	return k
 }
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", types.ModuleName)
+	return ctx.Logger().With("module", feemarkettypes.ModuleName)
 }

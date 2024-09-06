@@ -6,10 +6,10 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	ibctesting "github.com/EscanBE/evermint/v12/ibc/testing"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
-	evm "github.com/EscanBE/evermint/v12/x/evm/types"
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -25,9 +25,9 @@ type KeeperTestSuite struct {
 	suite.Suite
 
 	ctx              sdk.Context
-	app              *app.Evermint
-	queryClientEvm   evm.QueryClient
-	queryClient      types.QueryClient
+	app              *chainapp.Evermint
+	queryClientEvm   evmtypes.QueryClient
+	queryClient      erc20types.QueryClient
 	address          common.Address
 	consAddress      sdk.ConsAddress
 	clientCtx        client.Context //nolint:unused

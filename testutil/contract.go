@@ -15,7 +15,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/testutil/tx"
 	evm "github.com/EscanBE/evermint/v12/x/evm/types"
 )
@@ -24,7 +24,7 @@ import (
 // compiled contract data and constructor arguments
 func DeployContract(
 	ctx sdk.Context,
-	app *app.Evermint,
+	app *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	queryClientEvm evm.QueryClient,
 	contract evm.CompiledContract,
@@ -72,7 +72,7 @@ func DeployContract(
 // with the provided factoryAddress
 func DeployContractWithFactory(
 	ctx sdk.Context,
-	app *app.Evermint,
+	app *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	factoryAddress common.Address,
 ) (common.Address, abci.ResponseDeliverTx, error) {

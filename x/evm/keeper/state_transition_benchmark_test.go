@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/params"
+	ethparams "github.com/ethereum/go-ethereum/params"
 	"github.com/stretchr/testify/require"
 )
 
@@ -135,7 +135,7 @@ func newNativeMessage(
 	nonce uint64,
 	blockHeight int64,
 	address common.Address,
-	cfg *params.ChainConfig,
+	cfg *ethparams.ChainConfig,
 	krSigner keyring.Signer,
 	ethSigner ethtypes.Signer,
 	txType byte,

@@ -8,7 +8,7 @@ import (
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/EscanBE/evermint/v12/x/evm/keeper"
+	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
@@ -58,7 +58,7 @@ func (suite *KeeperTestSuite) TestWithChainID() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			keeper := keeper.Keeper{}
+			keeper := evmkeeper.Keeper{}
 			ctx := suite.ctx.WithChainID(tc.chainID)
 
 			if tc.expPanic {

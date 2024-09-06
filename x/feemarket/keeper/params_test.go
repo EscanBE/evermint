@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"reflect"
 
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 )
 
 func (suite *KeeperTestSuite) TestGetParams() {
@@ -25,7 +25,7 @@ func (suite *KeeperTestSuite) TestSetGetParams() {
 		{
 			"success - Checks if the default params are set correctly",
 			func() interface{} {
-				return types.DefaultParams()
+				return feemarkettypes.DefaultParams()
 			},
 			func() interface{} {
 				return suite.app.FeeMarketKeeper.GetParams(suite.ctx)

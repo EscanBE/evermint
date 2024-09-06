@@ -2,7 +2,7 @@ package keeper_test
 
 import (
 	sdkmath "cosmossdk.io/math"
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
 )
@@ -19,9 +19,9 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 	}
 	for _, tc := range testCases {
 		params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
-		exp := &types.QueryParamsResponse{Params: params}
+		exp := &feemarkettypes.QueryParamsResponse{Params: params}
 
-		res, err := suite.queryClient.Params(suite.ctx.Context(), &types.QueryParamsRequest{})
+		res, err := suite.queryClient.Params(suite.ctx.Context(), &feemarkettypes.QueryParamsRequest{})
 		if tc.expPass {
 			suite.Require().Equal(exp, res, tc.name)
 			suite.Require().NoError(err)
@@ -34,7 +34,7 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 func (suite *KeeperTestSuite) TestQueryBaseFee() {
 	var (
 		aux    sdkmath.Int
-		expRes *types.QueryBaseFeeResponse
+		expRes *feemarkettypes.QueryBaseFeeResponse
 	)
 
 	testCases := []struct {
@@ -46,7 +46,7 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 			"pass - default Base Fee",
 			func() {
 				initialBaseFee := sdkmath.NewInt(ethparams.InitialBaseFee)
-				expRes = &types.QueryBaseFeeResponse{BaseFee: &initialBaseFee}
+				expRes = &feemarkettypes.QueryBaseFeeResponse{BaseFee: &initialBaseFee}
 			},
 			true,
 		},
@@ -57,7 +57,7 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, baseFee)
 
 				aux = sdkmath.NewIntFromBigInt(baseFee)
-				expRes = &types.QueryBaseFeeResponse{BaseFee: &aux}
+				expRes = &feemarkettypes.QueryBaseFeeResponse{BaseFee: &aux}
 			},
 			true,
 		},
@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 	for _, tc := range testCases {
 		tc.malleate()
 
-		res, err := suite.queryClient.BaseFee(suite.ctx.Context(), &types.QueryBaseFeeRequest{})
+		res, err := suite.queryClient.BaseFee(suite.ctx.Context(), &feemarkettypes.QueryBaseFeeRequest{})
 		if tc.expPass {
 			suite.Require().NotNil(res)
 			suite.Require().Equal(expRes, res, tc.name)

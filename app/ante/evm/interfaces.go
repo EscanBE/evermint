@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/params"
+	ethparams "github.com/ethereum/go-ethereum/params"
 
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
@@ -37,7 +37,7 @@ type FeeMarketKeeper interface {
 type DynamicFeeEVMKeeper interface {
 	ChainID() *big.Int
 	GetParams(ctx sdk.Context) evmtypes.Params
-	GetBaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int
+	GetBaseFee(ctx sdk.Context, ethCfg *ethparams.ChainConfig) *big.Int
 }
 
 type protoTxProvider interface {

@@ -20,7 +20,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/crypto/hd"
 	"github.com/EscanBE/evermint/v12/tests/integration/ledger/mocks"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
@@ -46,7 +46,7 @@ var s *LedgerTestSuite
 type LedgerTestSuite struct {
 	suite.Suite
 
-	app *app.Evermint
+	app *chainapp.Evermint
 	ctx sdk.Context
 
 	ledger       *mocks.SECP256K1

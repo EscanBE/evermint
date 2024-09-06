@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	"github.com/cosmos/cosmos-sdk/client"
 )
@@ -18,7 +18,7 @@ type PublicAPI struct {
 // NewPublicAPI creates an instance of the public Net Web3 API.
 func NewPublicAPI(clientCtx client.Context) *PublicAPI {
 	// parse the chainID from a integer string
-	chainIDEpoch, err := types.ParseChainID(clientCtx.ChainID)
+	chainIDEpoch, err := evertypes.ParseChainID(clientCtx.ChainID)
 	if err != nil {
 		panic(err)
 	}

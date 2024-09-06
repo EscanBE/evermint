@@ -5,10 +5,10 @@ import (
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	cointypes "github.com/EscanBE/evermint/v12/types"
-	"github.com/EscanBE/evermint/v12/x/evm/keeper"
+	evertypes "github.com/EscanBE/evermint/v12/types"
+	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
@@ -19,7 +19,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/params"
+	ethparams "github.com/ethereum/go-ethereum/params"
 	"math"
 	"math/big"
 )
@@ -191,7 +191,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			1,
 			false,
 			true,
-			params.TxGas,
+			ethparams.TxGas,
 		},
 		{
 			"with one zero data, no accesslist, not contract creation, not homestead, not istanbul",
@@ -200,7 +200,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			1,
 			false,
 			true,
-			params.TxGas + params.TxDataZeroGas*1,
+			ethparams.TxGas + ethparams.TxDataZeroGas*1,
 		},
 		{
 			"with one non zero data, no accesslist, not contract creation, not homestead, not istanbul",
@@ -209,7 +209,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			1,
 			true,
 			true,
-			params.TxGas + params.TxDataNonZeroGasFrontier*1,
+			ethparams.TxGas + ethparams.TxDataNonZeroGasFrontier*1,
 		},
 		{
 			"no data, one accesslist, not contract creation, not homestead, not istanbul",
@@ -220,7 +220,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			1,
 			false,
 			true,
-			params.TxGas + params.TxAccessListAddressGas,
+			ethparams.TxGas + ethparams.TxAccessListAddressGas,
 		},
 		{
 			"no data, one accesslist with one storageKey, not contract creation, not homestead, not istanbul",
@@ -231,7 +231,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			1,
 			false,
 			true,
-			params.TxGas + params.TxAccessListAddressGas + params.TxAccessListStorageKeyGas*1,
+			ethparams.TxGas + ethparams.TxAccessListAddressGas + ethparams.TxAccessListStorageKeyGas*1,
 		},
 		{
 			"no data, no accesslist, is contract creation, is homestead, not istanbul",
@@ -240,7 +240,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			2,
 			true,
 			true,
-			params.TxGasContractCreation,
+			ethparams.TxGasContractCreation,
 		},
 		{
 			"with one zero data, no accesslist, not contract creation, is homestead, is istanbul",
@@ -249,7 +249,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			3,
 			false,
 			true,
-			params.TxGas + params.TxDataNonZeroGasEIP2028*1,
+			ethparams.TxGas + ethparams.TxDataNonZeroGasEIP2028*1,
 		},
 	}
 
@@ -339,11 +339,11 @@ func (suite *KeeperTestSuite) TestGasToRefund() {
 			if tc.expPanic {
 				//nolint:all
 				panicF := func() {
-					keeper.GasToRefund(vmdb.GetRefund(), tc.gasconsumed, tc.refundQuotient)
+					evmkeeper.GasToRefund(vmdb.GetRefund(), tc.gasconsumed, tc.refundQuotient)
 				}
 				suite.Require().Panics(panicF)
 			} else {
-				gr := keeper.GasToRefund(vmdb.GetRefund(), tc.gasconsumed, tc.refundQuotient)
+				gr := evmkeeper.GasToRefund(vmdb.GetRefund(), tc.gasconsumed, tc.refundQuotient)
 				suite.Require().Equal(tc.expGasRefund, gr)
 			}
 		})
@@ -414,11 +414,11 @@ func (suite *KeeperTestSuite) TestEVMConfig() {
 	proposerAddress := suite.ctx.BlockHeader().ProposerAddress
 	cfg, err := suite.app.EvmKeeper.EVMConfig(suite.ctx, proposerAddress, big.NewInt(constants.TestnetEIP155ChainId))
 	suite.Require().NoError(err)
-	suite.Require().Equal(types.DefaultParams(), cfg.Params)
+	suite.Require().Equal(evmtypes.DefaultParams(), cfg.Params)
 	// london hardfork is enabled by default
 	suite.Require().Equal(big.NewInt(0), cfg.BaseFee)
 	suite.Require().Equal(suite.address, cfg.CoinBase)
-	suite.Require().Equal(types.DefaultParams().ChainConfig.EthereumConfig(big.NewInt(constants.TestnetEIP155ChainId)), cfg.ChainConfig)
+	suite.Require().Equal(evmtypes.DefaultParams().ChainConfig.EthereumConfig(big.NewInt(constants.TestnetEIP155ChainId)), cfg.ChainConfig)
 }
 
 func (suite *KeeperTestSuite) TestContractDeployment() {
@@ -430,9 +430,9 @@ func (suite *KeeperTestSuite) TestContractDeployment() {
 func (suite *KeeperTestSuite) TestApplyTransaction() {
 	var (
 		err          error
-		ethMsg       *types.MsgEthereumTx
-		keeperParams types.Params
-		chainCfg     *params.ChainConfig
+		ethMsg       *evmtypes.MsgEthereumTx
+		keeperParams evmtypes.Params
+		chainCfg     *ethparams.ChainConfig
 	)
 
 	testCases := []struct {
@@ -457,7 +457,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 				suite.Require().NoError(err)
 			},
 			expErr:     false,
-			expGasUsed: params.TxGas,
+			expGasUsed: ethparams.TxGas,
 		},
 		{
 			name: "tx transfer success, exact 21000 gas used for transfer",
@@ -466,7 +466,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 					suite.ctx,
 					suite.app.BankKeeper,
 					authtypes.FeeCollectorName,
-					sdk.NewCoins(cointypes.NewBaseCoinInt64(1_000_000)),
+					sdk.NewCoins(evertypes.NewBaseCoinInt64(1_000_000)),
 				)
 				suite.Require().NoError(err)
 
@@ -474,7 +474,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 
 				randomAddr, _ := utiltx.NewAddrKey()
 
-				ethTxParams := types.EvmTxArgs{
+				ethTxParams := evmtypes.EvmTxArgs{
 					Nonce:     getNonce(suite.address.Bytes()),
 					GasLimit:  21000,
 					Input:     nil,
@@ -489,7 +489,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
-				ethMsg = types.NewTx(&ethTxParams)
+				ethMsg = evmtypes.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
@@ -504,7 +504,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 					suite.ctx,
 					suite.app.BankKeeper,
 					authtypes.FeeCollectorName,
-					sdk.NewCoins(cointypes.NewBaseCoinInt64(1_000_000)),
+					sdk.NewCoins(evertypes.NewBaseCoinInt64(1_000_000)),
 				)
 				suite.Require().NoError(err)
 
@@ -512,7 +512,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 
 				randomAddr, _ := utiltx.NewAddrKey()
 
-				ethTxParams := types.EvmTxArgs{
+				ethTxParams := evmtypes.EvmTxArgs{
 					Nonce:     getNonce(suite.address.Bytes()),
 					GasLimit:  100_000,
 					Input:     nil,
@@ -527,7 +527,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
-				ethMsg = types.NewTx(&ethTxParams)
+				ethMsg = evmtypes.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
@@ -542,9 +542,9 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 
 				randomAddr, _ := utiltx.NewAddrKey()
 
-				ethTxParams := types.EvmTxArgs{
+				ethTxParams := evmtypes.EvmTxArgs{
 					Nonce:     getNonce(suite.address.Bytes()),
-					GasLimit:  params.TxGas / 2,
+					GasLimit:  ethparams.TxGas / 2,
 					Input:     nil,
 					GasFeeCap: nil,
 					GasPrice:  big.NewInt(10),
@@ -557,7 +557,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
-				ethMsg = types.NewTx(&ethTxParams)
+				ethMsg = evmtypes.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
@@ -573,7 +573,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 
 				randomAddr, _ := utiltx.NewAddrKey()
 
-				ethTxParams := types.EvmTxArgs{
+				ethTxParams := evmtypes.EvmTxArgs{
 					Nonce:     getNonce(suite.address.Bytes()),
 					GasLimit:  100_000,
 					Input:     nil,
@@ -588,7 +588,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
-				ethMsg = types.NewTx(&ethTxParams)
+				ethMsg = evmtypes.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
@@ -609,7 +609,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 
 			tc.malleate()
 
-			suite.ctx = suite.ctx.WithGasMeter(cointypes.NewInfiniteGasMeterWithLimit(ethMsg.GetGas()))
+			suite.ctx = suite.ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(ethMsg.GetGas()))
 
 			if tc.simulateCommitDbError {
 				suite.StateDB().ToggleStateDBPreventCommit(true)
@@ -652,9 +652,9 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 	var (
 		msg          core.Message
 		err          error
-		keeperParams types.Params
+		keeperParams evmtypes.Params
 		signer       ethtypes.Signer
-		chainCfg     *params.ChainConfig
+		chainCfg     *ethparams.ChainConfig
 	)
 
 	testCases := []struct {
@@ -683,7 +683,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 				suite.Require().NoError(err)
 			},
 			expErr:     false,
-			expGasUsed: params.TxGas,
+			expGasUsed: ethparams.TxGas,
 		},
 		{
 			name: "transfer message success",
@@ -692,7 +692,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 
 				randomAddr, _ := utiltx.NewAddrKey()
 
-				ethTxParams := types.EvmTxArgs{
+				ethTxParams := evmtypes.EvmTxArgs{
 					Nonce:     getNonce(suite.address.Bytes()),
 					GasLimit:  21000,
 					Input:     nil,
@@ -707,7 +707,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
-				ethMsg := types.NewTx(&ethTxParams)
+				ethMsg := evmtypes.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
@@ -726,7 +726,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 
 				randomAddr, _ := utiltx.NewAddrKey()
 
-				ethTxParams := types.EvmTxArgs{
+				ethTxParams := evmtypes.EvmTxArgs{
 					Nonce:     getNonce(suite.address.Bytes()),
 					GasLimit:  100_000,
 					Input:     nil,
@@ -741,7 +741,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
-				ethMsg := types.NewTx(&ethTxParams)
+				ethMsg := evmtypes.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
 				err := ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
@@ -760,9 +760,9 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 
 				randomAddr, _ := utiltx.NewAddrKey()
 
-				ethTxParams := types.EvmTxArgs{
+				ethTxParams := evmtypes.EvmTxArgs{
 					Nonce:     getNonce(suite.address.Bytes()),
-					GasLimit:  params.TxGas / 2,
+					GasLimit:  ethparams.TxGas / 2,
 					Input:     nil,
 					GasFeeCap: nil,
 					GasPrice:  big.NewInt(10),
@@ -775,7 +775,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
-				ethMsg := types.NewTx(&ethTxParams)
+				ethMsg := evmtypes.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
@@ -794,7 +794,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 
 				randomAddr, _ := utiltx.NewAddrKey()
 
-				ethTxParams := types.EvmTxArgs{
+				ethTxParams := evmtypes.EvmTxArgs{
 					Nonce:     getNonce(suite.address.Bytes()),
 					GasLimit:  100_000,
 					Input:     nil,
@@ -809,7 +809,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
-				ethMsg := types.NewTx(&ethTxParams)
+				ethMsg := evmtypes.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
@@ -831,7 +831,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 			signer = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 
 			tc.malleate()
-			suite.ctx = suite.ctx.WithGasMeter(cointypes.NewInfiniteGasMeterWithLimit(msg.Gas()))
+			suite.ctx = suite.ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(msg.Gas()))
 
 			if tc.simulateCommitDbError {
 				suite.StateDB().ToggleStateDBPreventCommit(true)
@@ -869,10 +869,10 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 		msg          core.Message
 		err          error
 		config       *statedb.EVMConfig
-		keeperParams types.Params
+		keeperParams evmtypes.Params
 		signer       ethtypes.Signer
 		txConfig     statedb.TxConfig
-		chainCfg     *params.ChainConfig
+		chainCfg     *ethparams.ChainConfig
 	)
 
 	testCases := []struct {
@@ -900,7 +900,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				suite.Require().NoError(err)
 			},
 			expErr:     false,
-			expGasUsed: params.TxGas,
+			expGasUsed: ethparams.TxGas,
 		},
 		{
 			name: "call contract tx with config param EnableCall = false",
@@ -920,7 +920,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				suite.Require().NoError(err)
 			},
 			expErr:         true,
-			expErrContains: types.ErrCallDisabled.Error(),
+			expErrContains: evmtypes.ErrCallDisabled.Error(),
 		},
 		{
 			name: "create contract tx with config param EnableCreate = false",
@@ -930,7 +930,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				config.Params.EnableCreate = false
 			},
 			expErr:         true,
-			expErrContains: types.ErrCreateDisabled.Error(),
+			expErrContains: evmtypes.ErrCreateDisabled.Error(),
 		},
 		{
 			name: "transfer message success",
@@ -939,7 +939,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 
 				randomAddr, _ := utiltx.NewAddrKey()
 
-				ethTxParams := types.EvmTxArgs{
+				ethTxParams := evmtypes.EvmTxArgs{
 					Nonce:     getNonce(suite.address.Bytes()),
 					GasLimit:  21000,
 					Input:     nil,
@@ -954,7 +954,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
-				ethMsg := types.NewTx(&ethTxParams)
+				ethMsg := evmtypes.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
@@ -972,7 +972,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 
 				randomAddr, _ := utiltx.NewAddrKey()
 
-				ethTxParams := types.EvmTxArgs{
+				ethTxParams := evmtypes.EvmTxArgs{
 					Nonce:     getNonce(suite.address.Bytes()),
 					GasLimit:  100_000,
 					Input:     nil,
@@ -987,7 +987,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
-				ethMsg := types.NewTx(&ethTxParams)
+				ethMsg := evmtypes.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
@@ -1005,9 +1005,9 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 
 				randomAddr, _ := utiltx.NewAddrKey()
 
-				ethTxParams := types.EvmTxArgs{
+				ethTxParams := evmtypes.EvmTxArgs{
 					Nonce:     getNonce(suite.address.Bytes()),
-					GasLimit:  params.TxGas / 2,
+					GasLimit:  ethparams.TxGas / 2,
 					Input:     nil,
 					GasFeeCap: nil,
 					GasPrice:  big.NewInt(10),
@@ -1020,7 +1020,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
-				ethMsg := types.NewTx(&ethTxParams)
+				ethMsg := evmtypes.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
@@ -1039,7 +1039,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 
 				randomAddr, _ := utiltx.NewAddrKey()
 
-				ethTxParams := types.EvmTxArgs{
+				ethTxParams := evmtypes.EvmTxArgs{
 					Nonce:     getNonce(suite.address.Bytes()),
 					GasLimit:  100_000,
 					Input:     nil,
@@ -1054,7 +1054,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
-				ethMsg := types.NewTx(&ethTxParams)
+				ethMsg := evmtypes.NewTx(&ethTxParams)
 				ethMsg.From = suite.address.Hex()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
@@ -1081,7 +1081,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 
 			tc.malleate()
 			txConfig = suite.app.EvmKeeper.TxConfig(suite.ctx, common.Hash{}).WithTxTypeFromMessage(msg)
-			suite.ctx = suite.ctx.WithGasMeter(cointypes.NewInfiniteGasMeterWithLimit(msg.Gas()))
+			suite.ctx = suite.ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(msg.Gas()))
 
 			if tc.simulateCommitDbError {
 				suite.StateDB().ToggleStateDBPreventCommit(true)
@@ -1114,7 +1114,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 	}
 }
 
-func (suite *KeeperTestSuite) createContractGethMsg(nonce uint64, signer ethtypes.Signer, cfg *params.ChainConfig, gasPrice *big.Int) (core.Message, error) {
+func (suite *KeeperTestSuite) createContractGethMsg(nonce uint64, signer ethtypes.Signer, cfg *ethparams.ChainConfig, gasPrice *big.Int) (core.Message, error) {
 	ethMsg, err := suite.createContractMsgTx(nonce, signer, gasPrice)
 	if err != nil {
 		return nil, err
@@ -1124,16 +1124,16 @@ func (suite *KeeperTestSuite) createContractGethMsg(nonce uint64, signer ethtype
 	return ethMsg.AsMessage(msgSigner, nil)
 }
 
-func (suite *KeeperTestSuite) createContractMsgTx(nonce uint64, signer ethtypes.Signer, gasPrice *big.Int) (*types.MsgEthereumTx, error) {
+func (suite *KeeperTestSuite) createContractMsgTx(nonce uint64, signer ethtypes.Signer, gasPrice *big.Int) (*evmtypes.MsgEthereumTx, error) {
 	contractCreateTx := &ethtypes.AccessListTx{
 		GasPrice: gasPrice,
-		Gas:      params.TxGasContractCreation,
+		Gas:      ethparams.TxGasContractCreation,
 		To:       nil,
 		Data:     []byte("contract_data"),
 		Nonce:    nonce,
 	}
 	ethTx := ethtypes.NewTx(contractCreateTx)
-	ethMsg := &types.MsgEthereumTx{}
+	ethMsg := &evmtypes.MsgEthereumTx{}
 	err := ethMsg.FromEthereumTx(ethTx)
 	suite.Require().NoError(err)
 	ethMsg.From = suite.address.Hex()
@@ -1168,7 +1168,7 @@ func (suite *KeeperTestSuite) TestGetProposerAddress() {
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.Require().Equal(tc.expAdr, keeper.GetProposerAddress(suite.ctx, tc.adr))
+			suite.Require().Equal(tc.expAdr, evmkeeper.GetProposerAddress(suite.ctx, tc.adr))
 		})
 	}
 }

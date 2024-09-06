@@ -8,7 +8,7 @@ import (
 
 	anteutils "github.com/EscanBE/evermint/v12/app/ante/utils"
 	evertypes "github.com/EscanBE/evermint/v12/types"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -69,7 +69,7 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 		}
 
 		// calculate the effective gas price using the EIP-1559 logic.
-		effectivePrice := sdkmath.NewIntFromBigInt(types.EffectiveGasPrice(baseFeeInt.BigInt(), feeCap.BigInt(), maxPriorityPrice.BigInt()))
+		effectivePrice := sdkmath.NewIntFromBigInt(evmtypes.EffectiveGasPrice(baseFeeInt.BigInt(), feeCap.BigInt(), maxPriorityPrice.BigInt()))
 
 		// NOTE: create a new coins slice without having to validate the denom
 		effectiveFee := sdk.Coins{
@@ -79,7 +79,7 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 			},
 		}
 
-		bigPriority := effectivePrice.Sub(baseFeeInt).Quo(types.DefaultPriorityReduction)
+		bigPriority := effectivePrice.Sub(baseFeeInt).Quo(evmtypes.DefaultPriorityReduction)
 		priority := int64(math.MaxInt64)
 
 		if bigPriority.IsInt64() {
@@ -127,7 +127,7 @@ func getTxPriority(fees sdk.Coins, gas int64) int64 {
 
 	for _, fee := range fees {
 		gasPrice := fee.Amount.QuoRaw(gas)
-		amt := gasPrice.Quo(types.DefaultPriorityReduction)
+		amt := gasPrice.Quo(evmtypes.DefaultPriorityReduction)
 		p := int64(math.MaxInt64)
 
 		if amt.IsInt64() {

@@ -5,9 +5,9 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/params"
+	ethparams "github.com/ethereum/go-ethereum/params"
 )
 
 // TxConfig encapulates the readonly information of current tx for `StateDB`.
@@ -56,8 +56,8 @@ func NewEmptyTxConfig(bhash common.Hash) TxConfig {
 // EVMConfig encapsulates common parameters needed to create an EVM to execute a message
 // It's mainly to reduce the number of method parameters
 type EVMConfig struct {
-	Params      types.Params
-	ChainConfig *params.ChainConfig
+	Params      evmtypes.Params
+	ChainConfig *ethparams.ChainConfig
 	CoinBase    common.Address
 	BaseFee     *big.Int
 }

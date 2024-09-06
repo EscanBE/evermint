@@ -13,10 +13,10 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	cryptocodec "github.com/EscanBE/evermint/v12/crypto/codec"
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 )
 
@@ -50,7 +50,7 @@ type legacyWeb3ExtensionArgs struct {
 // It returns the signed transaction and an error
 func CreateEIP712CosmosTx(
 	ctx sdk.Context,
-	chainApp *app.Evermint,
+	chainApp *chainapp.Evermint,
 	args EIP712TxArgs,
 ) (sdk.Tx, error) {
 	builder, err := PrepareEIP712CosmosTx(
@@ -66,12 +66,12 @@ func CreateEIP712CosmosTx(
 // It returns the tx builder with the signed transaction and an error
 func PrepareEIP712CosmosTx(
 	ctx sdk.Context,
-	chainApp *app.Evermint,
+	chainApp *chainapp.Evermint,
 	args EIP712TxArgs,
 ) (client.TxBuilder, error) {
 	txArgs := args.CosmosTxArgs
 
-	pc, err := types.ParseChainID(txArgs.ChainID)
+	pc, err := evertypes.ParseChainID(txArgs.ChainID)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +129,7 @@ func PrepareEIP712CosmosTx(
 // the provided private key and the typed data
 func signCosmosEIP712Tx(
 	ctx sdk.Context,
-	chainApp *app.Evermint,
+	chainApp *chainapp.Evermint,
 	args EIP712TxArgs,
 	builder authtx.ExtensionOptionsTxBuilder,
 	chainID uint64,
@@ -189,7 +189,7 @@ func signCosmosEIP712Tx(
 func createTypedData(args typedDataArgs, useLegacy bool) (apitypes.TypedData, error) {
 	if useLegacy {
 		registry := codectypes.NewInterfaceRegistry()
-		types.RegisterInterfaces(registry)
+		evertypes.RegisterInterfaces(registry)
 		cryptocodec.RegisterInterfaces(registry)
 		appCodec := codec.NewProtoCodec(registry)
 
@@ -212,7 +212,7 @@ func createTypedData(args typedDataArgs, useLegacy bool) (apitypes.TypedData, er
 // setBuilderLegacyWeb3Extension creates a legacy ExtensionOptionsWeb3Tx and
 // appends it to the builder options.
 func setBuilderLegacyWeb3Extension(builder authtx.ExtensionOptionsTxBuilder, args legacyWeb3ExtensionArgs) error {
-	option, err := codectypes.NewAnyWithValue(&types.ExtensionOptionsWeb3Tx{
+	option, err := codectypes.NewAnyWithValue(&evertypes.ExtensionOptionsWeb3Tx{
 		FeePayer:         args.feePayer,
 		TypedDataChainID: args.chainID,
 		FeePayerSig:      args.signature,

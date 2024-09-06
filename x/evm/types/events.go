@@ -1,7 +1,7 @@
 package types
 
 import (
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -55,7 +55,7 @@ func GetSdkEventForReceipt(
 ) (sdk.Event, error) {
 	bzReceipt, err := receipt.MarshalBinary()
 	if err != nil {
-		return sdk.Event{}, errors.Wrap(err, "failed to marshal receipt")
+		return sdk.Event{}, errorsmod.Wrap(err, "failed to marshal receipt")
 	}
 
 	var contractAddr string

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
@@ -19,7 +19,7 @@ import (
 
 // ChainID is the EIP-155 replay-protection chain id for the current ethereum chain config.
 func (b *Backend) ChainID() (*hexutil.Big, error) {
-	eip155ChainID, err := types.ParseChainID(b.clientCtx.ChainID)
+	eip155ChainID, err := evertypes.ParseChainID(b.clientCtx.ChainID)
 	if err != nil {
 		panic(err)
 	}
