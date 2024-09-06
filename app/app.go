@@ -597,8 +597,9 @@ func NewEvermint(
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
-		evmtypes.ModuleName,
-		feemarkettypes.ModuleName,
+		// Evermint modules
+		evmtypes.ModuleName,       // must always run before fee market because it may uses base fee of current block
+		feemarkettypes.ModuleName, // fee market must be run last to compute base fee to use for next block
 		// no-op modules
 		ibcexported.ModuleName,
 		ibctransfertypes.ModuleName,
@@ -616,10 +617,10 @@ func NewEvermint(
 		feegrant.ModuleName,
 		sdkparamstypes.ModuleName,
 		upgradetypes.ModuleName,
-		// Evermint modules
+		consensusparamtypes.ModuleName,
+		// Evermint no-op modules
 		erc20types.ModuleName,
 		vauthtypes.ModuleName,
-		consensusparamtypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
