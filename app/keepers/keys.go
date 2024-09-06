@@ -1,12 +1,9 @@
 package keepers
 
 import (
-	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -22,9 +19,15 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
 )
 
 func (appKeepers *AppKeepers) GenerateKeys() {

@@ -1,32 +1,53 @@
 package keepers
 
 import (
-	srvflags "github.com/EscanBE/evermint/v12/server/flags"
-	"github.com/EscanBE/evermint/v12/x/erc20"
-	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
+	"github.com/spf13/cast"
+	"os"
+
+	"github.com/cometbft/cometbft/libs/log"
+
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/codec"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/store/streaming"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
+	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
+	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
+	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	sdkparams "github.com/cosmos/cosmos-sdk/x/params"
+	sdkparamskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	sdkparamstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	sdkparamproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
+	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	icahost "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host"
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
@@ -35,43 +56,24 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/spf13/cast"
-	"os"
-
-	// unnamed import of statik for swagger UI support
-	_ "github.com/EscanBE/evermint/v12/client/docs/statik"
-
-	"github.com/cometbft/cometbft/libs/log"
 
 	icahostkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/codec"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/store/streaming"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
-	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
-	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
-	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
-	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
-	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
-	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
-	sdkparamskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
-	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
+	// unnamed import of statik for swagger UI support
+	_ "github.com/EscanBE/evermint/v12/client/docs/statik"
 
+	srvflags "github.com/EscanBE/evermint/v12/server/flags"
+	"github.com/EscanBE/evermint/v12/x/erc20"
 	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarketkeeper "github.com/EscanBE/evermint/v12/x/feemarket/keeper"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	vauthkeeper "github.com/EscanBE/evermint/v12/x/vauth/keeper"
+	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
 )
 
 type AppKeepers struct {
@@ -108,8 +110,6 @@ type AppKeepers struct {
 
 	// Evermint keepers
 	VAuthKeeper vauthkeeper.Keeper
-
-	// TODO ES: define Modules
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper

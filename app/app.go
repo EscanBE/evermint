@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/app/keepers"
-	"github.com/EscanBE/evermint/v12/app/upgrades"
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
@@ -50,6 +48,8 @@ import (
 
 	"github.com/EscanBE/evermint/v12/app/ante"
 	ethante "github.com/EscanBE/evermint/v12/app/ante/evm"
+	"github.com/EscanBE/evermint/v12/app/keepers"
+	"github.com/EscanBE/evermint/v12/app/upgrades"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
 	srvflags "github.com/EscanBE/evermint/v12/server/flags"
