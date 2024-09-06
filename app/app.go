@@ -524,32 +524,30 @@ func NewEvermint(
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	chainApp.mm = module.NewManager(
-		// SDK app modules
+		// SDK & IBC app modules
 		genutil.NewAppModule(
 			chainApp.AccountKeeper, chainApp.StakingKeeper, chainApp.BaseApp.DeliverTx,
 			encodingConfig.TxConfig,
 		),
 		auth.NewAppModule(appCodec, chainApp.AccountKeeper, authsims.RandomGenesisAccounts, chainApp.GetSubspace(authtypes.ModuleName)),
+		vesting.NewAppModule(chainApp.AccountKeeper, chainApp.BankKeeper),
 		bank.NewAppModule(appCodec, chainApp.BankKeeper, chainApp.AccountKeeper, chainApp.GetSubspace(banktypes.ModuleName)),
 		capability.NewAppModule(appCodec, *chainApp.CapabilityKeeper, false),
 		crisis.NewAppModule(chainApp.CrisisKeeper, skipGenesisInvariants, chainApp.GetSubspace(crisistypes.ModuleName)),
 		gov.NewAppModule(appCodec, &chainApp.GovKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.GetSubspace(govtypes.ModuleName)),
+		mint.NewAppModule(appCodec, chainApp.MintKeeper, chainApp.AccountKeeper, nil, chainApp.GetSubspace(minttypes.ModuleName)),
 		slashing.NewAppModule(appCodec, chainApp.SlashingKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.StakingKeeper, chainApp.GetSubspace(slashingtypes.ModuleName)),
 		distr.NewAppModule(appCodec, chainApp.DistrKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.StakingKeeper, chainApp.GetSubspace(distrtypes.ModuleName)),
 		staking.NewAppModule(appCodec, chainApp.StakingKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.GetSubspace(stakingtypes.ModuleName)),
-		vesting.NewAppModule(chainApp.AccountKeeper, chainApp.BankKeeper),
 		upgrade.NewAppModule(&chainApp.UpgradeKeeper),
 		evidence.NewAppModule(chainApp.EvidenceKeeper),
-		sdkparams.NewAppModule(chainApp.ParamsKeeper),
 		feegrantmodule.NewAppModule(appCodec, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.FeeGrantKeeper, chainApp.interfaceRegistry),
 		authzmodule.NewAppModule(appCodec, chainApp.AuthzKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.interfaceRegistry),
-		consensus.NewAppModule(appCodec, chainApp.ConsensusParamsKeeper),
-		mint.NewAppModule(appCodec, chainApp.MintKeeper, chainApp.AccountKeeper, nil, chainApp.GetSubspace(minttypes.ModuleName)),
-
-		// ibc modules
 		ibc.NewAppModule(chainApp.IBCKeeper),
-		ica.NewAppModule(nil, &chainApp.ICAHostKeeper),
+		sdkparams.NewAppModule(chainApp.ParamsKeeper),
+		consensus.NewAppModule(appCodec, chainApp.ConsensusParamsKeeper),
 		ibctransfer.NewAppModule(chainApp.TransferKeeper),
+		ica.NewAppModule(nil, &chainApp.ICAHostKeeper),
 		// Ethermint app modules
 		evm.NewAppModule(chainApp.EvmKeeper, chainApp.AccountKeeper, chainApp.GetSubspace(evmtypes.ModuleName)),
 		feemarket.NewAppModule(chainApp.FeeMarketKeeper, chainApp.GetSubspace(feemarkettypes.ModuleName)),
