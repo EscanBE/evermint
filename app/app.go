@@ -566,13 +566,13 @@ func NewEvermint(
 		upgradetypes.ModuleName,
 		capabilitytypes.ModuleName,
 		minttypes.ModuleName,
-		feemarkettypes.ModuleName,
-		evmtypes.ModuleName,
 		distrtypes.ModuleName,
 		slashingtypes.ModuleName,
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
 		ibcexported.ModuleName,
+		// Evermint modules
+		evmtypes.ModuleName,
 		// no-op modules
 		ibctransfertypes.ModuleName,
 		icatypes.ModuleName,
@@ -585,9 +585,11 @@ func NewEvermint(
 		feegrant.ModuleName,
 		sdkparamstypes.ModuleName,
 		vestingtypes.ModuleName,
-		erc20types.ModuleName,
-		vauthtypes.ModuleName,
 		consensusparamtypes.ModuleName,
+		// Evermint no-op modules
+		feemarkettypes.ModuleName,
+		vauthtypes.ModuleName,
+		erc20types.ModuleName,
 	)
 
 	// NOTE: fee market module must go last in order to retrieve the block gas used.
