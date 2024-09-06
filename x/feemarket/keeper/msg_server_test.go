@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
@@ -9,19 +9,19 @@ import (
 func (suite *KeeperTestSuite) TestUpdateParams() {
 	testCases := []struct {
 		name      string
-		request   *types.MsgUpdateParams
+		request   *feemarkettypes.MsgUpdateParams
 		expectErr bool
 	}{
 		{
 			name:      "fail - invalid authority",
-			request:   &types.MsgUpdateParams{Authority: "foobar"},
+			request:   &feemarkettypes.MsgUpdateParams{Authority: "foobar"},
 			expectErr: true,
 		},
 		{
 			name: "pass - valid Update msg",
-			request: &types.MsgUpdateParams{
+			request: &feemarkettypes.MsgUpdateParams{
 				Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-				Params:    types.DefaultParams(),
+				Params:    feemarkettypes.DefaultParams(),
 			},
 			expectErr: false,
 		},

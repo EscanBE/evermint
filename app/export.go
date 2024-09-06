@@ -6,21 +6,12 @@ import (
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	"cosmossdk.io/simapp"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	"github.com/EscanBE/evermint/v12/encoding"
 )
-
-// NewDefaultGenesisState generates the default state for the application.
-func NewDefaultGenesisState() simapp.GenesisState {
-	encCfg := encoding.MakeConfig(ModuleBasics)
-	return ModuleBasics.DefaultGenesis(encCfg.Codec)
-}
 
 // ExportAppStateAndValidators exports the state of the application for a genesis
 // file.
@@ -36,9 +27,7 @@ func (app *Evermint) ExportAppStateAndValidators(
 	if forZeroHeight {
 		height = 0
 
-		if err := app.prepForZeroHeightGenesis(ctx, jailAllowedAddrs); err != nil {
-			return servertypes.ExportedApp{}, err
-		}
+		app.prepForZeroHeightGenesis(ctx, jailAllowedAddrs)
 	}
 
 	genState := app.mm.ExportGenesisForModules(ctx, app.appCodec, modulesToExport)
@@ -62,9 +51,8 @@ func (app *Evermint) ExportAppStateAndValidators(
 
 // prepare for fresh start at zero height
 // NOTE zero height genesis is a temporary feature which will be deprecated
-//
-//	in favor of export at a block height
-func (app *Evermint) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []string) error {
+// in favor of export at a block height
+func (app *Evermint) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []string) {
 	applyAllowedAddrs := false
 
 	// check if there is a allowed address list
@@ -77,7 +65,7 @@ func (app *Evermint) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs 
 	for _, addr := range jailAllowedAddrs {
 		_, err := sdk.ValAddressFromBech32(addr)
 		if err != nil {
-			return err
+			panic(err)
 		}
 		allowedAddrsMap[addr] = true
 	}
@@ -98,14 +86,18 @@ func (app *Evermint) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs 
 	for _, delegation := range dels {
 		valAddr, err := sdk.ValAddressFromBech32(delegation.ValidatorAddress)
 		if err != nil {
-			return err
+			panic(err)
 		}
 
 		delAddr, err := sdk.AccAddressFromBech32(delegation.DelegatorAddress)
 		if err != nil {
-			return err
+			panic(err)
 		}
-		_, _ = app.DistrKeeper.WithdrawDelegationRewards(ctx, delAddr, valAddr)
+
+		_, err = app.DistrKeeper.WithdrawDelegationRewards(ctx, delAddr, valAddr)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	// clear validator slash events
@@ -127,8 +119,8 @@ func (app *Evermint) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs 
 		app.DistrKeeper.SetFeePool(ctx, feePool)
 
 		err := app.DistrKeeper.Hooks().AfterValidatorCreated(ctx, val.GetOperator())
-		if err != nil { //nolint:gosimple // this lets us stop in case there's an error
-			return true
+		if err != nil {
+			panic(err)
 		}
 		return false
 	})
@@ -137,19 +129,17 @@ func (app *Evermint) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs 
 	for _, del := range dels {
 		valAddr, err := sdk.ValAddressFromBech32(del.ValidatorAddress)
 		if err != nil {
-			return err
+			panic(err)
 		}
 		delAddr, err := sdk.AccAddressFromBech32(del.DelegatorAddress)
 		if err != nil {
-			return err
+			panic(err)
 		}
-		err = app.DistrKeeper.Hooks().BeforeDelegationCreated(ctx, delAddr, valAddr)
-		if err != nil {
-			return err
+		if err := app.DistrKeeper.Hooks().BeforeDelegationCreated(ctx, delAddr, valAddr); err != nil {
+			panic(err)
 		}
-		err = app.DistrKeeper.Hooks().AfterDelegationModified(ctx, delAddr, valAddr)
-		if err != nil {
-			return err
+		if err := app.DistrKeeper.Hooks().AfterDelegationModified(ctx, delAddr, valAddr); err != nil {
+			panic(err)
 		}
 	}
 
@@ -178,32 +168,35 @@ func (app *Evermint) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs 
 
 	// Iterate through validators by power descending, reset bond heights, and
 	// update bond intra-tx counters.
-	store := ctx.KVStore(app.keys[stakingtypes.StoreKey])
+	store := ctx.KVStore(app.GetKey(stakingtypes.StoreKey))
 	iter := sdk.KVStoreReversePrefixIterator(store, stakingtypes.ValidatorsKey)
+
 	counter := int16(0)
 
-	for ; iter.Valid(); iter.Next() {
-		addr := sdk.ValAddress(iter.Key()[1:])
-		validator, found := app.StakingKeeper.GetValidator(ctx, addr)
-		if !found {
-			return fmt.Errorf("expected validator %s not found", addr)
+	// Closure to ensure iterator doesn't leak.
+	func() {
+		defer func() {
+			_ = iter.Close()
+		}()
+		for ; iter.Valid(); iter.Next() {
+			addr := sdk.ValAddress(iter.Key()[1:])
+			validator, found := app.StakingKeeper.GetValidator(ctx, addr)
+			if !found {
+				panic(fmt.Sprintf("expected validator %s not found", addr))
+			}
+
+			validator.UnbondingHeight = 0
+			if applyAllowedAddrs && !allowedAddrsMap[addr.String()] {
+				validator.Jailed = true
+			}
+
+			app.StakingKeeper.SetValidator(ctx, validator)
+			counter++
 		}
-
-		validator.UnbondingHeight = 0
-		if applyAllowedAddrs && !allowedAddrsMap[addr.String()] {
-			validator.Jailed = true
-		}
-
-		app.StakingKeeper.SetValidator(ctx, validator)
-		counter++
-	}
-
-	if err := iter.Close(); err != nil {
-		return err
-	}
+	}()
 
 	if _, err := app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx); err != nil {
-		return err
+		panic(err)
 	}
 
 	/* Handle slashing state. */
@@ -217,5 +210,4 @@ func (app *Evermint) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs 
 			return false
 		},
 	)
-	return nil
 }

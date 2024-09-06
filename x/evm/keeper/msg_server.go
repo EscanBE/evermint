@@ -3,12 +3,13 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"math/big"
+
 	"github.com/EscanBE/evermint/v12/utils"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"math/big"
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	tmtypes "github.com/cometbft/cometbft/types"
@@ -18,16 +19,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
-var _ types.MsgServer = &Keeper{}
+var _ evmtypes.MsgServer = &Keeper{}
 
 // EthereumTx implements the gRPC MsgServer interface. It receives a transaction which is then
 // executed (i.e applied) against the go-ethereum EVM. The provided SDK Context is set to the Keeper
 // so that it can implements and call the StateDB methods without receiving it as a function
 // parameter.
-func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*types.MsgEthereumTxResponse, error) {
+func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) (*evmtypes.MsgEthereumTxResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	sender := msg.From
@@ -81,7 +82,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 		tmTxHash = utils.Ptr[tmbytes.HexBytes](tmtypes.Tx(ctx.TxBytes()).Hash())
 	}
 
-	txData, err := types.UnpackTxData(msg.Data)
+	txData, err := evmtypes.UnpackTxData(msg.Data)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to unpack tx data")
 	}
@@ -103,7 +104,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 	receipt.BlockNumber = big.NewInt(ctx.BlockHeight())
 	receipt.TransactionIndex = uint(txIndex)
 
-	receiptSdkEvent, err := types.GetSdkEventForReceipt(
+	receiptSdkEvent, err := evmtypes.GetSdkEventForReceipt(
 		receipt,                           // receipt
 		txData.EffectiveGasPrice(baseFee), // effective gas price
 		func() error { // vm error
@@ -123,7 +124,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 		receiptSdkEvent,
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, evmtypes.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, sender),
 		),
 	})
@@ -135,7 +136,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 // proposal passes, it updates the module parameters. The update can only be
 // performed if the requested authority is the Cosmos SDK governance module
 // account.
-func (k *Keeper) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+func (k *Keeper) UpdateParams(goCtx context.Context, req *evmtypes.MsgUpdateParams) (*evmtypes.MsgUpdateParamsResponse, error) {
 	if k.authority.String() != req.Authority {
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority, expected %s, got %s", k.authority.String(), req.Authority)
 	}
@@ -145,5 +146,5 @@ func (k *Keeper) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams)
 		return nil, err
 	}
 
-	return &types.MsgUpdateParamsResponse{}, nil
+	return &evmtypes.MsgUpdateParamsResponse{}, nil
 }

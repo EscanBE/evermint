@@ -1,33 +1,34 @@
 package hd
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
 	"os"
 	"strings"
 	"testing"
+
+	chainapp "github.com/EscanBE/evermint/v12/app"
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/ethereum/go-ethereum/common"
 
-	amino "github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 
 	cryptocodec "github.com/EscanBE/evermint/v12/crypto/codec"
-	enccodec "github.com/EscanBE/evermint/v12/encoding/codec"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 )
 
-var TestCodec amino.Codec
+var TestCodec codec.Codec
 
 func init() {
-	cdc := amino.NewLegacyAmino()
+	cdc := codec.NewLegacyAmino()
 	cryptocodec.RegisterCrypto(cdc)
 
-	interfaceRegistry := types.NewInterfaceRegistry()
-	TestCodec = amino.NewProtoCodec(interfaceRegistry)
-	enccodec.RegisterInterfaces(interfaceRegistry)
+	interfaceRegistry := codectypes.NewInterfaceRegistry()
+	TestCodec = codec.NewProtoCodec(interfaceRegistry)
+	chainapp.RegisterInterfaces(interfaceRegistry)
 }
 
 const (

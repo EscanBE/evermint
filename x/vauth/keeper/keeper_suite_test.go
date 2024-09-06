@@ -15,7 +15,7 @@ import (
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	tmdb "github.com/cometbft/cometbft-db"
+	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -79,7 +79,7 @@ func (s *KeeperTestSuite) SetupTest() {
 		evmStoreKey := sdk.NewKVStoreKey(evmtypes.StoreKey)
 		vAuthStoreKey := sdk.NewKVStoreKey(vauthtypes.StoreKey)
 
-		db := tmdb.NewMemDB()
+		db := dbm.NewMemDB()
 		stateStore := store.NewCommitMultiStore(db)
 		stateStore.MountStoreWithDB(authStoreKey, storetypes.StoreTypeIAVL, db)
 		stateStore.MountStoreWithDB(bankStoreKey, storetypes.StoreTypeIAVL, db)

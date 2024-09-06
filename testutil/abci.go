@@ -11,8 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/encoding"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/testutil/tx"
 )
 
@@ -22,7 +21,7 @@ import (
 //  2. DeliverTx
 //  3. EndBlock
 //  4. Commit
-func Commit(ctx sdk.Context, app *app.Evermint, t time.Duration, vs *tmtypes.ValidatorSet) (sdk.Context, error) {
+func Commit(ctx sdk.Context, app *chainapp.Evermint, t time.Duration, vs *tmtypes.ValidatorSet) (sdk.Context, error) {
 	header := ctx.BlockHeader()
 
 	if vs != nil {
@@ -54,12 +53,12 @@ func Commit(ctx sdk.Context, app *app.Evermint, t time.Duration, vs *tmtypes.Val
 // DeliverTx delivers a cosmos tx for a given set of msgs
 func DeliverTx(
 	ctx sdk.Context,
-	chainApp *app.Evermint,
+	chainApp *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	gasPrice *sdkmath.Int,
 	msgs ...sdk.Msg,
 ) (abci.ResponseDeliverTx, error) {
-	txConfig := encoding.MakeConfig(app.ModuleBasics).TxConfig
+	txConfig := chainApp.GetTxConfig()
 	tx, err := tx.PrepareCosmosTx(
 		ctx,
 		chainApp,
@@ -82,11 +81,11 @@ func DeliverTx(
 // If a private key is provided, it will attempt to sign all messages with the given private key,
 // otherwise, it will assume the messages have already been signed.
 func DeliverEthTx(
-	chainApp *app.Evermint,
+	chainApp *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	msg sdk.Msg,
 ) (abci.ResponseDeliverTx, error) {
-	txConfig := encoding.MakeConfig(app.ModuleBasics).TxConfig
+	txConfig := chainApp.GetTxConfig()
 
 	tx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msg)
 	if err != nil {
@@ -98,12 +97,12 @@ func DeliverEthTx(
 // CheckTx checks a cosmos tx for a given set of msgs
 func CheckTx(
 	ctx sdk.Context,
-	chainApp *app.Evermint,
+	chainApp *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	gasPrice *sdkmath.Int,
 	msgs ...sdk.Msg,
 ) (abci.ResponseCheckTx, error) {
-	txConfig := encoding.MakeConfig(app.ModuleBasics).TxConfig
+	txConfig := chainApp.GetTxConfig()
 
 	tx, err := tx.PrepareCosmosTx(
 		ctx,
@@ -125,11 +124,11 @@ func CheckTx(
 
 // CheckEthTx checks a Ethereum tx for a given set of msgs
 func CheckEthTx(
-	chainApp *app.Evermint,
+	chainApp *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	msg sdk.Msg,
 ) (abci.ResponseCheckTx, error) {
-	txConfig := encoding.MakeConfig(app.ModuleBasics).TxConfig
+	txConfig := chainApp.GetTxConfig()
 
 	tx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msg)
 	if err != nil {
@@ -139,7 +138,7 @@ func CheckEthTx(
 }
 
 // BroadcastTxBytes encodes a transaction and calls DeliverTx on the app.
-func BroadcastTxBytes(app *app.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ResponseDeliverTx, error) {
+func BroadcastTxBytes(app *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ResponseDeliverTx, error) {
 	// bz are bytes to be broadcasted over the network
 	bz, err := txEncoder(tx)
 	if err != nil {
@@ -156,7 +155,7 @@ func BroadcastTxBytes(app *app.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (ab
 }
 
 // checkTxBytes encodes a transaction and calls checkTx on the app.
-func checkTxBytes(app *app.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ResponseCheckTx, error) {
+func checkTxBytes(app *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ResponseCheckTx, error) {
 	bz, err := txEncoder(tx)
 	if err != nil {
 		return abci.ResponseCheckTx{}, err

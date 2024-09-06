@@ -2,12 +2,12 @@ package app
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/app/upgrades/v3_sample"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
-// ScheduleForkUpgrade executes any necessary fork logic for based upon the current
+// scheduleForkUpgrade executes any necessary fork logic for based upon the current
 // block height and chain ID (mainnet or testnet). It sets an upgrade plan once
 // the chain reaches the pre-defined upgrade height.
 //
@@ -15,31 +15,27 @@ import (
 //
 //  1. Release a non-breaking patch version so that the chain can set the scheduled upgrade plan at upgrade-height.
 //  2. Release the software defined in the upgrade-info
-func (app *Evermint) ScheduleForkUpgrade(ctx sdk.Context) {
-	upgradePlan := upgradetypes.Plan{
-		Height: ctx.BlockHeight(),
-	}
+func (app *Evermint) scheduleForkUpgrade(ctx sdk.Context) {
+	for _, hardFork := range HardForks {
+		if hardFork.UpgradeHeight == ctx.BlockHeight() {
+			upgradePlan := upgradetypes.Plan{
+				Height: ctx.BlockHeight(),
+				Name:   hardFork.UpgradeName,
+				Info:   hardFork.UpgradeInfo,
+			}
 
-	// handle mainnet forks with their corresponding upgrade name and info
-	switch ctx.BlockHeight() {
-	case v3_sample.DevnetUpgradeHeight:
-		upgradePlan.Name = v3_sample.UpgradeName
-		upgradePlan.Info = v3_sample.UpgradeInfo
+			// schedule the upgrade plan to the current block height, effectively performing
+			// a hard fork that uses the upgrade handler to manage the migration.
+			if err := app.UpgradeKeeper.ScheduleUpgrade(ctx, upgradePlan); err != nil {
+				panic(
+					fmt.Errorf(
+						"failed to schedule upgrade %s during BeginBlock at height %d: %w",
+						upgradePlan.Name, ctx.BlockHeight(), err,
+					),
+				)
+			}
 
-		break
-	default:
-		// No-op
-		return
-	}
-
-	// schedule the upgrade plan to the current block height, effectively performing
-	// a hard fork that uses the upgrade handler to manage the migration.
-	if err := app.UpgradeKeeper.ScheduleUpgrade(ctx, upgradePlan); err != nil {
-		panic(
-			fmt.Errorf(
-				"failed to schedule upgrade %s during BeginBlock at height %d: %w",
-				upgradePlan.Name, ctx.BlockHeight(), err,
-			),
-		)
+			return
+		}
 	}
 }

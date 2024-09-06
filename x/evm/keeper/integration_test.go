@@ -2,9 +2,11 @@ package keeper_test
 
 import (
 	"encoding/json"
+	"math/big"
+
+	"github.com/EscanBE/evermint/v12/app/helpers"
 	"github.com/EscanBE/evermint/v12/constants"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-	"math/big"
 
 	"cosmossdk.io/math"
 	. "github.com/onsi/ginkgo/v2"
@@ -12,10 +14,9 @@ import (
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/encoding"
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -135,7 +136,7 @@ var _ = Describe("Feemarket", func() {
 // given a local (validator config) and a global (feemarket param) minGasPrice
 func setupTestWithContext(valMinGasPrice string, minGasPrice sdk.Dec, baseFee math.Int) (*ethsecp256k1.PrivKey, banktypes.MsgSend) {
 	privKey, msg := setupTest(valMinGasPrice + s.denom)
-	params := types.DefaultParams()
+	params := feemarkettypes.DefaultParams()
 	params.MinGasPrice = minGasPrice
 	err := s.app.FeeMarketKeeper.SetParams(s.ctx, params)
 	s.Require().NoError(err)
@@ -183,14 +184,14 @@ func setupChain(localMinGasPricesStr string) {
 		map[int64]bool{},
 		chainapp.DefaultNodeHome,
 		5,
-		encoding.MakeConfig(chainapp.ModuleBasics),
+		chainapp.RegisterEncodingConfig(),
 		simtestutil.NewAppOptionsWithFlagHome(chainapp.DefaultNodeHome),
 		baseapp.SetChainID(chainID),
 		baseapp.SetMinGasPrices(localMinGasPricesStr),
 	)
 
-	genesisState := chainapp.NewTestGenesisState(chainApp.AppCodec())
-	genesisState[types.ModuleName] = chainApp.AppCodec().MustMarshalJSON(types.DefaultGenesisState())
+	genesisState := helpers.NewTestGenesisState(chainApp.AppCodec())
+	genesisState[feemarkettypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(feemarkettypes.DefaultGenesisState())
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", "  ")
 	s.Require().NoError(err)
@@ -201,7 +202,7 @@ func setupChain(localMinGasPricesStr string) {
 			ChainId:         chainID,
 			Validators:      []abci.ValidatorUpdate{},
 			AppStateBytes:   stateBytes,
-			ConsensusParams: chainapp.DefaultConsensusParams,
+			ConsensusParams: helpers.DefaultConsensusParams,
 		},
 	)
 

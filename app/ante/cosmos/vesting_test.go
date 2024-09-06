@@ -1,9 +1,12 @@
 package cosmos_test
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"encoding/hex"
 	"fmt"
+	"time"
+
+	sdkmath "cosmossdk.io/math"
+
 	cosmosante "github.com/EscanBE/evermint/v12/app/ante/cosmos"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/rename_chain/marker"
@@ -13,7 +16,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"time"
 )
 
 //goland:noinspection ALL
@@ -75,7 +77,7 @@ func (suite *AnteTestSuite) TestNewVestingMessagesAuthorizationDecorator() {
 		},
 	}
 
-	var execTypes = []struct {
+	execTypes := []struct {
 		name      string
 		isCheckTx bool
 		simulate  bool

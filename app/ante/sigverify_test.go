@@ -3,6 +3,8 @@ package ante_test
 import (
 	"testing"
 
+	chainapp "github.com/EscanBE/evermint/v12/app"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -16,17 +18,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/app/ante"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/encoding"
 )
 
 func TestConsumeSignatureVerificationGas(t *testing.T) {
 	params := authtypes.DefaultParams()
 	msg := []byte{1, 2, 3, 4}
 
-	encodingConfig := encoding.MakeConfig(app.ModuleBasics)
+	encodingConfig := chainapp.RegisterEncodingConfig()
 	cdc := encodingConfig.Amino
 
 	p := authtypes.DefaultParams()

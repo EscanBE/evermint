@@ -2,12 +2,13 @@ package types
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 
+	"github.com/EscanBE/evermint/v12/constants"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/params"
+	ethparams "github.com/ethereum/go-ethereum/params"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -128,6 +129,6 @@ func validateChainConfig(i interface{}) error {
 }
 
 // IsLondon returns if london hardfork is enabled.
-func IsLondon(ethConfig *params.ChainConfig, height int64) bool {
+func IsLondon(ethConfig *ethparams.ChainConfig, height int64) bool {
 	return ethConfig.IsLondon(big.NewInt(height))
 }

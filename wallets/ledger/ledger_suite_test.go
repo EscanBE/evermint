@@ -3,14 +3,15 @@ package ledger_test
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
 	"regexp"
 	"testing"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptoTypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -90,7 +91,7 @@ func (suite *LedgerTestSuite) getMockTxAmino() []byte {
 }
 
 func (suite *LedgerTestSuite) getMockTxProtobuf() []byte {
-	marshaler := codec.NewProtoCodec(codecTypes.NewInterfaceRegistry())
+	marshaler := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
 	memo := "memo"
 	msg := bankTypes.NewMsgSend(
@@ -104,11 +105,11 @@ func (suite *LedgerTestSuite) getMockTxProtobuf() []byte {
 		},
 	)
 
-	msgAsAny, err := codecTypes.NewAnyWithValue(msg)
+	msgAsAny, err := codectypes.NewAnyWithValue(msg)
 	suite.Require().NoError(err)
 
 	body := &txTypes.TxBody{
-		Messages: []*codecTypes.Any{
+		Messages: []*codectypes.Any{
 			msgAsAny,
 		},
 		Memo: memo,
@@ -116,7 +117,7 @@ func (suite *LedgerTestSuite) getMockTxProtobuf() []byte {
 
 	pubKey := suite.newPubKey("0B485CFC0EECC619440448436F8FC9DF40566F2369E72400281454CB552AFB50")
 
-	pubKeyAsAny, err := codecTypes.NewAnyWithValue(pubKey)
+	pubKeyAsAny, err := codectypes.NewAnyWithValue(pubKey)
 	suite.Require().NoError(err)
 
 	signingMode := txTypes.ModeInfo_Single_{

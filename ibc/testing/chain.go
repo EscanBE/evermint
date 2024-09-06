@@ -1,8 +1,9 @@
 package ibctesting
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
 	"testing"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/stretchr/testify/require"
 
@@ -14,7 +15,7 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibcgotesting "github.com/cosmos/ibc-go/v7/testing"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
@@ -25,7 +26,7 @@ import (
 var ChainIDPrefix = constants.TestnetChainID
 
 func init() {
-	ibcgotesting.ChainIDPrefix = ChainIDPrefix
+	ibctesting.ChainIDPrefix = ChainIDPrefix
 }
 
 // NewTestChain initializes a new TestChain instance with a single validator set using a
@@ -36,7 +37,7 @@ func init() {
 //
 // Time management is handled by the Coordinator in order to ensure synchrony between chains.
 // Each update of any chain increments the block header time for all chains by 5 seconds.
-func NewTestChain(t *testing.T, coord *ibcgotesting.Coordinator, chainID string) *ibcgotesting.TestChain {
+func NewTestChain(t *testing.T, coord *ibctesting.Coordinator, chainID string) *ibctesting.TestChain {
 	// generate validator private/public key
 	privVal := mock.NewPV()
 	pubKey, err := privVal.GetPubKey()
@@ -75,7 +76,7 @@ func NewTestChain(t *testing.T, coord *ibcgotesting.Coordinator, chainID string)
 	txConfig := app.GetTxConfig()
 
 	// create an account to send transactions from
-	chain := &ibcgotesting.TestChain{
+	chain := &ibctesting.TestChain{
 		T:             t,
 		Coordinator:   coord,
 		ChainID:       chainID,
@@ -96,10 +97,10 @@ func NewTestChain(t *testing.T, coord *ibcgotesting.Coordinator, chainID string)
 	return chain
 }
 
-func NewTransferPath(chainA, chainB *ibcgotesting.TestChain) *Path {
+func NewTransferPath(chainA, chainB *ibctesting.TestChain) *Path {
 	path := NewPath(chainA, chainB)
-	path.EndpointA.ChannelConfig.PortID = ibcgotesting.TransferPort
-	path.EndpointB.ChannelConfig.PortID = ibcgotesting.TransferPort
+	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
+	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
 
 	path.EndpointA.ChannelConfig.Order = channeltypes.UNORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.UNORDERED

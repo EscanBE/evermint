@@ -3,13 +3,14 @@ package eth_rpc_it_suite
 import (
 	"context"
 	"fmt"
+	"math/big"
+
 	"github.com/EscanBE/evermint/v12/integration_test_util"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"math/big"
 )
 
 //goland:noinspection SpellCheckingInspection
@@ -253,7 +254,7 @@ func (suite *EthRpcTestSuite) Test_GetCode() {
 	suite.Require().True(ok)
 
 	codeHash := suite.App().EvmKeeper().GetCodeHash(suite.Ctx(), contractAddr.Bytes())
-	suite.Require().False(types.IsEmptyCodeHash(codeHash))
+	suite.Require().False(evmtypes.IsEmptyCodeHash(codeHash))
 
 	code := suite.App().EvmKeeper().GetCode(suite.Ctx(), codeHash)
 	suite.Require().NotEmptyf(code, "not found code for contract %s", contractAddr.String())

@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
 	"strconv"
 	"testing"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"cosmossdk.io/math"
 

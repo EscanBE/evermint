@@ -11,14 +11,14 @@ import (
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	"github.com/EscanBE/evermint/v12/server/config"
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/tx"
+	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
 	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	sdkconfig "github.com/cosmos/cosmos-sdk/server/config"
+	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -129,7 +129,7 @@ func (b *Backend) SetEtherbase(etherbase common.Address) bool {
 		return false
 	}
 
-	txFactory := tx.Factory{}
+	txFactory := clienttx.Factory{}
 	txFactory = txFactory.
 		WithChainID(b.clientCtx.ChainID).
 		WithKeybase(b.clientCtx.Keyring).
@@ -137,7 +137,7 @@ func (b *Backend) SetEtherbase(etherbase common.Address) bool {
 		WithSequence(uint64(*nonce)).
 		WithGasAdjustment(1.25)
 
-	_, gas, err := tx.CalculateGas(b.clientCtx, txFactory, msg)
+	_, gas, err := clienttx.CalculateGas(b.clientCtx, txFactory, msg)
 	if err != nil {
 		b.logger.Debug("failed to calculate gas", "error", err.Error())
 		return false
@@ -156,7 +156,7 @@ func (b *Backend) SetEtherbase(etherbase common.Address) bool {
 		return false
 	}
 
-	if err := tx.Sign(txFactory, keyInfo.Name, builder, false); err != nil {
+	if err := clienttx.Sign(txFactory, keyInfo.Name, builder, false); err != nil {
 		b.logger.Debug("failed to sign tx", "error", err.Error())
 		return false
 	}
@@ -290,7 +290,7 @@ func (b *Backend) SetGasPrice(gasPrice hexutil.Big) bool {
 	c := sdk.NewDecCoin(unit, sdk.NewIntFromBigInt(gasPrice.ToInt()))
 
 	appConf.SetMinGasPrices(sdk.DecCoins{c})
-	sdkconfig.WriteConfigFile(b.clientCtx.Viper.ConfigFileUsed(), appConf)
+	srvconfig.WriteConfigFile(b.clientCtx.Viper.ConfigFileUsed(), appConf)
 	b.logger.Info("Your configuration file was modified. Please RESTART your node.", "gas-price", c.String())
 	return true
 }
@@ -356,13 +356,13 @@ func (b *Backend) RPCBlockRangeCap() int32 {
 func (b *Backend) RPCMinGasPrice() int64 {
 	evmParams, err := b.queryClient.Params(b.ctx, &evmtypes.QueryParamsRequest{})
 	if err != nil {
-		return types.DefaultGasPrice
+		return evertypes.DefaultGasPrice
 	}
 
 	minGasPrice := b.cfg.GetMinGasPrices()
 	amt := minGasPrice.AmountOf(evmParams.Params.EvmDenom).TruncateInt64()
 	if amt == 0 {
-		return types.DefaultGasPrice
+		return evertypes.DefaultGasPrice
 	}
 
 	return amt

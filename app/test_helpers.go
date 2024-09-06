@@ -2,10 +2,11 @@ package app
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-	"time"
 
 	"cosmossdk.io/simapp"
 	dbm "github.com/cometbft/cometbft-db"
@@ -15,7 +16,6 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -24,7 +24,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/EscanBE/evermint/v12/encoding"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 
 	"github.com/EscanBE/evermint/v12/cmd/config"
@@ -35,9 +34,6 @@ func init() {
 	config.SetBech32Prefixes(cfg)
 	config.SetBip44CoinType(cfg)
 }
-
-// DefaultTestingAppInit defines the IBC application used for testing
-var DefaultTestingAppInit func(chainId string) func() (ibctesting.TestingApp, map[string]json.RawMessage) = SetupTestingApp
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
 // Evermint testing.
@@ -73,6 +69,7 @@ func Setup(
 ) *Evermint {
 	privVal := mock.NewPV()
 	pubKey, _ := privVal.GetPubKey()
+	encodingConfig := RegisterEncodingConfig()
 
 	// create validator set with single validator
 	validator := tmtypes.NewValidator(pubKey, 1)
@@ -96,13 +93,13 @@ func Setup(
 		map[int64]bool{},
 		DefaultNodeHome,
 		5,
-		encoding.MakeConfig(ModuleBasics),
+		encodingConfig,
 		simtestutil.NewAppOptionsWithFlagHome(DefaultNodeHome),
 		baseapp.SetChainID(chainID),
 	)
 	if !isCheckTx {
 		// init chain must be called to stop deliverState from being nil
-		genesisState := NewDefaultGenesisState()
+		genesisState := NewDefaultGenesisState(encodingConfig)
 
 		genesisState = GenesisStateWithValSet(chainApp, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
 
@@ -194,25 +191,4 @@ func GenesisStateWithValSet(app *Evermint, genesisState simapp.GenesisState,
 	genesisState[banktypes.ModuleName] = app.AppCodec().MustMarshalJSON(bankGenesis)
 
 	return genesisState
-}
-
-// SetupTestingApp initializes the IBC-go testing application
-func SetupTestingApp(chainID string) func() (ibctesting.TestingApp, map[string]json.RawMessage) {
-	return func() (ibctesting.TestingApp, map[string]json.RawMessage) {
-		db := dbm.NewMemDB()
-		cfg := encoding.MakeConfig(ModuleBasics)
-		app := NewEvermint(
-			log.NewNopLogger(),
-			db,
-			nil,
-			true,
-			map[int64]bool{},
-			DefaultNodeHome,
-			5,
-			cfg,
-			simtestutil.NewAppOptionsWithFlagHome(DefaultNodeHome),
-			baseapp.SetChainID(chainID),
-		)
-		return app, NewDefaultGenesisState()
-	}
 }

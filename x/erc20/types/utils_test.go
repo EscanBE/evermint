@@ -1,11 +1,12 @@
 package types_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
 	"strings"
 	"testing"
 
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	"github.com/EscanBE/evermint/v12/constants"
+
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/require"
@@ -40,7 +41,7 @@ func TestSanitizeERC20Name(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		name := types.SanitizeERC20Name(tc.erc20Name)
+		name := erc20types.SanitizeERC20Name(tc.erc20Name)
 		require.Equal(t, tc.expErc20Name, name, tc.name)
 		err := sdk.ValidateDenom(name)
 		if tc.expectPass {
@@ -165,7 +166,7 @@ func TestEqualMetadata(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		err := types.EqualMetadata(tc.metadataA, tc.metadataB)
+		err := erc20types.EqualMetadata(tc.metadataA, tc.metadataB)
 		if tc.expError {
 			require.Error(t, err)
 		} else {
@@ -214,6 +215,6 @@ func TestEqualAliases(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expEqual, types.EqualStringSlice(tc.aliasesA, tc.aliasesB), tc.name)
+		require.Equal(t, tc.expEqual, erc20types.EqualStringSlice(tc.aliasesA, tc.aliasesB), tc.name)
 	}
 }

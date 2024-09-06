@@ -2,12 +2,13 @@ package backend
 
 import (
 	"context"
-	"cosmossdk.io/errors"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"strconv"
 	"testing"
+
+	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -20,10 +21,10 @@ import (
 	"github.com/cometbft/cometbft/libs/bytes"
 	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
-	"github.com/cometbft/cometbft/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
-	mock "github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -52,18 +53,18 @@ func RegisterTxSearchError(client *mocks.Client, query string) {
 }
 
 // Broadcast Tx
-func RegisterBroadcastTx(client *mocks.Client, tx types.Tx) {
+func RegisterBroadcastTx(client *mocks.Client, tx tmtypes.Tx) {
 	client.On("BroadcastTxSync", context.Background(), tx).
 		Return(&tmrpctypes.ResultBroadcastTx{}, nil)
 }
 
-func RegisterBroadcastTxError(client *mocks.Client, tx types.Tx) {
+func RegisterBroadcastTxError(client *mocks.Client, tx tmtypes.Tx) {
 	client.On("BroadcastTxSync", context.Background(), tx).
 		Return(nil, errortypes.ErrInvalidRequest)
 }
 
 // Unconfirmed Transactions
-func RegisterUnconfirmedTxs(client *mocks.Client, limit *int, txs []types.Tx) {
+func RegisterUnconfirmedTxs(client *mocks.Client, limit *int, txs []tmtypes.Tx) {
 	client.On("UnconfirmedTxs", rpc.ContextWithHeight(1), limit).
 		Return(&tmrpctypes.ResultUnconfirmedTxs{Txs: txs}, nil)
 }
@@ -71,7 +72,7 @@ func RegisterUnconfirmedTxs(client *mocks.Client, limit *int, txs []types.Tx) {
 func RegisterUnconfirmedTxsEmpty(client *mocks.Client, limit *int) {
 	client.On("UnconfirmedTxs", rpc.ContextWithHeight(1), limit).
 		Return(&tmrpctypes.ResultUnconfirmedTxs{
-			Txs: make([]types.Tx, 2),
+			Txs: make([]tmtypes.Tx, 2),
 		}, nil)
 }
 
@@ -95,9 +96,9 @@ func RegisterStatusError(client *mocks.Client) {
 func RegisterBlockMultipleTxs(
 	client *mocks.Client,
 	height int64,
-	txs []types.Tx,
+	txs []tmtypes.Tx,
 ) (*tmrpctypes.ResultBlock, error) {
-	block := types.MakeBlock(height, txs, nil, nil)
+	block := tmtypes.MakeBlock(height, txs, nil, nil)
 	block.ChainID = ChainID
 	resBlock := &tmrpctypes.ResultBlock{Block: block}
 	client.On("Block", rpc.ContextWithHeight(height), mock.AnythingOfType("*int64")).Return(resBlock, nil)
@@ -111,7 +112,7 @@ func RegisterBlock(
 ) (*tmrpctypes.ResultBlock, error) {
 	// without tx
 	if tx == nil {
-		emptyBlock := types.MakeBlock(height, []types.Tx{}, nil, nil)
+		emptyBlock := tmtypes.MakeBlock(height, []tmtypes.Tx{}, nil, nil)
 		emptyBlock.ChainID = ChainID
 		resBlock := &tmrpctypes.ResultBlock{Block: emptyBlock}
 		client.On("Block", rpc.ContextWithHeight(height), mock.AnythingOfType("*int64")).Return(resBlock, nil)
@@ -119,7 +120,7 @@ func RegisterBlock(
 	}
 
 	// with tx
-	block := types.MakeBlock(height, []types.Tx{tx}, nil, nil)
+	block := tmtypes.MakeBlock(height, []tmtypes.Tx{tx}, nil, nil)
 	block.ChainID = ChainID
 	resBlock := &tmrpctypes.ResultBlock{Block: block}
 	client.On("Block", rpc.ContextWithHeight(height), mock.AnythingOfType("*int64")).Return(resBlock, nil)
@@ -151,7 +152,7 @@ func TestRegisterBlock(t *testing.T) {
 
 	res, err := client.Block(rpc.ContextWithHeight(height), &height)
 
-	emptyBlock := types.MakeBlock(height, []types.Tx{}, nil, nil)
+	emptyBlock := tmtypes.MakeBlock(height, []tmtypes.Tx{}, nil, nil)
 	emptyBlock.ChainID = ChainID
 	resBlock := &tmrpctypes.ResultBlock{Block: emptyBlock}
 	require.Equal(t, resBlock, res)
@@ -160,7 +161,7 @@ func TestRegisterBlock(t *testing.T) {
 
 // ConsensusParams
 func RegisterConsensusParams(client *mocks.Client, height int64) {
-	consensusParams := types.DefaultConsensusParams()
+	consensusParams := tmtypes.DefaultConsensusParams()
 	client.On("ConsensusParams", rpc.ContextWithHeight(height), mock.AnythingOfType("*int64")).
 		Return(&tmrpctypes.ResultConsensusParams{ConsensusParams: *consensusParams}, nil)
 }
@@ -176,7 +177,7 @@ func TestRegisterConsensusParams(t *testing.T) {
 	RegisterConsensusParams(client, height)
 
 	res, err := client.ConsensusParams(rpc.ContextWithHeight(height), &height)
-	consensusParams := types.DefaultConsensusParams()
+	consensusParams := tmtypes.DefaultConsensusParams()
 	require.Equal(t, &tmrpctypes.ResultConsensusParams{ConsensusParams: *consensusParams}, res)
 	require.NoError(t, err)
 }
@@ -188,7 +189,7 @@ func BuildBlockResultsWithEventReceipt(height int64, receipt *ethtypes.Receipt) 
 
 	receiptSdkEvent, err := evmtypes.GetSdkEventForReceipt(receipt, big.NewInt(0), nil, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get sdk event for receipt")
+		return nil, errorsmod.Wrap(err, "failed to get sdk event for receipt")
 	}
 
 	receiptSdkEventABCI := sdk.Events{receiptSdkEvent}.ToABCIEvents()[0]
@@ -292,7 +293,7 @@ func RegisterBlockByHash(
 	_ common.Hash,
 	tx []byte,
 ) (*tmrpctypes.ResultBlock, error) {
-	block := types.MakeBlock(1, []types.Tx{tx}, nil, nil)
+	block := tmtypes.MakeBlock(1, []tmtypes.Tx{tx}, nil, nil)
 	resBlock := &tmrpctypes.ResultBlock{Block: block}
 
 	client.On("BlockByHash", rpc.ContextWithHeight(1), []byte{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}).

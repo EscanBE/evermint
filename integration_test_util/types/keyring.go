@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	cryptohd "github.com/EscanBE/evermint/v12/crypto/hd"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"

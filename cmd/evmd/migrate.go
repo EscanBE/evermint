@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/spf13/cobra"
 

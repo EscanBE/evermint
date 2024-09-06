@@ -1,9 +1,8 @@
 package ledger_test
 
 import (
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/encoding"
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
 	"github.com/EscanBE/evermint/v12/wallets/accounts"
 	"github.com/EscanBE/evermint/v12/wallets/ledger"
@@ -18,8 +17,8 @@ import (
 
 // Load encoding config for sign doc encoding/decoding
 func init() {
-	config := encoding.MakeConfig(app.ModuleBasics)
-	eip712.SetEncodingConfig(config)
+	encodingConfig := chainapp.RegisterEncodingConfig()
+	eip712.SetEncodingConfig(encodingConfig)
 	sdk.GetConfig().SetBech32PrefixForAccount("cosmos", "")
 }
 

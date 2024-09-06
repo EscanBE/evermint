@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -18,18 +18,18 @@ func TestParamsTestSuite(t *testing.T) {
 func (suite *ParamsTestSuite) TestParamsValidate() {
 	testCases := []struct {
 		name     string
-		params   types.Params
+		params   erc20types.Params
 		expError bool
 	}{
-		{"default", types.DefaultParams(), false},
+		{"default", erc20types.DefaultParams(), false},
 		{
 			"valid",
-			types.NewParams(true),
+			erc20types.NewParams(true),
 			false,
 		},
 		{
 			"empty",
-			types.Params{},
+			erc20types.Params{},
 			false,
 		},
 	}
@@ -46,6 +46,6 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 }
 
 func (suite *ParamsTestSuite) TestParamsValidatePriv() {
-	suite.Require().Error(types.ValidateBool(1))
-	suite.Require().NoError(types.ValidateBool(true))
+	suite.Require().Error(erc20types.ValidateBool(1))
+	suite.Require().NoError(erc20types.ValidateBool(true))
 }

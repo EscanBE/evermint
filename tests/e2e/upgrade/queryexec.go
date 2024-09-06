@@ -2,6 +2,7 @@ package upgrade
 
 import (
 	"fmt"
+
 	"github.com/EscanBE/evermint/v12/constants"
 )
 

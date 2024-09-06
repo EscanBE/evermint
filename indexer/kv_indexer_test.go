@@ -1,20 +1,19 @@
 package indexer_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
 	"math/big"
 	"testing"
 
-	"cosmossdk.io/simapp/params"
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
+	"github.com/EscanBE/evermint/v12/constants"
+
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	evmenc "github.com/EscanBE/evermint/v12/encoding"
 	"github.com/EscanBE/evermint/v12/indexer"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmlog "github.com/cometbft/cometbft/libs/log"
+	"github.com/cometbft/cometbft/libs/log"
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/ethereum/go-ethereum/common"
@@ -41,7 +40,7 @@ func TestKVIndexer(t *testing.T) {
 	require.NoError(t, tx.Sign(ethSigner, signer))
 	txHash := tx.AsTransaction().Hash()
 
-	encodingConfig := MakeEncodingConfig()
+	encodingConfig := chainapp.RegisterEncodingConfig()
 	clientCtx := client.Context{}.WithTxConfig(encodingConfig.TxConfig).WithCodec(encodingConfig.Codec)
 
 	// build cosmos-sdk wrapper tx
@@ -98,7 +97,6 @@ func TestKVIndexer(t *testing.T) {
 					Code: 11,
 					Log:  "out of gas in location: block gas meter; gasWanted: 21000",
 					Events: []abci.Event{
-
 						{
 							Type: evmtypes.EventTypeEthereumTx,
 							Attributes: []abci.EventAttribute{
@@ -150,7 +148,7 @@ func TestKVIndexer(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			db := dbm.NewMemDB()
-			idxer := indexer.NewKVIndexer(db, tmlog.NewNopLogger(), clientCtx)
+			idxer := indexer.NewKVIndexer(db, log.NewNopLogger(), clientCtx)
 
 			err = idxer.IndexBlock(tc.block, tc.blockResult)
 			require.NoError(t, err)
@@ -183,9 +181,4 @@ func TestKVIndexer(t *testing.T) {
 			}
 		})
 	}
-}
-
-// MakeEncodingConfig creates the EncodingConfig
-func MakeEncodingConfig() params.EncodingConfig {
-	return evmenc.MakeConfig(app.ModuleBasics)
 }

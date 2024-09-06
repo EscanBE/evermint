@@ -18,7 +18,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/params"
+	ethparams "github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 )
@@ -90,7 +90,7 @@ type EVMBackend interface {
 
 	// Chain Info
 	ChainID() (*hexutil.Big, error)
-	ChainConfig() *params.ChainConfig
+	ChainConfig() *ethparams.ChainConfig
 	GlobalMinGasPrice() (sdk.Dec, error)
 	BaseFee(blockRes *tmrpctypes.ResultBlockResults) (*big.Int, error)
 	CurrentHeader() *ethtypes.Header

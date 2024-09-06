@@ -3,15 +3,16 @@ package personal
 import (
 	"context"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
 	"os"
 	"path"
 	"time"
 
+	"github.com/EscanBE/evermint/v12/constants"
+
 	"github.com/EscanBE/evermint/v12/rpc/backend"
 
-	"github.com/EscanBE/evermint/v12/crypto/hd"
-	"github.com/EscanBE/evermint/v12/types"
+	cryptohd "github.com/EscanBE/evermint/v12/crypto/hd"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 
 	"github.com/cometbft/cometbft/libs/log"
 
@@ -30,7 +31,7 @@ import (
 type PrivateAccountAPI struct {
 	backend    backend.EVMBackend
 	logger     log.Logger
-	hdPathIter types.HDPathIterator
+	hdPathIter evertypes.HDPathIterator
 }
 
 // NewAPI creates an instance of the public Personal Eth API.
@@ -41,7 +42,7 @@ func NewAPI(
 	cfg := sdk.GetConfig()
 	basePath := cfg.GetFullBIP44Path()
 
-	iterator, err := types.NewHDPathIterator(basePath, true)
+	iterator, err := evertypes.NewHDPathIterator(basePath, true)
 	if err != nil {
 		panic(err)
 	}
@@ -87,7 +88,7 @@ func (api *PrivateAccountAPI) NewAccount(password string) (common.Address, error
 	// create the mnemonic and save the account
 	hdPath := api.hdPathIter()
 
-	info, err := api.backend.NewMnemonic(name, keyring.English, hdPath.String(), password, hd.EthSecp256k1)
+	info, err := api.backend.NewMnemonic(name, keyring.English, hdPath.String(), password, cryptohd.EthSecp256k1)
 	if err != nil {
 		return common.Address{}, err
 	}

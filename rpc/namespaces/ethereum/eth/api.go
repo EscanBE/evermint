@@ -2,7 +2,8 @@ package eth
 
 import (
 	"context"
-	"cosmossdk.io/errors"
+
+	errorsmod "cosmossdk.io/errors"
 
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 
@@ -17,7 +18,7 @@ import (
 	"github.com/EscanBE/evermint/v12/rpc/backend"
 
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
@@ -294,7 +295,7 @@ func (e *PublicAPI) Call(args evmtypes.TransactionArgs,
 // ProtocolVersion returns the supported Ethereum protocol version.
 func (e *PublicAPI) ProtocolVersion() hexutil.Uint {
 	e.logger.Debug("eth_protocolVersion")
-	return hexutil.Uint(types.ProtocolVersion)
+	return hexutil.Uint(evertypes.ProtocolVersion)
 }
 
 // GasPrice returns the current gas price based on Ethermint's gas price oracle.
@@ -414,7 +415,7 @@ func (e *PublicAPI) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, err
 
 	res, err := e.backend.GetTxByEthHash(txHash)
 	if err != nil {
-		return nil, errors.Wrap(err, "tx not found")
+		return nil, errorsmod.Wrap(err, "tx not found")
 	}
 
 	if res.Failed {
@@ -425,22 +426,22 @@ func (e *PublicAPI) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, err
 	resBlockResult, err := e.backend.TendermintBlockResultByNumber(&res.Height)
 	if err != nil {
 		e.logger.Debug("block result not found", "number", res.Height, "error", err.Error())
-		return nil, errors.Wrap(err, "block result not found")
+		return nil, errorsmod.Wrap(err, "block result not found")
 	}
 
 	txResult := resBlockResult.TxsResults[res.TxIndex]
 	if evmtypes.TxWasDroppedPreAnteHandleDueToBlockGasExcess(txResult) {
-		return nil, errors.Wrap(err, "tx was dropped before ante handle")
+		return nil, errorsmod.Wrap(err, "tx was dropped before ante handle")
 	}
 
 	resBlock, err := e.backend.TendermintBlockByNumber(rpctypes.BlockNumber(res.Height))
 	if err != nil {
-		return nil, errors.Wrap(err, "block not found")
+		return nil, errorsmod.Wrap(err, "block not found")
 	}
 
 	icReceipt, err := backend.TxReceiptFromEvent(txResult.Events)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get receipt from event")
+		return nil, errorsmod.Wrap(err, "failed to get receipt from event")
 	}
 	if icReceipt == nil {
 		// tx was aborted due to block gas limit

@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -36,8 +36,8 @@ func (k Keeper) updateBaseFeeForNextBlock(ctx sdk.Context) {
 	// Store next base fee in event
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeFeeMarket,
-			sdk.NewAttribute(types.AttributeKeyBaseFee, func() string {
+			feemarkettypes.EventTypeFeeMarket,
+			sdk.NewAttribute(feemarkettypes.AttributeKeyBaseFee, func() string {
 				if baseFee == nil {
 					return "0"
 				}

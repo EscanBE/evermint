@@ -1,15 +1,16 @@
 package types
 
 import (
-	"cosmossdk.io/errors"
+	"math/big"
+	"strconv"
+
+	errorsmod "cosmossdk.io/errors"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"math/big"
-	"strconv"
 )
 
 // Evm module events
@@ -55,7 +56,7 @@ func GetSdkEventForReceipt(
 ) (sdk.Event, error) {
 	bzReceipt, err := receipt.MarshalBinary()
 	if err != nil {
-		return sdk.Event{}, errors.Wrap(err, "failed to marshal receipt")
+		return sdk.Event{}, errorsmod.Wrap(err, "failed to marshal receipt")
 	}
 
 	var contractAddr string

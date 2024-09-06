@@ -2,8 +2,9 @@ package backend
 
 import (
 	"fmt"
-	"github.com/cometbft/cometbft/libs/log"
 	"math/big"
+
+	"github.com/cometbft/cometbft/libs/log"
 
 	"cosmossdk.io/math"
 
@@ -11,7 +12,7 @@ import (
 	ethrpc "github.com/EscanBE/evermint/v12/rpc/types"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	"github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -771,7 +772,7 @@ func (suite *BackendTestSuite) TestTendermintBlockResultByNumber() {
 				suite.Require().NoError(err)
 				expBlockRes = &tmrpctypes.ResultBlockResults{
 					Height:     blockNum,
-					TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+					TxsResults: []*abci.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
 				}
 			},
 			true,
@@ -943,17 +944,17 @@ func (suite *BackendTestSuite) TestBlockBloom() {
 		{
 			"non block bloom event type",
 			&tmrpctypes.ResultBlockResults{
-				EndBlockEvents: []types.Event{{Type: evmtypes.EventTypeEthereumTx}},
+				EndBlockEvents: []abci.Event{{Type: evmtypes.EventTypeEthereumTx}},
 			},
 			evmtypes.EmptyBlockBloom,
 		},
 		{
 			"nonblock bloom attribute key",
 			&tmrpctypes.ResultBlockResults{
-				EndBlockEvents: []types.Event{
+				EndBlockEvents: []abci.Event{
 					{
 						Type: evmtypes.EventTypeBlockBloom,
-						Attributes: []types.EventAttribute{
+						Attributes: []abci.EventAttribute{
 							{Key: evmtypes.AttributeKeyEthereumTxHash},
 						},
 					},
@@ -964,10 +965,10 @@ func (suite *BackendTestSuite) TestBlockBloom() {
 		{
 			"block bloom attribute key",
 			&tmrpctypes.ResultBlockResults{
-				EndBlockEvents: []types.Event{
+				EndBlockEvents: []abci.Event{
 					{
 						Type: evmtypes.EventTypeBlockBloom,
-						Attributes: []types.EventAttribute{
+						Attributes: []abci.EventAttribute{
 							{Key: evmtypes.AttributeKeyEthereumBloom},
 						},
 					},
@@ -1017,7 +1018,7 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			resBlock:  &tmrpctypes.ResultBlock{Block: emptyBlock},
 			blockRes: &tmrpctypes.ResultBlockResults{
 				Height:     1,
-				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+				TxsResults: []*abci.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
 			},
 			fullTx: false,
 			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
@@ -1041,7 +1042,7 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			},
 			blockRes: &tmrpctypes.ResultBlockResults{
 				Height:     1,
-				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+				TxsResults: []*abci.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
 			},
 			fullTx: true,
 			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
@@ -1089,7 +1090,7 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			},
 			blockRes: &tmrpctypes.ResultBlockResults{
 				Height:     1,
-				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+				TxsResults: []*abci.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
 			},
 			fullTx: true,
 			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
@@ -1112,7 +1113,7 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			},
 			blockRes: &tmrpctypes.ResultBlockResults{
 				Height: 1,
-				TxsResults: []*types.ResponseDeliverTx{
+				TxsResults: []*abci.ResponseDeliverTx{
 					{
 						Code:    11,
 						GasUsed: 0,
@@ -1214,7 +1215,7 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			},
 			blockRes: &tmrpctypes.ResultBlockResults{
 				Height:     1,
-				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+				TxsResults: []*abci.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
 			},
 			fullTx: false,
 			registerMock: func(baseFee math.Int, validator sdk.AccAddress, height int64) {
@@ -1300,7 +1301,7 @@ func (suite *BackendTestSuite) TestEthMsgsFromTendermintBlock() {
 				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
 			},
 			&tmrpctypes.ResultBlockResults{
-				TxsResults: []*types.ResponseDeliverTx{
+				TxsResults: []*abci.ResponseDeliverTx{
 					{
 						Code: 1,
 					},
@@ -1314,10 +1315,10 @@ func (suite *BackendTestSuite) TestEthMsgsFromTendermintBlock() {
 				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
 			},
 			&tmrpctypes.ResultBlockResults{
-				TxsResults: []*types.ResponseDeliverTx{
+				TxsResults: []*abci.ResponseDeliverTx{
 					{
 						Code: 1,
-						Events: []types.Event{
+						Events: []abci.Event{
 							{
 								Type: evmtypes.EventTypeEthereumTx,
 							},
@@ -1333,10 +1334,10 @@ func (suite *BackendTestSuite) TestEthMsgsFromTendermintBlock() {
 				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
 			},
 			&tmrpctypes.ResultBlockResults{
-				TxsResults: []*types.ResponseDeliverTx{
+				TxsResults: []*abci.ResponseDeliverTx{
 					{
 						Code: 0,
-						Events: []types.Event{
+						Events: []abci.Event{
 							{
 								Type: evmtypes.EventTypeEthereumTx,
 							},
@@ -1714,7 +1715,7 @@ func (suite *BackendTestSuite) TestEthBlockFromTendermintBlock() {
 			},
 			&tmrpctypes.ResultBlockResults{
 				Height:     1,
-				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+				TxsResults: []*abci.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
 			},
 			func(baseFee math.Int, blockNum int64) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
@@ -1741,11 +1742,11 @@ func (suite *BackendTestSuite) TestEthBlockFromTendermintBlock() {
 			},
 			&tmrpctypes.ResultBlockResults{
 				Height:     1,
-				TxsResults: []*types.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
-				EndBlockEvents: []types.Event{
+				TxsResults: []*abci.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+				EndBlockEvents: []abci.Event{
 					{
 						Type: evmtypes.EventTypeBlockBloom,
-						Attributes: []types.EventAttribute{
+						Attributes: []abci.EventAttribute{
 							{Key: evmtypes.AttributeKeyEthereumBloom},
 						},
 					},

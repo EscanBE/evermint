@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/cosmos/cosmos-sdk/client/tx"
+	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
 
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 
 	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
 	vauthutils "github.com/EscanBE/evermint/v12/x/vauth/utils"
@@ -74,18 +74,18 @@ func NewSubmitProofTxCmd() *cobra.Command {
 
 			bzSignature, err := hex.DecodeString(signature[2:])
 			if err != nil {
-				return errors.Wrap(err, "failed to decode signature")
+				return errorsmod.Wrap(err, "failed to decode signature")
 			}
 
 			verified, err := vauthutils.VerifySignature(common.BytesToAddress(accAddr), bzSignature, vauthtypes.MessageToSign)
 			if err != nil {
-				return errors.Wrap(err, "failed to verify locally")
+				return errorsmod.Wrap(err, "failed to verify locally")
 			}
 			if !verified {
 				return fmt.Errorf("un-expected error, signature does not match")
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &vauthtypes.MsgSubmitProofExternalOwnedAccount{
+			return clienttx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &vauthtypes.MsgSubmitProofExternalOwnedAccount{
 				Submitter: submitter,
 				Account:   account,
 				Signature: signature,

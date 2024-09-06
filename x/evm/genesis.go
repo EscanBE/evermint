@@ -9,16 +9,16 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/EscanBE/evermint/v12/x/evm/keeper"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
 // InitGenesis initializes genesis state based on exported genesis
 func InitGenesis(
 	ctx sdk.Context,
-	k *keeper.Keeper,
-	accountKeeper types.AccountKeeper,
-	data types.GenesisState,
+	k *evmkeeper.Keeper,
+	accountKeeper evmtypes.AccountKeeper,
+	data evmtypes.GenesisState,
 ) []abci.ValidatorUpdate {
 	k.WithChainID(ctx)
 
@@ -28,7 +28,7 @@ func InitGenesis(
 	}
 
 	// ensure evm module account is set
-	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
+	if addr := accountKeeper.GetModuleAddress(evmtypes.ModuleName); addr == nil {
 		panic("the EVM module account has not been set")
 	}
 
@@ -51,7 +51,7 @@ func InitGenesis(
 		code := common.Hex2Bytes(account.Code)
 		codeHash := crypto.Keccak256Hash(code)
 
-		if !types.IsEmptyCodeHash(codeHash) {
+		if !evmtypes.IsEmptyCodeHash(codeHash) {
 			k.SetCodeHash(ctx, address, codeHash)
 		}
 
@@ -68,17 +68,17 @@ func InitGenesis(
 }
 
 // ExportGenesis exports genesis state of the EVM module
-func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) *types.GenesisState {
-	var ethGenAccounts []types.GenesisAccount
+func ExportGenesis(ctx sdk.Context, k *evmkeeper.Keeper) *evmtypes.GenesisState {
+	var ethGenAccounts []evmtypes.GenesisAccount
 	k.IterateContracts(ctx, func(addr common.Address, codeHash common.Hash) bool {
-		if types.IsEmptyCodeHash(codeHash) {
+		if evmtypes.IsEmptyCodeHash(codeHash) {
 			// ignore non-contract accounts
 			return false
 		}
 
 		storage := k.GetAccountStorage(ctx, addr)
 
-		genAccount := types.GenesisAccount{
+		genAccount := evmtypes.GenesisAccount{
 			Address: addr.String(),
 			Code:    common.Bytes2Hex(k.GetCode(ctx, codeHash)),
 			Storage: storage,
@@ -88,7 +88,7 @@ func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) *types.GenesisState {
 		return false
 	})
 
-	return &types.GenesisState{
+	return &evmtypes.GenesisState{
 		Accounts: ethGenAccounts,
 		Params:   k.GetParams(ctx),
 	}

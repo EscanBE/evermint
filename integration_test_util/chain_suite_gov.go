@@ -2,12 +2,13 @@ package integration_test_util
 
 //goland:noinspection SpellCheckingInspection
 import (
+	"math"
+	"time"
+
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govv1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypeslegacy "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"math"
-	"time"
 )
 
 // TxFullGov submit gov proposal, full vote Yes and wait gov passed.

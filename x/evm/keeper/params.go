@@ -1,15 +1,15 @@
 package keeper
 
 import (
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
 )
 
 // GetParams returns the total set of evm parameters.
-func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
+func (k Keeper) GetParams(ctx sdk.Context) (params evmtypes.Params) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.KeyPrefixParams)
+	bz := store.Get(evmtypes.KeyPrefixParams)
 	if len(bz) != 0 {
 		k.cdc.MustUnmarshal(bz, &params)
 	}
@@ -17,7 +17,7 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 }
 
 // SetParams sets the EVM params each in their individual key for better get performance
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
+func (k Keeper) SetParams(ctx sdk.Context, params evmtypes.Params) error {
 	if err := params.Validate(); err != nil {
 		return err
 	}
@@ -28,7 +28,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
 		return err
 	}
 
-	store.Set(types.KeyPrefixParams, bz)
+	store.Set(evmtypes.KeyPrefixParams, bz)
 	return nil
 }
 

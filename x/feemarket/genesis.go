@@ -5,15 +5,15 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/EscanBE/evermint/v12/x/feemarket/keeper"
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarketkeeper "github.com/EscanBE/evermint/v12/x/feemarket/keeper"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 )
 
 // InitGenesis initializes genesis state based on exported genesis
 func InitGenesis(
 	ctx sdk.Context,
-	k keeper.Keeper,
-	data types.GenesisState,
+	k feemarketkeeper.Keeper,
+	data feemarkettypes.GenesisState,
 ) []abci.ValidatorUpdate {
 	err := k.SetParams(ctx, data.Params)
 	if err != nil {
@@ -24,8 +24,8 @@ func InitGenesis(
 }
 
 // ExportGenesis exports genesis state of the fee market module
-func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
-	return &types.GenesisState{
+func ExportGenesis(ctx sdk.Context, k feemarketkeeper.Keeper) *feemarkettypes.GenesisState {
+	return &feemarkettypes.GenesisState{
 		Params: k.GetParams(ctx),
 	}
 }

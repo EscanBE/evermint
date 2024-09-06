@@ -3,6 +3,8 @@ package types
 import (
 	"context"
 	"fmt"
+	"math/big"
+
 	"github.com/EscanBE/evermint/v12/utils"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
@@ -10,7 +12,6 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/pkg/errors"
-	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -23,7 +24,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/params"
+	ethparams "github.com/ethereum/go-ethereum/params"
 )
 
 // RawTxToEthTx returns a evm MsgEthereum transaction from raw tx bytes.
@@ -325,7 +326,7 @@ func CheckTxFee(gasPrice *big.Int, gas uint64, cap float64) error {
 	}
 	totalfee := new(big.Float).SetInt(new(big.Int).Mul(gasPrice, new(big.Int).SetUint64(gas)))
 	// 1 ETH = 10^18 wei
-	oneToken := new(big.Float).SetInt(big.NewInt(params.Ether))
+	oneToken := new(big.Float).SetInt(big.NewInt(ethparams.Ether))
 	// quo = rounded(x/y)
 	feeEth := new(big.Float).Quo(totalfee, oneToken)
 	// no need to check error from parsing

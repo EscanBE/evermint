@@ -2,24 +2,24 @@ package keeper_test
 
 import (
 	feemarketkeeper "github.com/EscanBE/evermint/v12/x/feemarket/keeper"
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type mockSubspace struct {
-	ps types.Params
+	ps feemarkettypes.Params
 }
 
-func newMockSubspace(ps types.Params) mockSubspace {
+func newMockSubspace(ps feemarkettypes.Params) mockSubspace {
 	return mockSubspace{ps: ps}
 }
 
-func (ms mockSubspace) GetParamSetIfExists(_ sdk.Context, ps types.LegacyParams) {
-	*ps.(*types.Params) = ms.ps
+func (ms mockSubspace) GetParamSetIfExists(_ sdk.Context, ps feemarkettypes.LegacyParams) {
+	*ps.(*feemarkettypes.Params) = ms.ps
 }
 
 func (suite *KeeperTestSuite) TestMigrations() {
-	legacySubspace := newMockSubspace(types.DefaultParams())
+	legacySubspace := newMockSubspace(feemarkettypes.DefaultParams())
 	migrator := feemarketkeeper.NewMigrator(suite.app.FeeMarketKeeper, legacySubspace)
 
 	testCases := []struct {

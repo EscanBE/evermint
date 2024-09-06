@@ -1,8 +1,10 @@
 package cosmos_test
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"fmt"
+
+	sdkmath "cosmossdk.io/math"
+
 	cosmosante "github.com/EscanBE/evermint/v12/app/ante/cosmos"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/rename_chain/marker"

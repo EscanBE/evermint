@@ -2,8 +2,9 @@ package tx
 
 import (
 	"encoding/json"
-	"github.com/EscanBE/evermint/v12/constants"
 	"math/big"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -17,7 +18,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/server/config"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
@@ -26,7 +27,7 @@ import (
 // It returns the signed transaction and an error
 func PrepareEthTx(
 	txCfg client.TxConfig,
-	chainApp *app.Evermint,
+	chainApp *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	msg sdk.Msg,
 ) (authsigning.Tx, error) {
@@ -89,7 +90,7 @@ func PrepareEthTx(
 // Should this not be the case, just pass in zero.
 func CreateEthTx(
 	ctx sdk.Context,
-	chainApp *app.Evermint,
+	chainApp *chainapp.Evermint,
 	privKey cryptotypes.PrivKey,
 	from sdk.AccAddress,
 	dest sdk.AccAddress,

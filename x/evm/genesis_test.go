@@ -1,15 +1,16 @@
 package evm_test
 
 import (
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"math/big"
+
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/EscanBE/evermint/v12/x/evm"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
@@ -24,13 +25,13 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		genState *types.GenesisState
+		genState *evmtypes.GenesisState
 		expPanic bool
 	}{
 		{
 			name:     "pass - default",
 			malleate: func() {},
-			genState: types.DefaultGenesisState(),
+			genState: evmtypes.DefaultGenesisState(),
 			expPanic: false,
 		},
 		{
@@ -38,12 +39,12 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 			malleate: func() {
 				vmdb.AddBalance(address, big.NewInt(1))
 			},
-			genState: &types.GenesisState{
-				Params: types.DefaultParams(),
-				Accounts: []types.GenesisAccount{
+			genState: &evmtypes.GenesisState{
+				Params: evmtypes.DefaultParams(),
+				Accounts: []evmtypes.GenesisAccount{
 					{
 						Address: address.String(),
-						Storage: types.Storage{
+						Storage: evmtypes.Storage{
 							{Key: common.BytesToHash([]byte("key")).String(), Value: common.BytesToHash([]byte("value")).String()},
 						},
 					},
@@ -54,9 +55,9 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 		{
 			name:     "fail - account not found",
 			malleate: func() {},
-			genState: &types.GenesisState{
-				Params: types.DefaultParams(),
-				Accounts: []types.GenesisAccount{
+			genState: &evmtypes.GenesisState{
+				Params: evmtypes.DefaultParams(),
+				Accounts: []evmtypes.GenesisAccount{
 					{
 						Address: address.String(),
 					},
@@ -70,9 +71,9 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 				acc := authtypes.NewBaseAccountWithAddress(address.Bytes())
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 			},
-			genState: &types.GenesisState{
-				Params: types.DefaultParams(),
-				Accounts: []types.GenesisAccount{
+			genState: &evmtypes.GenesisState{
+				Params: evmtypes.DefaultParams(),
+				Accounts: []evmtypes.GenesisAccount{
 					{
 						Address: address.String(),
 					},
@@ -92,9 +93,9 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 				}
 				suite.app.AccountKeeper.SetAccount(suite.ctx, baseVestingAccount)
 			},
-			genState: &types.GenesisState{
-				Params: types.DefaultParams(),
-				Accounts: []types.GenesisAccount{
+			genState: &evmtypes.GenesisState{
+				Params: evmtypes.DefaultParams(),
+				Accounts: []evmtypes.GenesisAccount{
 					{
 						Address: address.String(),
 					},
@@ -108,9 +109,9 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, address.Bytes())
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 			},
-			genState: &types.GenesisState{
-				Params: types.DefaultParams(),
-				Accounts: []types.GenesisAccount{
+			genState: &evmtypes.GenesisState{
+				Params: evmtypes.DefaultParams(),
+				Accounts: []evmtypes.GenesisAccount{
 					{
 						Address: address.String(),
 						Code:    "",
@@ -127,9 +128,9 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 
 				suite.app.EvmKeeper.SetCodeHash(suite.ctx, address, common.BytesToHash([]byte{1, 2, 3}))
 			},
-			genState: &types.GenesisState{
-				Params: types.DefaultParams(),
-				Accounts: []types.GenesisAccount{
+			genState: &evmtypes.GenesisState{
+				Params: evmtypes.DefaultParams(),
+				Accounts: []evmtypes.GenesisAccount{
 					{
 						Address: address.String(),
 						Code:    "",

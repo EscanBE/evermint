@@ -8,8 +8,10 @@ import (
 	"time"
 )
 
-var muPort = &sync.RWMutex{}
-var curPort = 10_000
+var (
+	muPort  = &sync.RWMutex{}
+	curPort = 10_000
+)
 
 const maxPort = 65535
 

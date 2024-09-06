@@ -1,13 +1,15 @@
 package inspect
 
 import (
-	"cosmossdk.io/errors"
 	"fmt"
+	"path/filepath"
+
+	errorsmod "cosmossdk.io/errors"
+
 	dbm "github.com/cometbft/cometbft-db"
 	tmstore "github.com/cometbft/cometbft/store"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
-	"path/filepath"
 )
 
 func LatestBlockNumberCmd() *cobra.Command {
@@ -22,7 +24,7 @@ func LatestBlockNumberCmd() *cobra.Command {
 			dataDir := filepath.Join(home, "data")
 			db, err := dbm.NewDB("blockstore", server.GetAppDBBackend(serverCtx.Viper), dataDir)
 			if err != nil {
-				panic(errors.Wrap(err, "error while opening db"))
+				panic(errorsmod.Wrap(err, "error while opening db"))
 			}
 
 			blockStoreState := tmstore.LoadBlockStoreState(db)

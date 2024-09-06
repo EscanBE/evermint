@@ -2,13 +2,14 @@ package upgrade
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
 	"log"
 	"os"
 	"os/exec"
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/hashicorp/go-version"
 )
@@ -58,12 +59,15 @@ func RetrieveUpgradesList(upgradesPath string) ([]string, error) {
 	}
 
 	// preallocate slice to store versions
-	versions := make([]string, len(dirs))
+	versions := make([]string, 0)
 
 	// pattern to find quoted string(upgrade version) in a file e.g. "v10.0.0"
-	pattern := regexp.MustCompile(`"(.*?)"`)
+	pattern := regexp.MustCompile(`"v\d+\.\d+\.\d+(-rc\d+)*"`)
 
-	for i, d := range dirs {
+	for _, d := range dirs {
+		if d.Name() == "types.go" {
+			continue
+		}
 		// creating path to upgrade dir file with constant upgrade version
 		constantsPath := fmt.Sprintf("%s/%s/constants.go", upgradesPath, d.Name())
 		f, err := os.ReadFile(constantsPath)
@@ -72,7 +76,7 @@ func RetrieveUpgradesList(upgradesPath string) ([]string, error) {
 		}
 		v := pattern.FindString(string(f))
 		// v[1 : len(v)-1] subslice used to remove quotes from version string
-		versions[i] = v[1 : len(v)-1]
+		versions = append(versions, v[1:len(v)-1])
 	}
 
 	sort.Sort(EvermintVersion(versions))

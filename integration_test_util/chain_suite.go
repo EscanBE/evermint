@@ -3,12 +3,24 @@ package integration_test_util
 //goland:noinspection SpellCheckingInspection
 import (
 	"context"
-	"cosmossdk.io/simapp/params"
 	"fmt"
+	"math"
+	"math/big"
+	"os"
+	"reflect"
+	"runtime"
+	"strconv"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+	"unsafe"
+
+	simappparams "cosmossdk.io/simapp/params"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	etherminthd "github.com/EscanBE/evermint/v12/crypto/hd"
-	"github.com/EscanBE/evermint/v12/encoding"
 	kvindexer "github.com/EscanBE/evermint/v12/indexer"
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	rpcbackend "github.com/EscanBE/evermint/v12/rpc/backend"
@@ -16,7 +28,7 @@ import (
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	cdb "github.com/cometbft/cometbft-db"
+	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -28,7 +40,7 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cometbft/cometbft/version"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	cosmosclient "github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	cosmostxtypes "github.com/cosmos/cosmos-sdk/types/tx"
@@ -47,18 +59,11 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/require"
-	"math"
-	"math/big"
-	"os"
-	"reflect"
-	"runtime"
-	"strconv"
-	"strings"
-	"sync"
-	"testing"
-	"time"
-	"unsafe"
 )
+
+func init() {
+	feemarkettypes.DefaultMinGasPrice = sdk.ZeroDec()
+}
 
 // ChainIntegrationTestSuite is a helper for Chain integration test.
 type ChainIntegrationTestSuite struct {
@@ -71,7 +76,7 @@ type ChainIntegrationTestSuite struct {
 	useKeyring           bool
 	tempHolder           *itutiltypes.TemporaryHolder
 	logger               log.Logger
-	EncodingConfig       params.EncodingConfig
+	EncodingConfig       simappparams.EncodingConfig
 	ChainConstantsConfig itutiltypes.ChainConstantConfig
 	DB                   *itutiltypes.MemDB
 	TendermintApp        itutiltypes.TendermintApp
@@ -120,7 +125,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 
 	chainCfg.EvmChainIdBigInt = big.NewInt(chainCfg.EvmChainId)
 
-	encodingCfg := encoding.MakeConfig(chainapp.ModuleBasics)
+	encodingConfig := chainapp.RegisterEncodingConfig()
 
 	//goland:noinspection SpellCheckingInspection
 	testConfig := itutiltypes.TestConfig{
@@ -139,12 +144,12 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 		DisableTendermint: disableTendermint,
 	}
 
-	clientCtx := cosmosclient.Context{}.
+	clientCtx := client.Context{}.
 		WithChainID(chainCfg.CosmosChainId).
-		WithCodec(encodingCfg.Codec).
-		WithInterfaceRegistry(encodingCfg.InterfaceRegistry).
-		WithTxConfig(encodingCfg.TxConfig).
-		WithLegacyAmino(encodingCfg.Amino).
+		WithCodec(encodingConfig.Codec).
+		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
+		WithTxConfig(encodingConfig.TxConfig).
+		WithLegacyAmino(encodingConfig.Amino).
 		WithKeyringOptions(etherminthd.EthSecp256k1Option())
 
 	tempHolder := itutiltypes.NewTemporaryHolder()
@@ -167,8 +172,8 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 	walletAccounts := newWalletsAccounts(t)
 
 	// Init database
-	sharedDb := itutiltypes.WrapCometBftDB(cdb.NewMemDB())
-	evmIndexerDb := cdb.NewMemDB() // use dedicated db for EVM Tx-Indexer to prevent data corruption
+	sharedDb := itutiltypes.WrapCometBftDB(dbm.NewMemDB())
+	evmIndexerDb := dbm.NewMemDB() // use dedicated db for EVM Tx-Indexer to prevent data corruption
 
 	// Setup chain app
 	genesisAccountBalance := sdk.NewCoins(
@@ -181,7 +186,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 	}
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 	logger = log.NewFilter(logger, log.AllowError())
-	app, tmApp, valSet := itutiltypes.NewChainApp(chainCfg, disableTendermint, testConfig, encodingCfg, sharedDb, validatorAccounts, walletAccounts, genesisAccountBalance, tempHolder, logger)
+	app, tmApp, valSet := itutiltypes.NewChainApp(chainCfg, disableTendermint, testConfig, encodingConfig, sharedDb, validatorAccounts, walletAccounts, genesisAccountBalance, tempHolder, logger)
 	baseApp := app.BaseApp()
 
 	header := createFirstBlockHeader(
@@ -219,7 +224,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 		historicalContext: make(map[int64]sdk.Context),
 		tempHolder:        tempHolder,
 		logger:            logger,
-		EncodingConfig:    encodingCfg,
+		EncodingConfig:    encodingConfig,
 		ChainConstantsConfig: itutiltypes.NewChainConstantConfig(
 			chainCfg.CosmosChainId,
 			chainCfg.BaseDenom,
@@ -250,7 +255,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 	accounts, _ := result.QueryClients.Auth.ModuleAccounts(context.Background(), &authtypes.QueryModuleAccountsRequest{})
 	for _, acc := range accounts.Accounts {
 		var account authtypes.AccountI
-		err = encodingCfg.InterfaceRegistry.UnpackAny(acc, &account)
+		err = encodingConfig.InterfaceRegistry.UnpackAny(acc, &account)
 		require.NoError(t, err)
 		moduleAccount, ok := account.(authtypes.ModuleAccountI)
 		require.True(t, ok)
@@ -417,7 +422,7 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 		suite.Require().NoError(err)
 	}
 
-	clientQueryCtx := cosmosclient.Context{}.
+	clientQueryCtx := client.Context{}.
 		WithChainID(suite.ChainConstantsConfig.GetCosmosChainID()).
 		WithCodec(suite.EncodingConfig.Codec).
 		WithInterfaceRegistry(suite.EncodingConfig.InterfaceRegistry).

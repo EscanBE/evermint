@@ -112,7 +112,7 @@ func (eis *EVMIndexerService) OnStart() error {
 				eis.txIdxr.Ready()
 				isIndexerMarkedReady = true
 
-				for h, _ := range startupIndexBlockFailureTracker {
+				for h := range startupIndexBlockFailureTracker {
 					eis.Logger.Error("skipped indexing block after multiple retries", "height", h)
 				}
 			}

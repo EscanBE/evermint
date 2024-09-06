@@ -2,9 +2,10 @@ package types
 
 //goland:noinspection SpellCheckingInspection
 import (
+	"math/big"
+
 	sdkmath "cosmossdk.io/math"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"math/big"
 )
 
 type ChainConfig struct {

@@ -2,12 +2,13 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/tx"
+	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
@@ -17,13 +18,13 @@ import (
 
 	evertypes "github.com/EscanBE/evermint/v12/types"
 
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 )
 
 // NewTxCmd returns a root CLI command handler for erc20 transaction commands
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
-		Use:                        types.ModuleName,
+		Use:                        erc20types.ModuleName,
 		Short:                      "erc20 subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -66,7 +67,7 @@ func NewConvertCoinCmd() *cobra.Command {
 				receiver = common.BytesToAddress(sender).Hex()
 			}
 
-			msg := &types.MsgConvertCoin{
+			msg := &erc20types.MsgConvertCoin{
 				Coin:     coin,
 				Receiver: receiver,
 				Sender:   sender.String(),
@@ -76,7 +77,7 @@ func NewConvertCoinCmd() *cobra.Command {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
+			return clienttx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -116,7 +117,7 @@ func NewConvertERC20Cmd() *cobra.Command {
 				}
 			}
 
-			msg := &types.MsgConvertERC20{
+			msg := &erc20types.MsgConvertERC20{
 				ContractAddress: contract,
 				Amount:          amount,
 				Receiver:        receiver.String(),
@@ -127,7 +128,7 @@ func NewConvertERC20Cmd() *cobra.Command {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
+			return clienttx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -204,7 +205,7 @@ Where metadata.json contains (example):
 
 			from := clientCtx.GetFromAddress()
 
-			content := types.NewRegisterCoinProposal(title, description, metadata...)
+			content := erc20types.NewRegisterCoinProposal(title, description, metadata...)
 
 			msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
@@ -215,7 +216,7 @@ Where metadata.json contains (example):
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return clienttx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -272,7 +273,7 @@ func NewRegisterERC20ProposalCmd() *cobra.Command {
 
 			erc20Addresses := args
 			from := clientCtx.GetFromAddress()
-			content := types.NewRegisterERC20Proposal(title, description, erc20Addresses...)
+			content := erc20types.NewRegisterERC20Proposal(title, description, erc20Addresses...)
 
 			msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
@@ -283,7 +284,7 @@ func NewRegisterERC20ProposalCmd() *cobra.Command {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return clienttx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -340,7 +341,7 @@ func NewToggleTokenConversionProposalCmd() *cobra.Command {
 
 			from := clientCtx.GetFromAddress()
 			token := args[0]
-			content := types.NewToggleTokenConversionProposal(title, description, token)
+			content := erc20types.NewToggleTokenConversionProposal(title, description, token)
 
 			msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
@@ -351,7 +352,7 @@ func NewToggleTokenConversionProposalCmd() *cobra.Command {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return clienttx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 

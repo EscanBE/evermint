@@ -1,22 +1,20 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/encoding"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	// v3types "github.com/EscanBE/evermint/v12/x/erc20/migrations/v3/types"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type mockSubspace struct {
-	//ps           v3types.V3Params
+	// ps           v3types.V3Params
 	storeKey     storetypes.StoreKey
 	transientKey storetypes.StoreKey
 }
@@ -32,18 +30,18 @@ func newMockSubspace(
 	}
 }
 
-func (ms mockSubspace) GetParamSet(_ sdk.Context, ps types.LegacyParams) {
+func (ms mockSubspace) GetParamSet(_ sdk.Context, ps erc20types.LegacyParams) {
 	// *ps.(*v3types.V3Params) = ms.ps
 }
 
 func (ms mockSubspace) WithKeyTable(keyTable paramtypes.KeyTable) paramtypes.Subspace {
-	encCfg := encoding.MakeConfig(app.ModuleBasics)
-	cdc := encCfg.Codec
-	return paramtypes.NewSubspace(cdc, encCfg.Amino, ms.storeKey, ms.transientKey, "test").WithKeyTable(keyTable)
+	encodingConfig := chainapp.RegisterEncodingConfig()
+	cdc := encodingConfig.Codec
+	return paramtypes.NewSubspace(cdc, encodingConfig.Amino, ms.storeKey, ms.transientKey, "test").WithKeyTable(keyTable)
 }
 
 func (suite *KeeperTestSuite) TestMigrations() {
-	storeKey := sdk.NewKVStoreKey(types.ModuleName)
+	storeKey := sdk.NewKVStoreKey(erc20types.ModuleName)
 	tKey := sdk.NewTransientStoreKey("transient_test")
 	ctx := testutil.DefaultContext(storeKey, tKey)
 

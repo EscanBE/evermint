@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 )
 
 func NewDynamicFeeTx(tx *ethtypes.Transaction) (*DynamicFeeTx, error) {
@@ -26,7 +26,7 @@ func NewDynamicFeeTx(tx *ethtypes.Transaction) (*DynamicFeeTx, error) {
 	}
 
 	if tx.Value() != nil {
-		amountInt, err := types.SafeNewIntFromBigInt(tx.Value())
+		amountInt, err := evertypes.SafeNewIntFromBigInt(tx.Value())
 		if err != nil {
 			return nil, err
 		}
@@ -34,7 +34,7 @@ func NewDynamicFeeTx(tx *ethtypes.Transaction) (*DynamicFeeTx, error) {
 	}
 
 	if tx.GasFeeCap() != nil {
-		gasFeeCapInt, err := types.SafeNewIntFromBigInt(tx.GasFeeCap())
+		gasFeeCapInt, err := evertypes.SafeNewIntFromBigInt(tx.GasFeeCap())
 		if err != nil {
 			return nil, err
 		}
@@ -42,7 +42,7 @@ func NewDynamicFeeTx(tx *ethtypes.Transaction) (*DynamicFeeTx, error) {
 	}
 
 	if tx.GasTipCap() != nil {
-		gasTipCapInt, err := types.SafeNewIntFromBigInt(tx.GasTipCap())
+		gasTipCapInt, err := evertypes.SafeNewIntFromBigInt(tx.GasTipCap())
 		if err != nil {
 			return nil, err
 		}
@@ -211,11 +211,11 @@ func (tx DynamicFeeTx) Validate() error {
 		return errorsmod.Wrapf(ErrInvalidGasCap, "gas fee cap cannot be negative %s", tx.GasFeeCap)
 	}
 
-	if !types.IsValidInt256(tx.GetGasTipCap()) {
+	if !evertypes.IsValidInt256(tx.GetGasTipCap()) {
 		return errorsmod.Wrap(ErrInvalidGasCap, "out of bound")
 	}
 
-	if !types.IsValidInt256(tx.GetGasFeeCap()) {
+	if !evertypes.IsValidInt256(tx.GetGasFeeCap()) {
 		return errorsmod.Wrap(ErrInvalidGasCap, "out of bound")
 	}
 
@@ -226,7 +226,7 @@ func (tx DynamicFeeTx) Validate() error {
 		)
 	}
 
-	if !types.IsValidInt256(tx.Fee()) {
+	if !evertypes.IsValidInt256(tx.Fee()) {
 		return errorsmod.Wrap(ErrInvalidGasFee, "out of bound")
 	}
 
@@ -235,12 +235,12 @@ func (tx DynamicFeeTx) Validate() error {
 	if amount != nil && amount.Sign() == -1 {
 		return errorsmod.Wrapf(ErrInvalidAmount, "amount cannot be negative %s", amount)
 	}
-	if !types.IsValidInt256(amount) {
+	if !evertypes.IsValidInt256(amount) {
 		return errorsmod.Wrap(ErrInvalidAmount, "out of bound")
 	}
 
 	if tx.To != "" {
-		if err := types.ValidateAddress(tx.To); err != nil {
+		if err := evertypes.ValidateAddress(tx.To); err != nil {
 			return errorsmod.Wrap(err, "invalid to address")
 		}
 	}

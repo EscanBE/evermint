@@ -3,6 +3,11 @@ package filters
 import (
 	"context"
 	"fmt"
+	"os"
+	"sync"
+	"testing"
+	"time"
+
 	"github.com/EscanBE/evermint/v12/rpc/ethereum/pubsub"
 	"github.com/cometbft/cometbft/libs/log"
 	coretypes "github.com/cometbft/cometbft/rpc/core/types"
@@ -11,10 +16,6 @@ import (
 	"github.com/ethereum/go-ethereum/eth/filters"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/stretchr/testify/require"
-	"os"
-	"sync"
-	"testing"
-	"time"
 )
 
 func TestEventSystem(t *testing.T) {

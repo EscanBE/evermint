@@ -6,7 +6,7 @@ import (
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
-	cosmosclient "github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client"
 	cosmostxtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -21,7 +21,7 @@ import (
 
 type QueryClients struct {
 	GrpcConnection          grpc1.ClientConn
-	ClientQueryCtx          cosmosclient.Context
+	ClientQueryCtx          client.Context
 	TendermintRpcHttpClient *httpclient.HTTP
 	Auth                    authtypes.QueryClient
 	Bank                    banktypes.QueryClient

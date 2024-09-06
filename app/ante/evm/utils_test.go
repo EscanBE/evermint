@@ -19,7 +19,7 @@ import (
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/tx"
+	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	kmultisig "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -145,7 +145,7 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 			AccountNumber: accNum,
 			Sequence:      txData.GetNonce(),
 		}
-		sigV2, err = tx.SignWithPrivKey(
+		sigV2, err = clienttx.SignWithPrivKey(
 			suite.clientCtx.TxConfig.SignModeHandler().DefaultMode(), signerData,
 			txBuilder, priv, suite.clientCtx.TxConfig, txData.GetNonce(),
 		)

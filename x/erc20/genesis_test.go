@@ -1,9 +1,11 @@
 package erc20_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
 	"testing"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/app/helpers"
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/stretchr/testify/suite"
 
@@ -17,16 +19,16 @@ import (
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/x/erc20"
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 )
 
 type GenesisTestSuite struct {
 	suite.Suite
 	ctx     sdk.Context
-	app     *app.Evermint
-	genesis types.GenesisState
+	app     *chainapp.Evermint
+	genesis erc20types.GenesisState
 }
 
 func TestGenesisTestSuite(t *testing.T) {
@@ -38,7 +40,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 	consAddress := sdk.ConsAddress(utiltx.GenerateAddress().Bytes())
 
 	chainID := constants.TestnetFullChainId
-	suite.app = app.Setup(false, feemarkettypes.DefaultGenesisState(), chainID)
+	suite.app = helpers.Setup(false, feemarkettypes.DefaultGenesisState(), chainID)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{
 		Height:          1,
 		ChainID:         chainID,
@@ -64,32 +66,32 @@ func (suite *GenesisTestSuite) SetupTest() {
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
 	})
 
-	suite.genesis = *types.DefaultGenesisState()
+	suite.genesis = *erc20types.DefaultGenesisState()
 }
 
 func (suite *GenesisTestSuite) TestERC20InitGenesis() {
 	testCases := []struct {
 		name         string
-		genesisState types.GenesisState
+		genesisState erc20types.GenesisState
 	}{
 		{
 			"empty genesis",
-			types.GenesisState{},
+			erc20types.GenesisState{},
 		},
 		{
 			"default genesis",
-			*types.DefaultGenesisState(),
+			*erc20types.DefaultGenesisState(),
 		},
 		{
 			"custom genesis",
-			types.NewGenesisState(
-				types.DefaultParams(),
-				[]types.TokenPair{
+			erc20types.NewGenesisState(
+				erc20types.DefaultParams(),
+				[]erc20types.TokenPair{
 					{
 						Erc20Address:  "0x5dCA2483280D9727c80b5518faC4556617fb19ZZ",
 						Denom:         "coin",
 						Enabled:       true,
-						ContractOwner: types.OWNER_MODULE,
+						ContractOwner: erc20types.OWNER_MODULE,
 					},
 				}),
 		},
@@ -115,26 +117,26 @@ func (suite *GenesisTestSuite) TestERC20InitGenesis() {
 func (suite *GenesisTestSuite) TestErc20ExportGenesis() {
 	testGenCases := []struct {
 		name         string
-		genesisState types.GenesisState
+		genesisState erc20types.GenesisState
 	}{
 		{
 			"empty genesis",
-			types.GenesisState{},
+			erc20types.GenesisState{},
 		},
 		{
 			"default genesis",
-			*types.DefaultGenesisState(),
+			*erc20types.DefaultGenesisState(),
 		},
 		{
 			"custom genesis",
-			types.NewGenesisState(
-				types.DefaultParams(),
-				[]types.TokenPair{
+			erc20types.NewGenesisState(
+				erc20types.DefaultParams(),
+				[]erc20types.TokenPair{
 					{
 						Erc20Address:  "0x5dCA2483280D9727c80b5518faC4556617fb19ZZ",
 						Denom:         "coin",
 						Enabled:       true,
-						ContractOwner: types.OWNER_MODULE,
+						ContractOwner: erc20types.OWNER_MODULE,
 					},
 				}),
 		},

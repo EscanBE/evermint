@@ -2,8 +2,9 @@ package types
 
 import (
 	"fmt"
-	govcdc "github.com/cosmos/cosmos-sdk/x/gov/codec"
 	"strings"
+
+	govcdc "github.com/cosmos/cosmos-sdk/x/gov/codec"
 
 	errorsmod "cosmossdk.io/errors"
 	evertypes "github.com/EscanBE/evermint/v12/types"

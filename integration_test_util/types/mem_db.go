@@ -1,17 +1,17 @@
 package types
 
 import (
-	cdb "github.com/cometbft/cometbft-db"
+	dbm "github.com/cometbft/cometbft-db"
 	// tdb "github.com/tendermint/tm-db"
 )
 
-var _ cdb.DB = (*MemDB)(nil)
+var _ dbm.DB = (*MemDB)(nil)
 
 // MemDB is a wrapper of Tendermint/CometBFT DB that is backward-compatible with CometBFT chains pre-rename package.
 //
 // (eg: replace github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.29)
 type MemDB struct {
-	cDb cdb.DB
+	cDb dbm.DB
 	// tmDb tdb.DB
 }
 
@@ -19,11 +19,11 @@ type MemDB struct {
 //	return &MemDB{tmDb: tmDb}
 //}
 
-func WrapCometBftDB(cDb cdb.DB) *MemDB {
+func WrapCometBftDB(cDb dbm.DB) *MemDB {
 	return &MemDB{cDb: cDb}
 }
 
-func (w *MemDB) AsCometBFT() cdb.DB {
+func (w *MemDB) AsCometBFT() dbm.DB {
 	return w
 }
 
@@ -55,11 +55,11 @@ func (w *MemDB) DeleteSync(bytes []byte) error {
 	return w.cDb.DeleteSync(bytes)
 }
 
-func (w *MemDB) Iterator(start, end []byte) (cdb.Iterator, error) {
+func (w *MemDB) Iterator(start, end []byte) (dbm.Iterator, error) {
 	return w.cDb.Iterator(start, end)
 }
 
-func (w *MemDB) ReverseIterator(start, end []byte) (cdb.Iterator, error) {
+func (w *MemDB) ReverseIterator(start, end []byte) (dbm.Iterator, error) {
 	return w.cDb.ReverseIterator(start, end)
 }
 
@@ -67,7 +67,7 @@ func (w *MemDB) Close() error {
 	return w.cDb.Close()
 }
 
-func (w *MemDB) NewBatch() cdb.Batch {
+func (w *MemDB) NewBatch() dbm.Batch {
 	return w.cDb.NewBatch()
 }
 

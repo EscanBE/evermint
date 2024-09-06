@@ -3,9 +3,10 @@ package network
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
 	"path/filepath"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	tmos "github.com/cometbft/cometbft/libs/os"
 	"github.com/cometbft/cometbft/node"

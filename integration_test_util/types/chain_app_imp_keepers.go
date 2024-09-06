@@ -40,7 +40,7 @@ func (c chainAppImp) FeeMarketKeeper() *feemarketkeeper.Keeper {
 }
 
 func (c chainAppImp) GovKeeper() *govkeeper.Keeper {
-	return &c.app.GovKeeper
+	return c.app.GovKeeper
 }
 
 func (c chainAppImp) IbcTransferKeeper() *ibctransferkeeper.Keeper {

@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

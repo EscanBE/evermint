@@ -7,7 +7,7 @@ import (
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 )
 
 var (
@@ -22,7 +22,7 @@ var (
 )
 
 func init() {
-	ERC20MinterBurnerDecimalsAddress = types.ModuleAddress
+	ERC20MinterBurnerDecimalsAddress = erc20types.ModuleAddress
 
 	err := json.Unmarshal(ERC20MinterBurnerDecimalsJSON, &ERC20MinterBurnerDecimalsContract)
 	if err != nil {

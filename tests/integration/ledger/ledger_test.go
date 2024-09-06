@@ -3,15 +3,15 @@ package ledger_test
 import (
 	"bytes"
 	"context"
-	"cosmossdk.io/simapp/params"
+
+	simappparams "cosmossdk.io/simapp/params"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/crypto/hd"
-	"github.com/EscanBE/evermint/v12/encoding"
 	"github.com/EscanBE/evermint/v12/tests/integration/ledger/mocks"
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
@@ -39,7 +39,7 @@ var (
 var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 	var (
 		receiverAccAddr sdk.AccAddress
-		encCfg          params.EncodingConfig
+		encodingConfig  simappparams.EncodingConfig
 		kr              keyring.Keyring
 		mockedIn        sdktestutil.BufferReader
 		clientCtx       client.Context
@@ -50,6 +50,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 	)
 
 	ledgerKey := "ledger_key"
+	encodingConfig = chainapp.RegisterEncodingConfig()
 
 	s.SetupTest()
 	s.SetupChainAppApp()
@@ -57,13 +58,12 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 	Describe("Adding a key from ledger using the CLI", func() {
 		BeforeEach(func() {
 			krHome = s.T().TempDir()
-			encCfg = encoding.MakeConfig(app.ModuleBasics)
 
 			cmd = s.addKeyCmd()
 
 			mockedIn = sdktestutil.ApplyMockIODiscardOutErr(cmd)
 
-			kr, clientCtx, ctx = s.NewKeyringAndCtxs(krHome, mockedIn, encCfg)
+			kr, clientCtx, ctx = s.NewKeyringAndCtxs(krHome, mockedIn, encodingConfig)
 
 			mocks.MClose(s.ledger)
 			mocks.MGetAddressPubKeySECP256K1(s.ledger, s.accAddr, s.pubKey)
@@ -102,7 +102,6 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 	Describe("Singing a transactions", func() {
 		BeforeEach(func() {
 			krHome = s.T().TempDir()
-			encCfg = encoding.MakeConfig(app.ModuleBasics)
 
 			var err error
 
@@ -112,7 +111,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 			mockedIn = sdktestutil.ApplyMockIODiscardOutErr(cmd)
 			mocks.MGetAddressPubKeySECP256K1(s.ledger, s.accAddr, s.pubKey)
 
-			kr, clientCtx, ctx = s.NewKeyringAndCtxs(krHome, mockedIn, encCfg)
+			kr, clientCtx, ctx = s.NewKeyringAndCtxs(krHome, mockedIn, encodingConfig)
 
 			b := bytes.NewBufferString("")
 			cmd.SetOut(b)
@@ -184,7 +183,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 					cmd = bankcli.NewSendTxCmd()
 					mockedIn = sdktestutil.ApplyMockIODiscardOutErr(cmd)
 
-					kr, clientCtx, ctx = s.NewKeyringAndCtxs(krHome, mockedIn, encCfg)
+					kr, clientCtx, ctx = s.NewKeyringAndCtxs(krHome, mockedIn, encodingConfig)
 
 					// register mocked funcs
 					mocks.MClose(s.ledger)

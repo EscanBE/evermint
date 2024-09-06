@@ -2,12 +2,16 @@ package types
 
 //goland:noinspection SpellCheckingInspection
 import (
-	sdkmath "cosmossdk.io/math"
-	"cosmossdk.io/simapp"
-	"cosmossdk.io/simapp/params"
 	"crypto/ed25519"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
+
+	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/simapp"
+	simappparams "cosmossdk.io/simapp/params"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	itutilutils "github.com/EscanBE/evermint/v12/integration_test_util/utils"
@@ -32,8 +36,6 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"strings"
-	"time"
 )
 
 var defaultConsensusParams = &tmtypes.ConsensusParams{
@@ -55,7 +57,7 @@ var defaultConsensusParams = &tmtypes.ConsensusParams{
 
 const TendermintGovVotingPeriod = 5 * time.Second
 
-func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestConfig, encCfg params.EncodingConfig, db *MemDB, validatorAccounts TestAccounts, walletAccounts TestAccounts, genesisAccountBalance sdk.Coins, tempHolder *TemporaryHolder, logger log.Logger) (chainApp ChainApp, tendermintApp TendermintApp, validatorSet *tmtypes.ValidatorSet) {
+func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestConfig, encCfg simappparams.EncodingConfig, db *MemDB, validatorAccounts TestAccounts, walletAccounts TestAccounts, genesisAccountBalance sdk.Coins, tempHolder *TemporaryHolder, logger log.Logger) (chainApp ChainApp, tendermintApp TendermintApp, validatorSet *tmtypes.ValidatorSet) {
 	defaultNodeHome := chainapp.DefaultNodeHome
 	moduleBasics := chainapp.ModuleBasics
 

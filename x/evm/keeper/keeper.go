@@ -1,8 +1,11 @@
 package keeper
 
 import (
-	"cosmossdk.io/errors"
 	"fmt"
+	"math/big"
+
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/EscanBE/evermint/v12/utils"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -13,12 +16,11 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/params"
-	"math/big"
+	ethparams "github.com/ethereum/go-ethereum/params"
 
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
 // Keeper grants access to the EVM module state and implements the go-ethereum StateDB interface.
@@ -38,13 +40,13 @@ type Keeper struct {
 	// the address capable of executing a MsgUpdateParams message. Typically, this should be the x/gov module account.
 	authority sdk.AccAddress
 	// access to account state
-	accountKeeper types.AccountKeeper
+	accountKeeper evmtypes.AccountKeeper
 	// update balance and accounting operations with coins
-	bankKeeper types.BankKeeper
+	bankKeeper evmtypes.BankKeeper
 	// access historical headers for EVM state transition execution
-	stakingKeeper types.StakingKeeper
+	stakingKeeper evmtypes.StakingKeeper
 	// fetch EIP1559 base fee and parameters
-	feeMarketKeeper types.FeeMarketKeeper
+	feeMarketKeeper evmtypes.FeeMarketKeeper
 
 	// chain ID number obtained from the context's chain id
 	eip155ChainID *big.Int
@@ -61,15 +63,15 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey, transientKey storetypes.StoreKey,
 	authority sdk.AccAddress,
-	ak types.AccountKeeper,
-	bankKeeper types.BankKeeper,
-	sk types.StakingKeeper,
-	fmk types.FeeMarketKeeper,
+	ak evmtypes.AccountKeeper,
+	bankKeeper evmtypes.BankKeeper,
+	sk evmtypes.StakingKeeper,
+	fmk evmtypes.FeeMarketKeeper,
 	tracer string,
 	ss paramstypes.Subspace,
 ) *Keeper {
 	// ensure evm module account is set
-	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
+	if addr := ak.GetModuleAddress(evmtypes.ModuleName); addr == nil {
 		panic("the EVM module account has not been set")
 	}
 
@@ -95,7 +97,7 @@ func NewKeeper(
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", types.ModuleName)
+	return ctx.Logger().With("module", evmtypes.ModuleName)
 }
 
 // WithChainID sets the chain id to the local variable in the keeper
@@ -126,8 +128,8 @@ func (k Keeper) ChainID() *big.Int {
 func (k Keeper) EmitBlockBloomEvent(ctx sdk.Context, bloom ethtypes.Bloom) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeBlockBloom,
-			sdk.NewAttribute(types.AttributeKeyEthereumBloom, string(bloom.Bytes())),
+			evmtypes.EventTypeBlockBloom,
+			sdk.NewAttribute(evmtypes.AttributeKeyEthereumBloom, string(bloom.Bytes())),
 		),
 	)
 }
@@ -144,9 +146,9 @@ func (k Keeper) GetAuthority() sdk.AccAddress {
 // IncreaseTxCountTransient increase the count of transaction being processed in the current block
 func (k Keeper) IncreaseTxCountTransient(ctx sdk.Context) {
 	store := ctx.TransientStore(k.transientKey)
-	bz := store.Get(types.KeyTransientTxCount)
+	bz := store.Get(evmtypes.KeyTransientTxCount)
 	curCount := sdk.BigEndianToUint64(bz)
-	store.Set(types.KeyTransientTxCount, sdk.Uint64ToBigEndian(curCount+1))
+	store.Set(evmtypes.KeyTransientTxCount, sdk.Uint64ToBigEndian(curCount+1))
 }
 
 // GetTxCountTransient returns the count of transaction being processed in the current block.
@@ -162,7 +164,7 @@ func (k Keeper) GetTxCountTransient(ctx sdk.Context) uint64 {
 // GetRawTxCountTransient returns the raw count of transaction being processed in the current block.
 func (k Keeper) GetRawTxCountTransient(ctx sdk.Context) uint64 {
 	store := ctx.TransientStore(k.transientKey)
-	bz := store.Get(types.KeyTransientTxCount)
+	bz := store.Get(evmtypes.KeyTransientTxCount)
 	return sdk.BigEndianToUint64(bz)
 }
 
@@ -172,13 +174,13 @@ func (k Keeper) SetGasUsedForCurrentTxTransient(ctx sdk.Context, gas uint64) {
 	txIdx := k.GetTxCountTransient(ctx) - 1
 
 	store := ctx.TransientStore(k.transientKey)
-	store.Set(types.TxGasTransientKey(txIdx), sdk.Uint64ToBigEndian(gas))
+	store.Set(evmtypes.TxGasTransientKey(txIdx), sdk.Uint64ToBigEndian(gas))
 }
 
 // GetGasUsedForTdxIndexTransient returns gas used for tx by index from the transient store.
 func (k Keeper) GetGasUsedForTdxIndexTransient(ctx sdk.Context, txIdx uint64) uint64 {
 	store := ctx.TransientStore(k.transientKey)
-	bz := store.Get(types.TxGasTransientKey(txIdx))
+	bz := store.Get(evmtypes.TxGasTransientKey(txIdx))
 	return sdk.BigEndianToUint64(bz)
 }
 
@@ -188,13 +190,13 @@ func (k Keeper) SetLogCountForCurrentTxTransient(ctx sdk.Context, count uint64) 
 	txIdx := k.GetTxCountTransient(ctx) - 1
 
 	store := ctx.TransientStore(k.transientKey)
-	store.Set(types.TxLogCountTransientKey(txIdx), sdk.Uint64ToBigEndian(count))
+	store.Set(evmtypes.TxLogCountTransientKey(txIdx), sdk.Uint64ToBigEndian(count))
 }
 
 // GetLogCountForTdxIndexTransient returns log count for tx by index from the transient store.
 func (k Keeper) GetLogCountForTdxIndexTransient(ctx sdk.Context, txIdx uint64) uint64 {
 	store := ctx.TransientStore(k.transientKey)
-	bz := store.Get(types.TxLogCountTransientKey(txIdx))
+	bz := store.Get(evmtypes.TxLogCountTransientKey(txIdx))
 	return sdk.BigEndianToUint64(bz)
 }
 
@@ -210,7 +212,7 @@ func (k Keeper) GetCumulativeLogCountTransient(ctx sdk.Context, exceptCurrent bo
 			continue
 		}
 
-		bz := store.Get(types.TxLogCountTransientKey(i))
+		bz := store.Get(evmtypes.TxLogCountTransientKey(i))
 		total += sdk.BigEndianToUint64(bz)
 	}
 
@@ -222,7 +224,7 @@ func (k Keeper) SetTxReceiptForCurrentTxTransient(ctx sdk.Context, receiptBz []b
 	txIdx := k.GetTxCountTransient(ctx) - 1
 
 	store := ctx.TransientStore(k.transientKey)
-	store.Set(types.TxReceiptTransientKey(txIdx), receiptBz)
+	store.Set(evmtypes.TxReceiptTransientKey(txIdx), receiptBz)
 }
 
 // GetTxReceiptsTransient returns the receipts for all transactions in the current block.
@@ -232,14 +234,14 @@ func (k Keeper) GetTxReceiptsTransient(ctx sdk.Context) (receipts ethtypes.Recei
 	store := ctx.TransientStore(k.transientKey)
 
 	for txIdx := uint64(0); txIdx < txCount; txIdx++ {
-		bzReceipt := store.Get(types.TxReceiptTransientKey(txIdx))
+		bzReceipt := store.Get(evmtypes.TxReceiptTransientKey(txIdx))
 		if len(bzReceipt) == 0 {
 			panic(fmt.Sprintf("receipt not found for tx at %d", txIdx))
 		}
 
 		receipt := &ethtypes.Receipt{}
 		if err := receipt.UnmarshalBinary(bzReceipt); err != nil {
-			panic(errors.Wrapf(err, "failed to unmarshal receipt at idx: %d", txIdx))
+			panic(errorsmod.Wrapf(err, "failed to unmarshal receipt at idx: %d", txIdx))
 		}
 
 		receipts = append(receipts, receipt)
@@ -253,11 +255,11 @@ func (k Keeper) GetTxReceiptsTransient(ctx sdk.Context) (receipts ethtypes.Recei
 // ----------------------------------------------------------------------------
 
 // GetAccountStorage return state storage associated with an account
-func (k Keeper) GetAccountStorage(ctx sdk.Context, address common.Address) types.Storage {
-	storage := types.Storage{}
+func (k Keeper) GetAccountStorage(ctx sdk.Context, address common.Address) evmtypes.Storage {
+	storage := evmtypes.Storage{}
 
 	k.ForEachStorage(ctx, address, func(key, value common.Hash) bool {
-		storage = append(storage, types.NewState(key, value))
+		storage = append(storage, evmtypes.NewState(key, value))
 		return true
 	})
 
@@ -269,8 +271,8 @@ func (k Keeper) GetAccountStorage(ctx sdk.Context, address common.Address) types
 // ----------------------------------------------------------------------------
 
 // Tracer return a default vm.Tracer based on current keeper state
-func (k Keeper) Tracer(ctx sdk.Context, msg core.Message, ethCfg *params.ChainConfig) vm.EVMLogger {
-	return types.NewTracer(k.tracer, msg, ethCfg, ctx.BlockHeight())
+func (k Keeper) Tracer(ctx sdk.Context, msg core.Message, ethCfg *ethparams.ChainConfig) vm.EVMLogger {
+	return evmtypes.NewTracer(k.tracer, msg, ethCfg, ctx.BlockHeight())
 }
 
 // GetAccountWithoutBalance load nonce and codehash without balance,
@@ -298,7 +300,7 @@ func (k *Keeper) GetAccountOrEmpty(ctx sdk.Context, addr common.Address) statedb
 	// empty account
 	return statedb.Account{
 		Balance:  new(big.Int),
-		CodeHash: types.EmptyCodeHash,
+		CodeHash: evmtypes.EmptyCodeHash,
 	}
 }
 
@@ -330,8 +332,8 @@ func (k *Keeper) GetBalance(ctx sdk.Context, addr common.Address) *big.Int {
 // - `nil`: london hardfork not enabled.
 // - `0`: london hardfork enabled but feemarket is not enabled.
 // - `n`: both london hardfork and feemarket are enabled.
-func (k Keeper) GetBaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int {
-	isLondon := types.IsLondon(ethCfg, ctx.BlockHeight())
+func (k Keeper) GetBaseFee(ctx sdk.Context, ethCfg *ethparams.ChainConfig) *big.Int {
+	isLondon := evmtypes.IsLondon(ethCfg, ctx.BlockHeight())
 	if !isLondon {
 		return nil
 	}
@@ -367,7 +369,7 @@ func (k Keeper) SetupExecutionContext(ctx sdk.Context, txGas uint64, txType uint
 		failedReceipt.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{failedReceipt})
 		bzReceipt, err := failedReceipt.MarshalBinary()
 		if err != nil {
-			panic(errors.Wrap(err, "failed to marshal receipt"))
+			panic(errorsmod.Wrap(err, "failed to marshal receipt"))
 		}
 		return bzReceipt
 	}()

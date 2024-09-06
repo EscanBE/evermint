@@ -1,8 +1,9 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // BlockGasLimit returns the max gas (limit) defined in the block gas meter. If the meter is not

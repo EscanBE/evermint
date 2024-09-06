@@ -3,9 +3,10 @@ package types
 import (
 	"bytes"
 	"fmt"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"math/big"
 )
 
 func (r *RPCReceipt) AsEthReceipt() *ethtypes.Receipt {

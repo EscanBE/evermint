@@ -11,13 +11,13 @@ import (
 
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	"github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/params"
+	ethparams "github.com/ethereum/go-ethereum/params"
 )
 
 // NewEVM generates a go-ethereum VM from the provided Message fields and the chain parameters
@@ -130,7 +130,7 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 // returning.
 //
 // For relevant discussion see: https://github.com/cosmos/cosmos-sdk/discussions/9072
-func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*types.MsgEthereumTxResponse, error) {
+func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*evmtypes.MsgEthereumTxResponse, error) {
 	cfg, err := k.EVMConfig(ctx, sdk.ConsAddress(ctx.BlockHeader().ProposerAddress), k.eip155ChainID)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to load evm config")
@@ -163,7 +163,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 }
 
 // ApplyMessage calls ApplyMessageWithConfig with an empty TxConfig.
-func (k *Keeper) ApplyMessage(ctx sdk.Context, msg core.Message, tracer vm.EVMLogger, commit bool) (*types.MsgEthereumTxResponse, error) {
+func (k *Keeper) ApplyMessage(ctx sdk.Context, msg core.Message, tracer vm.EVMLogger, commit bool) (*evmtypes.MsgEthereumTxResponse, error) {
 	cfg, err := k.EVMConfig(ctx, sdk.ConsAddress(ctx.BlockHeader().ProposerAddress), k.eip155ChainID)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to load evm config")
@@ -218,7 +218,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 	commit bool,
 	cfg *statedb.EVMConfig,
 	txConfig statedb.TxConfig,
-) (*types.MsgEthereumTxResponse, error) {
+) (*evmtypes.MsgEthereumTxResponse, error) {
 	var (
 		ret   []byte // return bytes from evm execution
 		vmErr error  // vm errors do not effect consensus and are therefore not assigned to err
@@ -226,9 +226,9 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 
 	// return error if contract creation or call are disabled through governance
 	if !cfg.Params.EnableCreate && msg.To() == nil {
-		return nil, errorsmod.Wrap(types.ErrCreateDisabled, "failed to create new contract")
+		return nil, errorsmod.Wrap(evmtypes.ErrCreateDisabled, "failed to create new contract")
 	} else if !cfg.Params.EnableCall && msg.To() != nil {
-		return nil, errorsmod.Wrap(types.ErrCallDisabled, "failed to call contract")
+		return nil, errorsmod.Wrap(evmtypes.ErrCallDisabled, "failed to call contract")
 	}
 
 	stateDB := statedb.New(ctx, k, txConfig)
@@ -279,16 +279,16 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		ret, leftoverGas, vmErr = evm.Call(sender, *msg.To(), msg.Data(), leftoverGas, msg.Value())
 	}
 
-	refundQuotient := params.RefundQuotient
+	refundQuotient := ethparams.RefundQuotient
 
 	// After EIP-3529: refunds are capped to gasUsed / 5
 	if isLondon {
-		refundQuotient = params.RefundQuotientEIP3529
+		refundQuotient = ethparams.RefundQuotientEIP3529
 	}
 
 	// calculate gas refund
 	if msg.Gas() < leftoverGas {
-		return nil, errorsmod.Wrap(types.ErrGasOverflow, "apply message")
+		return nil, errorsmod.Wrap(evmtypes.ErrGasOverflow, "apply message")
 	}
 	// refund gas
 	gasUsed := msg.Gas() - leftoverGas
@@ -352,7 +352,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 	k.SetGasUsedForCurrentTxTransient(ctx, gasUsed)
 	k.SetTxReceiptForCurrentTxTransient(ctx, bzReceipt)
 
-	return &types.MsgEthereumTxResponse{
+	return &evmtypes.MsgEthereumTxResponse{
 		GasUsed:           gasUsed,
 		VmError:           vmError,
 		Ret:               ret,

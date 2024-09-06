@@ -1,21 +1,21 @@
 package keeper
 
 import (
-	"github.com/EscanBE/evermint/v12/x/erc20/types"
+	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var isTrue = []byte("0x01")
 
 // GetParams returns the total set of erc20 parameters.
-func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
+func (k Keeper) GetParams(ctx sdk.Context) (params erc20types.Params) {
 	enableErc20 := k.IsERC20Enabled(ctx)
 
-	return types.NewParams(enableErc20)
+	return erc20types.NewParams(enableErc20)
 }
 
 // SetParams sets the erc20 parameters to the param space.
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
+func (k Keeper) SetParams(ctx sdk.Context, params erc20types.Params) error {
 	if err := params.Validate(); err != nil {
 		return err
 	}
@@ -28,15 +28,15 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
 // IsERC20Enabled returns true if the module logic is enabled
 func (k Keeper) IsERC20Enabled(ctx sdk.Context) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Has(types.ParamStoreKeyEnableErc20)
+	return store.Has(erc20types.ParamStoreKeyEnableErc20)
 }
 
 // setERC20Enabled sets the EnableERC20 param in the store
 func (k Keeper) setERC20Enabled(ctx sdk.Context, enable bool) {
 	store := ctx.KVStore(k.storeKey)
 	if enable {
-		store.Set(types.ParamStoreKeyEnableErc20, isTrue)
+		store.Set(erc20types.ParamStoreKeyEnableErc20, isTrue)
 		return
 	}
-	store.Delete(types.ParamStoreKeyEnableErc20)
+	store.Delete(erc20types.ParamStoreKeyEnableErc20)
 }

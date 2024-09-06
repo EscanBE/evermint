@@ -1,9 +1,10 @@
 package statedb_test
 
 import (
-	"github.com/EscanBE/evermint/v12/x/evm/types"
 	"math/big"
 	"testing"
+
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -58,7 +59,7 @@ func (suite *StateDBTestSuite) TestAccount() {
 			suite.Require().Equal(true, db.Empty(address))
 			suite.Require().Equal(big.NewInt(0), db.GetBalance(address))
 			suite.Require().Equal([]byte(nil), db.GetCode(address))
-			suite.Require().True(types.IsEmptyCodeHash(db.GetCodeHash(address)))
+			suite.Require().True(evmtypes.IsEmptyCodeHash(db.GetCodeHash(address)))
 			suite.Require().Equal(uint64(0), db.GetNonce(address))
 		}},
 		{"suicide", func(db *statedb.StateDB) {
@@ -258,7 +259,7 @@ func (suite *StateDBTestSuite) TestCode() {
 		{"non-exist account", func(vm.StateDB) {}, nil, common.Hash{}},
 		{"empty account", func(db vm.StateDB) {
 			db.CreateAccount(address)
-		}, nil, common.BytesToHash(types.EmptyCodeHash)},
+		}, nil, common.BytesToHash(evmtypes.EmptyCodeHash)},
 		{"set code", func(db vm.StateDB) {
 			db.SetCode(address, code)
 		}, code, codeHash},

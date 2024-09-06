@@ -3,6 +3,7 @@ package types
 //goland:noinspection SpellCheckingInspection
 import (
 	"crypto/ed25519"
+
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	tmcrypto "github.com/cometbft/cometbft/crypto"
 	tmed25519 "github.com/cometbft/cometbft/crypto/ed25519"

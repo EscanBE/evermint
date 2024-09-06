@@ -3,11 +3,12 @@ package integration_test_util
 //goland:noinspection SpellCheckingInspection
 import (
 	"fmt"
+	"strings"
+
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
-	"strings"
 )
 
 // TxFullRegisterCoin registers a coin with the given denom and amount using Governance module.

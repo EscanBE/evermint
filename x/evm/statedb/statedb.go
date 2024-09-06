@@ -2,9 +2,10 @@ package statedb
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/utils"
 	"math/big"
 	"sort"
+
+	"github.com/EscanBE/evermint/v12/utils"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"

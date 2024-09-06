@@ -2,8 +2,9 @@ package indexer
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
 	"sync"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	errorsmod "cosmossdk.io/errors"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"

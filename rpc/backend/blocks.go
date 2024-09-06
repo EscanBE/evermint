@@ -2,6 +2,9 @@ package backend
 
 import (
 	"fmt"
+	"math"
+	"math/big"
+
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
@@ -12,8 +15,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/pkg/errors"
-	"math"
-	"math/big"
 )
 
 // BlockNumber returns the current block number, based on indexed block state of the EVMTxIndexer.
@@ -311,7 +312,6 @@ func (b *Backend) HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error) 
 	baseFee, err := b.BaseFee(blockRes)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to fetch base fee. Pruned block %d?", resBlock.Block.Height)
-
 	}
 
 	ethHeader := rpctypes.EthHeaderFromTendermint(resBlock.Block.Header, bloom, baseFee)

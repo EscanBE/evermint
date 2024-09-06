@@ -7,8 +7,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"os"
 	"os/exec"
 	"path"
@@ -16,6 +14,9 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+
+	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 )
 
 // TODO: remove this 'rename_chain' directory after renamed chain

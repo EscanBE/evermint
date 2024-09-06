@@ -2,12 +2,11 @@ package ante_test
 
 import (
 	ethante "github.com/EscanBE/evermint/v12/app/ante/evm"
-	"github.com/EscanBE/evermint/v12/encoding"
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/app/ante"
 )
 
@@ -19,6 +18,8 @@ func (suite *AnteTestSuite) TestDefaultDisabledAuthzMsgs() {
 }
 
 func (suite *AnteTestSuite) TestValidateHandlerOptions() {
+	encodingConfig := chainapp.RegisterEncodingConfig()
+
 	cases := []struct {
 		name    string
 		options ante.HandlerOptions
@@ -181,13 +182,13 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 				AccountKeeper:          suite.app.AccountKeeper,
 				BankKeeper:             suite.app.BankKeeper,
 				DistributionKeeper:     suite.app.DistrKeeper,
-				ExtensionOptionChecker: types.HasDynamicFeeExtensionOption,
+				ExtensionOptionChecker: evertypes.HasDynamicFeeExtensionOption,
 				EvmKeeper:              suite.app.EvmKeeper,
 				StakingKeeper:          suite.app.StakingKeeper,
 				FeegrantKeeper:         suite.app.FeeGrantKeeper,
 				IBCKeeper:              suite.app.IBCKeeper,
 				FeeMarketKeeper:        suite.app.FeeMarketKeeper,
-				SignModeHandler:        encoding.MakeConfig(app.ModuleBasics).TxConfig.SignModeHandler(),
+				SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
 				SigGasConsumer:         ante.SigVerificationGasConsumer,
 				MaxTxGasWanted:         40000000,
 				TxFeeChecker:           ethante.NewDynamicFeeChecker(suite.app.EvmKeeper),
@@ -201,14 +202,14 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 				AccountKeeper:          suite.app.AccountKeeper,
 				BankKeeper:             suite.app.BankKeeper,
 				DistributionKeeper:     suite.app.DistrKeeper,
-				ExtensionOptionChecker: types.HasDynamicFeeExtensionOption,
+				ExtensionOptionChecker: evertypes.HasDynamicFeeExtensionOption,
 				EvmKeeper:              suite.app.EvmKeeper,
 				VAuthKeeper:            &suite.app.VAuthKeeper,
 				StakingKeeper:          suite.app.StakingKeeper,
 				FeegrantKeeper:         suite.app.FeeGrantKeeper,
 				IBCKeeper:              suite.app.IBCKeeper,
 				FeeMarketKeeper:        suite.app.FeeMarketKeeper,
-				SignModeHandler:        encoding.MakeConfig(app.ModuleBasics).TxConfig.SignModeHandler(),
+				SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
 				SigGasConsumer:         ante.SigVerificationGasConsumer,
 				MaxTxGasWanted:         40000000,
 				TxFeeChecker:           ethante.NewDynamicFeeChecker(suite.app.EvmKeeper),

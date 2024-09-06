@@ -1,9 +1,10 @@
 package keeper_test
 
 import (
+	"math/big"
+
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
-	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

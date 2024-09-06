@@ -3,8 +3,9 @@ package integration_test_util
 //goland:noinspection SpellCheckingInspection
 import (
 	"encoding/hex"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 //goland:noinspection SpellCheckingInspection

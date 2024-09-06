@@ -1,10 +1,14 @@
 package backend
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"fmt"
+	"math"
+	"math/big"
+
+	errorsmod "cosmossdk.io/errors"
+
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	"github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
@@ -12,8 +16,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/pkg/errors"
-	"math"
-	"math/big"
 )
 
 // GetTransactionByHash returns the Ethereum format transaction identified by Ethereum transaction hash
@@ -311,12 +313,12 @@ func (b *Backend) GetTransactionByBlockNumberAndIndex(blockNum rpctypes.BlockNum
 }
 
 // GetTxByEthHash get the ETH-transaction by hash from the indexer
-func (b *Backend) GetTxByEthHash(hash common.Hash) (*types.TxResult, error) {
+func (b *Backend) GetTxByEthHash(hash common.Hash) (*evertypes.TxResult, error) {
 	return b.indexer.GetByTxHash(hash)
 }
 
 // GetTxByTxIndex get the ETH-transaction by block height and index from the indexer
-func (b *Backend) GetTxByTxIndex(height int64, index uint) (*types.TxResult, error) {
+func (b *Backend) GetTxByTxIndex(height int64, index uint) (*evertypes.TxResult, error) {
 	int32Index := int32(index) // #nosec G701 -- checked for int overflow already
 	return b.indexer.GetByBlockAndIndex(height, int32Index)
 }

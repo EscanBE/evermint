@@ -3,12 +3,12 @@ package cosmos_test
 import (
 	"time"
 
+	chainapp "github.com/EscanBE/evermint/v12/app"
+
 	sdkmath "cosmossdk.io/math"
-	"github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/encoding"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/tx"
+	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
@@ -70,7 +70,7 @@ func generatePrivKeyAddressPairs(accCount int) ([]*ethsecp256k1.PrivKey, []sdk.A
 }
 
 func createTx(priv cryptotypes.PrivKey, msgs ...sdk.Msg) (sdk.Tx, error) {
-	encodingConfig := encoding.MakeConfig(app.ModuleBasics)
+	encodingConfig := chainapp.RegisterEncodingConfig()
 	txBuilder := encodingConfig.TxConfig.NewTxBuilder()
 
 	txBuilder.SetGasLimit(1000000)
@@ -100,7 +100,7 @@ func createTx(priv cryptotypes.PrivKey, msgs ...sdk.Msg) (sdk.Tx, error) {
 		AccountNumber: 0,
 		Sequence:      0,
 	}
-	sigV2, err := tx.SignWithPrivKey(
+	sigV2, err := clienttx.SignWithPrivKey(
 		encodingConfig.TxConfig.SignModeHandler().DefaultMode(), signerData,
 		txBuilder, priv, encodingConfig.TxConfig,
 		0,

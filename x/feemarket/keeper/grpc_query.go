@@ -6,26 +6,26 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 )
 
-var _ types.QueryServer = Keeper{}
+var _ feemarkettypes.QueryServer = Keeper{}
 
 // Params implements the Query/Params gRPC method
-func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (k Keeper) Params(c context.Context, _ *feemarkettypes.QueryParamsRequest) (*feemarkettypes.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	params := k.GetParams(ctx)
 
-	return &types.QueryParamsResponse{
+	return &feemarkettypes.QueryParamsResponse{
 		Params: params,
 	}, nil
 }
 
 // BaseFee implements the Query/BaseFee gRPC method
-func (k Keeper) BaseFee(c context.Context, _ *types.QueryBaseFeeRequest) (*types.QueryBaseFeeResponse, error) {
+func (k Keeper) BaseFee(c context.Context, _ *feemarkettypes.QueryBaseFeeRequest) (*feemarkettypes.QueryBaseFeeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	res := &types.QueryBaseFeeResponse{}
+	res := &feemarkettypes.QueryBaseFeeResponse{}
 	baseFee := k.GetBaseFee(ctx)
 
 	if baseFee != nil {

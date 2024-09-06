@@ -1,9 +1,10 @@
 package keeper
 
 import (
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/consensus/misc"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

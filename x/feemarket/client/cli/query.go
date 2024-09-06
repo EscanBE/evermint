@@ -6,13 +6,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 
-	"github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 )
 
 // GetQueryCmd returns the parent command for all x/feemarket CLI query commands.
 func GetQueryCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                        types.ModuleName,
+		Use:                        feemarkettypes.ModuleName,
 		Short:                      "Querying commands for the fee market module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -39,9 +39,9 @@ func GetParamsCmd() *cobra.Command {
 				return err
 			}
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := feemarkettypes.NewQueryClient(clientCtx)
 
-			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+			res, err := queryClient.Params(cmd.Context(), &feemarkettypes.QueryParamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -68,10 +68,10 @@ If the height is not provided, it will use the latest height from context.`,
 				return err
 			}
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryClient := feemarkettypes.NewQueryClient(clientCtx)
 
 			ctx := cmd.Context()
-			res, err := queryClient.BaseFee(ctx, &types.QueryBaseFeeRequest{})
+			res, err := queryClient.BaseFee(ctx, &feemarkettypes.QueryBaseFeeRequest{})
 			if err != nil {
 				return err
 			}

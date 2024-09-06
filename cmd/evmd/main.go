@@ -1,14 +1,15 @@
 package main
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
 	"os"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
 )
 
@@ -18,7 +19,7 @@ func main() {
 
 	rootCmd, _ := NewRootCmd()
 
-	if err := svrcmd.Execute(rootCmd, constants.ApplicationBinaryName, app.DefaultNodeHome); err != nil {
+	if err := svrcmd.Execute(rootCmd, constants.ApplicationBinaryName, chainapp.DefaultNodeHome); err != nil {
 		switch e := err.(type) {
 		case server.ErrorCode:
 			os.Exit(e.Code)

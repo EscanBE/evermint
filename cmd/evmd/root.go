@@ -3,16 +3,17 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"time"
+
 	"github.com/EscanBE/evermint/v12/cmd/evmd/inspect"
 	cmdutils "github.com/EscanBE/evermint/v12/cmd/evmd/utils"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/viper"
-	"io"
-	"os"
-	"path/filepath"
-	"time"
 
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
@@ -22,7 +23,7 @@ import (
 	tmcli "github.com/cometbft/cometbft/libs/cli"
 	"github.com/cometbft/cometbft/libs/log"
 
-	"cosmossdk.io/simapp/params"
+	simappparams "cosmossdk.io/simapp/params"
 	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -44,7 +45,6 @@ import (
 
 	appclient "github.com/EscanBE/evermint/v12/client"
 	"github.com/EscanBE/evermint/v12/client/debug"
-	"github.com/EscanBE/evermint/v12/encoding"
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
 	appserver "github.com/EscanBE/evermint/v12/server"
 	servercfg "github.com/EscanBE/evermint/v12/server/config"
@@ -60,8 +60,8 @@ const (
 
 // NewRootCmd creates a new root command for our binary. It is called once in the
 // main function.
-func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
-	encodingConfig := encoding.MakeConfig(chainapp.ModuleBasics)
+func NewRootCmd() (*cobra.Command, simappparams.EncodingConfig) {
+	encodingConfig := chainapp.RegisterEncodingConfig()
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
@@ -274,7 +274,7 @@ func initAppConfig() (string, interface{}) {
 }
 
 type appCreator struct {
-	encCfg params.EncodingConfig
+	encCfg simappparams.EncodingConfig
 }
 
 // newApp is an appCreator
