@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -93,8 +92,6 @@ type Evermint struct {
 
 	// the configurator
 	configurator module.Configurator
-
-	tpsCounter *tpsCounter // TODO ES: remove tps counter
 }
 
 func init() {
@@ -226,14 +223,6 @@ func NewEvermint(
 		}
 	}
 
-	// finally start the tpsCounter.
-	chainApp.tpsCounter = newTPSCounter(logger)
-	go func() {
-		// Unfortunately golangci-lint is so pedantic
-		// so we have to ignore this error explicitly.
-		_ = chainApp.tpsCounter.start(context.Background())
-	}()
-
 	return chainApp
 }
 
@@ -291,20 +280,6 @@ func (app *Evermint) BlockedModuleAccountAddrs(modAccAddrs map[string]bool) map[
 	}
 
 	return blockedAddrs
-}
-
-// The DeliverTx method is intentionally decomposed to calculate the transactions per second.
-func (app *Evermint) DeliverTx(req abci.RequestDeliverTx) (res abci.ResponseDeliverTx) {
-	defer func() {
-		// TODO: Record the count along with the code and or reason so as to display
-		// in the transactions per second live dashboards.
-		if res.IsErr() {
-			app.tpsCounter.incrementFailure()
-		} else {
-			app.tpsCounter.incrementSuccess()
-		}
-	}()
-	return app.BaseApp.DeliverTx(req)
 }
 
 // LegacyAmino returns Evermint's amino codec.
