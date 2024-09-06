@@ -2,7 +2,7 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -69,7 +69,7 @@ func (msg MsgConvertCoin) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgConvertERC20 creates a new instance of MsgConvertERC20
-func NewMsgConvertERC20(amount math.Int, receiver sdk.AccAddress, contract, sender common.Address) *MsgConvertERC20 { //nolint: interfacer
+func NewMsgConvertERC20(amount sdkmath.Int, receiver sdk.AccAddress, contract, sender common.Address) *MsgConvertERC20 { //nolint: interfacer
 	return &MsgConvertERC20{
 		ContractAddress: contract.String(),
 		Amount:          amount,

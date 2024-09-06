@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -162,7 +162,7 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20Getters() {
 func (suite *MsgsTestSuite) TestMsgConvertERC20New() {
 	testCases := []struct {
 		msg        string
-		amount     math.Int
+		amount     sdkmath.Int
 		receiver   sdk.AccAddress
 		contract   common.Address
 		sender     common.Address
@@ -193,7 +193,7 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20New() {
 func (suite *MsgsTestSuite) TestMsgConvertERC20() {
 	testCases := []struct {
 		msg        string
-		amount     math.Int
+		amount     sdkmath.Int
 		receiver   string
 		contract   string
 		sender     string

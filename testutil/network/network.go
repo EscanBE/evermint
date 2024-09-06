@@ -18,7 +18,7 @@ import (
 	"github.com/EscanBE/evermint/v12/constants"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	dbm "github.com/cometbft/cometbft-db"
 	tmcfg "github.com/cometbft/cometbft/config"
 	tmflags "github.com/cometbft/cometbft/libs/cli/flags"
@@ -76,9 +76,9 @@ type Config struct {
 	AppConstructor    AppConstructor      // the ABCI application constructor
 	GenesisState      simapp.GenesisState // custom gensis state to provide
 	TimeoutCommit     time.Duration       // the consensus commitment timeout
-	AccountTokens     math.Int            // the amount of unique validator tokens (e.g. 1000node0)
-	StakingTokens     math.Int            // the amount of tokens each validator has available to stake
-	BondedTokens      math.Int            // the amount of tokens each validator stakes
+	AccountTokens     sdkmath.Int         // the amount of unique validator tokens (e.g. 1000node0)
+	StakingTokens     sdkmath.Int         // the amount of tokens each validator has available to stake
+	BondedTokens      sdkmath.Int         // the amount of tokens each validator stakes
 	NumValidators     int                 // the total number of validators to create and bond
 	ChainID           string              // the network chain-id
 	BondDenom         string              // the staking bond denomination

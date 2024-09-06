@@ -9,7 +9,7 @@ import (
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/rename_chain/marker"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -37,7 +37,7 @@ type TestCaseStruct struct {
 	txBuilder              client.TxBuilder
 	expectedFeePayer       string
 	expectedGas            uint64
-	expectedFee            math.Int
+	expectedFee            sdkmath.Int
 	expectedMemo           string
 	expectedMsg            string
 	expectedSignatureBytes []byte
@@ -175,7 +175,7 @@ func createBasicTestCase(t *testing.T) TestCaseStruct {
 		txBuilder:              txBuilder,
 		expectedFeePayer:       feePayer.String(),
 		expectedGas:            0,
-		expectedFee:            math.NewInt(0),
+		expectedFee:            sdkmath.NewInt(0),
 		expectedMemo:           "",
 		expectedMsg:            "",
 		expectedSignatureBytes: signatureBytes,
@@ -190,7 +190,7 @@ func createPopulatedTestCase(t *testing.T) TestCaseStruct {
 	gasLimit := uint64(200000)
 	memo := ""
 	denom := constants.BaseDenom
-	feeAmount := math.NewInt(2000)
+	feeAmount := sdkmath.NewInt(2000)
 
 	txBuilder.SetFeeAmount(sdk.NewCoins(
 		sdk.NewCoin(
@@ -207,7 +207,7 @@ func createPopulatedTestCase(t *testing.T) TestCaseStruct {
 		Amount: sdk.NewCoins(
 			sdk.NewCoin(
 				constants.BaseDenom,
-				math.NewInt(10000000),
+				sdkmath.NewInt(10000000),
 			),
 		),
 	}

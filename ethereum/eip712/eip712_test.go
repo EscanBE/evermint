@@ -8,7 +8,7 @@ import (
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 
 	simappparams "cosmossdk.io/simapp/params"
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
@@ -100,7 +100,7 @@ func (suite *EIP712TestSuite) createTestKeyPair() (*ethsecp256k1.PrivKey, *ethse
 }
 
 // makeCoins helps create an instance of sdk.Coins[] with single coin
-func (suite *EIP712TestSuite) makeCoins(denom string, amount math.Int) sdk.Coins {
+func (suite *EIP712TestSuite) makeCoins(denom string, amount sdkmath.Int) sdk.Coins {
 	return sdk.NewCoins(
 		sdk.NewCoin(
 			denom,
@@ -119,7 +119,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 
 	params := EIP712TestParams{
 		fee: txtypes.Fee{
-			Amount:   suite.makeCoins(suite.denom, math.NewInt(2000)),
+			Amount:   suite.makeCoins(suite.denom, sdkmath.NewInt(2000)),
 			GasLimit: 20000,
 		},
 		address:       suite.createTestAddress(),
@@ -141,7 +141,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 				banktypes.NewMsgSend(
 					suite.createTestAddress(),
 					suite.createTestAddress(),
-					suite.makeCoins(suite.denom, math.NewInt(1)),
+					suite.makeCoins(suite.denom, sdkmath.NewInt(1)),
 				),
 			},
 			expectSuccess: true,
@@ -163,7 +163,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 				stakingtypes.NewMsgDelegate(
 					suite.createTestAddress(),
 					sdk.ValAddress(suite.createTestAddress()),
-					suite.makeCoins(suite.denom, math.NewInt(1))[0],
+					suite.makeCoins(suite.denom, sdkmath.NewInt(1))[0],
 				),
 			},
 			expectSuccess: true,
@@ -184,12 +184,12 @@ func (suite *EIP712TestSuite) TestEIP712() {
 				stakingtypes.NewMsgDelegate(
 					params.address,
 					sdk.ValAddress(suite.createTestAddress()),
-					suite.makeCoins(suite.denom, math.NewInt(1))[0],
+					suite.makeCoins(suite.denom, sdkmath.NewInt(1))[0],
 				),
 				stakingtypes.NewMsgDelegate(
 					params.address,
 					sdk.ValAddress(suite.createTestAddress()),
-					suite.makeCoins(suite.denom, math.NewInt(5))[0],
+					suite.makeCoins(suite.denom, sdkmath.NewInt(5))[0],
 				),
 			},
 			expectSuccess: true,
@@ -217,7 +217,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 				banktypes.NewMsgSend(
 					params.address,
 					suite.createTestAddress(),
-					suite.makeCoins(suite.denom, math.NewInt(50)),
+					suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
 				),
 			},
 			expectSuccess: !suite.useLegacyEIP712TypedData,
@@ -292,21 +292,21 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					[]banktypes.Input{
 						banktypes.NewInput(
 							suite.createTestAddress(),
-							suite.makeCoins(suite.denom, math.NewInt(50)),
+							suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
 						),
 						banktypes.NewInput(
 							suite.createTestAddress(),
-							suite.makeCoins(suite.denom, math.NewInt(50)),
+							suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
 						),
 					},
 					[]banktypes.Output{
 						banktypes.NewOutput(
 							suite.createTestAddress(),
-							suite.makeCoins(suite.denom, math.NewInt(50)),
+							suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
 						),
 						banktypes.NewOutput(
 							suite.createTestAddress(),
-							suite.makeCoins(suite.denom, math.NewInt(50)),
+							suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
 						),
 					},
 				),

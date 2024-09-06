@@ -6,7 +6,7 @@ import (
 
 	"github.com/EscanBE/evermint/v12/constants"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	. "github.com/onsi/ginkgo/v2"
@@ -360,7 +360,7 @@ func convertCoin(ctx sdk.Context, chainApp *chainapp.Evermint, pk *ethsecp256k1.
 	Expect(res.IsOK()).To(BeTrue(), "failed to convert coin: %s", res.Log)
 }
 
-func convertERC20(ctx sdk.Context, chainApp *chainapp.Evermint, pk *ethsecp256k1.PrivKey, amt math.Int, contract common.Address) {
+func convertERC20(ctx sdk.Context, chainApp *chainapp.Evermint, pk *ethsecp256k1.PrivKey, amt sdkmath.Int, contract common.Address) {
 	addrBz := pk.PubKey().Address().Bytes()
 
 	convertERC20Msg := erc20types.NewMsgConvertERC20(amt, sdk.AccAddress(addrBz), contract, common.BytesToAddress(addrBz))
