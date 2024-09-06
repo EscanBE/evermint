@@ -1,6 +1,7 @@
 package evm_test
 
 import (
+	"github.com/EscanBE/evermint/v12/app/helpers"
 	"github.com/EscanBE/evermint/v12/constants"
 	"math/big"
 	"testing"
@@ -31,7 +32,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	"github.com/EscanBE/evermint/v12/x/evm"
@@ -50,7 +51,7 @@ type EvmTestSuite struct {
 
 	ctx     sdk.Context
 	handler sdk.Handler
-	app     *app.Evermint
+	app     *chainapp.Evermint
 	chainID *big.Int
 
 	signer    keyring.Signer
@@ -76,7 +77,7 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	require.NoError(t, err)
 	consAddress := sdk.ConsAddress(priv.PubKey().Address())
 
-	suite.app = app.EthSetup(checkTx, func(app *app.Evermint, genesis simapp.GenesisState) simapp.GenesisState {
+	suite.app = helpers.EthSetup(checkTx, func(app *chainapp.Evermint, genesis simapp.GenesisState) simapp.GenesisState {
 		if suite.dynamicTxFee {
 			feemarketGenesis := feemarkettypes.DefaultGenesisState()
 			feemarketGenesis.Params.NoBaseFee = false
@@ -86,7 +87,7 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	})
 
 	coins := sdk.NewCoins(sdk.NewCoin(types.DefaultEVMDenom, sdkmath.NewInt(100000000000000)))
-	genesisState := app.NewTestGenesisState(suite.app.AppCodec())
+	genesisState := helpers.NewTestGenesisState(suite.app.AppCodec())
 	b32address := sdk.MustBech32ifyAddressBytes(sdk.GetConfig().GetBech32AccountAddrPrefix(), priv.PubKey().Address().Bytes())
 	balances := []banktypes.Balance{
 		{
@@ -112,7 +113,7 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	req := abci.RequestInitChain{
 		ChainId:         constants.TestnetFullChainId,
 		Validators:      []abci.ValidatorUpdate{},
-		ConsensusParams: app.DefaultConsensusParams,
+		ConsensusParams: helpers.DefaultConsensusParams,
 		AppStateBytes:   stateBytes,
 	}
 	suite.app.InitChain(req)

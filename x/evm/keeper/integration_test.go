@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"encoding/json"
+	"github.com/EscanBE/evermint/v12/app/helpers"
 	"github.com/EscanBE/evermint/v12/constants"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"math/big"
@@ -188,7 +189,7 @@ func setupChain(localMinGasPricesStr string) {
 		baseapp.SetMinGasPrices(localMinGasPricesStr),
 	)
 
-	genesisState := chainapp.NewTestGenesisState(chainApp.AppCodec())
+	genesisState := helpers.NewTestGenesisState(chainApp.AppCodec())
 	genesisState[types.ModuleName] = chainApp.AppCodec().MustMarshalJSON(types.DefaultGenesisState())
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", "  ")
@@ -200,7 +201,7 @@ func setupChain(localMinGasPricesStr string) {
 			ChainId:         chainID,
 			Validators:      []abci.ValidatorUpdate{},
 			AppStateBytes:   stateBytes,
-			ConsensusParams: chainapp.DefaultConsensusParams,
+			ConsensusParams: helpers.DefaultConsensusParams,
 		},
 	)
 

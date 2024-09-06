@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/EscanBE/evermint/v12/app/helpers"
 	"github.com/EscanBE/evermint/v12/constants"
 	"math"
 	"testing"
@@ -74,14 +75,14 @@ func TestKeeperTestSuite(t *testing.T) {
 func (suite *KeeperTestSuite) SetupTest() {
 	checkTx := false
 	chainID := constants.TestnetFullChainId
-	suite.app = chainapp.Setup(checkTx, nil, chainID)
+	suite.app = helpers.Setup(checkTx, nil, chainID)
 	suite.SetupApp(checkTx)
 }
 
 func (suite *KeeperTestSuite) SetupTestWithT(t require.TestingT) {
 	checkTx := false
 	chainID := constants.TestnetFullChainId
-	suite.app = chainapp.Setup(checkTx, nil, chainID)
+	suite.app = helpers.Setup(checkTx, nil, chainID)
 	suite.SetupAppWithT(checkTx, t)
 }
 
@@ -105,7 +106,7 @@ func (suite *KeeperTestSuite) SetupAppWithT(checkTx bool, t require.TestingT) {
 	require.NoError(t, err)
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
 
-	suite.app = chainapp.EthSetup(checkTx, func(app *chainapp.Evermint, genesis simapp.GenesisState) simapp.GenesisState {
+	suite.app = helpers.EthSetup(checkTx, func(app *chainapp.Evermint, genesis simapp.GenesisState) simapp.GenesisState {
 		feemarketGenesis := feemarkettypes.DefaultGenesisState()
 		if suite.enableFeemarket {
 			feemarketGenesis.Params.NoBaseFee = false
@@ -131,7 +132,7 @@ func (suite *KeeperTestSuite) SetupAppWithT(checkTx bool, t require.TestingT) {
 	if suite.mintFeeCollector {
 		// mint some coin to fee collector
 		coins := sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(int64(params.TxGas)-1)))
-		genesisState := chainapp.NewTestGenesisState(suite.app.AppCodec())
+		genesisState := helpers.NewTestGenesisState(suite.app.AppCodec())
 		balances := []banktypes.Balance{
 			{
 				Address: suite.app.AccountKeeper.GetModuleAddress(authtypes.FeeCollectorName).String(),
@@ -154,7 +155,7 @@ func (suite *KeeperTestSuite) SetupAppWithT(checkTx bool, t require.TestingT) {
 			abci.RequestInitChain{
 				ChainId:         constants.TestnetFullChainId,
 				Validators:      []abci.ValidatorUpdate{},
-				ConsensusParams: chainapp.DefaultConsensusParams,
+				ConsensusParams: helpers.DefaultConsensusParams,
 				AppStateBytes:   stateBytes,
 			},
 		)

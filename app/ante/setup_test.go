@@ -1,6 +1,7 @@
 package ante_test
 
 import (
+	"github.com/EscanBE/evermint/v12/app/helpers"
 	"github.com/EscanBE/evermint/v12/constants"
 	"testing"
 	"time"
@@ -37,7 +38,7 @@ func (suite *AnteTestSuite) SetupTest() {
 
 	isCheckTx := false
 	chainID := constants.TestnetFullChainId
-	suite.app = chainapp.Setup(isCheckTx, feemarkettypes.DefaultGenesisState(), chainID)
+	suite.app = helpers.Setup(isCheckTx, feemarkettypes.DefaultGenesisState(), chainID)
 	suite.Require().NotNil(suite.app.AppCodec())
 
 	header := testutil.NewHeader(

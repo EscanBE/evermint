@@ -59,6 +59,10 @@ import (
 	"unsafe"
 )
 
+func init() {
+	feemarkettypes.DefaultMinGasPrice = sdk.ZeroDec()
+}
+
 // ChainIntegrationTestSuite is a helper for Chain integration test.
 type ChainIntegrationTestSuite struct {
 	t                    *testing.T

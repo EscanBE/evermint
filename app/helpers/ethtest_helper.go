@@ -1,7 +1,8 @@
-package app
+package helpers
 
 import (
 	"encoding/json"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
@@ -25,24 +26,24 @@ import (
 )
 
 // EthSetup initializes a new Evermint app. A Nop logger is set in Evermint app.
-func EthSetup(isCheckTx bool, patchGenesis func(*Evermint, simapp.GenesisState) simapp.GenesisState) *Evermint {
+func EthSetup(isCheckTx bool, patchGenesis func(*chainapp.Evermint, simapp.GenesisState) simapp.GenesisState) *chainapp.Evermint {
 	return EthSetupWithDB(isCheckTx, patchGenesis, dbm.NewMemDB())
 }
 
 // EthSetupWithDB initializes a new Evermint app. A Nop logger is set in Evermint app.
-func EthSetupWithDB(isCheckTx bool, patchGenesis func(*Evermint, simapp.GenesisState) simapp.GenesisState, db dbm.DB) *Evermint {
-	encodingConfig := RegisterEncodingConfig()
+func EthSetupWithDB(isCheckTx bool, patchGenesis func(*chainapp.Evermint, simapp.GenesisState) simapp.GenesisState, db dbm.DB) *chainapp.Evermint {
+	encodingConfig := chainapp.RegisterEncodingConfig()
 
 	chainID := constants.TestnetFullChainId
-	chainApp := NewEvermint(log.NewNopLogger(),
+	chainApp := chainapp.NewEvermint(log.NewNopLogger(),
 		db,
 		nil,
 		true,
 		map[int64]bool{},
-		DefaultNodeHome,
+		chainapp.DefaultNodeHome,
 		5,
 		encodingConfig,
-		simtestutil.NewAppOptionsWithFlagHome(DefaultNodeHome),
+		simtestutil.NewAppOptionsWithFlagHome(chainapp.DefaultNodeHome),
 		baseapp.SetChainID(chainID),
 	)
 	if !isCheckTx {
@@ -78,7 +79,7 @@ func NewTestGenesisState(codec codec.Codec) simapp.GenesisState {
 	if err != nil {
 		panic(err)
 	}
-	encodingConfig := RegisterEncodingConfig()
+	encodingConfig := chainapp.RegisterEncodingConfig()
 
 	// create validator set with single validator
 	validator := tmtypes.NewValidator(pubKey, 1)
@@ -92,7 +93,7 @@ func NewTestGenesisState(codec codec.Codec) simapp.GenesisState {
 		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000))),
 	}
 
-	genesisState := NewDefaultGenesisState(encodingConfig)
+	genesisState := chainapp.NewDefaultGenesisState(encodingConfig)
 	return genesisStateWithValSet(codec, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
 }
 

@@ -2,6 +2,7 @@ package ibctesting
 
 import (
 	"encoding/json"
+	"github.com/EscanBE/evermint/v12/app/helpers"
 	"github.com/EscanBE/evermint/v12/constants"
 	"testing"
 	"time"
@@ -20,11 +21,10 @@ import (
 
 	ibcgotesting "github.com/cosmos/ibc-go/v7/testing"
 
-	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/types"
 )
 
-var DefaultTestingAppInit func(chainID string) func() (ibcgotesting.TestingApp, map[string]json.RawMessage) = chainapp.SetupTestingApp
+var DefaultTestingAppInit func(chainID string) func() (ibcgotesting.TestingApp, map[string]json.RawMessage) = helpers.SetupTestingApp
 
 // SetupWithGenesisValSet initializes a new SimApp with a validator set and genesis accounts
 // that also act as delegators. For simplicity, each validator is bonded with a delegation
@@ -93,7 +93,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 		abci.RequestInitChain{
 			ChainId:         chainID,
 			Validators:      []abci.ValidatorUpdate{},
-			ConsensusParams: chainapp.DefaultConsensusParams,
+			ConsensusParams: helpers.DefaultConsensusParams,
 			AppStateBytes:   stateBytes,
 		},
 	)

@@ -2,13 +2,14 @@ package keeper_test
 
 import (
 	"encoding/json"
+	"github.com/EscanBE/evermint/v12/app/helpers"
 	"github.com/EscanBE/evermint/v12/constants"
 	"math"
 	"math/big"
 	"strconv"
 	"time"
 
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/contracts"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	ibctesting "github.com/EscanBE/evermint/v12/ibc/testing"
@@ -71,7 +72,7 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 
 	// init app
 	chainID := constants.TestnetFullChainId
-	suite.app = app.Setup(false, feemarkettypes.DefaultGenesisState(), chainID)
+	suite.app = helpers.Setup(false, feemarkettypes.DefaultGenesisState(), chainID)
 	header := testutil.NewHeader(
 		1, time.Now().UTC(), chainID, consAddress, nil, nil,
 	)
@@ -142,7 +143,7 @@ func (suite *KeeperTestSuite) SetupIBCTest() {
 	suite.coordinator.CommitNBlocks(suite.IBCOsmosisChain, 2)
 	suite.coordinator.CommitNBlocks(suite.IBCCosmosChain, 2)
 
-	s.app = suite.EvermintChain.App.(*app.Evermint)
+	s.app = suite.EvermintChain.App.(*chainapp.Evermint)
 	evmParams := s.app.EvmKeeper.GetParams(s.EvermintChain.GetContext())
 	evmParams.EvmDenom = constants.BaseDenom
 	err := s.app.EvmKeeper.SetParams(s.EvermintChain.GetContext(), evmParams)
@@ -351,7 +352,7 @@ func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation() (common.
 func (suite *KeeperTestSuite) DeployContractToChain(name, symbol string, decimals uint8) (common.Address, error) {
 	return testutil.DeployContract(
 		s.EvermintChain.GetContext(),
-		s.EvermintChain.App.(*app.Evermint),
+		s.EvermintChain.App.(*chainapp.Evermint),
 		suite.EvermintChain.SenderPrivKey,
 		suite.queryClientEvm,
 		contracts.ERC20MinterBurnerDecimalsContract,

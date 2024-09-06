@@ -3,6 +3,7 @@ package app_test
 import (
 	"encoding/json"
 	chainapp "github.com/EscanBE/evermint/v12/app"
+	"github.com/EscanBE/evermint/v12/app/helpers"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
@@ -51,7 +52,7 @@ func TestEvermintExport(t *testing.T) {
 	)
 
 	genesisState := chainapp.NewDefaultGenesisState(encodingConfig)
-	genesisState = chainapp.GenesisStateWithValSet(chainApp, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
+	genesisState = helpers.GenesisStateWithValSet(chainApp, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
 	stateBytes, err := json.MarshalIndent(genesisState, "", "  ")
 	require.NoError(t, err)
 

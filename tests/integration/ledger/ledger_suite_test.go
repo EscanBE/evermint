@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"github.com/EscanBE/evermint/v12/app/helpers"
 	"github.com/EscanBE/evermint/v12/constants"
 	"io"
 	"testing"
@@ -86,7 +87,7 @@ func (suite *LedgerTestSuite) SetupChainAppApp() {
 
 	// init app
 	chainID := constants.TestnetFullChainId
-	suite.app = app.Setup(false, feemarkettypes.DefaultGenesisState(), chainID)
+	suite.app = helpers.Setup(false, feemarkettypes.DefaultGenesisState(), chainID)
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{
 		Height:          1,
 		ChainID:         chainID,

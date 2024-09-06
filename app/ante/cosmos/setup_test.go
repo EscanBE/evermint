@@ -1,6 +1,7 @@
 package cosmos_test
 
 import (
+	"github.com/EscanBE/evermint/v12/app/helpers"
 	"github.com/EscanBE/evermint/v12/constants"
 	"math"
 	"testing"
@@ -60,7 +61,7 @@ func (suite *AnteTestSuite) SetupTest() {
 	suite.Require().NoError(err)
 	suite.priv = priv
 
-	suite.app = chainapp.EthSetup(checkTx, func(app *chainapp.Evermint, genesis simapp.GenesisState) simapp.GenesisState {
+	suite.app = helpers.EthSetup(checkTx, func(app *chainapp.Evermint, genesis simapp.GenesisState) simapp.GenesisState {
 		if suite.enableFeemarket {
 			// setup feemarketGenesis params
 			feemarketGenesis := feemarkettypes.DefaultGenesisState()

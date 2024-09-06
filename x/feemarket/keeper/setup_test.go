@@ -1,13 +1,14 @@
 package keeper_test
 
 import (
+	"github.com/EscanBE/evermint/v12/app/helpers"
 	"github.com/EscanBE/evermint/v12/constants"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/x/feemarket/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -22,7 +23,7 @@ type KeeperTestSuite struct {
 	suite.Suite
 
 	ctx         sdk.Context
-	app         *app.Evermint
+	app         *chainapp.Evermint
 	queryClient types.QueryClient
 	address     common.Address
 	consAddress sdk.ConsAddress
@@ -51,6 +52,6 @@ func TestKeeperTestSuite(t *testing.T) {
 func (suite *KeeperTestSuite) SetupTest() {
 	checkTx := false
 	chainID := constants.TestnetFullChainId
-	suite.app = app.Setup(checkTx, nil, chainID)
+	suite.app = helpers.Setup(checkTx, nil, chainID)
 	suite.SetupApp(checkTx)
 }
