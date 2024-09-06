@@ -28,7 +28,7 @@ import (
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	cdb "github.com/cometbft/cometbft-db"
+	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -40,7 +40,7 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cometbft/cometbft/version"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	cosmosclient "github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	cosmostxtypes "github.com/cosmos/cosmos-sdk/types/tx"
@@ -144,7 +144,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 		DisableTendermint: disableTendermint,
 	}
 
-	clientCtx := cosmosclient.Context{}.
+	clientCtx := client.Context{}.
 		WithChainID(chainCfg.CosmosChainId).
 		WithCodec(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
@@ -172,8 +172,8 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 	walletAccounts := newWalletsAccounts(t)
 
 	// Init database
-	sharedDb := itutiltypes.WrapCometBftDB(cdb.NewMemDB())
-	evmIndexerDb := cdb.NewMemDB() // use dedicated db for EVM Tx-Indexer to prevent data corruption
+	sharedDb := itutiltypes.WrapCometBftDB(dbm.NewMemDB())
+	evmIndexerDb := dbm.NewMemDB() // use dedicated db for EVM Tx-Indexer to prevent data corruption
 
 	// Setup chain app
 	genesisAccountBalance := sdk.NewCoins(
@@ -422,7 +422,7 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 		suite.Require().NoError(err)
 	}
 
-	clientQueryCtx := cosmosclient.Context{}.
+	clientQueryCtx := client.Context{}.
 		WithChainID(suite.ChainConstantsConfig.GetCosmosChainID()).
 		WithCodec(suite.EncodingConfig.Codec).
 		WithInterfaceRegistry(suite.EncodingConfig.InterfaceRegistry).

@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"math/big"
 
-	"github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
 )
@@ -44,7 +44,7 @@ func (suite *KeeperTestSuite) TestEndBlock() {
 			suite.ctx = suite.ctx.WithBlockGasMeter(meter)
 
 			tc.malleate()
-			suite.app.FeeMarketKeeper.EndBlock(suite.ctx, types.RequestEndBlock{Height: 1})
+			suite.app.FeeMarketKeeper.EndBlock(suite.ctx, abci.RequestEndBlock{Height: 1})
 
 			baseFee := suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx)
 			if tc.expBaseFee == nil {

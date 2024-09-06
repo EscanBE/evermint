@@ -13,7 +13,7 @@ import (
 	"github.com/cometbft/cometbft/libs/strings"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/server/config"
+	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -78,7 +78,7 @@ var evmTracers = []string{"json", "markdown", "struct", "access_list"}
 // Config defines the server's top level configuration. It includes the default app config
 // from the SDK as well as the EVM configuration to enable the JSON-RPC APIs.
 type Config struct {
-	config.Config
+	srvconfig.Config
 
 	EVM     EVMConfig     `mapstructure:"evm"`
 	JSONRPC JSONRPCConfig `mapstructure:"json-rpc"`
@@ -147,7 +147,7 @@ type TLSConfig struct {
 func AppConfig(denom string) (string, interface{}) {
 	// Optionally allow the chain developer to overwrite the SDK's default
 	// server config.
-	srvCfg := config.DefaultConfig()
+	srvCfg := srvconfig.DefaultConfig()
 
 	// The SDK's default minimum gas price is set to "" (empty value) inside
 	// app.toml. If left empty by validators, the node will halt on startup.
@@ -172,7 +172,7 @@ func AppConfig(denom string) (string, interface{}) {
 		TLS:     *DefaultTLSConfig(),
 	}
 
-	customAppTemplate := config.DefaultConfigTemplate + DefaultConfigTemplate
+	customAppTemplate := srvconfig.DefaultConfigTemplate + DefaultConfigTemplate
 
 	return customAppTemplate, customAppConfig
 }
@@ -180,7 +180,7 @@ func AppConfig(denom string) (string, interface{}) {
 // DefaultConfig returns server's default configuration.
 func DefaultConfig() *Config {
 	return &Config{
-		Config:  *config.DefaultConfig(),
+		Config:  *srvconfig.DefaultConfig(),
 		EVM:     *DefaultEVMConfig(),
 		JSONRPC: *DefaultJSONRPCConfig(),
 		TLS:     *DefaultTLSConfig(),
@@ -315,7 +315,7 @@ func (c TLSConfig) Validate() error {
 
 // GetConfig returns a fully parsed Config object.
 func GetConfig(v *viper.Viper) (Config, error) {
-	cfg, err := config.GetConfig(v)
+	cfg, err := srvconfig.GetConfig(v)
 	if err != nil {
 		return Config{}, err
 	}

@@ -14,7 +14,7 @@ import (
 	gogogrpc "github.com/cosmos/gogoproto/grpc"
 	"google.golang.org/grpc"
 
-	"github.com/cosmos/cosmos-sdk/codec/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -37,7 +37,7 @@ var (
 // the provided sdk.Context.
 //
 // This one is copied from baseapp of cosmos-sdk to add ability to include x-cosmos-block-height header
-func NewQueryServerTestHelper(ctx sdk.Context, interfaceRegistry types.InterfaceRegistry) *QueryServiceTestHelper {
+func NewQueryServerTestHelper(ctx sdk.Context, interfaceRegistry codectypes.InterfaceRegistry) *QueryServiceTestHelper {
 	qrt := baseapp.NewGRPCQueryRouter()
 	qrt.SetInterfaceRegistry(interfaceRegistry)
 	return &QueryServiceTestHelper{GRPCQueryRouter: qrt, Ctx: ctx, cdc: codec.NewProtoCodec(interfaceRegistry).GRPCCodec()}

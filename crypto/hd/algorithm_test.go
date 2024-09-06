@@ -13,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/codec/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 
 	cryptocodec "github.com/EscanBE/evermint/v12/crypto/codec"
@@ -26,7 +26,7 @@ func init() {
 	cdc := codec.NewLegacyAmino()
 	cryptocodec.RegisterCrypto(cdc)
 
-	interfaceRegistry := types.NewInterfaceRegistry()
+	interfaceRegistry := codectypes.NewInterfaceRegistry()
 	TestCodec = codec.NewProtoCodec(interfaceRegistry)
 	chainapp.RegisterInterfaces(interfaceRegistry)
 }

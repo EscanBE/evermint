@@ -11,7 +11,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
@@ -45,7 +45,7 @@ func (suite *BackendTestSuite) TestBaseFee() {
 			"fail - grpc BaseFee error - with non feemarket block event",
 			&tmrpctypes.ResultBlockResults{
 				Height: 1,
-				BeginBlockEvents: []types.Event{
+				BeginBlockEvents: []abci.Event{
 					{
 						Type: evmtypes.EventTypeBlockBloom,
 					},
@@ -62,7 +62,7 @@ func (suite *BackendTestSuite) TestBaseFee() {
 			"fail - grpc BaseFee error - with feemarket block event",
 			&tmrpctypes.ResultBlockResults{
 				Height: 1,
-				BeginBlockEvents: []types.Event{
+				BeginBlockEvents: []abci.Event{
 					{
 						Type: feemarkettypes.EventTypeFeeMarket,
 					},
@@ -79,10 +79,10 @@ func (suite *BackendTestSuite) TestBaseFee() {
 			"fail - grpc BaseFee error - with feemarket block event with wrong attribute value",
 			&tmrpctypes.ResultBlockResults{
 				Height: 1,
-				BeginBlockEvents: []types.Event{
+				BeginBlockEvents: []abci.Event{
 					{
 						Type: feemarkettypes.EventTypeFeeMarket,
-						Attributes: []types.EventAttribute{
+						Attributes: []abci.EventAttribute{
 							{Value: string([]byte{0x1})},
 						},
 					},
