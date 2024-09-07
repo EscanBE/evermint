@@ -3,13 +3,13 @@ package backend
 import (
 	"fmt"
 
+	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/EscanBE/evermint/v12/indexer"
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/crypto"

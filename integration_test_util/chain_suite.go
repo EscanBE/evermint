@@ -20,6 +20,7 @@ import (
 
 	"github.com/EscanBE/evermint/v12/app/params"
 
+	"cosmossdk.io/log"
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	etherminthd "github.com/EscanBE/evermint/v12/crypto/hd"
@@ -32,7 +33,6 @@ import (
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/crypto/tmhash"
-	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"

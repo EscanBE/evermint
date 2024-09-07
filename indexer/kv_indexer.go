@@ -7,10 +7,10 @@ import (
 	"github.com/EscanBE/evermint/v12/constants"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"

@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"time"
 
+	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/constants"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmcrypto "github.com/cometbft/cometbft/crypto"
-	"github.com/cometbft/cometbft/libs/log"
 	nm "github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
 	"github.com/cometbft/cometbft/privval"
@@ -92,7 +92,7 @@ func StartTendermintNode(app abci.Application, genesis *tmtypes.GenesisDoc, db d
 			return db, nil
 		},
 		nm.DefaultMetricsProvider(config.Instrumentation), // metrics provider
-		logger, // logger
+		logger,                                            // logger
 	)
 	if err != nil {
 		panic(err)

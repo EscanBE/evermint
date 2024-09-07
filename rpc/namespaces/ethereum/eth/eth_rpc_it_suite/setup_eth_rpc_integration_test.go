@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"testing"
 
+	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/integration_test_util"
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	"github.com/EscanBE/evermint/v12/rpc/namespaces/ethereum/eth"
-	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"

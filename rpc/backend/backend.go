@@ -5,11 +5,11 @@ import (
 	"math/big"
 	"time"
 
+	"cosmossdk.io/log"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	"github.com/EscanBE/evermint/v12/server/config"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	"github.com/cometbft/cometbft/libs/log"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"

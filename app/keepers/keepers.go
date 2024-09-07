@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cast"
 
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 
 	"cosmossdk.io/store/streaming"
 	storetypes "cosmossdk.io/store/types"

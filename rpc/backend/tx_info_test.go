@@ -7,6 +7,7 @@ import (
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
+	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/indexer"
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
@@ -14,7 +15,6 @@ import (
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cometbft/cometbft/types"
 	"github.com/ethereum/go-ethereum/common"

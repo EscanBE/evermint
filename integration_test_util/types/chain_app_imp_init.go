@@ -10,6 +10,7 @@ import (
 
 	"github.com/EscanBE/evermint/v12/app/params"
 
+	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
@@ -18,7 +19,6 @@ import (
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -117,14 +117,14 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 	}
 
 	app := chainapp.NewEvermint(
-		logger,           // logger
-		db,               // db
-		nil,              // trace store
-		true,             // load latest
-		map[int64]bool{}, // skipUpgradeHeights
-		defaultNodeHome,  // homePath
-		0,                // invCheckPeriod
-		encCfg,           // encodingConfig
+		logger,                                                 // logger
+		db,                                                     // db
+		nil,                                                    // trace store
+		true,                                                   // load latest
+		map[int64]bool{},                                       // skipUpgradeHeights
+		defaultNodeHome,                                        // homePath
+		0,                                                      // invCheckPeriod
+		encCfg,                                                 // encodingConfig
 		simtestutil.NewAppOptionsWithFlagHome(defaultNodeHome), // appOpts
 		baseapp.SetChainID(chainCfg.CosmosChainId),             // baseAppOptions
 	)

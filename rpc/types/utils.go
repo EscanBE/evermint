@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"math/big"
 
+	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/utils"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
 	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/ethereum/go-ethereum/trie"

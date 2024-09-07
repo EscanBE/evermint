@@ -9,7 +9,7 @@ import (
 	"github.com/EscanBE/evermint/v12/rpc/types"
 	"github.com/cosmos/cosmos-sdk/client"
 
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 
 	coretypes "github.com/cometbft/cometbft/rpc/core/types"
 	rpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"

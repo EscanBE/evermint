@@ -20,9 +20,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/server"
 
+	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/rpc/backend"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	"github.com/cometbft/cometbft/libs/log"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/consensus/ethash"
