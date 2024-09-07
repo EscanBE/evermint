@@ -3,7 +3,7 @@ package app
 import (
 	"encoding/json"
 
-	simappparams "cosmossdk.io/simapp/params"
+	"github.com/EscanBE/evermint/v12/app/params"
 )
 
 // GenesisState of the blockchain is represented here as a map of raw json
@@ -16,6 +16,6 @@ import (
 type GenesisState map[string]json.RawMessage
 
 // NewDefaultGenesisState generates the default state for the application.
-func NewDefaultGenesisState(encodingConfig simappparams.EncodingConfig) GenesisState {
+func NewDefaultGenesisState(encodingConfig params.EncodingConfig) GenesisState {
 	return ModuleBasics.DefaultGenesis(encodingConfig.Codec)
 }

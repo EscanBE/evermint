@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"context"
 
-	simappparams "cosmossdk.io/simapp/params"
+	params "github.com/EscanBE/evermint/v12/app/params"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -39,7 +40,7 @@ var (
 var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 	var (
 		receiverAccAddr sdk.AccAddress
-		encodingConfig  simappparams.EncodingConfig
+		encodingConfig  params.EncodingConfig
 		kr              keyring.Keyring
 		mockedIn        sdktestutil.BufferReader
 		clientCtx       client.Context

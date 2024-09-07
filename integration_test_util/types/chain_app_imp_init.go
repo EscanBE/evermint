@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
-	simappparams "cosmossdk.io/simapp/params"
+	"github.com/EscanBE/evermint/v12/app/params"
 
+	sdkmath "cosmossdk.io/math"
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	itutilutils "github.com/EscanBE/evermint/v12/integration_test_util/utils"
@@ -56,7 +56,7 @@ var defaultConsensusParams = &tmtypes.ConsensusParams{
 
 const TendermintGovVotingPeriod = 5 * time.Second
 
-func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestConfig, encCfg simappparams.EncodingConfig, db *MemDB, validatorAccounts TestAccounts, walletAccounts TestAccounts, genesisAccountBalance sdk.Coins, tempHolder *TemporaryHolder, logger log.Logger) (chainApp ChainApp, tendermintApp TendermintApp, validatorSet *tmtypes.ValidatorSet) {
+func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestConfig, encCfg params.EncodingConfig, db *MemDB, validatorAccounts TestAccounts, walletAccounts TestAccounts, genesisAccountBalance sdk.Coins, tempHolder *TemporaryHolder, logger log.Logger) (chainApp ChainApp, tendermintApp TendermintApp, validatorSet *tmtypes.ValidatorSet) {
 	defaultNodeHome := chainapp.DefaultNodeHome
 	moduleBasics := chainapp.ModuleBasics
 

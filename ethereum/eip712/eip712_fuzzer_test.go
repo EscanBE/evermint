@@ -37,7 +37,7 @@ const (
 	jsonObjectType = iota
 )
 
-var params = EIP712FuzzTestParams{
+var testParams = EIP712FuzzTestParams{
 	numTestObjects:        16,
 	maxNumFieldsPerObject: 16,
 	minStringLength:       16,
@@ -57,7 +57,7 @@ func (suite *EIP712TestSuite) TestRandomPayloadFlattening() {
 	// Re-seed rand generator
 	rand.Seed(rand.Int64())
 
-	for i := 0; i < params.numTestObjects; i++ {
+	for i := 0; i < testParams.numTestObjects; i++ {
 		suite.Run(fmt.Sprintf("%v%d", fuzzTestName, i), func() {
 			payload := suite.generateRandomPayload(i)
 
@@ -91,7 +91,7 @@ func (suite *EIP712TestSuite) createRandomJSONObject() gjson.Result {
 	var err error
 	payloadRaw := ""
 
-	numFields := suite.createRandomIntInRange(0, params.maxNumFieldsPerObject)
+	numFields := suite.createRandomIntInRange(0, testParams.maxNumFieldsPerObject)
 	for i := 0; i < numFields; i++ {
 		key := suite.createRandomString()
 
@@ -124,7 +124,7 @@ func (suite *EIP712TestSuite) createRandomJSONField(t int, depth int) interface{
 
 // createRandomJSONNestedArray creates an array of random nested JSON fields.
 func (suite *EIP712TestSuite) createRandomJSONNestedArray(depth int) []interface{} {
-	arr := make([]interface{}, rand.Intn(params.maxArrayLength))
+	arr := make([]interface{}, rand.Intn(testParams.maxArrayLength))
 	for i := range arr {
 		arr[i] = suite.createRandomJSONNestedField(depth)
 	}
@@ -134,7 +134,7 @@ func (suite *EIP712TestSuite) createRandomJSONNestedArray(depth int) []interface
 
 // createRandomJSONNestedObject creates a key-value set of objects with random nested JSON fields.
 func (suite *EIP712TestSuite) createRandomJSONNestedObject(depth int) interface{} {
-	numFields := rand.Intn(params.maxNumFieldsPerObject)
+	numFields := rand.Intn(testParams.maxNumFieldsPerObject)
 	obj := make(map[string]interface{})
 
 	for i := 0; i < numFields; i++ {
@@ -151,7 +151,7 @@ func (suite *EIP712TestSuite) createRandomJSONNestedObject(depth int) interface{
 func (suite *EIP712TestSuite) createRandomJSONNestedField(depth int) interface{} {
 	var newFieldType int
 
-	if depth == params.maxObjectDepth {
+	if depth == testParams.maxObjectDepth {
 		newFieldType = rand.Intn(numPrimitiveJSONTypes)
 	} else {
 		newFieldType = rand.Intn(numJSONTypes)
@@ -165,11 +165,11 @@ func (suite *EIP712TestSuite) createRandomBoolean() bool {
 }
 
 func (suite *EIP712TestSuite) createRandomFloat() float64 {
-	return (rand.Float64() - 0.5) * params.randomFloatRange
+	return (rand.Float64() - 0.5) * testParams.randomFloatRange
 }
 
 func (suite *EIP712TestSuite) createRandomString() string {
-	bzLen := suite.createRandomIntInRange(params.minStringLength, params.maxStringLength)
+	bzLen := suite.createRandomIntInRange(testParams.minStringLength, testParams.maxStringLength)
 	bz := make([]byte, bzLen)
 
 	for i := 0; i < bzLen; i++ {

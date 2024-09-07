@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/EscanBE/evermint/v12/app/params"
+
 	"github.com/EscanBE/evermint/v12/cmd/evmd/inspect"
 	cmdutils "github.com/EscanBE/evermint/v12/cmd/evmd/utils"
 	"github.com/EscanBE/evermint/v12/constants"
@@ -23,7 +25,6 @@ import (
 	tmcli "github.com/cometbft/cometbft/libs/cli"
 	"github.com/cometbft/cometbft/libs/log"
 
-	simappparams "cosmossdk.io/simapp/params"
 	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -60,7 +61,7 @@ const (
 
 // NewRootCmd creates a new root command for our binary. It is called once in the
 // main function.
-func NewRootCmd() (*cobra.Command, simappparams.EncodingConfig) {
+func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	encodingConfig := chainapp.RegisterEncodingConfig()
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Codec).
@@ -274,7 +275,7 @@ func initAppConfig() (string, interface{}) {
 }
 
 type appCreator struct {
-	encCfg simappparams.EncodingConfig
+	encCfg params.EncodingConfig
 }
 
 // newApp is an appCreator

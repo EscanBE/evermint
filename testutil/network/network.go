@@ -15,6 +15,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/EscanBE/evermint/v12/app/params"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
@@ -30,7 +32,6 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
-	simappparams "cosmossdk.io/simapp/params"
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -123,7 +124,7 @@ func DefaultConfig() Config {
 }
 
 // NewAppConstructor returns a new Evermint AppConstructor
-func NewAppConstructor(encodingCfg simappparams.EncodingConfig) AppConstructor {
+func NewAppConstructor(encodingCfg params.EncodingConfig) AppConstructor {
 	return func(val Validator) servertypes.Application {
 		return chainapp.NewEvermint(
 			val.Ctx.Logger, dbm.NewMemDB(), nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,

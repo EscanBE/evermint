@@ -16,7 +16,7 @@ import (
 	"time"
 	"unsafe"
 
-	simappparams "cosmossdk.io/simapp/params"
+	"github.com/EscanBE/evermint/v12/app/params"
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
@@ -76,7 +76,7 @@ type ChainIntegrationTestSuite struct {
 	useKeyring           bool
 	tempHolder           *itutiltypes.TemporaryHolder
 	logger               log.Logger
-	EncodingConfig       simappparams.EncodingConfig
+	EncodingConfig       params.EncodingConfig
 	ChainConstantsConfig itutiltypes.ChainConstantConfig
 	DB                   *itutiltypes.MemDB
 	TendermintApp        itutiltypes.TendermintApp

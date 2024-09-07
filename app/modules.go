@@ -1,7 +1,7 @@
 package app
 
 import (
-	simappparams "cosmossdk.io/simapp/params"
+	"github.com/EscanBE/evermint/v12/app/params"
 	"github.com/EscanBE/evermint/v12/x/erc20"
 	erc20client "github.com/EscanBE/evermint/v12/x/erc20/client"
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
@@ -115,7 +115,7 @@ var ModuleBasics = module.NewBasicManager(
 
 func appModules(
 	chainApp *Evermint,
-	encodingConfig simappparams.EncodingConfig,
+	encodingConfig params.EncodingConfig,
 	skipGenesisInvariants bool,
 ) []module.AppModule {
 	appCodec := encodingConfig.Codec
