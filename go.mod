@@ -8,6 +8,10 @@ require (
 	cosmossdk.io/tools/rosetta v0.2.1
 	cosmossdk.io/store v1.1.0
 	cosmossdk.io/log v1.3.1
+	cosmossdk.io/x/evidence v0.1.1
+	cosmossdk.io/x/feegrant v0.1.1
+	cosmossdk.io/x/tx v0.13.3
+	cosmossdk.io/x/upgrade v0.1.3
 	github.com/armon/go-metrics v0.4.1
 	github.com/btcsuite/btcd v0.23.3
 	github.com/btcsuite/btcd/btcutil v1.1.3

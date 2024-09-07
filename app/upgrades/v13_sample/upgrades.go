@@ -1,10 +1,10 @@
 package v13_sample
 
 import (
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/EscanBE/evermint/v12/app/keepers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v13.0.0

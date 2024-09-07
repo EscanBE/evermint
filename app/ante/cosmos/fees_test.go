@@ -5,13 +5,13 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	"cosmossdk.io/x/feegrant"
 	cosmosante "github.com/EscanBE/evermint/v12/app/ante/cosmos"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/testutil"
 	testutiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	sdktestutil "github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/feegrant"
 )
 
 func (suite *AnteTestSuite) TestDeductFeeDecorator() {
