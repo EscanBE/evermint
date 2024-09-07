@@ -9,7 +9,6 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	"cosmossdk.io/simapp"
 	simappparams "cosmossdk.io/simapp/params"
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
@@ -189,7 +188,7 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 	return cai, tendermintApp, valSet
 }
 
-func genesisStateWithValSet(chainCfg ChainConfig, disableTendermint bool, testConfig TestConfig, codec codec.Codec, genesisState simapp.GenesisState, valSet *tmtypes.ValidatorSet, genesisValidatorAccounts []authtypes.GenesisAccount, genesisWalletAccounts []authtypes.GenesisAccount, balances []banktypes.Balance, signingInfos []slashingtypes.SigningInfo) simapp.GenesisState {
+func genesisStateWithValSet(chainCfg ChainConfig, disableTendermint bool, testConfig TestConfig, codec codec.Codec, genesisState chainapp.GenesisState, valSet *tmtypes.ValidatorSet, genesisValidatorAccounts []authtypes.GenesisAccount, genesisWalletAccounts []authtypes.GenesisAccount, balances []banktypes.Balance, signingInfos []slashingtypes.SigningInfo) chainapp.GenesisState {
 	genesisAccounts := append(genesisValidatorAccounts, genesisWalletAccounts...)
 
 	// set genesis accounts

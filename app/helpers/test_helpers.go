@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
-	"cosmossdk.io/simapp"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
@@ -135,10 +134,10 @@ func Setup(
 	return chainApp
 }
 
-func GenesisStateWithValSet(app *chainapp.Evermint, genesisState simapp.GenesisState,
+func GenesisStateWithValSet(app *chainapp.Evermint, genesisState chainapp.GenesisState,
 	valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount,
 	balances ...banktypes.Balance,
-) simapp.GenesisState {
+) chainapp.GenesisState {
 	// set genesis accounts
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), genAccs)
 	genesisState[authtypes.ModuleName] = app.AppCodec().MustMarshalJSON(authGenesis)

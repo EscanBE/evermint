@@ -12,7 +12,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	sdkmath "cosmossdk.io/math"
-	"cosmossdk.io/simapp"
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/EscanBE/evermint/v12/testutil"
@@ -107,7 +106,7 @@ func (suite *KeeperTestSuite) SetupAppWithT(checkTx bool, t require.TestingT) {
 	require.NoError(t, err)
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
 
-	suite.app = helpers.EthSetup(checkTx, func(app *chainapp.Evermint, genesis simapp.GenesisState) simapp.GenesisState {
+	suite.app = helpers.EthSetup(checkTx, func(app *chainapp.Evermint, genesis chainapp.GenesisState) chainapp.GenesisState {
 		feemarketGenesis := feemarkettypes.DefaultGenesisState()
 		if suite.enableFeemarket {
 			feemarketGenesis.Params.NoBaseFee = false

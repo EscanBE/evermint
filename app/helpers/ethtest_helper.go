@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
-	"cosmossdk.io/simapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -27,12 +26,12 @@ import (
 )
 
 // EthSetup initializes a new Evermint app. A Nop logger is set in Evermint app.
-func EthSetup(isCheckTx bool, patchGenesis func(*chainapp.Evermint, simapp.GenesisState) simapp.GenesisState) *chainapp.Evermint {
+func EthSetup(isCheckTx bool, patchGenesis func(*chainapp.Evermint, chainapp.GenesisState) chainapp.GenesisState) *chainapp.Evermint {
 	return EthSetupWithDB(isCheckTx, patchGenesis, dbm.NewMemDB())
 }
 
 // EthSetupWithDB initializes a new Evermint app. A Nop logger is set in Evermint app.
-func EthSetupWithDB(isCheckTx bool, patchGenesis func(*chainapp.Evermint, simapp.GenesisState) simapp.GenesisState, db dbm.DB) *chainapp.Evermint {
+func EthSetupWithDB(isCheckTx bool, patchGenesis func(*chainapp.Evermint, chainapp.GenesisState) chainapp.GenesisState, db dbm.DB) *chainapp.Evermint {
 	encodingConfig := chainapp.RegisterEncodingConfig()
 
 	chainID := constants.TestnetFullChainId
@@ -74,7 +73,7 @@ func EthSetupWithDB(isCheckTx bool, patchGenesis func(*chainapp.Evermint, simapp
 }
 
 // NewTestGenesisState generate genesis state with single validator
-func NewTestGenesisState(codec codec.Codec) simapp.GenesisState {
+func NewTestGenesisState(codec codec.Codec) chainapp.GenesisState {
 	privVal := mock.NewPV()
 	pubKey, err := privVal.GetPubKey()
 	if err != nil {
@@ -98,10 +97,10 @@ func NewTestGenesisState(codec codec.Codec) simapp.GenesisState {
 	return genesisStateWithValSet(codec, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
 }
 
-func genesisStateWithValSet(codec codec.Codec, genesisState simapp.GenesisState,
+func genesisStateWithValSet(codec codec.Codec, genesisState chainapp.GenesisState,
 	valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount,
 	balances ...banktypes.Balance,
-) simapp.GenesisState {
+) chainapp.GenesisState {
 	// set genesis accounts
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), genAccs)
 	genesisState[authtypes.ModuleName] = codec.MustMarshalJSON(authGenesis)

@@ -26,7 +26,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 
-	"cosmossdk.io/simapp"
 	simappparams "cosmossdk.io/simapp/params"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -246,7 +245,7 @@ func (app *Evermint) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.
 
 // InitChainer updates at chain initialization
 func (app *Evermint) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
-	var genesisState simapp.GenesisState
+	var genesisState GenesisState
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
