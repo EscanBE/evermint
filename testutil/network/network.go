@@ -32,6 +32,7 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
+	pruningtypes "cosmossdk.io/store/pruning/types"
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -45,7 +46,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"

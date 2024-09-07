@@ -1,9 +1,9 @@
 package keeper_test
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -20,7 +20,7 @@ type mockSubspace struct {
 }
 
 func newMockSubspace(
-	// ps v3types.V3Params,
+// ps v3types.V3Params,
 	storeKey, transientKey storetypes.StoreKey,
 ) mockSubspace {
 	return mockSubspace{

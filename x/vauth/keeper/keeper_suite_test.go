@@ -15,13 +15,13 @@ import (
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
+	"cosmossdk.io/store"
+	storetypes "cosmossdk.io/store/types"
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/store"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -124,7 +124,7 @@ func (s *KeeperTestSuite) SetupTest() {
 		ek = *evmkeeper.NewKeeper(
 			cdc,
 			evmStoreKey,
-			nil, // transient key
+			nil,                                             // transient key
 			authtypes.NewModuleAddress(govtypes.ModuleName), // authority
 			ak,
 			bk,

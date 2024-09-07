@@ -7,11 +7,11 @@ import (
 
 	"github.com/cometbft/cometbft/libs/log"
 
+	"cosmossdk.io/store/streaming"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/store/streaming"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"

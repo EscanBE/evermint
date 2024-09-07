@@ -3,8 +3,8 @@ package utils
 import (
 	"strings"
 
+	storetypes "cosmossdk.io/store/types"
 	"github.com/EscanBE/evermint/v12/constants"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"

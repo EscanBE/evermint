@@ -5,11 +5,11 @@ import (
 
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
+	storetypes "cosmossdk.io/store/types"
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
