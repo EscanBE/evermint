@@ -15,9 +15,9 @@ import (
 	"github.com/spf13/cast"
 
 	"cosmossdk.io/log"
-	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmos "github.com/cometbft/cometbft/libs/os"
+	dbm "github.com/cosmos/cosmos-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -35,9 +35,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"

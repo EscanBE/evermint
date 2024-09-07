@@ -13,10 +13,10 @@ import (
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cometbft/cometbft/types"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )

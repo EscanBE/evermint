@@ -21,9 +21,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"cosmossdk.io/log"
-	dbm "github.com/cometbft/cometbft-db"
 	tmcfg "github.com/cometbft/cometbft/config"
 	tmcli "github.com/cometbft/cometbft/libs/cli"
+	dbm "github.com/cosmos/cosmos-db"
 
 	"cosmossdk.io/store"
 	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"

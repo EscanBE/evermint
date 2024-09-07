@@ -22,9 +22,9 @@ import (
 	"github.com/cosmos/ibc-go/v8/testing/mock"
 
 	"cosmossdk.io/log"
-	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmtypes "github.com/cometbft/cometbft/types"
+	dbm "github.com/cosmos/cosmos-db"
 )
 
 func TestEvermintExport(t *testing.T) {

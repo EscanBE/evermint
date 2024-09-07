@@ -9,7 +9,7 @@ import (
 
 	"github.com/EscanBE/evermint/v12/constants"
 
-	dbm "github.com/cometbft/cometbft-db"
+	dbm "github.com/cosmos/cosmos-db"
 
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/client"

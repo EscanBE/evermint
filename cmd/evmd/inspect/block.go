@@ -9,8 +9,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	dbm "github.com/cometbft/cometbft-db"
 	tmstore "github.com/cometbft/cometbft/store"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
 )

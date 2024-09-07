@@ -24,8 +24,8 @@ import (
 
 	"cosmossdk.io/log"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
+	dbm "github.com/cosmos/cosmos-db"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 

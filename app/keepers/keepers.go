@@ -26,8 +26,6 @@ import (
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
@@ -48,6 +46,8 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
 	icahost "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host"
 	icahosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
@@ -330,7 +330,7 @@ func NewAppKeeper(
 		)
 		defer func() {
 			appKeepers.GovKeeper = appKeepers.GovKeeper.SetHooks(
-				govtypes.NewMultiGovHooks( /*no hook atm*/),
+				govtypes.NewMultiGovHooks( /*no hook atm*/ ),
 			)
 		}()
 		defer func() {

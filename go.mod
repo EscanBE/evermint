@@ -1,6 +1,6 @@
 module github.com/EscanBE/evermint/v12
 
-go 1.20
+go 1.22.4
 
 require (
 	cosmossdk.io/errors v1.0.1
@@ -18,10 +18,12 @@ require (
 	github.com/cometbft/cometbft v0.38.9
 	github.com/cometbft/cometbft-db v0.12.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
-	github.com/cosmos/cosmos-sdk v0.47.13
+	github.com/cosmos/cosmos-sdk v0.50.8
+	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-go/v8 v8.3.2
+	github.com/cosmos/ibc-go/modules/capability v1.0.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/golang/protobuf v1.5.4

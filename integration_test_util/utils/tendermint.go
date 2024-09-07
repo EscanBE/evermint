@@ -8,7 +8,6 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/constants"
-	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmcrypto "github.com/cometbft/cometbft/crypto"
 	nm "github.com/cometbft/cometbft/node"
@@ -20,6 +19,7 @@ import (
 	tmrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 	rpctest "github.com/cometbft/cometbft/rpc/test"
 	tmtypes "github.com/cometbft/cometbft/types"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/google/uuid"
 )
 
