@@ -47,7 +47,7 @@ func (suite *BackendTestSuite) TestBaseFee() {
 			"fail - grpc BaseFee error - with non feemarket block event",
 			&tmrpctypes.ResultBlockResults{
 				Height: 1,
-				BeginBlockEvents: []abci.Event{
+				FinalizeBlockEvents: []abci.Event{
 					{
 						Type: evmtypes.EventTypeBlockBloom,
 					},
@@ -64,7 +64,7 @@ func (suite *BackendTestSuite) TestBaseFee() {
 			"fail - grpc BaseFee error - with feemarket block event",
 			&tmrpctypes.ResultBlockResults{
 				Height: 1,
-				BeginBlockEvents: []abci.Event{
+				FinalizeBlockEvents: []abci.Event{
 					{
 						Type: feemarkettypes.EventTypeFeeMarket,
 					},
@@ -81,7 +81,7 @@ func (suite *BackendTestSuite) TestBaseFee() {
 			"fail - grpc BaseFee error - with feemarket block event with wrong attribute value",
 			&tmrpctypes.ResultBlockResults{
 				Height: 1,
-				BeginBlockEvents: []abci.Event{
+				FinalizeBlockEvents: []abci.Event{
 					{
 						Type: feemarkettypes.EventTypeFeeMarket,
 						Attributes: []abci.EventAttribute{
@@ -292,7 +292,7 @@ func (suite *BackendTestSuite) TestGlobalMinGasPrice() {
 	testCases := []struct {
 		name           string
 		registerMock   func()
-		expMinGasPrice sdk.Dec
+		expMinGasPrice sdkmath.LegacyDec
 		expPass        bool
 	}{
 		{

@@ -1,6 +1,7 @@
 package tx
 
 import (
+	"google.golang.org/protobuf/proto"
 	"math"
 
 	"github.com/EscanBE/evermint/v12/constants"
@@ -88,12 +89,17 @@ func signCosmosTx(
 		return nil, err
 	}
 
+	signMode, err := authsigning.APISignModeToInternal(args.TxCfg.SignModeHandler().DefaultMode())
+	if err != nil {
+		return nil, err
+	}
+
 	// First round: we gather all the signer infos. We use the "set empty
 	// signature" hack to do that.
 	sigV2 := signing.SignatureV2{
 		PubKey: args.Priv.PubKey(),
 		Data: &signing.SingleSignatureData{
-			SignMode:  args.TxCfg.SignModeHandler().DefaultMode(),
+			SignMode:  signMode,
 			Signature: nil,
 		},
 		Sequence: seq,
@@ -113,7 +119,8 @@ func signCosmosTx(
 		Sequence:      seq,
 	}
 	sigV2, err = clienttx.SignWithPrivKey(
-		args.TxCfg.SignModeHandler().DefaultMode(),
+		ctx,
+		signMode,
 		signerData,
 		txBuilder, args.Priv, args.TxCfg,
 		seq,
@@ -137,6 +144,12 @@ var _ sdk.Tx = &InvalidTx{}
 // NOTE: This is used for testing purposes, to serve the edge case of invalid data being passed to functions.
 type InvalidTx struct{}
 
-func (InvalidTx) GetMsgs() []sdk.Msg { return []sdk.Msg{nil} }
+func (InvalidTx) GetMsgs() []sdk.Msg {
+	return []sdk.Msg{nil}
+}
+
+func (t InvalidTx) GetMsgsV2() ([]proto.Message, error) {
+	return nil, nil
+}
 
 func (InvalidTx) ValidateBasic() error { return nil }

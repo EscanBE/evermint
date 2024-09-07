@@ -71,6 +71,9 @@ const (
 
 	// DefaultMaxOpenConnections represents the amount of open connections (unlimited = 0)
 	DefaultMaxOpenConnections = 0
+
+	// ServerStartTime is minimum alive time needed to be considered successfully start
+	ServerStartTime = 5 * time.Second
 )
 
 var evmTracers = []string{"json", "markdown", "struct", "access_list"}

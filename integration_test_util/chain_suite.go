@@ -4,6 +4,9 @@ package integration_test_util
 import (
 	"context"
 	"fmt"
+	"github.com/EscanBE/evermint/v12/utils"
+	sdkdb "github.com/cosmos/cosmos-db"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"math"
 	"math/big"
 	"os"
@@ -31,7 +34,7 @@ import (
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	dbm "github.com/cometbft/cometbft-db"
+	cmtdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmversion "github.com/cometbft/cometbft/proto/tendermint/version"
@@ -39,7 +42,7 @@ import (
 	jsonrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 	tmstate "github.com/cometbft/cometbft/state"
 	"github.com/cometbft/cometbft/store"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cometbft/cometbft/version"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -80,10 +83,10 @@ type ChainIntegrationTestSuite struct {
 	logger               log.Logger
 	EncodingConfig       params.EncodingConfig
 	ChainConstantsConfig itutiltypes.ChainConstantConfig
-	DB                   *itutiltypes.MemDB
+	DB                   *cmtdb.MemDB
 	TendermintApp        itutiltypes.TendermintApp
 	ChainApp             itutiltypes.ChainApp
-	ValidatorSet         *tmtypes.ValidatorSet
+	ValidatorSet         *cmttypes.ValidatorSet
 	CurrentContext       sdk.Context // might be out-dated if Tendermint is used
 	ValidatorAccounts    itutiltypes.TestAccounts
 	WalletAccounts       itutiltypes.TestAccounts
@@ -174,8 +177,8 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 	walletAccounts := newWalletsAccounts(t)
 
 	// Init database
-	sharedDb := itutiltypes.WrapCometBftDB(dbm.NewMemDB())
-	evmIndexerDb := dbm.NewMemDB() // use dedicated db for EVM Tx-Indexer to prevent data corruption
+	cometDB := cmtdb.NewMemDB()
+	evmIndexerDb := sdkdb.NewMemDB() // use dedicated db for EVM Tx-Indexer to prevent data corruption
 
 	// Setup chain app
 	genesisAccountBalance := sdk.NewCoins(
@@ -186,16 +189,16 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 			sdk.NewCoin(secondaryDenomUnit.Denom, testConfig.InitBalanceAmount),
 		)
 	}
-	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
-	logger = log.NewFilter(logger, log.AllowError())
-	app, tmApp, valSet := itutiltypes.NewChainApp(chainCfg, disableTendermint, testConfig, encodingConfig, sharedDb, validatorAccounts, walletAccounts, genesisAccountBalance, tempHolder, logger)
+
+	logger := log.NewNopLogger()
+	app, tmApp, valSet := itutiltypes.NewChainApp(chainCfg, disableTendermint, testConfig, encodingConfig, cometDB, validatorAccounts, walletAccounts, genesisAccountBalance, tempHolder, logger)
 	baseApp := app.BaseApp()
 
 	header := createFirstBlockHeader(
 		chainCfg.CosmosChainId,
 		validatorAccounts.Number(1).GetConsensusAddress(),
 	)
-	ctx := baseApp.NewContext(false, header)
+	ctx := baseApp.NewContext(false).WithBlockHeader(header)
 
 	evmParams := app.EvmKeeper().GetParams(ctx)
 	evmParams.EvmDenom = chainCfg.BaseDenom
@@ -205,14 +208,14 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 	// Setup validators
 	for _, validatorAccount := range validatorAccounts {
 		val, err := stakingtypes.NewValidator(
-			validatorAccount.GetValidatorAddress(),
+			validatorAccount.GetValidatorAddress().String(),
 			validatorAccount.GetSdkPubKey(),
 			stakingtypes.Description{},
 		)
 		require.NoError(t, err)
 
 		val = stakingkeeper.TestingUpdateValidator(app.StakingKeeper(), ctx, val, true)
-		err = app.DistributionKeeper().Hooks().AfterValidatorCreated(ctx, val.GetOperator())
+		err = app.DistributionKeeper().Hooks().AfterValidatorCreated(ctx, utils.MustValAddressFromBech32(val.GetOperator()))
 		require.NoError(t, err)
 		err = app.StakingKeeper().SetValidatorByConsAddr(ctx, val)
 		require.NoError(t, err)
@@ -232,7 +235,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 			chainCfg.BaseDenom,
 			constants.BaseDenomExponent,
 		),
-		DB:                sharedDb,
+		DB:                cometDB,
 		ChainApp:          app,
 		TendermintApp:     tmApp,
 		ValidatorSet:      valSet,
@@ -256,7 +259,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 
 	accounts, _ := result.QueryClients.Auth.ModuleAccounts(context.Background(), &authtypes.QueryModuleAccountsRequest{})
 	for _, acc := range accounts.Accounts {
-		var account authtypes.AccountI
+		var account sdk.AccountI
 		err = encodingConfig.InterfaceRegistry.UnpackAny(acc, &account)
 		require.NoError(t, err)
 		moduleAccount, ok := account.(authtypes.ModuleAccountI)
@@ -368,7 +371,7 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 
 	queryHelper := NewQueryServerTestHelper(sdkContext, suite.ChainApp.InterfaceRegistry())
 
-	authtypes.RegisterQueryServer(queryHelper, suite.ChainApp.AccountKeeper())
+	authtypes.RegisterQueryServer(queryHelper, authkeeper.NewQueryServer(*suite.ChainApp.AccountKeeper()))
 	authQueryClient := authtypes.NewQueryClient(queryHelper)
 
 	banktypes.RegisterQueryServer(queryHelper, suite.ChainApp.BankKeeper())
@@ -386,7 +389,7 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 	feemarkettypes.RegisterQueryServer(queryHelper, suite.ChainApp.FeeMarketKeeper())
 	feeMarketQueryClient := feemarkettypes.NewQueryClient(queryHelper)
 
-	govv1types.RegisterQueryServer(queryHelper, suite.ChainApp.GovKeeper())
+	govv1types.RegisterQueryServer(queryHelper, govkeeper.NewQueryServer(suite.ChainApp.GovKeeper()))
 	govV1QueryClient := govv1types.NewQueryClient(queryHelper)
 
 	govlegacytypes.RegisterQueryServer(queryHelper, govkeeper.NewLegacyQueryServer(suite.ChainApp.GovKeeper()))
@@ -552,7 +555,7 @@ func (suite *ChainIntegrationTestSuite) commitAndBeginBlockAfter(t time.Duration
 	}()
 
 	var newCtx sdk.Context
-	var newValSet *tmtypes.ValidatorSet
+	var newValSet *cmttypes.ValidatorSet
 
 	if suite.HasTendermint() {
 		// awaiting next block generated by tendermint
@@ -627,9 +630,9 @@ func (suite *ChainIntegrationTestSuite) triggerEvmIndexer(latestHeight int64, bl
 	var ch int64
 	for ch = indexFromBlock; ch <= latestHeight; ch++ {
 		tmBlk := blockStore.LoadBlock(ch)
-		tmAbciResponse, err := stateStore.LoadABCIResponses(ch)
+		tmAbciResponse, err := stateStore.LoadFinalizeBlockResponse(ch)
 		suite.Require().NoErrorf(err, "failed to load abci response for block %d", ch)
-		err = suite.EvmTxIndexer.IndexBlock(tmBlk, tmAbciResponse.DeliverTxs)
+		err = suite.EvmTxIndexer.IndexBlock(tmBlk, tmAbciResponse.TxResults)
 		suite.Require().NoErrorf(err, "failed to index block %d", ch)
 	}
 

@@ -41,7 +41,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 
 	chainID := constants.TestnetFullChainId
 	suite.app = helpers.Setup(false, feemarkettypes.DefaultGenesisState(), chainID)
-	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{
+	suite.ctx = suite.app.BaseApp.NewContext(false).WithBlockHeader(tmproto.Header{
 		Height:          1,
 		ChainID:         chainID,
 		Time:            time.Now().UTC(),

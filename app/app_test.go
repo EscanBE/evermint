@@ -23,8 +23,8 @@ import (
 
 	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmtypes "github.com/cometbft/cometbft/types"
-	dbm "github.com/cosmos/cosmos-db"
+	cmttypes "github.com/cometbft/cometbft/types"
+	sdkdb "github.com/cosmos/cosmos-db"
 )
 
 func TestEvermintExport(t *testing.T) {
@@ -35,8 +35,8 @@ func TestEvermintExport(t *testing.T) {
 	encodingConfig := chainapp.RegisterEncodingConfig()
 
 	// create validator set with single validator
-	validator := tmtypes.NewValidator(pubKey, 1)
-	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
+	validator := cmttypes.NewValidator(pubKey, 1)
+	valSet := cmttypes.NewValidatorSet([]*cmttypes.Validator{validator})
 
 	// generate genesis account
 	senderPrivKey := secp256k1.GenPrivKey()
@@ -47,9 +47,9 @@ func TestEvermintExport(t *testing.T) {
 	}
 
 	chainID := constants.TestnetFullChainId
-	db := dbm.NewMemDB()
+	db := sdkdb.NewMemDB()
 	chainApp := chainapp.NewEvermint(
-		log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, chainapp.DefaultNodeHome, 0, encodingConfig,
+		log.NewLogger(os.Stdout), db, nil, true, map[int64]bool{}, chainapp.DefaultNodeHome, 0, encodingConfig,
 		simtestutil.NewAppOptionsWithFlagHome(chainapp.DefaultNodeHome),
 		baseapp.SetChainID(chainID),
 	)
@@ -60,18 +60,24 @@ func TestEvermintExport(t *testing.T) {
 	require.NoError(t, err)
 
 	// Initialize the chain
-	chainApp.InitChain(
-		abci.RequestInitChain{
+	_, err = chainApp.InitChain(
+		&abci.RequestInitChain{
 			ChainId:       chainID,
 			Validators:    []abci.ValidatorUpdate{},
 			AppStateBytes: stateBytes,
 		},
 	)
-	chainApp.Commit()
+	if err != nil {
+		panic(err)
+	}
+	_, err = chainApp.Commit()
+	if err != nil {
+		panic(err)
+	}
 
 	// Making a new app object with the db, so that initchain hasn't been called
 	app2 := chainapp.NewEvermint(
-		log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, chainapp.DefaultNodeHome, 0, encodingConfig,
+		log.NewLogger(os.Stdout), db, nil, true, map[int64]bool{}, chainapp.DefaultNodeHome, 0, encodingConfig,
 		simtestutil.NewAppOptionsWithFlagHome(chainapp.DefaultNodeHome),
 		baseapp.SetChainID(chainID),
 	)

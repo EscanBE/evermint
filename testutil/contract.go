@@ -75,7 +75,7 @@ func DeployContractWithFactory(
 	app *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	factoryAddress common.Address,
-) (common.Address, abci.ResponseDeliverTx, error) {
+) (common.Address, abci.ExecTxResult, error) {
 	chainID := app.EvmKeeper.ChainID()
 	from := common.BytesToAddress(priv.PubKey().Address().Bytes())
 	factoryNonce := app.EvmKeeper.GetNonce(ctx, factoryAddress)
@@ -92,18 +92,18 @@ func DeployContractWithFactory(
 
 	res, err := DeliverEthTx(app, priv, msgEthereumTx)
 	if err != nil {
-		return common.Address{}, abci.ResponseDeliverTx{}, err
+		return common.Address{}, abci.ExecTxResult{}, err
 	}
 
 	if _, err := CheckEthTxResponse(res, app.AppCodec()); err != nil {
-		return common.Address{}, abci.ResponseDeliverTx{}, err
+		return common.Address{}, abci.ExecTxResult{}, err
 	}
 
 	return crypto.CreateAddress(factoryAddress, factoryNonce), res, err
 }
 
 // CheckEthTxResponse checks that the transaction was executed successfully
-func CheckEthTxResponse(r abci.ResponseDeliverTx, cdc codec.Codec) (*evm.MsgEthereumTxResponse, error) {
+func CheckEthTxResponse(r abci.ExecTxResult, cdc codec.Codec) (*evm.MsgEthereumTxResponse, error) {
 	if !r.IsOK() {
 		return nil, fmt.Errorf("tx failed. Code: %d, Logs: %s", r.Code, r.Log)
 	}

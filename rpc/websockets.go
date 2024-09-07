@@ -24,8 +24,8 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 
 	"cosmossdk.io/log"
-	rpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmtjrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	"github.com/EscanBE/evermint/v12/rpc/ethereum/pubsub"
 	rpcfilters "github.com/EscanBE/evermint/v12/rpc/namespaces/ethereum/eth/filters"
@@ -75,7 +75,7 @@ type websocketsServer struct {
 	logger   log.Logger
 }
 
-func NewWebsocketsServer(clientCtx client.Context, logger log.Logger, tmWSClient *rpcclient.WSClient, cfg *config.Config) WebsocketsServer {
+func NewWebsocketsServer(clientCtx client.Context, logger log.Logger, tmWSClient *cmtjrpcclient.WSClient, cfg *config.Config) WebsocketsServer {
 	logger = logger.With("api", "websocket-server")
 	_, port, _ := net.SplitHostPort(cfg.JSONRPC.Address) // #nosec G703
 
@@ -345,7 +345,7 @@ type pubSubAPI struct {
 }
 
 // newPubSubAPI creates an instance of the ethereum PubSub API.
-func newPubSubAPI(clientCtx client.Context, logger log.Logger, tmWSClient *rpcclient.WSClient) *pubSubAPI {
+func newPubSubAPI(clientCtx client.Context, logger log.Logger, tmWSClient *cmtjrpcclient.WSClient) *pubSubAPI {
 	logger = logger.With("module", "websocket-client")
 	return &pubSubAPI{
 		events:    rpcfilters.NewEventSystem(logger, tmWSClient),
@@ -397,7 +397,7 @@ func (api *pubSubAPI) subscribeNewHeads(wsConn *wsConn, subID rpc.ID) (pubsub.Un
 					return
 				}
 
-				data, ok := event.Data.(tmtypes.EventDataNewBlockHeader)
+				data, ok := event.Data.(cmttypes.EventDataNewBlockHeader)
 				if !ok {
 					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", event.Data))
 					continue
@@ -570,7 +570,7 @@ func (api *pubSubAPI) subscribeLogs(wsConn *wsConn, subID rpc.ID, extra interfac
 					return
 				}
 
-				dataTx, ok := event.Data.(tmtypes.EventDataTx)
+				dataTx, ok := event.Data.(cmttypes.EventDataTx)
 				if !ok {
 					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", event.Data))
 					continue
@@ -636,7 +636,7 @@ func (api *pubSubAPI) subscribePendingTransactions(wsConn *wsConn, subID rpc.ID)
 		for {
 			select {
 			case ev := <-txsCh:
-				data, ok := ev.Data.(tmtypes.EventDataTx)
+				data, ok := ev.Data.(cmttypes.EventDataTx)
 				if !ok {
 					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", ev.Data))
 					continue

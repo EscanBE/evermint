@@ -10,8 +10,8 @@ import (
 	"cosmossdk.io/log"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmtypes "github.com/cometbft/cometbft/types"
-	dbm "github.com/cosmos/cosmos-db"
+	cmttypes "github.com/cometbft/cometbft/types"
+	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -34,7 +34,7 @@ var _ evertypes.EVMTxIndexer = &KVIndexer{}
 
 // KVIndexer implements an ETH-Tx indexer on a KV db.
 type KVIndexer struct {
-	db        dbm.DB
+	db        sdkdb.DB
 	logger    log.Logger
 	clientCtx client.Context
 
@@ -44,7 +44,7 @@ type KVIndexer struct {
 }
 
 // NewKVIndexer creates the KVIndexer
-func NewKVIndexer(db dbm.DB, logger log.Logger, clientCtx client.Context) *KVIndexer {
+func NewKVIndexer(db sdkdb.DB, logger log.Logger, clientCtx client.Context) *KVIndexer {
 	return &KVIndexer{
 		db:                      db,
 		logger:                  logger,
@@ -64,7 +64,7 @@ func NewKVIndexer(db dbm.DB, logger log.Logger, clientCtx client.Context) *KVInd
 // - Parses eth Tx infos from cosmos-sdk events for every TxResult
 // - Iterates over all the messages of the Tx
 // - Builds and stores a `indexer.TxResult` based on parsed events for every message
-func (kv *KVIndexer) IndexBlock(block *tmtypes.Block, txResults []*abci.ResponseDeliverTx) error {
+func (kv *KVIndexer) IndexBlock(block *cmttypes.Block, txResults []*abci.ExecTxResult) error {
 	height := block.Header.Height
 
 	batch := kv.db.NewBatch()
@@ -241,7 +241,7 @@ func TxIndexKey(blockNumber int64, txIndex int32) []byte {
 }
 
 // LoadLastBlock returns the latest indexed block number, returns -1 if db is empty
-func LoadLastBlock(db dbm.DB) (int64, error) {
+func LoadLastBlock(db sdkdb.DB) (int64, error) {
 	it, err := db.ReverseIterator([]byte{KeyPrefixTxIndex}, []byte{KeyPrefixTxIndex + 1})
 	if err != nil {
 		return 0, errorsmod.Wrap(err, "LoadLastBlock")
@@ -254,7 +254,7 @@ func LoadLastBlock(db dbm.DB) (int64, error) {
 }
 
 // LoadFirstBlock loads the first indexed block, returns -1 if db is empty
-func LoadFirstBlock(db dbm.DB) (int64, error) {
+func LoadFirstBlock(db sdkdb.DB) (int64, error) {
 	it, err := db.Iterator([]byte{KeyPrefixTxIndex}, []byte{KeyPrefixTxIndex + 1})
 	if err != nil {
 		return 0, errorsmod.Wrap(err, "LoadFirstBlock")
@@ -280,7 +280,7 @@ func isEthTx(tx sdk.Tx) bool {
 }
 
 // saveTxResult index the txResult into the kv db batch
-func saveTxResult(codec codec.Codec, batch dbm.Batch, txHash common.Hash, txResult *evertypes.TxResult) error {
+func saveTxResult(codec codec.Codec, batch sdkdb.Batch, txHash common.Hash, txResult *evertypes.TxResult) error {
 	bz := codec.MustMarshal(txResult)
 	if err := batch.Set(TxHashKey(txHash), bz); err != nil {
 		return errorsmod.Wrap(err, "set tx-hash key")

@@ -25,7 +25,7 @@ func TestEventSystem(t *testing.T) {
 	}
 
 	es := &EventSystem{
-		logger:     log.NewTMLogger(log.NewSyncWriter(os.Stdout)),
+		logger:     log.NewLogger(os.Stdout),
 		ctx:        context.Background(),
 		lightMode:  false,
 		index:      index,

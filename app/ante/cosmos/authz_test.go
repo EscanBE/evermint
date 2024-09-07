@@ -459,20 +459,30 @@ func (suite *AnteTestSuite) TestRejectMsgsInAuthz() {
 			bz, err := txEncoder(tx)
 			suite.Require().NoError(err)
 
-			resCheckTx := suite.app.CheckTx(
-				abci.RequestCheckTx{
+			resCheckTx, err := suite.app.CheckTx(
+				&abci.RequestCheckTx{
 					Tx:   bz,
 					Type: abci.CheckTxType_New,
 				},
 			)
+			suite.Require().NoError(err)
 			suite.Require().Equal(tc.expectedCode, resCheckTx.Code, resCheckTx.Log)
 
-			resDeliverTx := suite.app.DeliverTx(
-				abci.RequestDeliverTx{
-					Tx: bz,
+			header := suite.ctx.BlockHeader()
+			blockRes, err := suite.app.FinalizeBlock(
+				&abci.RequestFinalizeBlock{
+					Height:             suite.ctx.BlockHeight() + 1,
+					Txs:                [][]byte{bz},
+					Hash:               header.AppHash,
+					NextValidatorsHash: header.NextValidatorsHash,
+					ProposerAddress:    header.ProposerAddress,
+					Time:               header.Time.Add(time.Second),
 				},
 			)
-			suite.Require().Equal(tc.expectedCode, resDeliverTx.Code, resDeliverTx.Log)
+			suite.Require().NoError(err)
+			suite.Require().Len(blockRes.TxResults, 1)
+			txRes := blockRes.TxResults[0]
+			suite.Require().Equal(tc.expectedCode, txRes.Code, txRes.Log)
 		})
 	}
 }

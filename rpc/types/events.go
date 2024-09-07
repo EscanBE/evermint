@@ -20,7 +20,7 @@ type ParsedTx struct {
 }
 
 // ParseTxResult parse eth tx infos from Cosmos-SDK events.
-func ParseTxResult(result *abci.ResponseDeliverTx, tx sdk.Tx) (*ParsedTx, error) {
+func ParseTxResult(result *abci.ExecTxResult, tx sdk.Tx) (*ParsedTx, error) {
 	var p *ParsedTx
 
 	var foundEventEthTx bool

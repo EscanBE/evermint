@@ -4,15 +4,15 @@ import (
 	"context"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmbytes "github.com/cometbft/cometbft/libs/bytes"
-	rpcclient "github.com/cometbft/cometbft/rpc/client"
-	rpcclientmock "github.com/cometbft/cometbft/rpc/client/mock"
-	coretypes "github.com/cometbft/cometbft/rpc/core/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
+	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
+	cmtrpcclientmock "github.com/cometbft/cometbft/rpc/client/mock"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 )
 
 type MockTendermintRPC struct {
-	rpcclientmock.Client
+	cmtrpcclientmock.Client
 
 	responseQuery abci.ResponseQuery
 }
@@ -23,15 +23,15 @@ func NewMockTendermintRPC(respQuery abci.ResponseQuery) MockTendermintRPC {
 	return MockTendermintRPC{responseQuery: respQuery}
 }
 
-func (MockTendermintRPC) BroadcastTxSync(context.Context, tmtypes.Tx) (*coretypes.ResultBroadcastTx, error) {
-	return &coretypes.ResultBroadcastTx{Code: 0}, nil
+func (MockTendermintRPC) BroadcastTxSync(context.Context, cmttypes.Tx) (*cmtrpctypes.ResultBroadcastTx, error) {
+	return &cmtrpctypes.ResultBroadcastTx{Code: 0}, nil
 }
 
 func (m MockTendermintRPC) ABCIQueryWithOptions(
 	_ context.Context,
 	_ string,
-	_ tmbytes.HexBytes,
-	_ rpcclient.ABCIQueryOptions,
-) (*coretypes.ResultABCIQuery, error) {
-	return &coretypes.ResultABCIQuery{Response: m.responseQuery}, nil
+	_ cmtbytes.HexBytes,
+	_ cmtrpcclient.ABCIQueryOptions,
+) (*cmtrpctypes.ResultABCIQuery, error) {
+	return &cmtrpctypes.ResultABCIQuery{Response: m.responseQuery}, nil
 }

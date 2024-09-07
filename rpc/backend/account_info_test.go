@@ -8,8 +8,8 @@ import (
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
+	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -136,14 +136,14 @@ func (suite *BackendTestSuite) TestGetProof() {
 					bn.Int64(),
 					"store/evm/key",
 					evmtypes.StateKey(address1, common.HexToHash("0x0").Bytes()),
-					tmrpcclient.ABCIQueryOptions{Height: iavlHeight, Prove: true},
+					cmtrpcclient.ABCIQueryOptions{Height: iavlHeight, Prove: true},
 				)
 				RegisterABCIQueryWithOptions(
 					client,
 					bn.Int64(),
 					"store/acc/key",
-					authtypes.AddressStoreKey(sdk.AccAddress(address1.Bytes())),
-					tmrpcclient.ABCIQueryOptions{Height: iavlHeight, Prove: true},
+					cmtbytes.HexBytes(append(authtypes.AddressStoreKeyPrefix, address1.Bytes()...)),
+					cmtrpcclient.ABCIQueryOptions{Height: iavlHeight, Prove: true},
 				)
 			},
 			true,

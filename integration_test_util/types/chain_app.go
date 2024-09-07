@@ -25,6 +25,8 @@ type ChainApp interface {
 	BaseApp() *baseapp.BaseApp
 	IbcTestingApp() ibctesting.TestingApp
 	InterfaceRegistry() codectypes.InterfaceRegistry
+	BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error)
+	EndBlocker(ctx sdk.Context) (sdk.EndBlock, error)
 
 	// Keepers
 

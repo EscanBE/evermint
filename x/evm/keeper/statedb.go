@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"fmt"
 	"math/big"
 
@@ -56,10 +57,12 @@ func (k *Keeper) GetCode(ctx sdk.Context, codeHash common.Hash) []byte {
 // ForEachStorage iterate contract storage, callback return false to break early
 func (k *Keeper) ForEachStorage(ctx sdk.Context, addr common.Address, cb func(key, value common.Hash) bool) {
 	store := ctx.KVStore(k.storeKey)
-	prefix := evmtypes.AddressStoragePrefix(addr)
+	addrStoragePrefix := evmtypes.AddressStoragePrefix(addr)
 
-	iterator := sdk.KVStorePrefixIterator(store, prefix)
-	defer iterator.Close()
+	iterator := storetypes.KVStorePrefixIterator(store, addrStoragePrefix)
+	defer func() {
+		_ = iterator.Close()
+	}()
 
 	for ; iterator.Valid(); iterator.Next() {
 		key := common.BytesToHash(iterator.Key())
@@ -257,7 +260,7 @@ func (k *Keeper) DeleteCodeHash(ctx sdk.Context, addr []byte) {
 // IterateContracts iterating through all code hash, represents for all smart contracts
 func (k Keeper) IterateContracts(ctx sdk.Context, callback func(addr common.Address, codeHash common.Hash) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, evmtypes.KeyPrefixCodeHash)
+	iterator := storetypes.KVStorePrefixIterator(store, evmtypes.KeyPrefixCodeHash)
 
 	defer func() {
 		_ = iterator.Close()
@@ -273,8 +276,8 @@ func (k Keeper) IterateContracts(ctx sdk.Context, callback func(addr common.Addr
 }
 
 // isNotProhibitedAccountType returns false if the given account is module account or vesting account
-func isNotProhibitedAccountType(accI authtypes.AccountI) (notProhibited bool, explain string) {
-	if moduleAccount, isModuleAccount := accI.(authtypes.ModuleAccountI); isModuleAccount {
+func isNotProhibitedAccountType(accI sdk.AccountI) (notProhibited bool, explain string) {
+	if moduleAccount, isModuleAccount := accI.(sdk.ModuleAccountI); isModuleAccount {
 		explain = fmt.Sprintf("%s is module account of %s", moduleAccount.GetAddress().String(), moduleAccount.GetName())
 		return
 	}

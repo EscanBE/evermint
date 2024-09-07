@@ -25,7 +25,7 @@ import (
 	"cosmossdk.io/log"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	abci "github.com/cometbft/cometbft/abci/types"
-	dbm "github.com/cosmos/cosmos-db"
+	sdkdb "github.com/cosmos/cosmos-db"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
@@ -134,7 +134,7 @@ var _ = Describe("Feemarket", func() {
 
 // setupTestWithContext sets up a test chain with an example Cosmos send msg,
 // given a local (validator config) and a global (feemarket param) minGasPrice
-func setupTestWithContext(valMinGasPrice string, minGasPrice sdk.Dec, baseFee sdkmath.Int) (*ethsecp256k1.PrivKey, banktypes.MsgSend) {
+func setupTestWithContext(valMinGasPrice string, minGasPrice sdkmath.LegacyDec, baseFee sdkmath.Int) (*ethsecp256k1.PrivKey, banktypes.MsgSend) {
 	privKey, msg := setupTest(valMinGasPrice + s.denom)
 	params := feemarkettypes.DefaultParams()
 	params.MinGasPrice = minGasPrice
@@ -174,7 +174,7 @@ func setupTest(localMinGasPrices string) (*ethsecp256k1.PrivKey, banktypes.MsgSe
 func setupChain(localMinGasPricesStr string) {
 	// Initialize the app, so we can use SetMinGasPrices to set the
 	// validator-specific min-gas-prices setting
-	db := dbm.NewMemDB()
+	db := sdkdb.NewMemDB()
 	chainID := constants.TestnetFullChainId
 	chainApp := chainapp.NewEvermint(
 		log.NewNopLogger(),
@@ -197,14 +197,15 @@ func setupChain(localMinGasPricesStr string) {
 	s.Require().NoError(err)
 
 	// Initialize the chain
-	chainApp.InitChain(
-		abci.RequestInitChain{
+	_, err = chainApp.InitChain(
+		&abci.RequestInitChain{
 			ChainId:         chainID,
 			Validators:      []abci.ValidatorUpdate{},
 			AppStateBytes:   stateBytes,
 			ConsensusParams: helpers.DefaultConsensusParams,
 		},
 	)
+	s.Require().NoError(err)
 
 	s.app = chainApp
 	s.SetupApp(false)

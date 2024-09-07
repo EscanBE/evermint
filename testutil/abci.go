@@ -1,12 +1,13 @@
 package testutil
 
 import (
+	"fmt"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -21,11 +22,15 @@ import (
 //  2. DeliverTx
 //  3. EndBlock
 //  4. Commit
-func Commit(ctx sdk.Context, app *chainapp.Evermint, t time.Duration, vs *tmtypes.ValidatorSet) (sdk.Context, error) {
+func Commit(ctx sdk.Context, app *chainapp.Evermint, t time.Duration, vs *cmttypes.ValidatorSet) (sdk.Context, error) {
 	header := ctx.BlockHeader()
 
 	if vs != nil {
-		res := app.EndBlock(abci.RequestEndBlock{Height: header.Height})
+		req := abci.RequestFinalizeBlock{Height: header.Height}
+		res, err := app.FinalizeBlock(&req)
+		if err != nil {
+			return ctx, err
+		}
 
 		nextVals, err := applyValSetChanges(vs, res.ValidatorUpdates)
 		if err != nil {
@@ -34,20 +39,24 @@ func Commit(ctx sdk.Context, app *chainapp.Evermint, t time.Duration, vs *tmtype
 		header.ValidatorsHash = vs.Hash()
 		header.NextValidatorsHash = nextVals.Hash()
 	} else {
-		app.EndBlocker(ctx, abci.RequestEndBlock{Height: header.Height})
+		if _, err := app.EndBlocker(ctx); err != nil {
+			return ctx, err
+		}
 	}
 
-	_ = app.Commit()
+	if _, err := app.Commit(); err != nil {
+		return ctx, err
+	}
 
 	header.Height++
 	header.Time = header.Time.Add(t)
 	header.AppHash = app.LastCommitID().Hash
 
-	app.BeginBlock(abci.RequestBeginBlock{
-		Header: header,
-	})
+	if _, err := app.BeginBlocker(ctx); err != nil {
+		return ctx, err
+	}
 
-	return app.BaseApp.NewContext(false, header), nil
+	return ctx.WithBlockHeader(header), nil
 }
 
 // DeliverTx delivers a cosmos tx for a given set of msgs
@@ -57,9 +66,9 @@ func DeliverTx(
 	priv cryptotypes.PrivKey,
 	gasPrice *sdkmath.Int,
 	msgs ...sdk.Msg,
-) (abci.ResponseDeliverTx, error) {
+) (abci.ExecTxResult, error) {
 	txConfig := chainApp.GetTxConfig()
-	tx, err := tx.PrepareCosmosTx(
+	cosmosTx, err := tx.PrepareCosmosTx(
 		ctx,
 		chainApp,
 		tx.CosmosTxArgs{
@@ -72,9 +81,9 @@ func DeliverTx(
 		},
 	)
 	if err != nil {
-		return abci.ResponseDeliverTx{}, err
+		return abci.ExecTxResult{}, err
 	}
-	return BroadcastTxBytes(chainApp, txConfig.TxEncoder(), tx)
+	return BroadcastTxBytes(chainApp, txConfig.TxEncoder(), cosmosTx)
 }
 
 // DeliverEthTx generates and broadcasts a Cosmos Tx populated with MsgEthereumTx messages.
@@ -84,14 +93,14 @@ func DeliverEthTx(
 	chainApp *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	msg sdk.Msg,
-) (abci.ResponseDeliverTx, error) {
+) (abci.ExecTxResult, error) {
 	txConfig := chainApp.GetTxConfig()
 
-	tx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msg)
+	ethTx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msg)
 	if err != nil {
-		return abci.ResponseDeliverTx{}, err
+		return abci.ExecTxResult{}, err
 	}
-	return BroadcastTxBytes(chainApp, txConfig.TxEncoder(), tx)
+	return BroadcastTxBytes(chainApp, txConfig.TxEncoder(), ethTx)
 }
 
 // CheckTx checks a cosmos tx for a given set of msgs
@@ -104,7 +113,7 @@ func CheckTx(
 ) (abci.ResponseCheckTx, error) {
 	txConfig := chainApp.GetTxConfig()
 
-	tx, err := tx.PrepareCosmosTx(
+	cosmosTx, err := tx.PrepareCosmosTx(
 		ctx,
 		chainApp,
 		tx.CosmosTxArgs{
@@ -119,7 +128,7 @@ func CheckTx(
 	if err != nil {
 		return abci.ResponseCheckTx{}, err
 	}
-	return checkTxBytes(chainApp, txConfig.TxEncoder(), tx)
+	return checkTxBytes(chainApp, txConfig.TxEncoder(), cosmosTx)
 }
 
 // CheckEthTx checks a Ethereum tx for a given set of msgs
@@ -130,28 +139,37 @@ func CheckEthTx(
 ) (abci.ResponseCheckTx, error) {
 	txConfig := chainApp.GetTxConfig()
 
-	tx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msg)
+	ethTx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msg)
 	if err != nil {
 		return abci.ResponseCheckTx{}, err
 	}
-	return checkTxBytes(chainApp, txConfig.TxEncoder(), tx)
+	return checkTxBytes(chainApp, txConfig.TxEncoder(), ethTx)
 }
 
 // BroadcastTxBytes encodes a transaction and calls DeliverTx on the app.
-func BroadcastTxBytes(app *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ResponseDeliverTx, error) {
+func BroadcastTxBytes(app *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ExecTxResult, error) {
 	// bz are bytes to be broadcasted over the network
 	bz, err := txEncoder(tx)
 	if err != nil {
-		return abci.ResponseDeliverTx{}, err
+		return abci.ExecTxResult{}, err
 	}
 
-	req := abci.RequestDeliverTx{Tx: bz}
-	res := app.BaseApp.DeliverTx(req)
-	if res.Code != 0 {
-		return abci.ResponseDeliverTx{}, errorsmod.Wrapf(errortypes.ErrInvalidRequest, res.Log)
+	req := abci.RequestFinalizeBlock{Txs: [][]byte{bz}}
+
+	res, err := app.BaseApp.FinalizeBlock(&req)
+	if err != nil {
+		return abci.ExecTxResult{}, err
+	}
+	if len(res.TxResults) != 1 {
+		return abci.ExecTxResult{}, fmt.Errorf("unexpected transaction results. Expected 1, got: %d", len(res.TxResults))
 	}
 
-	return res, nil
+	txRes := res.TxResults[0]
+	if txRes.Code != 0 {
+		return abci.ExecTxResult{}, errorsmod.Wrapf(errortypes.ErrInvalidRequest, txRes.Log)
+	}
+
+	return *txRes, nil
 }
 
 // checkTxBytes encodes a transaction and calls checkTx on the app.
@@ -162,18 +180,22 @@ func checkTxBytes(app *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (a
 	}
 
 	req := abci.RequestCheckTx{Tx: bz}
-	res := app.BaseApp.CheckTx(req)
+	res, err := app.BaseApp.CheckTx(&req)
+	if err != nil {
+		return abci.ResponseCheckTx{}, err
+	}
+
 	if res.Code != 0 {
 		return abci.ResponseCheckTx{}, errorsmod.Wrapf(errortypes.ErrInvalidRequest, res.Log)
 	}
 
-	return res, nil
+	return *res, nil
 }
 
 // applyValSetChanges takes in tmtypes.ValidatorSet and []abci.ValidatorUpdate and will return a new tmtypes.ValidatorSet which has the
 // provided validator updates applied to the provided validator set.
-func applyValSetChanges(valSet *tmtypes.ValidatorSet, valUpdates []abci.ValidatorUpdate) (*tmtypes.ValidatorSet, error) {
-	updates, err := tmtypes.PB2TM.ValidatorUpdates(valUpdates)
+func applyValSetChanges(valSet *cmttypes.ValidatorSet, valUpdates []abci.ValidatorUpdate) (*cmttypes.ValidatorSet, error) {
+	updates, err := cmttypes.PB2TM.ValidatorUpdates(valUpdates)
 	if err != nil {
 		return nil, err
 	}

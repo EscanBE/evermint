@@ -13,8 +13,8 @@ import (
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmtypes "github.com/cometbft/cometbft/types"
-	dbm "github.com/cosmos/cosmos-db"
+	cmttypes "github.com/cometbft/cometbft/types"
+	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -58,14 +58,14 @@ func TestKVIndexer(t *testing.T) {
 
 	testCases := []struct {
 		name        string
-		block       *tmtypes.Block
-		blockResult []*abci.ResponseDeliverTx
+		block       *cmttypes.Block
+		blockResult []*abci.ExecTxResult
 		expSuccess  bool
 	}{
 		{
 			name:  "success",
-			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			blockResult: []*abci.ResponseDeliverTx{
+			block: &cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
+			blockResult: []*abci.ExecTxResult{
 				{
 					Code: 0,
 					Events: []abci.Event{
@@ -91,8 +91,8 @@ func TestKVIndexer(t *testing.T) {
 		},
 		{
 			name:  "success, exceed block gas limit",
-			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			blockResult: []*abci.ResponseDeliverTx{
+			block: &cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
+			blockResult: []*abci.ExecTxResult{
 				{
 					Code: 11,
 					Log:  "out of gas in location: block gas meter; gasWanted: 21000",
@@ -111,8 +111,8 @@ func TestKVIndexer(t *testing.T) {
 		},
 		{
 			name:  "fail, failed eth tx",
-			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			blockResult: []*abci.ResponseDeliverTx{
+			block: &cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
+			blockResult: []*abci.ExecTxResult{
 				{
 					Code:   15,
 					Log:    "nonce mismatch",
@@ -123,8 +123,8 @@ func TestKVIndexer(t *testing.T) {
 		},
 		{
 			name:  "fail, no events (simulate case tx aborted before ante, due to block gas maxed out)",
-			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			blockResult: []*abci.ResponseDeliverTx{
+			block: &cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
+			blockResult: []*abci.ExecTxResult{
 				{
 					Code:   0,
 					Events: []abci.Event{},
@@ -134,8 +134,8 @@ func TestKVIndexer(t *testing.T) {
 		},
 		{
 			name:  "fail, not eth tx",
-			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz2}}},
-			blockResult: []*abci.ResponseDeliverTx{
+			block: &cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz2}}},
+			blockResult: []*abci.ExecTxResult{
 				{
 					Code:   0,
 					Events: []abci.Event{},
@@ -147,7 +147,7 @@ func TestKVIndexer(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			db := dbm.NewMemDB()
+			db := sdkdb.NewMemDB()
 			idxer := indexer.NewKVIndexer(db, log.NewNopLogger(), clientCtx)
 
 			err = idxer.IndexBlock(tc.block, tc.blockResult)

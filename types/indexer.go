@@ -4,7 +4,7 @@ package types
 
 import (
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -16,7 +16,7 @@ type EVMTxIndexer interface {
 
 	// IndexBlock indexes all ETH Txs of the block.
 	// Notes: no guarantee data is flushed into database after this function returns, it might be flushed at later point.
-	IndexBlock(*tmtypes.Block, []*abci.ResponseDeliverTx) error
+	IndexBlock(*cmttypes.Block, []*abci.ExecTxResult) error
 
 	// Ready is an external trigger that indicates the indexer is ready to serve requests.
 	Ready()

@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"fmt"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
@@ -40,9 +42,9 @@ type Keeper struct {
 	// the address capable of executing a MsgUpdateParams message. Typically, this should be the x/gov module account.
 	authority sdk.AccAddress
 	// access to account state
-	accountKeeper evmtypes.AccountKeeper
+	accountKeeper authkeeper.AccountKeeper
 	// update balance and accounting operations with coins
-	bankKeeper evmtypes.BankKeeper
+	bankKeeper bankkeeper.Keeper
 	// access historical headers for EVM state transition execution
 	stakingKeeper evmtypes.StakingKeeper
 	// fetch EIP1559 base fee and parameters
@@ -63,8 +65,8 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey, transientKey storetypes.StoreKey,
 	authority sdk.AccAddress,
-	ak evmtypes.AccountKeeper,
-	bankKeeper evmtypes.BankKeeper,
+	ak authkeeper.AccountKeeper,
+	bankKeeper bankkeeper.Keeper,
 	sk evmtypes.StakingKeeper,
 	fmk evmtypes.FeeMarketKeeper,
 	tracer string,

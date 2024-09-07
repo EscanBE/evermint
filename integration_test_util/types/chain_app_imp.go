@@ -6,6 +6,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -18,7 +19,7 @@ type chainAppImp struct {
 }
 
 func (c chainAppImp) App() abci.Application {
-	return c.app
+	return sdkserver.NewCometABCIWrapper(c.app)
 }
 
 func (c chainAppImp) BaseApp() *baseapp.BaseApp {
@@ -39,4 +40,12 @@ func (c chainAppImp) FundAccount(ctx sdk.Context, account *TestAccount, amounts 
 	}
 
 	return c.BankKeeper().SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, account.GetCosmosAddress(), amounts)
+}
+
+func (c chainAppImp) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
+	return c.app.BeginBlocker(ctx)
+}
+
+func (c chainAppImp) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
+	return c.app.EndBlocker(ctx)
 }

@@ -1,6 +1,7 @@
 package evm_test
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"math"
 	"testing"
 	"time"
@@ -72,18 +73,24 @@ func (suite *AnteTestSuite) SetupTest() {
 		return genesis
 	})
 
-	suite.ctx = suite.app.BaseApp.NewContext(checkTx, tmproto.Header{Height: 2, ChainID: constants.TestnetFullChainId, Time: time.Now().UTC()})
+	chainId := constants.TestnetFullChainId
+
+	suite.ctx = suite.app.BaseApp.NewContext(checkTx).WithBlockHeader(tmproto.Header{Height: 2, ChainID: chainId, Time: time.Now().UTC()})
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(evmtypes.DefaultEVMDenom, sdkmath.OneInt())))
-	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1000000000000000000))
+	suite.ctx = suite.ctx.WithBlockGasMeter(storetypes.NewGasMeter(1000000000000000000))
+	suite.ctx = suite.ctx.WithChainID(chainId)
 	suite.app.EvmKeeper.WithChainID(suite.ctx)
 
 	// set staking denomination to Evermint denom
-	params := suite.app.StakingKeeper.GetParams(suite.ctx)
+	params, err := suite.app.StakingKeeper.GetParams(suite.ctx)
+	suite.Require().NoError(err)
 	params.BondDenom = constants.BaseDenom
-	suite.app.StakingKeeper.SetParams(suite.ctx, params)
+	err = suite.app.StakingKeeper.SetParams(suite.ctx, params)
+	suite.Require().NoError(err)
 
-	infCtx := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
-	suite.app.AccountKeeper.SetParams(infCtx, authtypes.DefaultParams())
+	infCtx := suite.ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
+	err = suite.app.AccountKeeper.Params.Set(infCtx, authtypes.DefaultParams())
+	suite.Require().NoError(err)
 
 	encodingConfig := chainapp.RegisterEncodingConfig()
 	// We're using TestMsg amino encoding in some tests, so register it here.
@@ -96,9 +103,9 @@ func (suite *AnteTestSuite) SetupTest() {
 
 	anteHandler := ante.NewAnteHandler(ante.HandlerOptions{
 		Cdc:                suite.app.AppCodec(),
-		AccountKeeper:      suite.app.AccountKeeper,
+		AccountKeeper:      &suite.app.AccountKeeper,
 		BankKeeper:         suite.app.BankKeeper,
-		DistributionKeeper: suite.app.DistrKeeper,
+		DistributionKeeper: &suite.app.DistrKeeper,
 		EvmKeeper:          suite.app.EvmKeeper,
 		FeegrantKeeper:     suite.app.FeeGrantKeeper,
 		IBCKeeper:          suite.app.IBCKeeper,

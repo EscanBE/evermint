@@ -2,6 +2,10 @@ package cosmos
 
 import (
 	"fmt"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"math"
 
 	sdkmath "cosmossdk.io/math"
@@ -21,21 +25,21 @@ import (
 //
 // CONTRACT: Tx must implement FeeTx interface to use DeductFeeDecorator
 type DeductFeeDecorator struct {
-	accountKeeper      authante.AccountKeeper
-	bankKeeper         BankKeeper
-	distributionKeeper anteutils.DistributionKeeper
+	accountKeeper      authkeeper.AccountKeeper
+	bankKeeper         bankkeeper.Keeper
+	distributionKeeper distrkeeper.Keeper
 	feegrantKeeper     authante.FeegrantKeeper
-	stakingKeeper      anteutils.StakingKeeper
+	stakingKeeper      stakingkeeper.Keeper
 	txFeeChecker       anteutils.TxFeeChecker
 }
 
 // NewDeductFeeDecorator returns a new DeductFeeDecorator.
 func NewDeductFeeDecorator(
-	ak authante.AccountKeeper,
-	bk BankKeeper,
-	dk anteutils.DistributionKeeper,
+	ak authkeeper.AccountKeeper,
+	bk bankkeeper.Keeper,
+	dk distrkeeper.Keeper,
 	fk authante.FeegrantKeeper,
-	sk anteutils.StakingKeeper,
+	sk stakingkeeper.Keeper,
 	tfc anteutils.TxFeeChecker,
 ) DeductFeeDecorator {
 	if tfc == nil {

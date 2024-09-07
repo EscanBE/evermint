@@ -1,10 +1,9 @@
 package keeper_test
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"math/big"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
 )
 
@@ -40,11 +39,11 @@ func (suite *KeeperTestSuite) TestEndBlock() {
 			err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 			suite.Require().NoError(err)
 
-			meter := sdk.NewGasMeter(uint64(1000000000))
+			meter := storetypes.NewGasMeter(uint64(1000000000))
 			suite.ctx = suite.ctx.WithBlockGasMeter(meter)
 
 			tc.malleate()
-			suite.app.FeeMarketKeeper.EndBlock(suite.ctx, abci.RequestEndBlock{Height: 1})
+			suite.app.FeeMarketKeeper.EndBlock(suite.ctx)
 
 			baseFee := suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx)
 			if tc.expBaseFee == nil {

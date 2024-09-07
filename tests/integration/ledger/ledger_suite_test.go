@@ -90,7 +90,7 @@ func (suite *LedgerTestSuite) SetupChainAppApp() {
 	// init app
 	chainID := constants.TestnetFullChainId
 	suite.app = helpers.Setup(false, feemarkettypes.DefaultGenesisState(), chainID)
-	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{
+	suite.ctx = suite.app.BaseApp.NewContext(false).WithBlockHeader(tmproto.Header{
 		Height:          1,
 		ChainID:         chainID,
 		Time:            time.Now().UTC(),
@@ -156,7 +156,7 @@ func (suite *LedgerTestSuite) addKeyCmd() *cobra.Command {
 	err := algoFlag.Value.Set(string(hd.EthSecp256k1Type))
 	suite.Require().NoError(err)
 
-	cmd.Flags().AddFlagSet(keys.Commands("home").PersistentFlags())
+	cmd.Flags().AddFlagSet(keys.Commands().PersistentFlags())
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		clientCtx := client.GetClientContextFromCmd(cmd).WithKeyringOptions(hd.EthSecp256k1Option())

@@ -16,12 +16,12 @@ func TestParseTxResult(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		response abci.ResponseDeliverTx
+		response abci.ExecTxResult
 		expTx    *ParsedTx // expected parse result, nil means expect error.
 	}{
 		{
 			"with receipt",
-			abci.ResponseDeliverTx{
+			abci.ExecTxResult{
 				GasUsed: 21000,
 				Events: []abci.Event{
 					{Type: "coin_received", Attributes: []abci.EventAttribute{
@@ -57,7 +57,7 @@ func TestParseTxResult(t *testing.T) {
 		},
 		{
 			"tx failed without receipt",
-			abci.ResponseDeliverTx{
+			abci.ExecTxResult{
 				GasUsed: 21000,
 				Events: []abci.Event{
 					{

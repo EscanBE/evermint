@@ -2,8 +2,6 @@ package keepers
 
 import (
 	storetypes "cosmossdk.io/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	evidencetypes "cosmossdk.io/x/evidence/types"
 	"cosmossdk.io/x/feegrant"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -34,7 +32,7 @@ func (appKeepers *AppKeepers) GenerateKeys() {
 	// Define what keys will be used in the cosmos-sdk key/value store.
 	// Cosmos-SDK modules each have a "key" that allows the application to reference what they've stored on the chain.
 
-	appKeepers.keys = sdk.NewKVStoreKeys(
+	appKeepers.keys = storetypes.NewKVStoreKeys(
 		// SDK keys
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		distrtypes.StoreKey, slashingtypes.StoreKey,
@@ -52,10 +50,10 @@ func (appKeepers *AppKeepers) GenerateKeys() {
 	)
 
 	// Define transient store keys
-	appKeepers.tkeys = sdk.NewTransientStoreKeys(sdkparamstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
+	appKeepers.tkeys = storetypes.NewTransientStoreKeys(sdkparamstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
 
 	// MemKeys are for information that is stored only in RAM.
-	appKeepers.memKeys = sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
+	appKeepers.memKeys = storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 }
 
 func (appKeepers *AppKeepers) GetKVStoreKey() map[string]*storetypes.KVStoreKey {

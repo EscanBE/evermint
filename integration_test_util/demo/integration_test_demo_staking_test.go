@@ -8,7 +8,8 @@ import (
 )
 
 func (suite *DemoTestSuite) Test_TX_Delegate() {
-	validators := suite.CITS.ChainApp.StakingKeeper().GetAllValidators(suite.Ctx())
+	validators, err := suite.CITS.ChainApp.StakingKeeper().GetAllValidators(suite.Ctx())
+	suite.Require().NoError(err)
 	fmt.Println("Validators:", len(validators))
 	for _, validator := range validators {
 		fmt.Println(validator.OperatorAddress)
@@ -26,7 +27,7 @@ func (suite *DemoTestSuite) Test_TX_Delegate() {
 		},
 	}
 
-	_, _, err := suite.CITS.DeliverTx(suite.Ctx(), delegator, nil, msgDelegate)
+	_, _, err = suite.CITS.DeliverTx(suite.Ctx(), delegator, nil, msgDelegate)
 	suite.Require().NoError(err)
 
 	suite.Commit()

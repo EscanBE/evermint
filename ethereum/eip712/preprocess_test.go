@@ -47,6 +47,8 @@ func TestLedgerPreprocessing(t *testing.T) {
 	// Update bech32 prefix
 	sdk.GetConfig().SetBech32PrefixForAccount(constants.Bech32Prefix, "")
 
+	encodingConfig := chainapp.RegisterEncodingConfig()
+
 	testCases := []TestCaseStruct{
 		createBasicTestCase(t),
 		createPopulatedTestCase(t),
@@ -93,10 +95,12 @@ func TestLedgerPreprocessing(t *testing.T) {
 		// Verify tx fields are unchanged
 		tx := tc.txBuilder.GetTx()
 
-		require.Equal(t, tx.FeePayer().String(), tc.expectedFeePayer)
-		require.Equal(t, tx.GetGas(), tc.expectedGas)
-		require.Equal(t, tx.GetFee().AmountOf(constants.BaseDenom), tc.expectedFee)
-		require.Equal(t, tx.GetMemo(), tc.expectedMemo)
+		feePayer, err := encodingConfig.TxConfig.SigningContext().AddressCodec().BytesToString(tx.FeePayer())
+		require.NoError(t, err)
+		require.Equal(t, tc.expectedFeePayer, feePayer)
+		require.Equal(t, tc.expectedGas, tx.GetGas())
+		require.Equal(t, tc.expectedFee, tx.GetFee().AmountOf(constants.BaseDenom))
+		require.Equal(t, tc.expectedMemo, tx.GetMemo())
 
 		// Verify message is unchanged
 		if tc.expectedMsg != "" {

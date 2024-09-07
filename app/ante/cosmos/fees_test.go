@@ -206,7 +206,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 
 				// remove the feegrant keeper from the decorator
 				dfd = cosmosante.NewDeductFeeDecorator(
-					suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.DistrKeeper, nil, suite.app.StakingKeeper, nil,
+					suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.DistrKeeper, nil, *suite.app.StakingKeeper, nil,
 				)
 			},
 		},
@@ -219,7 +219,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 
 			// Create a new DeductFeeDecorator
 			dfd = cosmosante.NewDeductFeeDecorator(
-				suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.DistrKeeper, suite.app.FeeGrantKeeper, suite.app.StakingKeeper, nil,
+				suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.DistrKeeper, suite.app.FeeGrantKeeper, *suite.app.StakingKeeper, nil,
 			)
 
 			err := testutil.FundAccountWithBaseDenom(suite.ctx, suite.app.BankKeeper, addr, tc.balance.Int64())

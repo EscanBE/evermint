@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	errorsmod "cosmossdk.io/errors"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -106,9 +107,9 @@ func (k Keeper) ValidatorAccount(c context.Context, req *evmtypes.QueryValidator
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	validator, found := k.stakingKeeper.GetValidatorByConsAddr(ctx, consAddr)
-	if !found {
-		return nil, fmt.Errorf("validator not found for %s", consAddr.String())
+	validator, err := k.stakingKeeper.GetValidatorByConsAddr(ctx, consAddr)
+	if err != nil {
+		return nil, errorsmod.Wrapf(err, "validator not found for %s", consAddr.String())
 	}
 
 	accAddr := sdk.AccAddress(validator.GetOperator())
@@ -291,7 +292,7 @@ func (k Keeper) EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*e
 	} else {
 		// Query block gas limit
 		params := ctx.ConsensusParams()
-		if params != nil && params.Block != nil && params.Block.MaxGas > 0 {
+		if params.Block != nil && params.Block.MaxGas > 0 {
 			hi = uint64(params.Block.MaxGas)
 		} else {
 			hi = req.GasCap
@@ -315,7 +316,7 @@ func (k Keeper) EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*e
 	nonce := k.GetNonce(ctx, args.GetFrom())
 	args.Nonce = (*hexutil.Uint64)(&nonce)
 
-	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash().Bytes()))
+	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
 
 	// convert the tx args to an ethereum message
 	msg, err := args.ToMessage(req.GasCap, cfg.BaseFee)
@@ -408,7 +409,7 @@ func (k Keeper) TraceTx(c context.Context, req *evmtypes.QueryTraceTxRequest) (*
 	ctx = utils.UseZeroGasConfig(ctx)
 
 	// Only the block max gas from the consensus params is needed to calculate base fee
-	ctx = ctx.WithConsensusParams(&tmproto.ConsensusParams{
+	ctx = ctx.WithConsensusParams(tmproto.ConsensusParams{
 		Block: &tmproto.BlockParams{MaxGas: req.BlockMaxGas},
 	})
 
@@ -424,7 +425,7 @@ func (k Keeper) TraceTx(c context.Context, req *evmtypes.QueryTraceTxRequest) (*
 
 	cfg.BaseFee = k.feeMarketKeeper.GetBaseFee(ctx)
 
-	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash().Bytes()))
+	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
 
 	for i, tx := range req.Predecessors {
 		ethTx := tx.AsTransaction()
@@ -506,7 +507,7 @@ func (k Keeper) TraceBlock(c context.Context, req *evmtypes.QueryTraceBlockReque
 	ctx = utils.UseZeroGasConfig(ctx)
 
 	// Only the block max gas from the consensus params is needed to calculate base fee
-	ctx = ctx.WithConsensusParams(&tmproto.ConsensusParams{
+	ctx = ctx.WithConsensusParams(tmproto.ConsensusParams{
 		Block: &tmproto.BlockParams{MaxGas: req.BlockMaxGas},
 	})
 
@@ -526,7 +527,7 @@ func (k Keeper) TraceBlock(c context.Context, req *evmtypes.QueryTraceBlockReque
 	txsLength := len(req.Txs)
 	results := make([]*evmtypes.TxTraceResult, 0, txsLength)
 
-	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash().Bytes()))
+	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
 	for i, tx := range req.Txs {
 		result := evmtypes.TxTraceResult{}
 		ethTx := tx.AsTransaction()

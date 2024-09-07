@@ -20,7 +20,7 @@ type mockSubspace struct {
 }
 
 func newMockSubspace(
-// ps v3types.V3Params,
+	// ps v3types.V3Params,
 	storeKey, transientKey storetypes.StoreKey,
 ) mockSubspace {
 	return mockSubspace{
@@ -41,11 +41,11 @@ func (ms mockSubspace) WithKeyTable(keyTable paramtypes.KeyTable) paramtypes.Sub
 }
 
 func (suite *KeeperTestSuite) TestMigrations() {
-	storeKey := sdk.NewKVStoreKey(erc20types.ModuleName)
-	tKey := sdk.NewTransientStoreKey("transient_test")
+	storeKey := storetypes.NewKVStoreKey(erc20types.ModuleName)
+	tKey := storetypes.NewTransientStoreKey("transient_test")
 	ctx := testutil.DefaultContext(storeKey, tKey)
 
-	mockKeeper := erc20keeper.NewKeeper(storeKey, nil, authtypes.NewModuleAddress(govtypes.ModuleName), nil, nil, nil, nil)
+	mockKeeper := erc20keeper.NewKeeper(storeKey, nil, authtypes.NewModuleAddress(govtypes.ModuleName), nil, nil, nil)
 	mockSubspace := newMockSubspace(storeKey, tKey)
 	migrator := erc20keeper.NewMigrator(mockKeeper, mockSubspace)
 

@@ -1,12 +1,12 @@
 package keeper_test
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	_ "embed"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math/big"
 
 	"github.com/EscanBE/evermint/v12/constants"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
@@ -14,8 +14,6 @@ import (
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
 	"github.com/ethereum/go-ethereum/common"
-
-	abci "github.com/cometbft/cometbft/abci/types"
 )
 
 func (suite *KeeperTestSuite) TestWithChainID() {
@@ -95,9 +93,9 @@ func (suite *KeeperTestSuite) TestBaseFee() {
 			suite.enableLondonHF = tc.enableLondonHF
 			suite.SetupTest()
 
-			suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(100_000))
+			suite.ctx = suite.ctx.WithBlockGasMeter(storetypes.NewGasMeter(100_000))
 
-			suite.app.FeeMarketKeeper.EndBlock(suite.ctx, abci.RequestEndBlock{})
+			suite.app.FeeMarketKeeper.EndBlock(suite.ctx)
 			params := suite.app.EvmKeeper.GetParams(suite.ctx)
 			ethCfg := params.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
 			baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx, ethCfg)
@@ -134,7 +132,7 @@ func (suite *KeeperTestSuite) TestGetAccountStorage() {
 			suite.SetupTest()
 			tc.malleate()
 			i := 0
-			suite.app.AccountKeeper.IterateAccounts(suite.ctx, func(account authtypes.AccountI) bool {
+			suite.app.AccountKeeper.IterateAccounts(suite.ctx, func(account sdk.AccountI) bool {
 				baseAccount, ok := account.(*authtypes.BaseAccount)
 				if !ok {
 					// ignore non base-account

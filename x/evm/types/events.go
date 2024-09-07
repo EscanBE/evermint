@@ -6,7 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -52,7 +52,7 @@ func GetSdkEventForReceipt(
 	receipt *ethtypes.Receipt,
 	effectiveGasPrice *big.Int,
 	vmErr error,
-	tendermintTxHash *tmbytes.HexBytes,
+	tendermintTxHash *cmtbytes.HexBytes,
 ) (sdk.Event, error) {
 	bzReceipt, err := receipt.MarshalBinary()
 	if err != nil {
@@ -96,7 +96,7 @@ func GetSdkEventForReceipt(
 //   - Case 3: Ignored before execution due to block gas exceed, will not reach ante handle
 //
 // This function will return true for case 3 and return false for case 1 and case 2.
-func TxWasDroppedPreAnteHandleDueToBlockGasExcess(res *abci.ResponseDeliverTx) bool {
+func TxWasDroppedPreAnteHandleDueToBlockGasExcess(res *abci.ExecTxResult) bool {
 	if res.Code == 0 { // case 1
 		return false
 	}

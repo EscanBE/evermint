@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"strings"
 
-	nm "github.com/cometbft/cometbft/node"
+	cmtnode "github.com/cometbft/cometbft/node"
 )
 
 var _ TendermintApp = &tendermintAppImp{}
 
 type tendermintAppImp struct {
-	tendermintNode *nm.Node
+	tendermintNode *cmtnode.Node
 	rpcAddr        string
 	grpcAddr       string //nolint:unused
 }
 
-func NewTendermintApp(tendermintNode *nm.Node, rpcPort int) TendermintApp {
+func NewTendermintApp(tendermintNode *cmtnode.Node, rpcPort int) TendermintApp {
 	app := &tendermintAppImp{
 		tendermintNode: tendermintNode,
 	}
@@ -25,7 +25,7 @@ func NewTendermintApp(tendermintNode *nm.Node, rpcPort int) TendermintApp {
 	return app
 }
 
-func (a *tendermintAppImp) TendermintNode() *nm.Node {
+func (a *tendermintAppImp) TendermintNode() *cmtnode.Node {
 	return a.tendermintNode
 }
 

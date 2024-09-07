@@ -9,7 +9,7 @@ import (
 
 	"github.com/EscanBE/evermint/v12/constants"
 
-	dbm "github.com/cosmos/cosmos-db"
+	sdkdb "github.com/cosmos/cosmos-db"
 
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -79,7 +79,7 @@ func (suite *BackendTestSuite) SetupTest() {
 		WithKeyring(keyRing).
 		WithAccountRetriever(client.TestAccountRetriever{Accounts: accounts})
 
-	idxer := indexer.NewKVIndexer(dbm.NewMemDB(), ctx.Logger, clientCtx)
+	idxer := indexer.NewKVIndexer(sdkdb.NewMemDB(), ctx.Logger, clientCtx)
 
 	suite.backend = NewBackend(ctx, ctx.Logger, clientCtx, idxer)
 	suite.backend.queryClient.QueryClient = mocks.NewEVMQueryClient(suite.T())

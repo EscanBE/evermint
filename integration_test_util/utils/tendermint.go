@@ -4,35 +4,34 @@ package utils
 import (
 	"context"
 	"fmt"
+	cmtdb "github.com/cometbft/cometbft-db"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	"time"
 
 	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/constants"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmcrypto "github.com/cometbft/cometbft/crypto"
-	nm "github.com/cometbft/cometbft/node"
-	"github.com/cometbft/cometbft/p2p"
-	"github.com/cometbft/cometbft/privval"
-	"github.com/cometbft/cometbft/proxy"
-	tmcorestypes "github.com/cometbft/cometbft/rpc/core/types"
-	tmgrpc "github.com/cometbft/cometbft/rpc/grpc"
-	tmrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
-	rpctest "github.com/cometbft/cometbft/rpc/test"
-	tmtypes "github.com/cometbft/cometbft/types"
-	dbm "github.com/cosmos/cosmos-db"
+	cmtnode "github.com/cometbft/cometbft/node"
+	cmtp2p "github.com/cometbft/cometbft/p2p"
+	cmtprivval "github.com/cometbft/cometbft/privval"
+	cmtproxy "github.com/cometbft/cometbft/proxy"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmtgrpc "github.com/cometbft/cometbft/rpc/grpc"
+	cmtjrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
+	cmtrpctest "github.com/cometbft/cometbft/rpc/test"
+	cmttypes "github.com/cometbft/cometbft/types"
+	servercmtlog "github.com/cosmos/cosmos-sdk/server/log"
 	"github.com/google/uuid"
 )
 
 // StartTendermintNode starts a Tendermint node for the given ABCI Application, used for testing purposes.
-func StartTendermintNode(app abci.Application, genesis *tmtypes.GenesisDoc, db dbm.DB, validatorPrivKey tmcrypto.PrivKey, logger log.Logger) (tendermintNode *nm.Node, rpcPort int, tempFiles []string) {
+func StartTendermintNode(app abci.Application, genesis *cmttypes.GenesisDoc, db cmtdb.DB, validatorPrivKey tmcrypto.PrivKey, logger log.Logger) (tendermintNode *cmtnode.Node, rpcPort int, tempFiles []string) {
 	if app == nil {
 		panic("missing app")
 	}
 	if genesis == nil {
 		panic("missing genesis")
-	}
-	if db == nil {
-		panic("missing db")
 	}
 	if validatorPrivKey == nil {
 		panic("missing validator private key")
@@ -42,7 +41,7 @@ func StartTendermintNode(app abci.Application, genesis *tmtypes.GenesisDoc, db d
 	useGrpc := false
 
 	// Create & start node
-	config := rpctest.GetConfig(false)
+	config := cmtrpctest.GetConfig(false)
 
 	// timeout commit is not a big, not a small number, but enough to broadcast amount of txs
 	config.Consensus.TimeoutCommit = 500 * time.Millisecond
@@ -72,27 +71,27 @@ func StartTendermintNode(app abci.Application, genesis *tmtypes.GenesisDoc, db d
 
 	randomStateFilePath := fmt.Sprintf("/tmp/%s-tendermint-state-file-%s.tmp.json", constants.ApplicationBinaryName, uuid.New().String())
 	tempFiles = append(tempFiles, randomStateFilePath)
-	pv := privval.NewFilePV(validatorPrivKey, "", randomStateFilePath)
-	pApp := proxy.NewLocalClientCreator(app)
-	nodeKey := &p2p.NodeKey{
+	pv := cmtprivval.NewFilePV(validatorPrivKey, "", randomStateFilePath)
+	pApp := cmtproxy.NewLocalClientCreator(app)
+	nodeKey := &cmtp2p.NodeKey{
 		PrivKey: pv.Key.PrivKey,
 	}
 
-	var genesisProvider nm.GenesisDocProvider = func() (*tmtypes.GenesisDoc, error) {
+	var genesisProvider cmtnode.GenesisDocProvider = func() (*cmttypes.GenesisDoc, error) {
 		return genesis, nil
 	}
 
-	node, err := nm.NewNode(
+	node, err := cmtnode.NewNode(
 		config,          // config
 		pv,              // private validator
 		nodeKey,         // node key
 		pApp,            // client creator
 		genesisProvider, // genesis doc provider
-		func(_ *nm.DBContext) (dbm.DB, error) { // db provider
+		func(_ *cmtcfg.DBContext) (cmtdb.DB, error) { // db provider
 			return db, nil
 		},
-		nm.DefaultMetricsProvider(config.Instrumentation), // metrics provider
-		logger,                                            // logger
+		cmtnode.DefaultMetricsProvider(config.Instrumentation),                 // metrics provider
+		servercmtlog.CometLoggerWrapper{Logger: logger.With("server", "node")}, // logger
 	)
 	if err != nil {
 		panic(err)
@@ -103,11 +102,11 @@ func StartTendermintNode(app abci.Application, genesis *tmtypes.GenesisDoc, db d
 	}
 
 	waitForRPC := func() {
-		client, err := tmrpcclient.New(config.RPC.ListenAddress)
+		client, err := cmtjrpcclient.New(config.RPC.ListenAddress)
 		if err != nil {
 			panic(err)
 		}
-		result := new(tmcorestypes.ResultStatus)
+		result := new(cmtrpctypes.ResultStatus)
 		for {
 			_, err := client.Call(context.Background(), "status", map[string]interface{}{}, result)
 			if err == nil {
@@ -119,9 +118,9 @@ func StartTendermintNode(app abci.Application, genesis *tmtypes.GenesisDoc, db d
 		}
 	}
 	waitForGRPC := func() {
-		client := tmgrpc.StartGRPCClient(config.RPC.GRPCListenAddress)
+		client := cmtgrpc.StartGRPCClient(config.RPC.GRPCListenAddress)
 		for {
-			_, err := client.Ping(context.Background(), &tmgrpc.RequestPing{})
+			_, err := client.Ping(context.Background(), &cmtgrpc.RequestPing{})
 			if err == nil {
 				return
 			}

@@ -16,8 +16,8 @@ import (
 
 	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmos "github.com/cometbft/cometbft/libs/os"
-	dbm "github.com/cosmos/cosmos-db"
+	cmtos "github.com/cometbft/cometbft/libs/os"
+	sdkdb "github.com/cosmos/cosmos-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -111,7 +111,7 @@ func init() {
 // NewEvermint returns a reference to a new initialized Evermint application.
 func NewEvermint(
 	logger log.Logger,
-	db dbm.DB,
+	db sdkdb.DB,
 	traceStore io.Writer,
 	loadLatest bool,
 	skipUpgradeHeights map[int64]bool,
@@ -220,7 +220,7 @@ func NewEvermint(
 
 	if loadLatest {
 		if err := chainApp.LoadLatestVersion(); err != nil {
-			tmos.Exit(err.Error())
+			cmtos.Exit(err.Error())
 		}
 	}
 
@@ -233,27 +233,34 @@ func (app *Evermint) Name() string { return app.BaseApp.Name() }
 // BeginBlocker runs the Tendermint ABCI BeginBlock logic. It executes state changes at the beginning
 // of the new block for every registered module. If there is a registered fork at the current height,
 // BeginBlocker will schedule the upgrade plan and perform the state migration (if any).
-func (app *Evermint) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+func (app *Evermint) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
 	// Perform any scheduled forks before executing the modules logic
 	app.scheduleForkUpgrade(ctx)
-	return app.mm.BeginBlock(ctx, req)
+	return app.mm.BeginBlock(ctx)
 }
 
 // EndBlocker updates every end block
-func (app *Evermint) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	return app.mm.EndBlock(ctx, req)
+func (app *Evermint) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
+	return app.mm.EndBlock(ctx)
 }
 
 // InitChainer updates at chain initialization
-func (app *Evermint) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+func (app *Evermint) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
 	var genesisState GenesisState
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
 
-	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
+	if err := app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap()); err != nil {
+		panic(err)
+	}
 
-	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
+	response, err := app.mm.InitGenesis(ctx, app.appCodec, genesisState)
+	if err != nil {
+		panic(err)
+	}
+
+	return response, nil
 }
 
 // LoadHeight loads state at a particular height
@@ -326,8 +333,8 @@ func (app *Evermint) RegisterAPIRoutes(apiSvr *api.Server, apiConfig srvconfig.A
 }
 
 // RegisterNodeService allows query minimum-gas-prices in app.toml
-func (app *Evermint) RegisterNodeService(clientCtx client.Context) {
-	node.RegisterNodeService(clientCtx, app.GRPCQueryRouter())
+func (app *Evermint) RegisterNodeService(clientCtx client.Context, cfg srvconfig.Config) {
+	node.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg)
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
@@ -348,14 +355,14 @@ func (app *Evermint) RegisterTendermintService(clientCtx client.Context) {
 func (app *Evermint) setAnteHandler(txConfig client.TxConfig, maxGasWanted uint64) {
 	options := ante.HandlerOptions{
 		Cdc:                    app.appCodec,
-		AccountKeeper:          app.AccountKeeper,
+		AccountKeeper:          &app.AccountKeeper,
 		BankKeeper:             app.BankKeeper,
 		ExtensionOptionChecker: evertypes.HasDynamicFeeExtensionOption,
 		EvmKeeper:              app.EvmKeeper,
 		VAuthKeeper:            &app.VAuthKeeper,
 		StakingKeeper:          app.StakingKeeper,
 		FeegrantKeeper:         app.FeeGrantKeeper,
-		DistributionKeeper:     app.DistrKeeper,
+		DistributionKeeper:     &app.DistrKeeper,
 		IBCKeeper:              app.IBCKeeper,
 		FeeMarketKeeper:        app.FeeMarketKeeper,
 		SignModeHandler:        txConfig.SignModeHandler(),

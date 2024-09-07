@@ -14,8 +14,8 @@ import (
 	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmtypes "github.com/cometbft/cometbft/types"
-	dbm "github.com/cosmos/cosmos-db"
+	cmttypes "github.com/cometbft/cometbft/types"
+	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -55,7 +55,7 @@ var DefaultConsensusParams = &tmproto.ConsensusParams{
 	},
 	Validator: &tmproto.ValidatorParams{
 		PubKeyTypes: []string{
-			tmtypes.ABCIPubKeyTypeEd25519,
+			cmttypes.ABCIPubKeyTypeEd25519,
 		},
 	},
 }
@@ -78,8 +78,8 @@ func Setup(
 	encodingConfig := chainapp.RegisterEncodingConfig()
 
 	// create validator set with single validator
-	validator := tmtypes.NewValidator(pubKey, 1)
-	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
+	validator := cmttypes.NewValidator(pubKey, 1)
+	valSet := cmttypes.NewValidatorSet([]*cmttypes.Validator{validator})
 
 	// generate genesis account
 	senderPrivKey := secp256k1.GenPrivKey()
@@ -89,7 +89,7 @@ func Setup(
 		Coins:   sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(100000000000000))),
 	}
 
-	db := dbm.NewMemDB()
+	db := sdkdb.NewMemDB()
 
 	chainApp := chainapp.NewEvermint(
 		log.NewNopLogger(),
@@ -123,21 +123,24 @@ func Setup(
 		}
 
 		// Initialize the chain
-		chainApp.InitChain(
-			abci.RequestInitChain{
+		_, err = chainApp.InitChain(
+			&abci.RequestInitChain{
 				ChainId:         chainID,
 				Validators:      []abci.ValidatorUpdate{},
 				ConsensusParams: DefaultConsensusParams,
 				AppStateBytes:   stateBytes,
 			},
 		)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return chainApp
 }
 
 func GenesisStateWithValSet(app *chainapp.Evermint, genesisState chainapp.GenesisState,
-	valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount,
+	valSet *cmttypes.ValidatorSet, genAccs []authtypes.GenesisAccount,
 	balances ...banktypes.Balance,
 ) chainapp.GenesisState {
 	// set genesis accounts
@@ -166,7 +169,7 @@ func GenesisStateWithValSet(app *chainapp.Evermint, genesisState chainapp.Genesi
 			MinSelfDelegation: sdkmath.ZeroInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdkmath.LegacyOneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress().String(), sdk.ValAddress(val.Address).String(), sdkmath.LegacyOneDec()))
 
 	}
 	// set validators and delegations
@@ -202,7 +205,7 @@ func GenesisStateWithValSet(app *chainapp.Evermint, genesisState chainapp.Genesi
 // SetupTestingApp initializes the IBC-go testing application
 func SetupTestingApp(chainID string) func() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	return func() (ibctesting.TestingApp, map[string]json.RawMessage) {
-		db := dbm.NewMemDB()
+		db := sdkdb.NewMemDB()
 		encodingConfig := chainapp.RegisterEncodingConfig()
 		app := chainapp.NewEvermint(
 			log.NewNopLogger(),

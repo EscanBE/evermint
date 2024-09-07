@@ -4,11 +4,12 @@ package integration_test_util
 import (
 	"crypto/ed25519"
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math/big"
 	"time"
 
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	cosmosed25519 "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -121,11 +122,11 @@ func newIbcTestingChain(coordinator *ibctesting.Coordinator, chain *ChainIntegra
 	})
 	chain.Require().NoError(err)
 	chain.Require().NotNil(resRelayerAcc)
-	var relayerAcc authtypes.AccountI
+	var relayerAcc sdk.AccountI
 	err2 := chain.EncodingConfig.Codec.UnpackAny(resRelayerAcc.Account, &relayerAcc)
 	chain.Require().NoError(err2)
 
-	signers := make(map[string]tmtypes.PrivValidator)
+	signers := make(map[string]cmttypes.PrivValidator)
 	for _, validatorAccount := range chain.ValidatorAccounts {
 		//goland:noinspection GoDeprecation
 		pv := ibcmock.PV{
@@ -139,7 +140,7 @@ func newIbcTestingChain(coordinator *ibctesting.Coordinator, chain *ChainIntegra
 	}
 
 	return &ibctesting.TestChain{
-		T:             chain.t,
+		TB:            chain.t,
 		Coordinator:   coordinator,
 		ChainID:       chainId,
 		App:           testApp,

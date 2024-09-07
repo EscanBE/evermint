@@ -107,7 +107,7 @@ func (_m *EVMTxIndexer) GetLastRequestIndexedBlock() (int64, error) {
 }
 
 // IndexBlock provides a mock function with given fields: _a0, _a1
-func (_m *EVMTxIndexer) IndexBlock(_a0 *cometbfttypes.Block, _a1 []*abci.ResponseDeliverTx) error {
+func (_m *EVMTxIndexer) IndexBlock(_a0 *cometbfttypes.Block, _a1 []*abci.ExecTxResult) error {
 	ret := _m.Called(_a0, _a1)
 
 	if len(ret) == 0 {
@@ -115,7 +115,7 @@ func (_m *EVMTxIndexer) IndexBlock(_a0 *cometbfttypes.Block, _a1 []*abci.Respons
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*cometbfttypes.Block, []*abci.ResponseDeliverTx) error); ok {
+	if rf, ok := ret.Get(0).(func(*cometbfttypes.Block, []*abci.ExecTxResult) error); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		r0 = ret.Error(0)

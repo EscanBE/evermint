@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	govcdc "github.com/cosmos/cosmos-sdk/x/gov/codec"
-
 	errorsmod "cosmossdk.io/errors"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -32,9 +30,6 @@ func init() {
 	v1beta1.RegisterProposalType(ProposalTypeRegisterCoin)
 	v1beta1.RegisterProposalType(ProposalTypeRegisterERC20)
 	v1beta1.RegisterProposalType(ProposalTypeToggleTokenConversion)
-	govcdc.ModuleCdc.Amino.RegisterConcrete(&RegisterCoinProposal{}, "erc20/RegisterCoinProposal", nil)
-	govcdc.ModuleCdc.Amino.RegisterConcrete(&RegisterERC20Proposal{}, "erc20/RegisterERC20Proposal", nil)
-	govcdc.ModuleCdc.Amino.RegisterConcrete(&ToggleTokenConversionProposal{}, "erc20/ToggleTokenConversionProposal", nil)
 }
 
 // CreateDenomDescription generates a string with the coin description

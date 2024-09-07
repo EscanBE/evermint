@@ -772,7 +772,7 @@ func (suite *BackendTestSuite) TestTendermintBlockResultByNumber() {
 				suite.Require().NoError(err)
 				expBlockRes = &tmrpctypes.ResultBlockResults{
 					Height:     blockNum,
-					TxsResults: []*abci.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+					TxsResults: []*abci.ExecTxResult{{Code: 0, GasUsed: 0}},
 				}
 			},
 			true,
@@ -944,14 +944,14 @@ func (suite *BackendTestSuite) TestBlockBloom() {
 		{
 			"non block bloom event type",
 			&tmrpctypes.ResultBlockResults{
-				EndBlockEvents: []abci.Event{{Type: evmtypes.EventTypeEthereumTx}},
+				FinalizeBlockEvents: []abci.Event{{Type: evmtypes.EventTypeEthereumTx}},
 			},
 			evmtypes.EmptyBlockBloom,
 		},
 		{
 			"nonblock bloom attribute key",
 			&tmrpctypes.ResultBlockResults{
-				EndBlockEvents: []abci.Event{
+				FinalizeBlockEvents: []abci.Event{
 					{
 						Type: evmtypes.EventTypeBlockBloom,
 						Attributes: []abci.EventAttribute{
@@ -965,7 +965,7 @@ func (suite *BackendTestSuite) TestBlockBloom() {
 		{
 			"block bloom attribute key",
 			&tmrpctypes.ResultBlockResults{
-				EndBlockEvents: []abci.Event{
+				FinalizeBlockEvents: []abci.Event{
 					{
 						Type: evmtypes.EventTypeBlockBloom,
 						Attributes: []abci.EventAttribute{
@@ -1018,7 +1018,7 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			resBlock:  &tmrpctypes.ResultBlock{Block: emptyBlock},
 			blockRes: &tmrpctypes.ResultBlockResults{
 				Height:     1,
-				TxsResults: []*abci.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+				TxsResults: []*abci.ExecTxResult{{Code: 0, GasUsed: 0}},
 			},
 			fullTx: false,
 			registerMock: func(baseFee sdkmath.Int, validator sdk.AccAddress, height int64) {
@@ -1042,7 +1042,7 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			},
 			blockRes: &tmrpctypes.ResultBlockResults{
 				Height:     1,
-				TxsResults: []*abci.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+				TxsResults: []*abci.ExecTxResult{{Code: 0, GasUsed: 0}},
 			},
 			fullTx: true,
 			registerMock: func(baseFee sdkmath.Int, validator sdk.AccAddress, height int64) {
@@ -1090,7 +1090,7 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			},
 			blockRes: &tmrpctypes.ResultBlockResults{
 				Height:     1,
-				TxsResults: []*abci.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+				TxsResults: []*abci.ExecTxResult{{Code: 0, GasUsed: 0}},
 			},
 			fullTx: true,
 			registerMock: func(baseFee sdkmath.Int, validator sdk.AccAddress, height int64) {
@@ -1113,7 +1113,7 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			},
 			blockRes: &tmrpctypes.ResultBlockResults{
 				Height: 1,
-				TxsResults: []*abci.ResponseDeliverTx{
+				TxsResults: []*abci.ExecTxResult{
 					{
 						Code:    11,
 						GasUsed: 0,
@@ -1215,7 +1215,7 @@ func (suite *BackendTestSuite) TestGetEthBlockFromTendermint() {
 			},
 			blockRes: &tmrpctypes.ResultBlockResults{
 				Height:     1,
-				TxsResults: []*abci.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+				TxsResults: []*abci.ExecTxResult{{Code: 0, GasUsed: 0}},
 			},
 			fullTx: false,
 			registerMock: func(baseFee sdkmath.Int, validator sdk.AccAddress, height int64) {
@@ -1301,7 +1301,7 @@ func (suite *BackendTestSuite) TestEthMsgsFromTendermintBlock() {
 				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
 			},
 			&tmrpctypes.ResultBlockResults{
-				TxsResults: []*abci.ResponseDeliverTx{
+				TxsResults: []*abci.ExecTxResult{
 					{
 						Code: 1,
 					},
@@ -1315,7 +1315,7 @@ func (suite *BackendTestSuite) TestEthMsgsFromTendermintBlock() {
 				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
 			},
 			&tmrpctypes.ResultBlockResults{
-				TxsResults: []*abci.ResponseDeliverTx{
+				TxsResults: []*abci.ExecTxResult{
 					{
 						Code: 1,
 						Events: []abci.Event{
@@ -1334,7 +1334,7 @@ func (suite *BackendTestSuite) TestEthMsgsFromTendermintBlock() {
 				Block: tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil),
 			},
 			&tmrpctypes.ResultBlockResults{
-				TxsResults: []*abci.ResponseDeliverTx{
+				TxsResults: []*abci.ExecTxResult{
 					{
 						Code: 0,
 						Events: []abci.Event{
@@ -1715,7 +1715,7 @@ func (suite *BackendTestSuite) TestEthBlockFromTendermintBlock() {
 			},
 			&tmrpctypes.ResultBlockResults{
 				Height:     1,
-				TxsResults: []*abci.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
+				TxsResults: []*abci.ExecTxResult{{Code: 0, GasUsed: 0}},
 			},
 			func(baseFee sdkmath.Int, blockNum int64) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
@@ -1742,8 +1742,8 @@ func (suite *BackendTestSuite) TestEthBlockFromTendermintBlock() {
 			},
 			&tmrpctypes.ResultBlockResults{
 				Height:     1,
-				TxsResults: []*abci.ResponseDeliverTx{{Code: 0, GasUsed: 0}},
-				EndBlockEvents: []abci.Event{
+				TxsResults: []*abci.ExecTxResult{{Code: 0, GasUsed: 0}},
+				FinalizeBlockEvents: []abci.Event{
 					{
 						Type: evmtypes.EventTypeBlockBloom,
 						Attributes: []abci.EventAttribute{

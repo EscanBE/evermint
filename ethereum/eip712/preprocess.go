@@ -2,6 +2,8 @@ package eip712
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/codec/address"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -51,8 +53,15 @@ func PreprocessLedgerTx(chainID string, keyType cosmoskr.KeyType, txBuilder clie
 
 	// Add ExtensionOptionsWeb3Tx extension with signature
 	var option *codectypes.Any
+	addrCodec := address.Bech32Codec{
+		Bech32Prefix: sdk.GetConfig().GetBech32AccountAddrPrefix(),
+	}
+	feePayerAccAddr, err := addrCodec.BytesToString(txBuilder.GetTx().FeePayer())
+	if err != nil {
+		return fmt.Errorf("could not parse feePayer address: %w", err)
+	}
 	option, err = codectypes.NewAnyWithValue(&evertypes.ExtensionOptionsWeb3Tx{
-		FeePayer:         txBuilder.GetTx().FeePayer().String(),
+		FeePayer:         feePayerAccAddr,
 		TypedDataChainID: chainIDInt.Uint64(),
 		FeePayerSig:      sigBytes,
 	})

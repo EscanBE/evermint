@@ -13,13 +13,13 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	tmbytes "github.com/cometbft/cometbft/libs/bytes"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/hashicorp/go-metrics"
 
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
@@ -79,9 +79,9 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 		}
 	}()
 
-	var tmTxHash *tmbytes.HexBytes
+	var tmTxHash *cmtbytes.HexBytes
 	if len(ctx.TxBytes()) > 0 {
-		tmTxHash = utils.Ptr[tmbytes.HexBytes](tmtypes.Tx(ctx.TxBytes()).Hash())
+		tmTxHash = utils.Ptr[cmtbytes.HexBytes](cmttypes.Tx(ctx.TxBytes()).Hash())
 	}
 
 	txData, err := evmtypes.UnpackTxData(msg.Data)

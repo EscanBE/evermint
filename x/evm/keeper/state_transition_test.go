@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"fmt"
 	"math"
 	"math/big"
@@ -14,7 +15,7 @@ import (
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -27,7 +28,7 @@ import (
 
 func (suite *KeeperTestSuite) TestGetHashFn() {
 	header := suite.ctx.BlockHeader()
-	h, _ := tmtypes.HeaderFromProto(&header)
+	h, _ := cmttypes.HeaderFromProto(&header)
 	hash := h.Hash()
 
 	testCases := []struct {
@@ -149,8 +150,8 @@ func (suite *KeeperTestSuite) TestGetCoinbaseAddress() {
 				header.ProposerAddress = valConsAddr.Bytes()
 				suite.ctx = suite.ctx.WithBlockHeader(header)
 
-				_, found := suite.app.StakingKeeper.GetValidatorByConsAddr(suite.ctx, valConsAddr.Bytes())
-				suite.Require().True(found)
+				_, err = suite.app.StakingKeeper.GetValidatorByConsAddr(suite.ctx, valConsAddr.Bytes())
+				suite.Require().NoError(err)
 
 				suite.Require().NotEmpty(suite.ctx.BlockHeader().ProposerAddress)
 			},
@@ -396,7 +397,7 @@ func (suite *KeeperTestSuite) TestResetGasMeterAndConsumeGas() {
 			suite.SetupTest() // reset
 
 			panicF := func() {
-				gm := sdk.NewGasMeter(10)
+				gm := storetypes.NewGasMeter(10)
 				gm.ConsumeGas(tc.gasConsumed, "")
 				ctx := suite.ctx.WithGasMeter(gm)
 				suite.app.EvmKeeper.ResetGasMeterAndConsumeGas(ctx, tc.gasUsed)

@@ -8,6 +8,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -123,7 +124,7 @@ func (b *Backend) Sign(address common.Address, data hexutil.Bytes) (hexutil.Byte
 	}
 
 	// Sign the requested hash with the wallet
-	signature, _, err := b.clientCtx.Keyring.SignByAddress(from, data)
+	signature, _, err := b.clientCtx.Keyring.SignByAddress(from, data, signingtypes.SignMode_SIGN_MODE_TEXTUAL)
 	if err != nil {
 		b.logger.Error("keyring.SignByAddress failed", "address", address.Hex())
 		return nil, err
@@ -149,7 +150,7 @@ func (b *Backend) SignTypedData(address common.Address, typedData apitypes.Typed
 	}
 
 	// Sign the requested hash with the wallet
-	signature, _, err := b.clientCtx.Keyring.SignByAddress(from, sigHash)
+	signature, _, err := b.clientCtx.Keyring.SignByAddress(from, sigHash, signingtypes.SignMode_SIGN_MODE_TEXTUAL)
 	if err != nil {
 		b.logger.Error("keyring.SignByAddress failed", "address", address.Hex())
 		return nil, err

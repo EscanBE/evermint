@@ -9,9 +9,9 @@ import (
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
-	"github.com/cometbft/cometbft/types"
-	dbm "github.com/cosmos/cosmos-db"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmttypes "github.com/cometbft/cometbft/types"
+	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/crypto"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -52,16 +52,16 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 	testCases := []struct {
 		name          string
 		registerMock  func()
-		block         *types.Block
-		responseBlock []*abci.ResponseDeliverTx
+		block         *cmttypes.Block
+		responseBlock []*abci.ExecTxResult
 		expResult     interface{}
 		expPass       bool
 	}{
 		{
 			"fail - tx not found",
 			func() {},
-			&types.Block{Header: types.Header{Height: 1}, Data: types.Data{Txs: []types.Tx{}}},
-			[]*abci.ResponseDeliverTx{
+			&cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{}}},
+			[]*abci.ExecTxResult{
 				{
 					Code: 0,
 					Events: []abci.Event{
@@ -93,8 +93,8 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterBlockError(client, 1)
 			},
-			&types.Block{Header: types.Header{Height: 1}, Data: types.Data{Txs: []types.Tx{txBz}}},
-			[]*abci.ResponseDeliverTx{
+			&cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
+			[]*abci.ExecTxResult{
 				{
 					Code: 0,
 					Events: []abci.Event{
@@ -125,13 +125,13 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				var height int64 = 1
-				_, err := RegisterBlockMultipleTxs(client, height, []types.Tx{txBz, txBz2})
+				_, err := RegisterBlockMultipleTxs(client, height, []cmttypes.Tx{txBz, txBz2})
 				suite.Require().NoError(err)
 				RegisterTraceTransactionWithPredecessors(queryClient, msgEthereumTx, []*evmtypes.MsgEthereumTx{msgEthereumTx})
 				RegisterConsensusParams(client, height)
 			},
-			&types.Block{Header: types.Header{Height: 1, ChainID: ChainID}, Data: types.Data{Txs: []types.Tx{txBz, txBz2}}},
-			[]*abci.ResponseDeliverTx{
+			&cmttypes.Block{Header: cmttypes.Header{Height: 1, ChainID: ChainID}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz, txBz2}}},
+			[]*abci.ExecTxResult{
 				{
 					Code: 0,
 					Events: []abci.Event{
@@ -187,8 +187,8 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 				RegisterTraceTransaction(queryClient, msgEthereumTx)
 				RegisterConsensusParams(client, height)
 			},
-			&types.Block{Header: types.Header{Height: 1}, Data: types.Data{Txs: []types.Tx{txBz}}},
-			[]*abci.ResponseDeliverTx{
+			&cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
+			[]*abci.ExecTxResult{
 				{
 					Code: 0,
 					Events: []abci.Event{
@@ -220,7 +220,7 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 			suite.SetupTest() // reset test and queries
 			tc.registerMock()
 
-			db := dbm.NewMemDB()
+			db := sdkdb.NewMemDB()
 			suite.backend.indexer = indexer.NewKVIndexer(db, log.NewNopLogger(), suite.backend.clientCtx)
 
 			err := suite.backend.indexer.IndexBlock(tc.block, tc.responseBlock)
@@ -241,18 +241,18 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 
 func (suite *BackendTestSuite) TestTraceBlock() {
 	msgEthTx, bz := suite.buildEthereumTx()
-	emptyBlock := types.MakeBlock(1, []types.Tx{}, nil, nil)
+	emptyBlock := cmttypes.MakeBlock(1, []cmttypes.Tx{}, nil, nil)
 	emptyBlock.ChainID = ChainID
-	filledBlock := types.MakeBlock(1, []types.Tx{bz}, nil, nil)
+	filledBlock := cmttypes.MakeBlock(1, []cmttypes.Tx{bz}, nil, nil)
 	filledBlock.ChainID = ChainID
-	resBlockEmpty := tmrpctypes.ResultBlock{Block: emptyBlock, BlockID: emptyBlock.LastBlockID}
-	resBlockFilled := tmrpctypes.ResultBlock{Block: filledBlock, BlockID: filledBlock.LastBlockID}
+	resBlockEmpty := cmtrpctypes.ResultBlock{Block: emptyBlock, BlockID: emptyBlock.LastBlockID}
+	resBlockFilled := cmtrpctypes.ResultBlock{Block: filledBlock, BlockID: filledBlock.LastBlockID}
 
 	testCases := []struct {
 		name            string
 		registerMock    func()
 		expTraceResults []*evmtypes.TxTraceResult
-		resBlock        *tmrpctypes.ResultBlock
+		resBlock        *cmtrpctypes.ResultBlock
 		config          *evmtypes.TraceConfig
 		expPass         bool
 	}{

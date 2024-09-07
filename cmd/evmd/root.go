@@ -1,8 +1,11 @@
 package main
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"errors"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"io"
 	"os"
 	"path/filepath"
@@ -10,10 +13,12 @@ import (
 
 	"github.com/EscanBE/evermint/v12/app/params"
 
+	confixcmd "cosmossdk.io/tools/confix/cmd"
 	"github.com/EscanBE/evermint/v12/cmd/evmd/inspect"
 	cmdutils "github.com/EscanBE/evermint/v12/cmd/evmd/utils"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
+	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/viper"
 
@@ -21,9 +26,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"cosmossdk.io/log"
-	tmcfg "github.com/cometbft/cometbft/config"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	tmcli "github.com/cometbft/cometbft/libs/cli"
-	dbm "github.com/cosmos/cosmos-db"
+	sdkdb "github.com/cosmos/cosmos-db"
 
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/snapshots"
@@ -86,6 +91,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.ErrOrStderr())
 
+			initClientCtx = initClientCtx.WithCmdContext(cmd.Context())
 			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
 			if err != nil {
 				return err
@@ -96,13 +102,31 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 				return err
 			}
 
+			// This needs to go after ReadFromClientConfig, as that function
+			// sets the RPC client needed for SIGN_MODE_TEXTUAL. This sign mode
+			// is only available if the client is online.
+			if !initClientCtx.Offline {
+				txConfigOpts := tx.ConfigOptions{
+					EnabledSignModes:           append(tx.DefaultSignModes, signing.SignMode_SIGN_MODE_TEXTUAL),
+					TextualCoinMetadataQueryFn: authtxconfig.NewGRPCCoinMetadataQueryFn(initClientCtx),
+				}
+				txConfigWithTextual, err := tx.NewTxConfigWithOptions(
+					initClientCtx.Codec,
+					txConfigOpts,
+				)
+				if err != nil {
+					return err
+				}
+				initClientCtx = initClientCtx.WithTxConfig(txConfigWithTextual)
+			}
+
 			if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
 				return err
 			}
 
 			// override the app and tendermint configuration
 			customAppTemplate, customAppConfig := initAppConfig()
-			customTMConfig := initTendermintConfig()
+			customTMConfig := initCometBftConfig()
 
 			return sdkserver.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
 		},
@@ -113,21 +137,36 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 
 	a := appCreator{encodingConfig}
 
+	signingCtx := encodingConfig.TxConfig.SigningContext()
+
 	commands := []*cobra.Command{
 		appclient.ValidateChainID(
 			InitCmd(chainapp.ModuleBasics, chainapp.DefaultNodeHome),
 		),
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, chainapp.DefaultNodeHome, genutiltypes.DefaultMessageValidator),
+		genutilcli.CollectGenTxsCmd(
+			banktypes.GenesisBalancesIterator{},
+			chainapp.DefaultNodeHome,
+			genutiltypes.DefaultMessageValidator,
+			signingCtx.ValidatorAddressCodec(),
+		),
 		MigrateGenesisCmd(),
-		genutilcli.GenTxCmd(chainapp.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, chainapp.DefaultNodeHome),
+		genutilcli.GenTxCmd(
+			chainapp.ModuleBasics,
+			encodingConfig.TxConfig,
+			banktypes.GenesisBalancesIterator{},
+			chainapp.DefaultNodeHome,
+			signingCtx.ValidatorAddressCodec(),
+		),
 		genutilcli.ValidateGenesisCmd(chainapp.ModuleBasics),
-		genutilcli.AddGenesisAccountCmd(chainapp.DefaultNodeHome),
+		genutilcli.AddGenesisAccountCmd(
+			chainapp.DefaultNodeHome,
+			signingCtx.AddressCodec(),
+		),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		NewTestnetCmd(chainapp.ModuleBasics, banktypes.GenesisBalancesIterator{}),
 		debug.Cmd(),
-		config.Cmd(),
-		pruning.PruningCmd(a.newApp),
-		NewConvertAddressCmd(),
+		confixcmd.ConfigCommand(),
+		pruning.Cmd(a.newApp, chainapp.DefaultNodeHome),
 		func() *cobra.Command {
 			snapshotCmd := snapshot.Cmd(a.newApp)
 			snapshotCmd.Long = fmt.Sprintf(`
@@ -164,6 +203,7 @@ You gonna get "data/application.db" unpacked
 			return snapshotCmd
 		}(),
 		inspect.Cmd(),
+		NewConvertAddressCmd(),
 	}
 
 	// End of command rename chain
@@ -179,7 +219,7 @@ You gonna get "data/application.db" unpacked
 
 	// add basic commands: auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
-		rpc.StatusCommand(),
+		sdkserver.StatusCommand(),
 		queryCommand(),
 		txCommand(),
 		appclient.KeyCommands(chainapp.DefaultNodeHome),
@@ -217,9 +257,10 @@ func queryCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		authcmd.GetAccountCmd(),
 		rpc.ValidatorCommand(),
-		rpc.BlockCommand(),
+		sdkserver.QueryBlocksCmd(),
+		sdkserver.QueryBlockCmd(),
+		sdkserver.QueryBlockResultsCmd(),
 		authcmd.QueryTxsByEventsCmd(),
 		authcmd.QueryTxCmd(),
 	)
@@ -245,10 +286,10 @@ func txCommand() *cobra.Command {
 		authcmd.GetMultiSignCommand(),
 		authcmd.GetMultiSignBatchCmd(),
 		authcmd.GetValidateSignaturesCommand(),
+		flags.LineBreak,
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
-		authcmd.GetAuxToFeeCommand(),
 	)
 
 	chainapp.ModuleBasics.AddTxCommands(cmd)
@@ -279,8 +320,8 @@ type appCreator struct {
 }
 
 // newApp is an appCreator
-func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
-	var cache sdk.MultiStorePersistentCache
+func (a appCreator) newApp(logger log.Logger, db sdkdb.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
+	var cache storetypes.MultiStorePersistentCache
 
 	if cast.ToBool(appOpts.Get(sdkserver.FlagInterBlockCache)) {
 		cache = store.NewCommitKVStoreCacheManager()
@@ -298,7 +339,7 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 
 	homeDir := cast.ToString(appOpts.Get(flags.FlagHome))
 	snapshotDir := filepath.Join(homeDir, "data", "snapshots")
-	snapshotDB, err := dbm.NewDB("metadata", sdkserver.GetAppDBBackend(appOpts), snapshotDir)
+	snapshotDB, err := sdkdb.NewDB("metadata", sdkserver.GetAppDBBackend(appOpts), snapshotDir)
 	if err != nil {
 		panic(err)
 	}
@@ -357,7 +398,7 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 // and exports state.
 func (a appCreator) appExport(
 	logger log.Logger,
-	db dbm.DB,
+	db sdkdb.DB,
 	traceStore io.Writer,
 	height int64,
 	forZeroHeight bool,
@@ -384,13 +425,11 @@ func (a appCreator) appExport(
 	return app.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
 }
 
-// initTendermintConfig helps to override default Tendermint Config values.
-// return tmcfg.DefaultConfig if no custom configuration is required for the application.
-func initTendermintConfig() *tmcfg.Config {
-	cfg := tmcfg.DefaultConfig()
-	cfg.Consensus.TimeoutCommit = time.Second * 3
-	// use v0 since v1 severely impacts the node's performance
-	cfg.Mempool.Version = tmcfg.MempoolV0
+// initCometBftConfig helps to override default CometBFT Config values.
+// return cmtcfg.DefaultConfig if no custom configuration is required for the application.
+func initCometBftConfig() *cmtcfg.Config {
+	cfg := cmtcfg.DefaultConfig()
+	cfg.Consensus.TimeoutCommit = time.Second * 5
 
 	// to put a higher strain on node memory, use these values:
 	// cfg.P2P.MaxNumInboundPeers = 100

@@ -11,7 +11,7 @@ import (
 
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
 	evertypes "github.com/EscanBE/evermint/v12/types"
-	"github.com/cometbft/cometbft/libs/bytes"
+	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	"github.com/cosmos/cosmos-sdk/client"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -97,7 +97,7 @@ $ %s debug addr 0xA588C66983a81e800Db4dF74564F09f91c026351`, version.AppName, ve
 			}
 
 			cmd.Println("Address bytes:", addr)
-			cmd.Printf("Address (hex): %s\n", bytes.HexBytes(addr))
+			cmd.Printf("Address (hex): %s\n", cmtbytes.HexBytes(addr))
 			cmd.Printf("Address (EIP-55): %s\n", common.BytesToAddress(addr))
 			cmd.Printf("Bech32 Acc: %s\n", sdk.AccAddress(addr))
 			cmd.Printf("Bech32 Val: %s\n", sdk.ValAddress(addr))

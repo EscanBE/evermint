@@ -42,7 +42,7 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 			"fail - empty bank keeper",
 			ante.HandlerOptions{
 				Cdc:           suite.app.AppCodec(),
-				AccountKeeper: suite.app.AccountKeeper,
+				AccountKeeper: &suite.app.AccountKeeper,
 				BankKeeper:    nil,
 			},
 			false,
@@ -51,7 +51,7 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 			"fail - empty distribution keeper",
 			ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
-				AccountKeeper:      suite.app.AccountKeeper,
+				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
 				DistributionKeeper: nil,
 
@@ -63,9 +63,9 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 			"fail - empty IBC keeper",
 			ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
-				AccountKeeper:      suite.app.AccountKeeper,
+				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
-				DistributionKeeper: suite.app.DistrKeeper,
+				DistributionKeeper: &suite.app.DistrKeeper,
 
 				IBCKeeper: nil,
 			},
@@ -75,9 +75,9 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 			"fail - empty staking keeper",
 			ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
-				AccountKeeper:      suite.app.AccountKeeper,
+				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
-				DistributionKeeper: suite.app.DistrKeeper,
+				DistributionKeeper: &suite.app.DistrKeeper,
 
 				IBCKeeper:     suite.app.IBCKeeper,
 				StakingKeeper: nil,
@@ -88,9 +88,9 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 			"fail - empty fee market keeper",
 			ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
-				AccountKeeper:      suite.app.AccountKeeper,
+				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
-				DistributionKeeper: suite.app.DistrKeeper,
+				DistributionKeeper: &suite.app.DistrKeeper,
 
 				IBCKeeper:       suite.app.IBCKeeper,
 				StakingKeeper:   suite.app.StakingKeeper,
@@ -102,9 +102,9 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 			"fail - empty EVM keeper",
 			ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
-				AccountKeeper:      suite.app.AccountKeeper,
+				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
-				DistributionKeeper: suite.app.DistrKeeper,
+				DistributionKeeper: &suite.app.DistrKeeper,
 				IBCKeeper:          suite.app.IBCKeeper,
 				StakingKeeper:      suite.app.StakingKeeper,
 				FeeMarketKeeper:    suite.app.FeeMarketKeeper,
@@ -116,9 +116,9 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 			"fail - empty VAuth keeper",
 			ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
-				AccountKeeper:      suite.app.AccountKeeper,
+				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
-				DistributionKeeper: suite.app.DistrKeeper,
+				DistributionKeeper: &suite.app.DistrKeeper,
 				IBCKeeper:          suite.app.IBCKeeper,
 				StakingKeeper:      suite.app.StakingKeeper,
 				FeeMarketKeeper:    suite.app.FeeMarketKeeper,
@@ -131,9 +131,9 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 			"fail - empty signature gas consumer",
 			ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
-				AccountKeeper:      suite.app.AccountKeeper,
+				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
-				DistributionKeeper: suite.app.DistrKeeper,
+				DistributionKeeper: &suite.app.DistrKeeper,
 				IBCKeeper:          suite.app.IBCKeeper,
 				StakingKeeper:      suite.app.StakingKeeper,
 				FeeMarketKeeper:    suite.app.FeeMarketKeeper,
@@ -146,9 +146,9 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 			"fail - empty signature mode handler",
 			ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
-				AccountKeeper:      suite.app.AccountKeeper,
+				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
-				DistributionKeeper: suite.app.DistrKeeper,
+				DistributionKeeper: &suite.app.DistrKeeper,
 				IBCKeeper:          suite.app.IBCKeeper,
 				StakingKeeper:      suite.app.StakingKeeper,
 				FeeMarketKeeper:    suite.app.FeeMarketKeeper,
@@ -162,9 +162,9 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 			"fail - empty tx fee checker",
 			ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
-				AccountKeeper:      suite.app.AccountKeeper,
+				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
-				DistributionKeeper: suite.app.DistrKeeper,
+				DistributionKeeper: &suite.app.DistrKeeper,
 				IBCKeeper:          suite.app.IBCKeeper,
 				StakingKeeper:      suite.app.StakingKeeper,
 				FeeMarketKeeper:    suite.app.FeeMarketKeeper,
@@ -179,9 +179,9 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 			"fail - empty disabled authz msgs",
 			ante.HandlerOptions{
 				Cdc:                    suite.app.AppCodec(),
-				AccountKeeper:          suite.app.AccountKeeper,
+				AccountKeeper:          &suite.app.AccountKeeper,
 				BankKeeper:             suite.app.BankKeeper,
-				DistributionKeeper:     suite.app.DistrKeeper,
+				DistributionKeeper:     &suite.app.DistrKeeper,
 				ExtensionOptionChecker: evertypes.HasDynamicFeeExtensionOption,
 				EvmKeeper:              suite.app.EvmKeeper,
 				StakingKeeper:          suite.app.StakingKeeper,
@@ -199,9 +199,9 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 			"success - default app options",
 			ante.HandlerOptions{
 				Cdc:                    suite.app.AppCodec(),
-				AccountKeeper:          suite.app.AccountKeeper,
+				AccountKeeper:          &suite.app.AccountKeeper,
 				BankKeeper:             suite.app.BankKeeper,
-				DistributionKeeper:     suite.app.DistrKeeper,
+				DistributionKeeper:     &suite.app.DistrKeeper,
 				ExtensionOptionChecker: evertypes.HasDynamicFeeExtensionOption,
 				EvmKeeper:              suite.app.EvmKeeper,
 				VAuthKeeper:            &suite.app.VAuthKeeper,

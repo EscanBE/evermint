@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -392,7 +393,7 @@ func (suite *KeeperTestSuite) TestQueryTxLogs() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
-			vmdb := statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewTxConfig(common.BytesToHash(suite.ctx.HeaderHash().Bytes()), txHash, txIndex, logIndex))
+			vmdb := statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewTxConfig(common.BytesToHash(suite.ctx.HeaderHash()), txHash, txIndex, logIndex))
 			tc.malleate(vmdb)
 			suite.Require().NoError(vmdb.Commit())
 
@@ -942,7 +943,7 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 			suite.enableFeemarket = tc.enableFeemarket
 			suite.SetupTest()
 
-			suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(100_000))
+			suite.ctx = suite.ctx.WithBlockGasMeter(storetypes.NewGasMeter(100_000))
 
 			// Deploy contract
 			contractAddr := suite.DeployTestContract(suite.T(), suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())

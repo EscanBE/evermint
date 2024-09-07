@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/cometbft/cometbft/libs/service"
-	rpcclient "github.com/cometbft/cometbft/rpc/client"
-	"github.com/cometbft/cometbft/types"
+	cmtsvc "github.com/cometbft/cometbft/libs/service"
+	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	evertypes "github.com/EscanBE/evermint/v12/types"
 )
@@ -19,19 +19,19 @@ const (
 
 // EVMIndexerService indexes transactions for json-rpc service.
 type EVMIndexerService struct {
-	service.BaseService
+	cmtsvc.BaseService
 
 	txIdxr evertypes.EVMTxIndexer
-	client rpcclient.Client
+	client cmtrpcclient.Client
 }
 
 // NewEVMIndexerService returns a new service instance.
 func NewEVMIndexerService(
 	txIdxr evertypes.EVMTxIndexer,
-	client rpcclient.Client,
+	client cmtrpcclient.Client,
 ) *EVMIndexerService {
 	is := &EVMIndexerService{txIdxr: txIdxr, client: client}
-	is.BaseService = *service.NewBaseService(nil, ServiceName, is)
+	is.BaseService = *cmtsvc.NewBaseService(nil, ServiceName, is)
 	return is
 }
 
@@ -52,7 +52,7 @@ func (eis *EVMIndexerService) OnStart() error {
 	blockHeadersChan, err := eis.client.Subscribe(
 		ctx,
 		ServiceName,
-		types.QueryForEvent(types.EventNewBlockHeader).String(),
+		cmttypes.QueryForEvent(cmttypes.EventNewBlockHeader).String(),
 		0,
 	)
 	if err != nil {
@@ -62,7 +62,7 @@ func (eis *EVMIndexerService) OnStart() error {
 	go func() {
 		for {
 			msg := <-blockHeadersChan
-			eventDataHeader := msg.Data.(types.EventDataNewBlockHeader)
+			eventDataHeader := msg.Data.(cmttypes.EventDataNewBlockHeader)
 			if eventDataHeader.Header.Height > latestBlock {
 				latestBlock = eventDataHeader.Header.Height
 				// notify

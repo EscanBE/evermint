@@ -8,6 +8,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 func RegisterEncodingConfig() params.EncodingConfig {
@@ -26,6 +27,8 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	sdk.RegisterLegacyAminoCodec(cdc)
 	cryptocodec.RegisterCrypto(cdc)
 	codec.RegisterEvidences(cdc)
+
+	legacytx.RegressionTestingAminoCodec = cdc
 }
 
 // RegisterInterfaces registers Interfaces from types, crypto, and SDK std.

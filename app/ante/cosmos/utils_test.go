@@ -1,6 +1,7 @@
 package cosmos_test
 
 import (
+	"context"
 	"time"
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
@@ -73,6 +74,11 @@ func createTx(priv cryptotypes.PrivKey, msgs ...sdk.Msg) (sdk.Tx, error) {
 	encodingConfig := chainapp.RegisterEncodingConfig()
 	txBuilder := encodingConfig.TxConfig.NewTxBuilder()
 
+	signMode, err := authsigning.APISignModeToInternal(encodingConfig.TxConfig.SignModeHandler().DefaultMode())
+	if err != nil {
+		return nil, err
+	}
+
 	txBuilder.SetGasLimit(1000000)
 	if err := txBuilder.SetMsgs(msgs...); err != nil {
 		return nil, err
@@ -83,7 +89,7 @@ func createTx(priv cryptotypes.PrivKey, msgs ...sdk.Msg) (sdk.Tx, error) {
 	sigV2 := signing.SignatureV2{
 		PubKey: priv.PubKey(),
 		Data: &signing.SingleSignatureData{
-			SignMode:  encodingConfig.TxConfig.SignModeHandler().DefaultMode(),
+			SignMode:  signMode,
 			Signature: nil,
 		},
 		Sequence: 0,
@@ -100,8 +106,9 @@ func createTx(priv cryptotypes.PrivKey, msgs ...sdk.Msg) (sdk.Tx, error) {
 		AccountNumber: 0,
 		Sequence:      0,
 	}
-	sigV2, err := clienttx.SignWithPrivKey(
-		encodingConfig.TxConfig.SignModeHandler().DefaultMode(), signerData,
+	sigV2, err = clienttx.SignWithPrivKey(
+		context.Background(),
+		signMode, signerData,
 		txBuilder, priv, encodingConfig.TxConfig,
 		0,
 	)

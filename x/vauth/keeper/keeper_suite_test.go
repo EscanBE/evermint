@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
+	"github.com/cosmos/cosmos-sdk/codec/address"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"testing"
 	"time"
 
@@ -19,7 +21,7 @@ import (
 	"cosmossdk.io/store"
 	storetypes "cosmossdk.io/store/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	dbm "github.com/cosmos/cosmos-db"
+	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -74,13 +76,13 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	{
 		// initialization
-		authStoreKey := sdk.NewKVStoreKey(authtypes.StoreKey)
-		bankStoreKey := sdk.NewKVStoreKey(banktypes.StoreKey)
-		evmStoreKey := sdk.NewKVStoreKey(evmtypes.StoreKey)
-		vAuthStoreKey := sdk.NewKVStoreKey(vauthtypes.StoreKey)
+		authStoreKey := storetypes.NewKVStoreKey(authtypes.StoreKey)
+		bankStoreKey := storetypes.NewKVStoreKey(banktypes.StoreKey)
+		evmStoreKey := storetypes.NewKVStoreKey(evmtypes.StoreKey)
+		vAuthStoreKey := storetypes.NewKVStoreKey(vauthtypes.StoreKey)
 
-		db := dbm.NewMemDB()
-		stateStore := store.NewCommitMultiStore(db)
+		db := sdkdb.NewMemDB()
+		stateStore := store.NewCommitMultiStore(db, log.NewNopLogger(), nil)
 		stateStore.MountStoreWithDB(authStoreKey, storetypes.StoreTypeIAVL, db)
 		stateStore.MountStoreWithDB(bankStoreKey, storetypes.StoreTypeIAVL, db)
 		stateStore.MountStoreWithDB(evmStoreKey, storetypes.StoreTypeIAVL, db)
@@ -100,13 +102,14 @@ func (s *KeeperTestSuite) SetupTest() {
 
 		ak = authkeeper.NewAccountKeeper(
 			cdc,
-			authStoreKey,
+			runtime.NewKVStoreService(authStoreKey),
 			authtypes.ProtoBaseAccount,
 			map[string][]string{
 				banktypes.ModuleName:  {authtypes.Minter, authtypes.Burner},
 				evmtypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
 				vauthtypes.ModuleName: {authtypes.Burner},
 			},
+			address.NewBech32Codec(constants.Bech32PrefixAccAddr),
 			constants.Bech32PrefixAccAddr,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		)
@@ -114,17 +117,18 @@ func (s *KeeperTestSuite) SetupTest() {
 
 		bk = bankkeeper.NewBaseKeeper(
 			cdc,
-			bankStoreKey,
+			runtime.NewKVStoreService(bankStoreKey),
 			ak,
 			map[string]bool{},
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			log.NewNopLogger(),
 		)
 		banktypes.RegisterInterfaces(registry)
 
 		ek = *evmkeeper.NewKeeper(
 			cdc,
 			evmStoreKey,
-			nil,                                             // transient key
+			nil, // transient key
 			authtypes.NewModuleAddress(govtypes.ModuleName), // authority
 			ak,
 			bk,

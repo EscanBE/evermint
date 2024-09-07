@@ -5,10 +5,16 @@ import (
 	"crypto/ed25519"
 	"encoding/json"
 	"fmt"
+	sdkdb "github.com/cosmos/cosmos-db"
+	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	"strings"
 	"time"
 
 	"github.com/EscanBE/evermint/v12/app/params"
+
+	cmtdb "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
@@ -18,8 +24,6 @@ import (
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -37,31 +41,31 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
-var defaultConsensusParams = &tmtypes.ConsensusParams{
-	Block: tmtypes.BlockParams{
+var defaultConsensusParams = &cmttypes.ConsensusParams{
+	Block: cmttypes.BlockParams{
 		MaxBytes: 200000,
 		MaxGas:   40000000, // 40m
 	},
-	Evidence: tmtypes.EvidenceParams{
+	Evidence: cmttypes.EvidenceParams{
 		MaxAgeNumBlocks: 302400,
 		MaxAgeDuration:  504 * time.Hour, // 3 weeks is the max duration
 		MaxBytes:        10000,
 	},
-	Validator: tmtypes.ValidatorParams{
+	Validator: cmttypes.ValidatorParams{
 		PubKeyTypes: []string{
-			tmtypes.ABCIPubKeyTypeEd25519,
+			cmttypes.ABCIPubKeyTypeEd25519,
 		},
 	},
 }
 
 const TendermintGovVotingPeriod = 5 * time.Second
 
-func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestConfig, encCfg params.EncodingConfig, db *MemDB, validatorAccounts TestAccounts, walletAccounts TestAccounts, genesisAccountBalance sdk.Coins, tempHolder *TemporaryHolder, logger log.Logger) (chainApp ChainApp, tendermintApp TendermintApp, validatorSet *tmtypes.ValidatorSet) {
+func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestConfig, encCfg params.EncodingConfig, db cmtdb.DB, validatorAccounts TestAccounts, walletAccounts TestAccounts, genesisAccountBalance sdk.Coins, tempHolder *TemporaryHolder, logger log.Logger) (chainApp ChainApp, tendermintApp TendermintApp, validatorSet *cmttypes.ValidatorSet) {
 	defaultNodeHome := chainapp.DefaultNodeHome
 	moduleBasics := chainapp.ModuleBasics
 
 	// create validator set
-	var validators []*tmtypes.Validator
+	var validators []*cmttypes.Validator
 	for _, validatorAccount := range validatorAccounts {
 		//goland:noinspection GoDeprecation
 		pv := mock.PV{
@@ -73,9 +77,9 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 		if err != nil {
 			panic(err)
 		}
-		validators = append(validators, tmtypes.NewValidator(pubKey, 1))
+		validators = append(validators, cmttypes.NewValidator(pubKey, 1))
 	}
-	valSet := tmtypes.NewValidatorSet(validators)
+	valSet := cmttypes.NewValidatorSet(validators)
 
 	// generate genesis accounts
 	var genesisValidatorAccounts []authtypes.GenesisAccount
@@ -117,14 +121,14 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 	}
 
 	app := chainapp.NewEvermint(
-		logger,                                                 // logger
-		db,                                                     // db
-		nil,                                                    // trace store
-		true,                                                   // load latest
-		map[int64]bool{},                                       // skipUpgradeHeights
-		defaultNodeHome,                                        // homePath
-		0,                                                      // invCheckPeriod
-		encCfg,                                                 // encodingConfig
+		logger,           // logger
+		sdkdb.NewMemDB(), // db
+		nil,              // trace store
+		true,             // load latest
+		map[int64]bool{}, // skipUpgradeHeights
+		defaultNodeHome,  // homePath
+		0,                // invCheckPeriod
+		encCfg,           // encodingConfig
 		simtestutil.NewAppOptionsWithFlagHome(defaultNodeHome), // appOpts
 		baseapp.SetChainID(chainCfg.CosmosChainId),             // baseAppOptions
 	)
@@ -143,18 +147,18 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 		app: app,
 	}
 
-	genesisDoc := tmtypes.GenesisDoc{
+	genesisDoc := cmttypes.GenesisDoc{
 		GenesisTime:     time.Time{},
 		ChainID:         chainCfg.CosmosChainId,
 		InitialHeight:   0,
 		ConsensusParams: defaultConsensusParams,
-		Validators:      make([]tmtypes.GenesisValidator, len(valSet.Validators)),
+		Validators:      make([]cmttypes.GenesisValidator, len(valSet.Validators)),
 		AppHash:         nil,
 		AppState:        stateBytes,
 	}
 
 	for i, validator := range valSet.Validators {
-		genesisDoc.Validators[i] = tmtypes.GenesisValidator{
+		genesisDoc.Validators[i] = cmttypes.GenesisValidator{
 			Address: validator.Address,
 			PubKey:  validator.PubKey,
 			Power:   validator.VotingPower,
@@ -165,20 +169,23 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 
 	if disableTendermint {
 		consensusParams := defaultConsensusParams.ToProto()
-		app.InitChain(abci.RequestInitChain{
+		_, err := app.InitChain(&abci.RequestInitChain{
 			ChainId:         chainCfg.CosmosChainId,
 			ConsensusParams: &consensusParams,
 			Validators:      []abci.ValidatorUpdate{},
 			AppStateBytes:   stateBytes,
 			InitialHeight:   0,
 		})
+		if err != nil {
+			panic(err)
+		}
 		tendermintApp = nil
 	} else {
 		validator := validatorAccounts.Number(1)
 		if validator.GetValidatorAddress().String() != sdk.ValAddress(validator.GetPubKey().Address()).String() {
 			panic("validator address does not match")
 		}
-		node, rpcPort, tempFiles := itutilutils.StartTendermintNode(app, &genesisDoc, db, validator.GetTmPrivKey(), logger)
+		node, rpcPort, tempFiles := itutilutils.StartTendermintNode(sdkserver.NewCometABCIWrapper(app), &genesisDoc, db, validator.GetTmPrivKey(), logger)
 		for _, tempFile := range tempFiles {
 			tempHolder.AddTempFile(tempFile)
 		}
@@ -188,7 +195,7 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 	return cai, tendermintApp, valSet
 }
 
-func genesisStateWithValSet(chainCfg ChainConfig, disableTendermint bool, testConfig TestConfig, codec codec.Codec, genesisState chainapp.GenesisState, valSet *tmtypes.ValidatorSet, genesisValidatorAccounts []authtypes.GenesisAccount, genesisWalletAccounts []authtypes.GenesisAccount, balances []banktypes.Balance, signingInfos []slashingtypes.SigningInfo) chainapp.GenesisState {
+func genesisStateWithValSet(chainCfg ChainConfig, disableTendermint bool, testConfig TestConfig, codec codec.Codec, genesisState chainapp.GenesisState, valSet *cmttypes.ValidatorSet, genesisValidatorAccounts []authtypes.GenesisAccount, genesisWalletAccounts []authtypes.GenesisAccount, balances []banktypes.Balance, signingInfos []slashingtypes.SigningInfo) chainapp.GenesisState {
 	genesisAccounts := append(genesisValidatorAccounts, genesisWalletAccounts...)
 
 	// set genesis accounts
@@ -229,7 +236,7 @@ func genesisStateWithValSet(chainCfg ChainConfig, disableTendermint bool, testCo
 			MinSelfDelegation: sdkmath.OneInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genesisValidatorAccounts[i].GetAddress(), val.Address.Bytes(), sdkmath.LegacyOneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genesisValidatorAccounts[i].GetAddress().String(), sdk.ValAddress(val.Address).String(), sdkmath.LegacyOneDec()))
 
 		totalSupply = totalSupply.Add(sdk.NewCoin(chainCfg.BaseDenom, bondAmt))
 	}

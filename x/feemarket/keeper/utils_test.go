@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"encoding/json"
+	"github.com/EscanBE/evermint/v12/utils"
 	"math/big"
 	"time"
 
@@ -31,7 +32,7 @@ import (
 
 	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
-	dbm "github.com/cosmos/cosmos-db"
+	sdkdb "github.com/cosmos/cosmos-db"
 )
 
 func (suite *KeeperTestSuite) SetupApp(checkTx bool) {
@@ -51,7 +52,7 @@ func (suite *KeeperTestSuite) SetupApp(checkTx bool) {
 		1, time.Now().UTC(), constants.TestnetFullChainId, suite.consAddress, nil, nil,
 	)
 
-	suite.ctx = suite.app.BaseApp.NewContext(checkTx, header)
+	suite.ctx = suite.app.BaseApp.NewContext(checkTx).WithBlockHeader(header)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	feemarkettypes.RegisterQueryServer(queryHelper, suite.app.FeeMarketKeeper)
@@ -62,10 +63,10 @@ func (suite *KeeperTestSuite) SetupApp(checkTx bool) {
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 	valAddr := sdk.ValAddress(suite.address.Bytes())
-	validator, err := stakingtypes.NewValidator(valAddr, priv.PubKey(), stakingtypes.Description{})
+	validator, err := stakingtypes.NewValidator(valAddr.String(), priv.PubKey(), stakingtypes.Description{})
 	require.NoError(t, err)
 	validator = stakingkeeper.TestingUpdateValidator(suite.app.StakingKeeper, suite.ctx, validator, true)
-	err = suite.app.StakingKeeper.Hooks().AfterValidatorCreated(suite.ctx, validator.GetOperator())
+	err = suite.app.StakingKeeper.Hooks().AfterValidatorCreated(suite.ctx, utils.MustValAddressFromBech32(validator.GetOperator()))
 	require.NoError(t, err)
 
 	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
@@ -100,7 +101,7 @@ func (suite *KeeperTestSuite) CommitAfter(t time.Duration) {
 
 // setupTestWithContext sets up a test chain with an example Cosmos send msg,
 // given a local (validator config) and a global (feemarket param) minGasPrice
-func setupTestWithContext(valMinGasPrice string, minGasPrice sdk.Dec, baseFee sdkmath.Int) (*ethsecp256k1.PrivKey, banktypes.MsgSend) {
+func setupTestWithContext(valMinGasPrice string, minGasPrice sdkmath.LegacyDec, baseFee sdkmath.Int) (*ethsecp256k1.PrivKey, banktypes.MsgSend) {
 	privKey, msg := setupTest(valMinGasPrice + s.denom)
 	params := feemarkettypes.DefaultParams()
 	params.MinGasPrice = minGasPrice
@@ -141,7 +142,7 @@ func setupChain(localMinGasPricesStr string) {
 	chainID := constants.TestnetFullChainId
 	// Initialize the app, so we can use SetMinGasPrices to set the
 	// validator-specific min-gas-prices setting
-	db := dbm.NewMemDB()
+	db := sdkdb.NewMemDB()
 	chainApp := chainapp.NewEvermint(
 		log.NewNopLogger(),
 		db,
@@ -163,14 +164,17 @@ func setupChain(localMinGasPricesStr string) {
 	s.Require().NoError(err)
 
 	// Initialize the chain
-	chainApp.InitChain(
-		abci.RequestInitChain{
+	_, err = chainApp.InitChain(
+		&abci.RequestInitChain{
 			ChainId:         chainID,
 			Validators:      []abci.ValidatorUpdate{},
 			AppStateBytes:   stateBytes,
 			ConsensusParams: helpers.DefaultConsensusParams,
 		},
 	)
+	if err != nil {
+		panic(err)
+	}
 
 	s.app = chainApp
 	s.SetupApp(false)

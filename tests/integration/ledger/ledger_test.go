@@ -3,6 +3,7 @@ package ledger_test
 import (
 	"bytes"
 	"context"
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -30,11 +31,11 @@ import (
 )
 
 var (
-	signOkMock = func(_ []uint32, msg []byte) ([]byte, error) {
+	signOkMock = func(_ []uint32, msg []byte, _ byte) ([]byte, error) {
 		return s.privKey.Sign(msg)
 	}
 
-	signErrMock = func(_ []uint32, msg []byte) ([]byte, error) {
+	signErrMock = func(_ []uint32, msg []byte, _ byte) ([]byte, error) {
 		return nil, mocks.ErrMockedSigning
 	}
 )
@@ -146,7 +147,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 
 					msg := []byte("test message")
 
-					signed, _, err := kr.SignByAddress(ledgerAddr, msg)
+					signed, _, err := kr.SignByAddress(ledgerAddr, msg, signingtypes.SignMode_SIGN_MODE_TEXTUAL)
 					s.Require().NoError(err, "failed to sign messsage")
 
 					valid := s.pubKey.VerifySignature(msg, signed)
@@ -160,7 +161,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 
 					msg := []byte("test message")
 
-					_, _, err = kr.SignByAddress(ledgerAddr, msg)
+					_, _, err = kr.SignByAddress(ledgerAddr, msg, signingtypes.SignMode_SIGN_MODE_TEXTUAL)
 
 					s.Require().Error(err, "false positive result, error expected")
 
@@ -183,7 +184,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 
 					receiverAccAddr = sdk.AccAddress(utiltx.GenerateAddress().Bytes())
 
-					cmd = bankcli.NewSendTxCmd()
+					cmd = bankcli.NewSendTxCmd(s.app.AccountKeeper.AddressCodec())
 					mockedIn = sdktestutil.ApplyMockIODiscardOutErr(cmd)
 
 					kr, clientCtx, ctx = s.NewKeyringAndCtxs(krHome, mockedIn, encodingConfig)

@@ -1,6 +1,10 @@
 package evm
 
 import (
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"math"
 	"math/big"
 
@@ -10,7 +14,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
-	anteutils "github.com/EscanBE/evermint/v12/app/ante/utils"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
@@ -22,13 +25,13 @@ import (
 
 // ExternalOwnedAccountVerificationDecorator validates an account balance checks
 type ExternalOwnedAccountVerificationDecorator struct {
-	ak        evmtypes.AccountKeeper
-	bk        evmtypes.BankKeeper
+	ak        authkeeper.AccountKeeperI
+	bk        bankkeeper.Keeper
 	evmKeeper EVMKeeper
 }
 
 // NewExternalOwnedAccountVerificationDecorator creates a new ExternalOwnedAccountVerificationDecorator
-func NewExternalOwnedAccountVerificationDecorator(ak evmtypes.AccountKeeper, bk evmtypes.BankKeeper, ek EVMKeeper) ExternalOwnedAccountVerificationDecorator {
+func NewExternalOwnedAccountVerificationDecorator(ak authkeeper.AccountKeeperI, bk bankkeeper.Keeper, ek EVMKeeper) ExternalOwnedAccountVerificationDecorator {
 	return ExternalOwnedAccountVerificationDecorator{
 		ak:        ak,
 		bk:        bk,
@@ -109,19 +112,19 @@ func (avd ExternalOwnedAccountVerificationDecorator) AnteHandle(
 // EthGasConsumeDecorator validates enough intrinsic gas for the transaction and
 // gas consumption.
 type EthGasConsumeDecorator struct {
-	bankKeeper         anteutils.BankKeeper
-	distributionKeeper anteutils.DistributionKeeper
+	bankKeeper         bankkeeper.Keeper
+	distributionKeeper distrkeeper.Keeper
 	evmKeeper          EVMKeeper
-	stakingKeeper      anteutils.StakingKeeper
+	stakingKeeper      stakingkeeper.Keeper
 	maxGasWanted       uint64
 }
 
 // NewEthGasConsumeDecorator creates a new EthGasConsumeDecorator
 func NewEthGasConsumeDecorator(
-	bankKeeper anteutils.BankKeeper,
-	distributionKeeper anteutils.DistributionKeeper,
+	bankKeeper bankkeeper.Keeper,
+	distributionKeeper distrkeeper.Keeper,
 	evmKeeper EVMKeeper,
-	stakingKeeper anteutils.StakingKeeper,
+	stakingKeeper stakingkeeper.Keeper,
 	maxGasWanted uint64,
 ) EthGasConsumeDecorator {
 	return EthGasConsumeDecorator{
@@ -309,7 +312,7 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 			BaseFee:     baseFee,
 		}
 
-		stateDB := statedb.New(ctx, ctd.evmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash().Bytes())))
+		stateDB := statedb.New(ctx, ctd.evmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash())))
 		evm := ctd.evmKeeper.NewEVM(ctx, coreMsg, cfg, evmtypes.NewNoOpTracer(), stateDB)
 
 		// check that caller has enough balance to cover asset transfer for **topmost** call
@@ -329,11 +332,11 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 
 // EthIncrementSenderSequenceDecorator increments the sequence of the signers.
 type EthIncrementSenderSequenceDecorator struct {
-	ak evmtypes.AccountKeeper
+	ak authkeeper.AccountKeeperI
 }
 
 // NewEthIncrementSenderSequenceDecorator creates a new EthIncrementSenderSequenceDecorator.
-func NewEthIncrementSenderSequenceDecorator(ak evmtypes.AccountKeeper) EthIncrementSenderSequenceDecorator {
+func NewEthIncrementSenderSequenceDecorator(ak authkeeper.AccountKeeperI) EthIncrementSenderSequenceDecorator {
 	return EthIncrementSenderSequenceDecorator{
 		ak: ak,
 	}

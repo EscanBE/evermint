@@ -1,6 +1,7 @@
 package eip712
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"errors"
 	"fmt"
 
@@ -176,8 +177,6 @@ func decodeProtobufSignDoc(signDocBytes []byte) (apitypes.TypedData, error) {
 		Gas:    authInfo.Fee.GasLimit,
 	}
 
-	tip := authInfo.Tip
-
 	// WrapTxToTypedData expects the payload as an Amino Sign Doc
 	signBytes := legacytx.StdSignBytes(
 		signDoc.ChainId,
@@ -187,7 +186,6 @@ func decodeProtobufSignDoc(signDocBytes []byte) (apitypes.TypedData, error) {
 		*stdFee,
 		msgs,
 		body.Memo,
-		tip,
 	)
 
 	typedData, err := WrapTxToTypedData(
@@ -221,19 +219,40 @@ func validatePayloadMessages(msgs []sdk.Msg) error {
 	var msgSigner sdk.AccAddress
 
 	for i, m := range msgs {
-		if len(m.GetSigners()) != 1 {
+		signers, err := getMsgV1Signers(m)
+		if err != nil {
+			return errorsmod.Wrap(err, "failed to get signers")
+		}
+
+		if len(signers) != 1 {
 			return errors.New("unable to build EIP-712 payload: expect exactly 1 signer")
 		}
 
+		signer := sdk.AccAddress(signers[0])
+
 		if i == 0 {
-			msgSigner = m.GetSigners()[0]
+			msgSigner = signer
 			continue
 		}
 
-		if !msgSigner.Equals(m.GetSigners()[0]) {
+		if !msgSigner.Equals(signer) {
 			return errors.New("unable to build EIP-712 payload: multiple signers detected")
 		}
 	}
 
 	return nil
+}
+
+func getMsgV1Signers(msg sdk.Msg) ([]sdk.AccAddress, error) {
+	signers, _, err := protoCodec.GetMsgV1Signers(msg)
+	if err != nil {
+		return nil, err
+	}
+
+	signersAccAddr := make([]sdk.AccAddress, len(signers))
+	for i, signer := range signers {
+		signersAccAddr[i] = signer
+	}
+
+	return signersAccAddr, nil
 }

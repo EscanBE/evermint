@@ -44,7 +44,8 @@ func (suite *AnteTestSuite) SetupTest() {
 
 	header := testutil.NewHeader(
 		1, time.Now().UTC(), chainID, consAddress, nil, nil)
-	suite.ctx = suite.app.BaseApp.NewContext(isCheckTx, header)
+	suite.ctx = suite.app.BaseApp.NewContext(isCheckTx).WithBlockHeader(header)
+	suite.ctx = suite.ctx.WithChainID(chainID)
 
 	suite.denom = constants.BaseDenom
 	evmParams := suite.app.EvmKeeper.GetParams(suite.ctx)

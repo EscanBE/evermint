@@ -9,25 +9,26 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
 	"github.com/EscanBE/evermint/v12/app/params"
 
 	"github.com/EscanBE/evermint/v12/constants"
+	sdktunetwork "github.com/cosmos/cosmos-sdk/testutil/network"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
-	tmcfg "github.com/cometbft/cometbft/config"
-	tmflags "github.com/cometbft/cometbft/libs/cli/flags"
-	tmrand "github.com/cometbft/cometbft/libs/rand"
-	"github.com/cometbft/cometbft/node"
-	tmclient "github.com/cometbft/cometbft/rpc/client"
-	dbm "github.com/cosmos/cosmos-db"
+	cmtrand "github.com/cometbft/cometbft/libs/rand"
+	cmtnode "github.com/cometbft/cometbft/node"
+	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
+	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -108,7 +109,7 @@ func DefaultConfig() Config {
 		AppConstructor:    NewAppConstructor(encodingConfig),
 		GenesisState:      chainapp.ModuleBasics.DefaultGenesis(encodingConfig.Codec),
 		TimeoutCommit:     3 * time.Second,
-		ChainID:           fmt.Sprintf("%s_%d-1", constants.ChainIdPrefix, tmrand.Int63n(9999999999999)+1),
+		ChainID:           fmt.Sprintf("%s_%d-1", constants.ChainIdPrefix, cmtrand.Int63n(9999999999999)+1),
 		NumValidators:     4,
 		BondDenom:         constants.BaseDenom,
 		MinGasPrices:      fmt.Sprintf("0.000006%s", constants.BaseDenom),
@@ -127,7 +128,7 @@ func DefaultConfig() Config {
 func NewAppConstructor(encodingCfg params.EncodingConfig) AppConstructor {
 	return func(val Validator) servertypes.Application {
 		return chainapp.NewEvermint(
-			val.Ctx.Logger, dbm.NewMemDB(), nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
+			val.Ctx.Logger, sdkdb.NewMemDB(), nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
 			encodingCfg,
 			simtestutil.EmptyAppOptions{},
 			baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(val.AppConfig.Pruning)),
@@ -171,10 +172,10 @@ type (
 		P2PAddress    string
 		Address       sdk.AccAddress
 		ValAddress    sdk.ValAddress
-		RPCClient     tmclient.Client
+		RPCClient     cmtrpcclient.Client
 		JSONRPCClient *ethclient.Client
 
-		tmNode      *node.Node
+		tmNode      *cmtnode.Node
 		api         *api.Server
 		grpc        *grpc.Server
 		grpcWeb     *http.Server
@@ -269,7 +270,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 				apiListenAddr = cfg.APIAddress
 			} else {
 				var err error
-				apiListenAddr, _, err = server.FreeTCPAddr()
+				apiListenAddr, _, _, err = sdktunetwork.FreeTCPAddr()
 				if err != nil {
 					return nil, err
 				}
@@ -285,7 +286,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			if cfg.RPCAddress != "" {
 				tmCfg.RPC.ListenAddress = cfg.RPCAddress
 			} else {
-				rpcAddr, _, err := server.FreeTCPAddr()
+				rpcAddr, _, _, err := sdktunetwork.FreeTCPAddr()
 				if err != nil {
 					return nil, err
 				}
@@ -295,7 +296,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			if cfg.GRPCAddress != "" {
 				appCfg.GRPC.Address = cfg.GRPCAddress
 			} else {
-				_, grpcPort, err := server.FreeTCPAddr()
+				_, grpcPort, _, err := sdktunetwork.FreeTCPAddr()
 				if err != nil {
 					return nil, err
 				}
@@ -303,17 +304,10 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			}
 			appCfg.GRPC.Enable = true
 
-			_, grpcWebPort, err := server.FreeTCPAddr()
-			if err != nil {
-				return nil, err
-			}
-			appCfg.GRPCWeb.Address = fmt.Sprintf("0.0.0.0:%s", grpcWebPort)
-			appCfg.GRPCWeb.Enable = true
-
 			if cfg.JSONRPCAddress != "" {
 				appCfg.JSONRPC.Address = cfg.JSONRPCAddress
 			} else {
-				_, jsonRPCPort, err := server.FreeTCPAddr()
+				_, jsonRPCPort, _, err := sdktunetwork.FreeTCPAddr()
 				if err != nil {
 					return nil, err
 				}
@@ -323,10 +317,11 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			appCfg.JSONRPC.API = config.GetAPINamespaces()
 		}
 
-		logger := log.NewNopLogger()
+		var logger log.Logger
 		if cfg.EnableTMLogging {
-			logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
-			logger, _ = tmflags.ParseLogLevel("info", logger, tmcfg.DefaultLogLevel)
+			logger = log.NewLogger(os.Stdout)
+		} else {
+			logger = log.NewNopLogger()
 		}
 
 		ctx.Logger = logger
@@ -350,13 +345,13 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		tmCfg.Moniker = nodeDirName
 		monikers[i] = nodeDirName
 
-		proxyAddr, _, err := server.FreeTCPAddr()
+		proxyAddr, _, _, err := sdktunetwork.FreeTCPAddr()
 		if err != nil {
 			return nil, err
 		}
 		tmCfg.ProxyApp = proxyAddr
 
-		p2pAddr, _, err := server.FreeTCPAddr()
+		p2pAddr, _, _, err := sdktunetwork.FreeTCPAddr()
 		if err != nil {
 			return nil, err
 		}
@@ -420,7 +415,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		}
 
 		createValMsg, err := stakingtypes.NewMsgCreateValidator(
-			sdk.ValAddress(addr),
+			sdk.ValAddress(addr).String(),
 			valPubKeys[i],
 			sdk.NewCoin(cfg.BondDenom, cfg.BondedTokens),
 			stakingtypes.NewDescription(nodeDirName, "", "", "", ""),
@@ -454,7 +449,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			WithKeybase(kb).
 			WithTxConfig(cfg.TxConfig)
 
-		if err := clienttx.Sign(txFactory, nodeDirName, txBuilder, true); err != nil {
+		if err := clienttx.Sign(context.Background(), txFactory, nodeDirName, txBuilder, true); err != nil {
 			return nil, err
 		}
 
@@ -526,9 +521,33 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 
 	// Ensure we cleanup incase any test was abruptly halted (e.g. SIGINT) as any
 	// defer in a test would not be called.
-	server.TrapSignal(network.Cleanup)
+	trapSignal(network.Cleanup)
 
 	return network, nil
+}
+
+// trapSignal traps SIGINT and SIGTERM and calls os.Exit once a signal is received.
+func trapSignal(cleanupFunc func()) {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		sig := <-sigs
+
+		if cleanupFunc != nil {
+			cleanupFunc()
+		}
+		exitCode := 128
+
+		switch sig {
+		case syscall.SIGINT:
+			exitCode += int(syscall.SIGINT)
+		case syscall.SIGTERM:
+			exitCode += int(syscall.SIGTERM)
+		}
+
+		os.Exit(exitCode)
+	}()
 }
 
 // LatestHeight returns the latest height of the network or an error if the

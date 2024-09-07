@@ -1,6 +1,7 @@
 package v13_sample
 
 import (
+	"context"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/EscanBE/evermint/v12/app/keepers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,7 +14,8 @@ func CreateUpgradeHandler(
 	configurator module.Configurator,
 	_ *keepers.AppKeepers,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+	return func(goCtx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		ctx := sdk.UnwrapSDKContext(goCtx)
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 
 		// Refs:

@@ -8,8 +8,8 @@ import (
 	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/utils"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
+	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/pkg/errors"
 
@@ -28,7 +28,7 @@ import (
 )
 
 // RawTxToEthTx returns a evm MsgEthereum transaction from raw tx bytes.
-func RawTxToEthTx(clientCtx client.Context, txBz tmtypes.Tx) ([]*evmtypes.MsgEthereumTx, error) {
+func RawTxToEthTx(clientCtx client.Context, txBz cmttypes.Tx) ([]*evmtypes.MsgEthereumTx, error) {
 	tx, err := clientCtx.TxConfig.TxDecoder()(txBz)
 	if err != nil {
 		return nil, errorsmod.Wrap(errortypes.ErrJSONUnmarshal, err.Error())
@@ -48,7 +48,7 @@ func RawTxToEthTx(clientCtx client.Context, txBz tmtypes.Tx) ([]*evmtypes.MsgEth
 
 // EthHeaderFromTendermint is an util function that returns an Ethereum Header
 // from a tendermint Header.
-func EthHeaderFromTendermint(header tmtypes.Header, bloom ethtypes.Bloom, baseFee *big.Int) *ethtypes.Header {
+func EthHeaderFromTendermint(header cmttypes.Header, bloom ethtypes.Bloom, baseFee *big.Int) *ethtypes.Header {
 	txHash := ethtypes.EmptyRootHash
 	if len(header.DataHash) == 0 {
 		txHash = common.BytesToHash(header.DataHash)
@@ -77,7 +77,7 @@ func EthHeaderFromTendermint(header tmtypes.Header, bloom ethtypes.Bloom, baseFe
 
 // BlockMaxGasFromConsensusParams returns the gas limit for the current block from the chain consensus params.
 func BlockMaxGasFromConsensusParams(goCtx context.Context, clientCtx client.Context, blockHeight int64) (int64, error) {
-	tmrpcClient, ok := clientCtx.Client.(tmrpcclient.Client)
+	tmrpcClient, ok := clientCtx.Client.(cmtrpcclient.Client)
 	if !ok {
 		panic("incorrect tm rpc client")
 	}
@@ -101,7 +101,7 @@ func BlockMaxGasFromConsensusParams(goCtx context.Context, clientCtx client.Cont
 // FormatBlock creates an ethereum block from a tendermint header and ethereum-formatted
 // transactions.
 func FormatBlock(
-	header tmtypes.Header,
+	header cmttypes.Header,
 	chainID *big.Int,
 	size int,
 	gasLimit int64, gasUsed *big.Int, baseFee *big.Int,

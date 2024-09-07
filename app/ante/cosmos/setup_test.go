@@ -1,6 +1,7 @@
 package cosmos_test
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"math"
 	"testing"
 	"time"
@@ -52,7 +53,7 @@ const TestGasLimit uint64 = 100000
 var chainID = constants.TestnetFullChainId
 
 func (suite *AnteTestSuite) StateDB() *statedb.StateDB {
-	return statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(suite.ctx.HeaderHash().Bytes())))
+	return statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(suite.ctx.HeaderHash())))
 }
 
 func (suite *AnteTestSuite) SetupTest() {
@@ -89,17 +90,21 @@ func (suite *AnteTestSuite) SetupTest() {
 		return genesis
 	})
 
-	suite.ctx = suite.app.BaseApp.NewContext(checkTx, tmproto.Header{Height: 2, ChainID: chainID, Time: time.Now().UTC()})
+	suite.ctx = suite.app.BaseApp.NewContext(checkTx).WithBlockHeader(tmproto.Header{Height: 2, ChainID: chainID, Time: time.Now().UTC()})
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(constants.BaseDenom, sdkmath.OneInt())))
-	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1000000000000000000))
+	suite.ctx = suite.ctx.WithBlockGasMeter(storetypes.NewGasMeter(1000000000000000000))
+	suite.ctx = suite.ctx.WithChainID(chainID)
 	suite.app.EvmKeeper.WithChainID(suite.ctx)
 
-	stakingParams := suite.app.StakingKeeper.GetParams(suite.ctx)
+	stakingParams, err := suite.app.StakingKeeper.GetParams(suite.ctx)
+	suite.Require().NoError(err)
 	stakingParams.BondDenom = constants.BaseDenom
-	suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
+	err = suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
+	suite.Require().NoError(err)
 
-	infCtx := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
-	suite.app.AccountKeeper.SetParams(infCtx, authtypes.DefaultParams())
+	infCtx := suite.ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
+	err = suite.app.AccountKeeper.Params.Set(infCtx, authtypes.DefaultParams())
+	suite.Require().NoError(err)
 
 	encodingConfig := chainapp.RegisterEncodingConfig()
 	// We're using TestMsg amino encoding in some tests, so register it here.
@@ -109,7 +114,7 @@ func (suite *AnteTestSuite) SetupTest() {
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 
 	anteHandler := ante.NewAnteHandler(ante.HandlerOptions{
-		AccountKeeper:          suite.app.AccountKeeper,
+		AccountKeeper:          &suite.app.AccountKeeper,
 		BankKeeper:             suite.app.BankKeeper,
 		EvmKeeper:              suite.app.EvmKeeper,
 		FeegrantKeeper:         suite.app.FeeGrantKeeper,

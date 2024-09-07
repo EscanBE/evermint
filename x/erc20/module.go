@@ -2,9 +2,9 @@ package erc20
 
 import (
 	"context"
+	"cosmossdk.io/core/appmodule"
 	"encoding/json"
 	"fmt"
-
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -27,6 +27,9 @@ var (
 	_ module.AppModule           = AppModule{}
 	_ module.AppModuleBasic      = AppModuleBasic{}
 	_ module.AppModuleSimulation = AppModule{}
+
+	_ appmodule.AppModule   = AppModule{}
+	_ module.HasABCIGenesis = AppModule{}
 )
 
 // app module Basics object
@@ -94,6 +97,12 @@ type AppModule struct {
 	legacySubspace erc20types.Subspace
 }
 
+func (am AppModule) IsOnePerModuleType() {
+}
+
+func (am AppModule) IsAppModule() {
+}
+
 // NewAppModule creates a new AppModule Object
 func NewAppModule(
 	k erc20keeper.Keeper,
@@ -114,10 +123,6 @@ func (AppModule) Name() string {
 
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(&am.keeper)
-}
-
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	erc20types.RegisterMsgServer(cfg.MsgServer(), &am.keeper)
 	erc20types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
@@ -130,13 +135,6 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	if err := cfg.RegisterMigration(erc20types.ModuleName, 1, migrator.NoOpMigrate); err != nil {
 		panic(fmt.Errorf("failed to migrate %s: %w", erc20types.ModuleName, err))
 	}
-}
-
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
-}
-
-func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
 }
 
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
@@ -159,7 +157,7 @@ func (am AppModule) ProposalContents(_ module.SimulationState) []simtypes.Weight
 	return []simtypes.WeightedProposalContent{}
 }
 
-func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {
+func (am AppModule) RegisterStoreDecoder(_ simtypes.StoreDecoderRegistry) {
 }
 
 func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {

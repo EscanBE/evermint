@@ -214,10 +214,6 @@ Where metadata.json contains (example):
 				return err
 			}
 
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return clienttx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -282,10 +278,6 @@ func NewRegisterERC20ProposalCmd() *cobra.Command {
 				return err
 			}
 
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return clienttx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -347,10 +339,6 @@ func NewToggleTokenConversionProposalCmd() *cobra.Command {
 
 			msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
-				return err
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 

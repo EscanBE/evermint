@@ -10,7 +10,7 @@ import (
 
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -137,6 +137,11 @@ func (suite *ChainIntegrationTestSuite) signCosmosTx(
 
 	txCfg := suite.EncodingConfig.TxConfig
 
+	signMode, err := authsigning.APISignModeToInternal(txCfg.SignModeHandler().DefaultMode())
+	if err != nil {
+		return nil, err
+	}
+
 	seq, err := suite.ChainApp.AccountKeeper().GetSequence(ctx, account.GetCosmosAddress())
 	if err != nil {
 		return nil, err
@@ -147,7 +152,7 @@ func (suite *ChainIntegrationTestSuite) signCosmosTx(
 	sigV2 := signing.SignatureV2{
 		PubKey: account.GetPubKey(),
 		Data: &signing.SingleSignatureData{
-			SignMode:  txCfg.SignModeHandler().DefaultMode(),
+			SignMode:  signMode,
 			Signature: nil,
 		},
 		Sequence: seq,
@@ -167,7 +172,8 @@ func (suite *ChainIntegrationTestSuite) signCosmosTx(
 		Sequence:      seq,
 	}
 	sigV2, err = clienttx.SignWithPrivKey(
-		txCfg.SignModeHandler().DefaultMode(),
+		context.Background(), // TODO ES: is this correct?
+		signMode,
 		signerData,
 		txBuilder, account.PrivateKey, txCfg,
 		seq,
@@ -188,7 +194,7 @@ func (suite *ChainIntegrationTestSuite) QueryTxResponse(tx authsigning.Tx) *cosm
 	var bz []byte
 	bz, err := suite.EncodingConfig.TxConfig.TxEncoder()(tx)
 	suite.Require().NoError(err)
-	txHash := hex.EncodeToString(tmtypes.Tx(bz).Hash())
+	txHash := hex.EncodeToString(cmttypes.Tx(bz).Hash())
 
 	txResponse, err := suite.QueryClients.ServiceClient.GetTx(context.Background(), &cosmostxtypes.GetTxRequest{
 		Hash: txHash,

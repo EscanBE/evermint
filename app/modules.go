@@ -122,7 +122,7 @@ func appModules(
 	return []module.AppModule{
 		// SDK & IBC app modules
 		genutil.NewAppModule(
-			chainApp.AccountKeeper, chainApp.StakingKeeper, chainApp.BaseApp.DeliverTx,
+			chainApp.AccountKeeper, chainApp.StakingKeeper, chainApp,
 			encodingConfig.TxConfig,
 		),
 		auth.NewAppModule(appCodec, chainApp.AccountKeeper, authsims.RandomGenesisAccounts, chainApp.GetSubspace(authtypes.ModuleName)),
@@ -132,10 +132,10 @@ func appModules(
 		crisis.NewAppModule(chainApp.CrisisKeeper, skipGenesisInvariants, chainApp.GetSubspace(crisistypes.ModuleName)),
 		gov.NewAppModule(appCodec, chainApp.GovKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.GetSubspace(govtypes.ModuleName)),
 		mint.NewAppModule(appCodec, chainApp.MintKeeper, chainApp.AccountKeeper, nil, chainApp.GetSubspace(minttypes.ModuleName)),
-		slashing.NewAppModule(appCodec, chainApp.SlashingKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.StakingKeeper, chainApp.GetSubspace(slashingtypes.ModuleName)),
+		slashing.NewAppModule(appCodec, chainApp.SlashingKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.StakingKeeper, chainApp.GetSubspace(slashingtypes.ModuleName), chainApp.interfaceRegistry),
 		distr.NewAppModule(appCodec, chainApp.DistrKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.StakingKeeper, chainApp.GetSubspace(distrtypes.ModuleName)),
 		staking.NewAppModule(appCodec, chainApp.StakingKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.GetSubspace(stakingtypes.ModuleName)),
-		upgrade.NewAppModule(&chainApp.UpgradeKeeper),
+		upgrade.NewAppModule(&chainApp.UpgradeKeeper, chainApp.AccountKeeper.AddressCodec()),
 		evidence.NewAppModule(chainApp.EvidenceKeeper),
 		feegrantmodule.NewAppModule(appCodec, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.FeeGrantKeeper, chainApp.interfaceRegistry),
 		authzmodule.NewAppModule(appCodec, chainApp.AuthzKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.interfaceRegistry),
