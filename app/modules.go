@@ -6,7 +6,6 @@ import (
 	"cosmossdk.io/x/feegrant"
 	feegrantmodule "cosmossdk.io/x/feegrant/module"
 	"cosmossdk.io/x/upgrade"
-	upgradeclient "cosmossdk.io/x/upgrade/client"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/EscanBE/evermint/v12/app/params"
 	"github.com/EscanBE/evermint/v12/x/erc20"
@@ -55,7 +54,6 @@ import (
 	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
-	ibcclientclient "github.com/cosmos/ibc-go/v8/modules/core/02-client/client"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
@@ -88,10 +86,11 @@ var ModuleBasics = module.NewBasicManager(
 	distr.AppModuleBasic{},
 	gov.NewAppModuleBasic(
 		[]govclient.ProposalHandler{
-			sdkparamsclient.ProposalHandler, upgradeclient.LegacyProposalHandler, upgradeclient.LegacyCancelProposalHandler,
-			ibcclientclient.UpdateClientProposalHandler, ibcclientclient.UpgradeProposalHandler,
+			sdkparamsclient.ProposalHandler,
 			// Evermint proposal types
-			erc20client.RegisterCoinProposalHandler, erc20client.RegisterERC20ProposalHandler, erc20client.ToggleTokenConversionProposalHandler,
+			erc20client.RegisterCoinProposalHandler,
+			erc20client.RegisterERC20ProposalHandler,
+			erc20client.ToggleTokenConversionProposalHandler,
 		},
 	),
 	sdkparams.AppModuleBasic{},
