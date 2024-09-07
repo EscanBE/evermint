@@ -3,6 +3,8 @@ package backend
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
@@ -24,7 +26,7 @@ func (suite *BackendTestSuite) TestSendTransaction() {
 	priv, _ := ethsecp256k1.GenerateKey()
 	from := common.BytesToAddress(priv.PubKey().Address().Bytes())
 	nonce := hexutil.Uint64(1)
-	baseFee := sdk.NewInt(1)
+	baseFee := sdkmath.NewInt(1)
 	callArgsDefault := evmtypes.TransactionArgs{
 		From:     &from,
 		To:       &toAddr,

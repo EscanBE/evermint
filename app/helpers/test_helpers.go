@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -59,7 +61,7 @@ var DefaultConsensusParams = &tmproto.ConsensusParams{
 }
 
 func init() {
-	feemarkettypes.DefaultMinGasPrice = sdk.ZeroDec()
+	feemarkettypes.DefaultMinGasPrice = sdkmath.LegacyZeroDec()
 	cfg := sdk.GetConfig()
 	config.SetBech32Prefixes(cfg)
 	config.SetBip44CoinType(cfg)
@@ -84,7 +86,7 @@ func Setup(
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 	balance := banktypes.Balance{
 		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdk.NewInt(100000000000000))),
+		Coins:   sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(100000000000000))),
 	}
 
 	db := dbm.NewMemDB()
@@ -156,15 +158,15 @@ func GenesisStateWithValSet(app *chainapp.Evermint, genesisState chainapp.Genesi
 			Jailed:            false,
 			Status:            stakingtypes.Bonded,
 			Tokens:            bondAmt,
-			DelegatorShares:   sdk.OneDec(),
+			DelegatorShares:   sdkmath.LegacyOneDec(),
 			Description:       stakingtypes.Description{},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
-			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-			MinSelfDelegation: sdk.ZeroInt(),
+			Commission:        stakingtypes.NewCommission(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
+			MinSelfDelegation: sdkmath.ZeroInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdk.OneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdkmath.LegacyOneDec()))
 
 	}
 	// set validators and delegations

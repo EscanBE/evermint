@@ -4,7 +4,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 //goland:noinspection SpellCheckingInspection
@@ -23,7 +22,7 @@ func (suite *DemoTestSuite) Test_QC_Rpc_Balance() {
 
 	balance, ok := sdkmath.NewIntFromString(res.Balance)
 	suite.Require().True(ok)
-	suite.True(balance.GT(sdk.ZeroInt()))
+	suite.True(balance.GT(sdkmath.ZeroInt()))
 	suite.Equal(suite.CITS.TestConfig.InitBalanceAmount, balance)
 }
 
@@ -41,7 +40,7 @@ func (suite *DemoTestSuite) Test_QC_Rpc_Balance_At_Different_Blocks() {
 	suite.Require().NotNil(res)
 	senderBalanceBefore, _ := sdkmath.NewIntFromString(res.Balance)
 
-	suite.Require().Truef(senderBalanceBefore.GT(sdk.ZeroInt()), "sender must have balance")
+	suite.Require().Truef(senderBalanceBefore.GT(sdkmath.ZeroInt()), "sender must have balance")
 
 	res, err = suite.CITS.QueryClients.Rpc.Balance(
 		rpctypes.ContextWithHeight(0),

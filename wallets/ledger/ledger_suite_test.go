@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/stretchr/testify/suite"
@@ -100,7 +102,7 @@ func (suite *LedgerTestSuite) getMockTxProtobuf() []byte {
 		[]sdk.Coin{
 			{
 				Denom:  "atom",
-				Amount: sdk.NewIntFromUint64(150),
+				Amount: sdkmath.NewIntFromUint64(150),
 			},
 		},
 	)

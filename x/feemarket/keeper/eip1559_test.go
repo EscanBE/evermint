@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
+
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
 
@@ -23,56 +25,56 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 			name:               "without BaseFee",
 			NoBaseFee:          true,
 			parentBlockGasUsed: 0,
-			minGasPrice:        sdk.ZeroDec(),
+			minGasPrice:        sdkmath.LegacyZeroDec(),
 			expFee:             nil,
 		},
 		{
 			name:               "with BaseFee - initial EIP-1559 block",
 			NoBaseFee:          false,
 			parentBlockGasUsed: 0,
-			minGasPrice:        sdk.ZeroDec(),
+			minGasPrice:        sdkmath.LegacyZeroDec(),
 			expFee:             big.NewInt(875000000),
 		},
 		{
 			name:               "with BaseFee - parent block used the same gas as its target (ElasticityMultiplier = 2)",
 			NoBaseFee:          false,
 			parentBlockGasUsed: 50,
-			minGasPrice:        sdk.ZeroDec(),
+			minGasPrice:        sdkmath.LegacyZeroDec(),
 			expFee:             suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx),
 		},
 		{
 			name:               "with BaseFee - parent block used the same gas as its target, with higher min gas price (ElasticityMultiplier = 2)",
 			NoBaseFee:          false,
 			parentBlockGasUsed: blockGasLimit / ethparams.ElasticityMultiplier,
-			minGasPrice:        sdk.NewDec(1500000000),
+			minGasPrice:        sdkmath.LegacyNewDec(1500000000),
 			expFee:             big.NewInt(1500000000),
 		},
 		{
 			name:               "with BaseFee - parent block used more gas than its target (ElasticityMultiplier = 2)",
 			NoBaseFee:          false,
 			parentBlockGasUsed: blockGasLimit,
-			minGasPrice:        sdk.ZeroDec(),
+			minGasPrice:        sdkmath.LegacyZeroDec(),
 			expFee:             big.NewInt(1125000000),
 		},
 		{
 			name:               "with BaseFee - parent block used more gas than its target, with higher min gas price (ElasticityMultiplier = 2)",
 			NoBaseFee:          false,
 			parentBlockGasUsed: blockGasLimit,
-			minGasPrice:        sdk.NewDec(1500000000),
+			minGasPrice:        sdkmath.LegacyNewDec(1500000000),
 			expFee:             big.NewInt(1500000000),
 		},
 		{
 			name:               "with BaseFee - Parent gas used smaller than parent gas target (ElasticityMultiplier = 2)",
 			NoBaseFee:          false,
 			parentBlockGasUsed: blockGasLimit / ethparams.ElasticityMultiplier / 2,
-			minGasPrice:        sdk.ZeroDec(),
+			minGasPrice:        sdkmath.LegacyZeroDec(),
 			expFee:             big.NewInt(937500000),
 		},
 		{
 			name:               "with BaseFee - Parent gas used smaller than parent gas target, with higher min gas price (ElasticityMultiplier = 2)",
 			NoBaseFee:          false,
 			parentBlockGasUsed: blockGasLimit / ethparams.ElasticityMultiplier / 2,
-			minGasPrice:        sdk.NewDec(1500000000),
+			minGasPrice:        sdkmath.LegacyNewDec(1500000000),
 			expFee:             big.NewInt(1500000000),
 		},
 	}

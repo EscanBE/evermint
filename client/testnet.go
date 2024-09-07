@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
+
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/EscanBE/evermint/v12/constants"
@@ -349,8 +351,8 @@ func initTestnetFiles(
 			valPubKeys[i],
 			sdk.NewCoin(constants.BaseDenom, valTokens),
 			stakingtypes.NewDescription(nodeDirName, "", "", "", ""),
-			stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
-			sdk.OneInt(),
+			stakingtypes.NewCommissionRates(sdkmath.LegacyOneDec(), sdkmath.LegacyOneDec(), sdkmath.LegacyOneDec()),
+			sdkmath.OneInt(),
 		)
 		if err != nil {
 			return err

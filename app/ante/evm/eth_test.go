@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -121,9 +123,9 @@ func (suite *AnteTestSuite) TestNewExternalOwnedAccountVerificationDecorator() {
 
 				baseVestingAcc := &vestingtypes.BaseVestingAccount{
 					BaseAccount:      acc.(*authtypes.BaseAccount),
-					OriginalVesting:  sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdk.NewInt(amount))),
-					DelegatedFree:    sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdk.NewInt(0))),
-					DelegatedVesting: sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdk.NewInt(0))),
+					OriginalVesting:  sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(amount))),
+					DelegatedFree:    sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(0))),
+					DelegatedVesting: sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(0))),
 					EndTime:          ctx.BlockTime().Add(99 * 365 * 24 * time.Hour).Unix(),
 				}
 				suite.app.AccountKeeper.SetAccount(ctx, &vestingtypes.DelayedVestingAccount{
@@ -494,7 +496,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 			func(ctx sdk.Context) {
 				balance := suite.app.BankKeeper.GetBalance(ctx, sdk.AccAddress(addr.Bytes()), constants.BaseDenom)
 				suite.Require().True(
-					balance.Amount.LT(sdk.NewInt(1e16)),
+					balance.Amount.LT(sdkmath.NewInt(1e16)),
 					"the fees are paid using the available balance, so it should be lower than the initial balance",
 				)
 			},

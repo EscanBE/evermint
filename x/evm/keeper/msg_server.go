@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/EscanBE/evermint/v12/utils"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -65,7 +67,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 
 			// Observe which users define a gas limit >> gas used. Note, that
 			// gas_limit and gas_used are always > 0
-			gasLimit := sdk.NewDec(int64(tx.Gas()))
+			gasLimit := sdkmath.LegacyNewDec(int64(tx.Gas()))
 			gasRatio, err := gasLimit.QuoInt64(int64(response.GasUsed)).Float64()
 			if err == nil {
 				telemetry.SetGaugeWithLabels(

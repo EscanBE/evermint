@@ -18,7 +18,7 @@ import (
 
 var DefaultFee = sdk.NewCoin(
 	constants.BaseDenom,
-	sdk.NewIntFromUint64(uint64(math.Pow10(16))), // 0.01
+	sdkmath.NewIntFromUint64(uint64(math.Pow10(16))), // 0.01
 )
 
 // CosmosTxArgs contains the params to create a cosmos tx

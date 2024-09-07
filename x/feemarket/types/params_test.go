@@ -33,7 +33,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		},
 		{
 			name:     "valid",
-			params:   NewParams(false, 2000000000, sdk.NewDecWithPrec(20, 4)),
+			params:   NewParams(false, 2000000000, sdkmath.LegacyNewDecWithPrec(20, 4)),
 			expError: false,
 		},
 		{
@@ -46,7 +46,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			params: Params{
 				NoBaseFee:   true,
 				BaseFee:     nil,
-				MinGasPrice: sdk.NewDecWithPrec(20, 4),
+				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
 			},
 			expError: false,
 		},
@@ -55,7 +55,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			params: Params{
 				NoBaseFee:   true,
 				BaseFee:     &sdkmath.Int{},
-				MinGasPrice: sdk.NewDecWithPrec(20, 4),
+				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
 			},
 			expError: false,
 		},
@@ -64,7 +64,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			params: Params{
 				NoBaseFee:   false,
 				BaseFee:     nil,
-				MinGasPrice: sdk.NewDecWithPrec(20, 4),
+				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
 			},
 			expError: true,
 		},
@@ -73,7 +73,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			params: Params{
 				NoBaseFee:   false,
 				BaseFee:     &sdkmath.Int{},
-				MinGasPrice: sdk.NewDecWithPrec(20, 4),
+				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
 			},
 			expError: true,
 		},
@@ -82,7 +82,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			params: Params{
 				NoBaseFee:   false,
 				BaseFee:     &minus1,
-				MinGasPrice: sdk.NewDecWithPrec(20, 4),
+				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
 			},
 			expError: true,
 		},
@@ -91,7 +91,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			params: Params{
 				NoBaseFee:   true,
 				BaseFee:     &minus1,
-				MinGasPrice: sdk.NewDecWithPrec(20, 4),
+				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
 			},
 			expError: true,
 		},
@@ -100,13 +100,13 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			params: Params{
 				NoBaseFee:   true,
 				BaseFee:     &one,
-				MinGasPrice: sdk.NewDecWithPrec(20, 4),
+				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
 			},
 			expError: true,
 		},
 		{
 			name:     "invalid: min gas price negative",
-			params:   NewParams(true, 2000000000, sdk.NewDecFromInt(sdkmath.NewInt(-1))),
+			params:   NewParams(true, 2000000000, sdkmath.LegacyNewDecFromInt(sdkmath.NewInt(-1))),
 			expError: true,
 		},
 	}
@@ -141,13 +141,13 @@ func (suite *ParamsTestSuite) TestParamsValidateMinGasPrice() {
 		expError bool
 	}{
 		{"default", DefaultParams().MinGasPrice, false},
-		{"valid", sdk.NewDecFromInt(sdkmath.NewInt(1)), false},
+		{"valid", sdkmath.LegacyNewDecFromInt(sdkmath.NewInt(1)), false},
 		{"invalid - wrong type - bool", false, true},
 		{"invalid - wrong type - string", "", true},
 		{"invalid - wrong type - int64", int64(123), true},
 		{"invalid - wrong type - sdkmath.Int", sdkmath.NewInt(1), true},
 		{"invalid - is nil", nil, true},
-		{"invalid - is negative", sdk.NewDecFromInt(sdkmath.NewInt(-1)), true},
+		{"invalid - is negative", sdkmath.LegacyNewDecFromInt(sdkmath.NewInt(-1)), true},
 	}
 
 	for _, tc := range testCases {

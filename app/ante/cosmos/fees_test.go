@@ -21,9 +21,9 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 		addr, priv = testutiltx.NewAccAddressAndKey()
 		// fee granter
 		fgAddr, _   = testutiltx.NewAccAddressAndKey()
-		initBalance = sdk.NewInt(1e18)
+		initBalance = sdkmath.NewInt(1e18)
 		lowGasPrice = sdkmath.NewInt(1)
-		zero        = sdk.ZeroInt()
+		zero        = sdkmath.ZeroInt()
 	)
 
 	// Testcase definitions
@@ -84,7 +84,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			malleate: func() {
 				suite.ctx = suite.ctx.WithMinGasPrices(
 					sdk.NewDecCoins(
-						sdk.NewDecCoin(constants.BaseDenom, sdk.NewInt(10_000)),
+						sdk.NewDecCoin(constants.BaseDenom, sdkmath.NewInt(10_000)),
 					),
 				)
 			},
@@ -117,7 +117,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			malleate: func() {
 				suite.ctx = suite.ctx.WithMinGasPrices(
 					sdk.NewDecCoins(
-						sdk.NewDecCoin(constants.BaseDenom, sdk.NewInt(100)),
+						sdk.NewDecCoin(constants.BaseDenom, sdkmath.NewInt(100)),
 					),
 				)
 			},
