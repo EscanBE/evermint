@@ -4,6 +4,8 @@ package demo
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/EscanBE/evermint/v12/integration_test_util"
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -91,7 +93,7 @@ func (suite *DemoTestSuite) testEnsureStateResetEachTest() {
 		suite.CITS.TestConfig.InitBalanceAmount, balanceBefore.Amount,
 		"balance must be reset to default each test",
 	)
-	suite.True(balanceBefore.Amount.GT(sdk.ZeroInt()), "balance must be reset to default each test")
+	suite.True(balanceBefore.Amount.GT(sdkmath.ZeroInt()), "balance must be reset to default each test")
 
 	// change balance
 	err := suite.CITS.TxSend(wallet1, suite.CITS.WalletAccounts.Number(2), 0.1)

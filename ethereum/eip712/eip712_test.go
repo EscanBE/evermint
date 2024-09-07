@@ -6,11 +6,11 @@ import (
 	"testing"
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
+	"github.com/EscanBE/evermint/v12/app/params"
 	"github.com/EscanBE/evermint/v12/constants"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 
-	simappparams "cosmossdk.io/simapp/params"
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -43,7 +43,7 @@ const (
 type EIP712TestSuite struct {
 	suite.Suite
 
-	config                   simappparams.EncodingConfig
+	config                   params.EncodingConfig
 	clientCtx                client.Context
 	useLegacyEIP712TypedData bool
 	denom                    string
@@ -100,7 +100,7 @@ func (suite *EIP712TestSuite) createTestKeyPair() (*ethsecp256k1.PrivKey, *ethse
 }
 
 // makeCoins helps create an instance of sdk.Coins[] with single coin
-func (suite *EIP712TestSuite) makeCoins(denom string, amount math.Int) sdk.Coins {
+func (suite *EIP712TestSuite) makeCoins(denom string, amount sdkmath.Int) sdk.Coins {
 	return sdk.NewCoins(
 		sdk.NewCoin(
 			denom,
@@ -117,9 +117,9 @@ func (suite *EIP712TestSuite) TestEIP712() {
 		signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
 	}
 
-	params := EIP712TestParams{
+	testParams := EIP712TestParams{
 		fee: txtypes.Fee{
-			Amount:   suite.makeCoins(suite.denom, math.NewInt(2000)),
+			Amount:   suite.makeCoins(suite.denom, sdkmath.NewInt(2000)),
 			GasLimit: 20000,
 		},
 		address:       suite.createTestAddress(),
@@ -141,7 +141,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 				banktypes.NewMsgSend(
 					suite.createTestAddress(),
 					suite.createTestAddress(),
-					suite.makeCoins(suite.denom, math.NewInt(1)),
+					suite.makeCoins(suite.denom, sdkmath.NewInt(1)),
 				),
 			},
 			expectSuccess: true,
@@ -163,7 +163,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 				stakingtypes.NewMsgDelegate(
 					suite.createTestAddress(),
 					sdk.ValAddress(suite.createTestAddress()),
-					suite.makeCoins(suite.denom, math.NewInt(1))[0],
+					suite.makeCoins(suite.denom, sdkmath.NewInt(1))[0],
 				),
 			},
 			expectSuccess: true,
@@ -182,14 +182,14 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			title: "Succeeds - Two Single-Signer MsgDelegate",
 			msgs: []sdk.Msg{
 				stakingtypes.NewMsgDelegate(
-					params.address,
+					testParams.address,
 					sdk.ValAddress(suite.createTestAddress()),
-					suite.makeCoins(suite.denom, math.NewInt(1))[0],
+					suite.makeCoins(suite.denom, sdkmath.NewInt(1))[0],
 				),
 				stakingtypes.NewMsgDelegate(
-					params.address,
+					testParams.address,
 					sdk.ValAddress(suite.createTestAddress()),
-					suite.makeCoins(suite.denom, math.NewInt(5))[0],
+					suite.makeCoins(suite.denom, sdkmath.NewInt(5))[0],
 				),
 			},
 			expectSuccess: true,
@@ -198,7 +198,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			title: "Succeeds - Single-Signer MsgVote V1 with Omitted Value",
 			msgs: []sdk.Msg{
 				govtypesv1.NewMsgVote(
-					params.address,
+					testParams.address,
 					5,
 					govtypesv1.VoteOption_VOTE_OPTION_NO,
 					"",
@@ -210,14 +210,14 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			title: "Succeeds - Single-Signer MsgSend + MsgVote",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
-					params.address,
+					testParams.address,
 					5,
 					govtypes.OptionNo,
 				),
 				banktypes.NewMsgSend(
-					params.address,
+					testParams.address,
 					suite.createTestAddress(),
-					suite.makeCoins(suite.denom, math.NewInt(50)),
+					suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
 				),
 			},
 			expectSuccess: !suite.useLegacyEIP712TypedData,
@@ -226,13 +226,13 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			title: "Succeeds - Single-Signer 2x MsgVoteV1 with Different Schemas",
 			msgs: []sdk.Msg{
 				govtypesv1.NewMsgVote(
-					params.address,
+					testParams.address,
 					5,
 					govtypesv1.VoteOption_VOTE_OPTION_NO,
 					"",
 				),
 				govtypesv1.NewMsgVote(
-					params.address,
+					testParams.address,
 					10,
 					govtypesv1.VoteOption_VOTE_OPTION_YES,
 					"Has Metadata",
@@ -292,21 +292,21 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					[]banktypes.Input{
 						banktypes.NewInput(
 							suite.createTestAddress(),
-							suite.makeCoins(suite.denom, math.NewInt(50)),
+							suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
 						),
 						banktypes.NewInput(
 							suite.createTestAddress(),
-							suite.makeCoins(suite.denom, math.NewInt(50)),
+							suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
 						),
 					},
 					[]banktypes.Output{
 						banktypes.NewOutput(
 							suite.createTestAddress(),
-							suite.makeCoins(suite.denom, math.NewInt(50)),
+							suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
 						),
 						banktypes.NewOutput(
 							suite.createTestAddress(),
-							suite.makeCoins(suite.denom, math.NewInt(50)),
+							suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
 						),
 					},
 				),
@@ -322,13 +322,13 @@ func (suite *EIP712TestSuite) TestEIP712() {
 
 				txBuilder := suite.clientCtx.TxConfig.NewTxBuilder()
 
-				txBuilder.SetGasLimit(params.fee.GasLimit)
-				txBuilder.SetFeeAmount(params.fee.Amount)
+				txBuilder.SetGasLimit(testParams.fee.GasLimit)
+				txBuilder.SetFeeAmount(testParams.fee.Amount)
 
 				err := txBuilder.SetMsgs(tc.msgs...)
 				suite.Require().NoError(err)
 
-				txBuilder.SetMemo(params.memo)
+				txBuilder.SetMemo(testParams.memo)
 
 				// Prepare signature field with empty signatures
 				txSigData := signing.SingleSignatureData{
@@ -338,7 +338,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 				txSig := signing.SignatureV2{
 					PubKey:   pubKey,
 					Data:     &txSigData,
-					Sequence: params.sequence,
+					Sequence: testParams.sequence,
 				}
 
 				err = txBuilder.SetSignatures([]signing.SignatureV2{txSig}...)
@@ -355,8 +355,8 @@ func (suite *EIP712TestSuite) TestEIP712() {
 
 				signerData := authsigning.SignerData{
 					ChainID:       chainID,
-					AccountNumber: params.accountNumber,
-					Sequence:      params.sequence,
+					AccountNumber: testParams.accountNumber,
+					Sequence:      testParams.sequence,
 					PubKey:        pubKey,
 					Address:       sdk.MustBech32ifyAddressBytes(constants.Bech32Prefix, pubKey.Bytes()),
 				}

@@ -3,8 +3,15 @@ package backend
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
+
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	"github.com/cometbft/cometbft/proto/tendermint/crypto"
 )
+
+func init() {
+	feemarkettypes.DefaultMinGasPrice = sdkmath.LegacyZeroDec()
+}
 
 func mookProofs(num int, withData bool) *crypto.ProofOps {
 	var proofOps *crypto.ProofOps

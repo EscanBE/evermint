@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"context"
 
-	simappparams "cosmossdk.io/simapp/params"
+	sdkmath "cosmossdk.io/math"
+
+	params "github.com/EscanBE/evermint/v12/app/params"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -39,7 +42,7 @@ var (
 var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 	var (
 		receiverAccAddr sdk.AccAddress
-		encodingConfig  simappparams.EncodingConfig
+		encodingConfig  params.EncodingConfig
 		kr              keyring.Keyring
 		mockedIn        sdktestutil.BufferReader
 		clientCtx       client.Context
@@ -173,7 +176,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 						s.app.BankKeeper,
 						s.accAddr,
 						sdk.NewCoins(
-							sdk.NewCoin(constants.BaseDenom, sdk.NewInt(100000000000000)),
+							sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(100000000000000)),
 						),
 					)
 					s.Require().NoError(err)
@@ -198,7 +201,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 					cmd.SetArgs([]string{
 						ledgerKey,
 						receiverAccAddr.String(),
-						sdk.NewCoin(constants.BaseDenom, sdk.NewInt(1000)).String(),
+						sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(1000)).String(),
 						s.FormatFlag(flags.FlagUseLedger),
 						s.FormatFlag(flags.FlagSkipConfirmation),
 					})
@@ -216,7 +219,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 					cmd.SetArgs([]string{
 						ledgerKey,
 						receiverAccAddr.String(),
-						sdk.NewCoin(constants.BaseDenom, sdk.NewInt(1000)).String(),
+						sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(1000)).String(),
 						s.FormatFlag(flags.FlagUseLedger),
 						s.FormatFlag(flags.FlagSkipConfirmation),
 					})

@@ -3,6 +3,8 @@ package testutil
 import (
 	"strconv"
 
+	sdkmath "cosmossdk.io/math"
+
 	errorsmod "cosmossdk.io/errors"
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -26,7 +28,7 @@ func SubmitProposal(
 	accountAddress := sdk.AccAddress(pk.PubKey().Address().Bytes())
 	stakeDenom := stakingtypes.DefaultParams().BondDenom
 
-	deposit := sdk.NewCoins(sdk.NewCoin(stakeDenom, sdk.NewInt(100000000)))
+	deposit := sdk.NewCoins(sdk.NewCoin(stakeDenom, sdkmath.NewInt(100000000)))
 	msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, accountAddress)
 	if err != nil {
 		return id, err

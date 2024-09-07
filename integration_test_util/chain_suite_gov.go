@@ -5,6 +5,8 @@ import (
 	"math"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
+
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govv1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -15,7 +17,7 @@ import (
 func (suite *ChainIntegrationTestSuite) TxFullGov(proposer *itutiltypes.TestAccount, newProposalContent govtypeslegacy.Content) uint64 {
 	suite.Require().NotNil(proposer)
 
-	depositAmount := sdk.NewInt(int64(0.1 * math.Pow10(18)))
+	depositAmount := sdkmath.NewInt(int64(0.1 * math.Pow10(18)))
 	msg, err := govtypeslegacy.NewMsgSubmitProposal(newProposalContent, sdk.NewCoins(
 		sdk.NewCoin(suite.ChainConstantsConfig.GetMinDenom(), depositAmount),
 	), proposer.GetCosmosAddress())

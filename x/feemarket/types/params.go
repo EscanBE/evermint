@@ -10,7 +10,7 @@ import (
 )
 
 // DefaultMinGasPrice is 0 (i.e disabled)
-var DefaultMinGasPrice = sdk.ZeroDec()
+var DefaultMinGasPrice = sdkmath.LegacyZeroDec()
 
 // Parameter keys
 var (

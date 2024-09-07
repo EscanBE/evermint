@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -22,7 +24,7 @@ import (
 )
 
 func (suite *BackendTestSuite) TestBaseFee() {
-	baseFee := sdk.NewInt(1)
+	baseFee := sdkmath.NewInt(1)
 
 	testCases := []struct {
 		name         string
@@ -299,7 +301,7 @@ func (suite *BackendTestSuite) TestGlobalMinGasPrice() {
 				feeMarketCleint := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
 				RegisterFeeMarketParamsError(feeMarketCleint, int64(1))
 			},
-			sdk.ZeroDec(),
+			sdkmath.LegacyZeroDec(),
 			false,
 		},
 	}
@@ -409,7 +411,7 @@ func (suite *BackendTestSuite) TestFeeHistory() {
 		{
 			"pass - Valid FeeHistoryResults object",
 			func(validator sdk.AccAddress) {
-				baseFee := sdk.NewInt(1)
+				baseFee := sdkmath.NewInt(1)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				suite.backend.cfg.JSONRPC.FeeHistoryCap = 2

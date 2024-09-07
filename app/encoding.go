@@ -1,7 +1,6 @@
 package app
 
 import (
-	simappparams "cosmossdk.io/simapp/params"
 	"github.com/EscanBE/evermint/v12/app/params"
 	cryptocodec "github.com/EscanBE/evermint/v12/crypto/codec"
 	evertypes "github.com/EscanBE/evermint/v12/types"
@@ -11,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func RegisterEncodingConfig() simappparams.EncodingConfig {
+func RegisterEncodingConfig() params.EncodingConfig {
 	encodingConfig := params.MakeEncodingConfig()
 
 	RegisterLegacyAminoCodec(encodingConfig.Amino)

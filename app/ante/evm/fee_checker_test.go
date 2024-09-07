@@ -4,6 +4,8 @@ import (
 	"math/big"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	evmante "github.com/EscanBE/evermint/v12/app/ante/evm"
 	"github.com/EscanBE/evermint/v12/constants"
@@ -53,7 +55,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 	//      without extension option
 	//      london hardfork enableness
 	encodingConfig := chainapp.RegisterEncodingConfig()
-	minGasPrices := sdk.NewDecCoins(sdk.NewDecCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(10)))
+	minGasPrices := sdk.NewDecCoins(sdk.NewDecCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(10)))
 
 	genesisCtx := sdk.NewContext(nil, tmproto.Header{}, false, log.NewNopLogger())
 	checkTxCtx := sdk.NewContext(nil, tmproto.Header{Height: 1}, true, log.NewNopLogger()).WithMinGasPrices(minGasPrices)
@@ -97,7 +99,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 			func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder()
 				txBuilder.SetGasLimit(1)
-				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(10))))
+				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(10))))
 				return txBuilder.GetTx()
 			},
 			"10" + constants.BaseDenom,
@@ -139,7 +141,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 			func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder()
 				txBuilder.SetGasLimit(1)
-				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(10))))
+				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(10))))
 				return txBuilder.GetTx()
 			},
 			"10" + constants.BaseDenom,
@@ -155,7 +157,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 			func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder()
 				txBuilder.SetGasLimit(1)
-				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(10).Mul(evmtypes.DefaultPriorityReduction).Add(sdk.NewInt(10)))))
+				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(10).Mul(evmtypes.DefaultPriorityReduction).Add(sdkmath.NewInt(10)))))
 				return txBuilder.GetTx()
 			},
 			"10000010" + constants.BaseDenom,
@@ -171,7 +173,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 			func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder().(authtx.ExtensionOptionsTxBuilder)
 				txBuilder.SetGasLimit(1)
-				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(10).Mul(evmtypes.DefaultPriorityReduction))))
+				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(10).Mul(evmtypes.DefaultPriorityReduction))))
 
 				option, err := codectypes.NewAnyWithValue(&evertypes.ExtensionOptionDynamicFeeTx{})
 				require.NoError(t, err)
@@ -191,10 +193,10 @@ func TestSDKTxFeeChecker(t *testing.T) {
 			func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder().(authtx.ExtensionOptionsTxBuilder)
 				txBuilder.SetGasLimit(1)
-				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(10).Mul(evmtypes.DefaultPriorityReduction).Add(sdk.NewInt(10)))))
+				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(10).Mul(evmtypes.DefaultPriorityReduction).Add(sdkmath.NewInt(10)))))
 
 				option, err := codectypes.NewAnyWithValue(&evertypes.ExtensionOptionDynamicFeeTx{
-					MaxPriorityPrice: sdk.NewInt(5).Mul(evmtypes.DefaultPriorityReduction),
+					MaxPriorityPrice: sdkmath.NewInt(5).Mul(evmtypes.DefaultPriorityReduction),
 				})
 				require.NoError(t, err)
 				txBuilder.SetExtensionOptions(option)
@@ -213,11 +215,11 @@ func TestSDKTxFeeChecker(t *testing.T) {
 			func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder().(authtx.ExtensionOptionsTxBuilder)
 				txBuilder.SetGasLimit(1)
-				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(10).Mul(evmtypes.DefaultPriorityReduction).Add(sdk.NewInt(10)))))
+				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(10).Mul(evmtypes.DefaultPriorityReduction).Add(sdkmath.NewInt(10)))))
 
 				// set negative priority fee
 				option, err := codectypes.NewAnyWithValue(&evertypes.ExtensionOptionDynamicFeeTx{
-					MaxPriorityPrice: sdk.NewInt(-5).Mul(evmtypes.DefaultPriorityReduction),
+					MaxPriorityPrice: sdkmath.NewInt(-5).Mul(evmtypes.DefaultPriorityReduction),
 				})
 				require.NoError(t, err)
 				txBuilder.SetExtensionOptions(option)

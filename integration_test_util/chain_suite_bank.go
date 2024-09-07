@@ -38,7 +38,7 @@ func (suite *ChainIntegrationTestSuite) buildBankSendMsg(from, to *itutiltypes.T
 		ToAddress:   to.GetCosmosAddress().String(),
 		Amount: sdk.Coins{
 			sdk.Coin{
-				Amount: sdk.NewInt(int64(amount * math.Pow10(constants.BaseDenomExponent))),
+				Amount: sdkmath.NewInt(int64(amount * math.Pow10(constants.BaseDenomExponent))),
 				Denom:  suite.ChainConstantsConfig.GetMinDenom(),
 			},
 		},
@@ -65,7 +65,7 @@ func (suite *ChainIntegrationTestSuite) buildMsgEthereumTxTransfer(from, to *itu
 	suite.Require().NotZero(amount)
 
 	toEvmAddr := to.GetEthAddress()
-	amountInt := sdk.NewInt(int64(amount * math.Pow10(constants.BaseDenomExponent)))
+	amountInt := sdkmath.NewInt(int64(amount * math.Pow10(constants.BaseDenomExponent)))
 	return suite.prepareMsgEthereumTx(suite.CurrentContext, from, &toEvmAddr, amountInt.BigInt(), nil, 21000)
 }
 

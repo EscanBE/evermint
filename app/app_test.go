@@ -5,6 +5,8 @@ import (
 	"os"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/app/helpers"
 	"github.com/EscanBE/evermint/v12/constants"
@@ -41,7 +43,7 @@ func TestEvermintExport(t *testing.T) {
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 	balance := banktypes.Balance{
 		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdk.NewInt(100000000000000))),
+		Coins:   sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(100000000000000))),
 	}
 
 	chainID := constants.TestnetFullChainId

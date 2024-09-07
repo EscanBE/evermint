@@ -8,7 +8,7 @@ import (
 	"github.com/EscanBE/evermint/v12/constants"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -56,7 +56,7 @@ var _ = Describe("Feemarket", func() {
 				// 100_000`. With the fee calculation `Fee = (baseFee + tip) * gasLimit`,
 				// a `minGasPrices = 5_000_000_000` results in `minGlobalFee =
 				// 500_000_000_000_000`
-				privKey, _ = setupTestWithContext("1", sdk.NewDec(minGasPrices), sdk.NewInt(baseFee))
+				privKey, _ = setupTestWithContext("1", sdkmath.LegacyNewDec(minGasPrices), sdkmath.NewInt(baseFee))
 			})
 
 			//nolint:all
@@ -134,7 +134,7 @@ var _ = Describe("Feemarket", func() {
 
 // setupTestWithContext sets up a test chain with an example Cosmos send msg,
 // given a local (validator config) and a global (feemarket param) minGasPrice
-func setupTestWithContext(valMinGasPrice string, minGasPrice sdk.Dec, baseFee math.Int) (*ethsecp256k1.PrivKey, banktypes.MsgSend) {
+func setupTestWithContext(valMinGasPrice string, minGasPrice sdk.Dec, baseFee sdkmath.Int) (*ethsecp256k1.PrivKey, banktypes.MsgSend) {
 	privKey, msg := setupTest(valMinGasPrice + s.denom)
 	params := feemarkettypes.DefaultParams()
 	params.MinGasPrice = minGasPrice
@@ -150,7 +150,7 @@ func setupTest(localMinGasPrices string) (*ethsecp256k1.PrivKey, banktypes.MsgSe
 	setupChain(localMinGasPrices)
 
 	address, privKey := utiltx.NewAccAddressAndKey()
-	amount, ok := sdk.NewIntFromString("10000000000000000000")
+	amount, ok := sdkmath.NewIntFromString("10000000000000000000")
 	s.Require().True(ok)
 	initBalance := sdk.Coins{sdk.Coin{
 		Denom:  s.denom,
@@ -164,7 +164,7 @@ func setupTest(localMinGasPrices string) (*ethsecp256k1.PrivKey, banktypes.MsgSe
 		ToAddress:   address.String(),
 		Amount: sdk.Coins{sdk.Coin{
 			Denom:  s.denom,
-			Amount: sdk.NewInt(10000),
+			Amount: sdkmath.NewInt(10000),
 		}},
 	}
 	s.Commit()

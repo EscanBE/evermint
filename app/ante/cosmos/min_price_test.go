@@ -51,7 +51,7 @@ func (suite *AnteTestSuite) TestMinGasPriceDecorator() {
 			"valid cosmos tx with MinGasPrices = 0, gasPrice = 0",
 			func() sdk.Tx {
 				params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
-				params.MinGasPrice = sdk.ZeroDec()
+				params.MinGasPrice = sdkmath.LegacyZeroDec()
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 
@@ -66,7 +66,7 @@ func (suite *AnteTestSuite) TestMinGasPriceDecorator() {
 			"valid cosmos tx with MinGasPrices = 0, gasPrice > 0",
 			func() sdk.Tx {
 				params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
-				params.MinGasPrice = sdk.ZeroDec()
+				params.MinGasPrice = sdkmath.LegacyZeroDec()
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 
@@ -81,7 +81,7 @@ func (suite *AnteTestSuite) TestMinGasPriceDecorator() {
 			"valid cosmos tx with MinGasPrices = 10, gasPrice = 10",
 			func() sdk.Tx {
 				params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
-				params.MinGasPrice = sdk.NewDec(10)
+				params.MinGasPrice = sdkmath.LegacyNewDec(10)
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 
@@ -96,7 +96,7 @@ func (suite *AnteTestSuite) TestMinGasPriceDecorator() {
 			"invalid cosmos tx with MinGasPrices = 10, gasPrice = 0",
 			func() sdk.Tx {
 				params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
-				params.MinGasPrice = sdk.NewDec(10)
+				params.MinGasPrice = sdkmath.LegacyNewDec(10)
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 
@@ -111,7 +111,7 @@ func (suite *AnteTestSuite) TestMinGasPriceDecorator() {
 			name: "invalid cosmos tx with wrong denom",
 			malleate: func() sdk.Tx {
 				params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
-				params.MinGasPrice = sdk.NewDec(10)
+				params.MinGasPrice = sdkmath.LegacyNewDec(10)
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 
@@ -126,7 +126,7 @@ func (suite *AnteTestSuite) TestMinGasPriceDecorator() {
 			name: "valid cosmos tx but wrong fee denom",
 			malleate: func() sdk.Tx {
 				params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
-				params.MinGasPrice = sdk.NewDec(10)
+				params.MinGasPrice = sdkmath.LegacyNewDec(10)
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 
@@ -142,7 +142,7 @@ func (suite *AnteTestSuite) TestMinGasPriceDecorator() {
 			name: "valid cosmos tx, multiple fee and contains at least one is wrong fee denom",
 			malleate: func() sdk.Tx {
 				params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
-				params.MinGasPrice = sdk.NewDec(10)
+				params.MinGasPrice = sdkmath.LegacyNewDec(10)
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 
@@ -158,7 +158,7 @@ func (suite *AnteTestSuite) TestMinGasPriceDecorator() {
 			name: "valid cosmos tx, insufficient fee",
 			malleate: func() sdk.Tx {
 				params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
-				params.MinGasPrice = sdk.NewDec(10)
+				params.MinGasPrice = sdkmath.LegacyNewDec(10)
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 

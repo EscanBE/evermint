@@ -1,6 +1,7 @@
 package config
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"github.com/EscanBE/evermint/v12/constants"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,11 +23,11 @@ func SetBip44CoinType(config *sdk.Config) {
 
 // RegisterDenoms registers the base and display denominations to the SDK.
 func RegisterDenoms() {
-	if err := sdk.RegisterDenom(constants.DisplayDenom, sdk.OneDec()); err != nil {
+	if err := sdk.RegisterDenom(constants.DisplayDenom, sdkmath.LegacyOneDec()); err != nil {
 		panic(err)
 	}
 
-	if err := sdk.RegisterDenom(constants.BaseDenom, sdk.NewDecWithPrec(1, constants.BaseDenomExponent)); err != nil {
+	if err := sdk.RegisterDenom(constants.BaseDenom, sdkmath.LegacyNewDecWithPrec(1, constants.BaseDenomExponent)); err != nil {
 		panic(err)
 	}
 }

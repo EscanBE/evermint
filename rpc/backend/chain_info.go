@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
+
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
@@ -52,7 +54,7 @@ func (b *Backend) ChainConfig() *ethparams.ChainConfig {
 func (b *Backend) GlobalMinGasPrice() (sdk.Dec, error) {
 	res, err := b.queryClient.FeeMarket.Params(b.ctx, &feemarkettypes.QueryParamsRequest{})
 	if err != nil {
-		return sdk.ZeroDec(), err
+		return sdkmath.LegacyZeroDec(), err
 	}
 	return res.Params.MinGasPrice, nil
 }

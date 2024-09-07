@@ -15,10 +15,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/EscanBE/evermint/v12/app/params"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	dbm "github.com/cometbft/cometbft-db"
 	tmcfg "github.com/cometbft/cometbft/config"
 	tmflags "github.com/cometbft/cometbft/libs/cli/flags"
@@ -30,8 +32,6 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
-	"cosmossdk.io/simapp"
-	simappparams "cosmossdk.io/simapp/params"
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -73,25 +73,25 @@ type Config struct {
 	InterfaceRegistry codectypes.InterfaceRegistry
 	TxConfig          client.TxConfig
 	AccountRetriever  client.AccountRetriever
-	AppConstructor    AppConstructor      // the ABCI application constructor
-	GenesisState      simapp.GenesisState // custom gensis state to provide
-	TimeoutCommit     time.Duration       // the consensus commitment timeout
-	AccountTokens     math.Int            // the amount of unique validator tokens (e.g. 1000node0)
-	StakingTokens     math.Int            // the amount of tokens each validator has available to stake
-	BondedTokens      math.Int            // the amount of tokens each validator stakes
-	NumValidators     int                 // the total number of validators to create and bond
-	ChainID           string              // the network chain-id
-	BondDenom         string              // the staking bond denomination
-	MinGasPrices      string              // the minimum gas prices each validator will accept
-	PruningStrategy   string              // the pruning strategy each validator will have
-	SigningAlgo       string              // signing algorithm for keys
-	RPCAddress        string              // RPC listen address (including port)
-	JSONRPCAddress    string              // JSON-RPC listen address (including port)
-	APIAddress        string              // REST API listen address (including port)
-	GRPCAddress       string              // GRPC server listen address (including port)
-	EnableTMLogging   bool                // enable Tendermint logging to STDOUT
-	CleanupDir        bool                // remove base temporary directory during cleanup
-	PrintMnemonic     bool                // print the mnemonic of first validator as log output for testing
+	AppConstructor    AppConstructor        // the ABCI application constructor
+	GenesisState      chainapp.GenesisState // custom gensis state to provide
+	TimeoutCommit     time.Duration         // the consensus commitment timeout
+	AccountTokens     sdkmath.Int           // the amount of unique validator tokens (e.g. 1000node0)
+	StakingTokens     sdkmath.Int           // the amount of tokens each validator has available to stake
+	BondedTokens      sdkmath.Int           // the amount of tokens each validator stakes
+	NumValidators     int                   // the total number of validators to create and bond
+	ChainID           string                // the network chain-id
+	BondDenom         string                // the staking bond denomination
+	MinGasPrices      string                // the minimum gas prices each validator will accept
+	PruningStrategy   string                // the pruning strategy each validator will have
+	SigningAlgo       string                // signing algorithm for keys
+	RPCAddress        string                // RPC listen address (including port)
+	JSONRPCAddress    string                // JSON-RPC listen address (including port)
+	APIAddress        string                // REST API listen address (including port)
+	GRPCAddress       string                // GRPC server listen address (including port)
+	EnableTMLogging   bool                  // enable Tendermint logging to STDOUT
+	CleanupDir        bool                  // remove base temporary directory during cleanup
+	PrintMnemonic     bool                  // print the mnemonic of first validator as log output for testing
 }
 
 // DefaultConfig returns a sane default configuration suitable for nearly all
@@ -124,7 +124,7 @@ func DefaultConfig() Config {
 }
 
 // NewAppConstructor returns a new Evermint AppConstructor
-func NewAppConstructor(encodingCfg simappparams.EncodingConfig) AppConstructor {
+func NewAppConstructor(encodingCfg params.EncodingConfig) AppConstructor {
 	return func(val Validator) servertypes.Application {
 		return chainapp.NewEvermint(
 			val.Ctx.Logger, dbm.NewMemDB(), nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
@@ -414,7 +414,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		genBalances = append(genBalances, banktypes.Balance{Address: addr.String(), Coins: balances.Sort()})
 		genAccounts = append(genAccounts, authtypes.NewBaseAccount(addr, nil, 0, 0))
 
-		commission, err := sdk.NewDecFromStr("0.5")
+		commission, err := sdkmath.LegacyNewDecFromStr("0.5")
 		if err != nil {
 			return nil, err
 		}
@@ -424,8 +424,8 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			valPubKeys[i],
 			sdk.NewCoin(cfg.BondDenom, cfg.BondedTokens),
 			stakingtypes.NewDescription(nodeDirName, "", "", "", ""),
-			stakingtypes.NewCommissionRates(commission, sdk.OneDec(), sdk.OneDec()),
-			sdk.OneInt(),
+			stakingtypes.NewCommissionRates(commission, sdkmath.LegacyOneDec(), sdkmath.LegacyOneDec()),
+			sdkmath.OneInt(),
 		)
 		if err != nil {
 			return nil, err
@@ -437,7 +437,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		}
 
 		memo := fmt.Sprintf("%s@%s:%s", nodeIDs[i], p2pURL.Hostname(), p2pURL.Port())
-		fee := sdk.NewCoins(sdk.NewCoin(cfg.BondDenom, sdk.NewInt(0)))
+		fee := sdk.NewCoins(sdk.NewCoin(cfg.BondDenom, sdkmath.NewInt(0)))
 		txBuilder := cfg.TxConfig.NewTxBuilder()
 		err = txBuilder.SetMsgs(createValMsg)
 		if err != nil {

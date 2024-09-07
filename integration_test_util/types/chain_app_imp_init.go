@@ -8,10 +8,9 @@ import (
 	"strings"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
-	"cosmossdk.io/simapp"
-	simappparams "cosmossdk.io/simapp/params"
+	"github.com/EscanBE/evermint/v12/app/params"
 
+	sdkmath "cosmossdk.io/math"
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	itutilutils "github.com/EscanBE/evermint/v12/integration_test_util/utils"
@@ -57,7 +56,7 @@ var defaultConsensusParams = &tmtypes.ConsensusParams{
 
 const TendermintGovVotingPeriod = 5 * time.Second
 
-func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestConfig, encCfg simappparams.EncodingConfig, db *MemDB, validatorAccounts TestAccounts, walletAccounts TestAccounts, genesisAccountBalance sdk.Coins, tempHolder *TemporaryHolder, logger log.Logger) (chainApp ChainApp, tendermintApp TendermintApp, validatorSet *tmtypes.ValidatorSet) {
+func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestConfig, encCfg params.EncodingConfig, db *MemDB, validatorAccounts TestAccounts, walletAccounts TestAccounts, genesisAccountBalance sdk.Coins, tempHolder *TemporaryHolder, logger log.Logger) (chainApp ChainApp, tendermintApp TendermintApp, validatorSet *tmtypes.ValidatorSet) {
 	defaultNodeHome := chainapp.DefaultNodeHome
 	moduleBasics := chainapp.ModuleBasics
 
@@ -189,7 +188,7 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 	return cai, tendermintApp, valSet
 }
 
-func genesisStateWithValSet(chainCfg ChainConfig, disableTendermint bool, testConfig TestConfig, codec codec.Codec, genesisState simapp.GenesisState, valSet *tmtypes.ValidatorSet, genesisValidatorAccounts []authtypes.GenesisAccount, genesisWalletAccounts []authtypes.GenesisAccount, balances []banktypes.Balance, signingInfos []slashingtypes.SigningInfo) simapp.GenesisState {
+func genesisStateWithValSet(chainCfg ChainConfig, disableTendermint bool, testConfig TestConfig, codec codec.Codec, genesisState chainapp.GenesisState, valSet *tmtypes.ValidatorSet, genesisValidatorAccounts []authtypes.GenesisAccount, genesisWalletAccounts []authtypes.GenesisAccount, balances []banktypes.Balance, signingInfos []slashingtypes.SigningInfo) chainapp.GenesisState {
 	genesisAccounts := append(genesisValidatorAccounts, genesisWalletAccounts...)
 
 	// set genesis accounts
@@ -222,15 +221,15 @@ func genesisStateWithValSet(chainCfg ChainConfig, disableTendermint bool, testCo
 			Jailed:            false,
 			Status:            stakingtypes.Bonded,
 			Tokens:            bondAmt,
-			DelegatorShares:   sdk.OneDec(),
+			DelegatorShares:   sdkmath.LegacyOneDec(),
 			Description:       stakingtypes.Description{},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
-			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-			MinSelfDelegation: sdk.OneInt(),
+			Commission:        stakingtypes.NewCommission(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
+			MinSelfDelegation: sdkmath.OneInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genesisValidatorAccounts[i].GetAddress(), val.Address.Bytes(), sdk.OneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genesisValidatorAccounts[i].GetAddress(), val.Address.Bytes(), sdkmath.LegacyOneDec()))
 
 		totalSupply = totalSupply.Add(sdk.NewCoin(chainCfg.BaseDenom, bondAmt))
 	}

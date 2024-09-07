@@ -3,6 +3,8 @@ package evm
 import (
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -83,10 +85,10 @@ func (empd EthMinGasPriceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 			feeAmt = msgEthTx.GetEffectiveFee(baseFee)
 		}
 
-		gasLimit := sdk.NewDecFromBigInt(new(big.Int).SetUint64(msgEthTx.GetGas()))
+		gasLimit := sdkmath.LegacyNewDecFromBigInt(new(big.Int).SetUint64(msgEthTx.GetGas()))
 
 		requiredFee := minGasPrice.Mul(gasLimit)
-		fee := sdk.NewDecFromBigInt(feeAmt)
+		fee := sdkmath.LegacyNewDecFromBigInt(feeAmt)
 
 		if fee.LT(requiredFee) {
 			return ctx, errorsmod.Wrapf(
@@ -123,8 +125,8 @@ func (mfd EthMempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
-		fee := sdk.NewDecFromBigInt(msgEthTx.GetFee())
-		gasLimit := sdk.NewDecFromBigInt(new(big.Int).SetUint64(msgEthTx.GetGas()))
+		fee := sdkmath.LegacyNewDecFromBigInt(msgEthTx.GetFee())
+		gasLimit := sdkmath.LegacyNewDecFromBigInt(new(big.Int).SetUint64(msgEthTx.GetGas()))
 		requiredFee := minGasPrice.Mul(gasLimit)
 
 		if fee.LT(requiredFee) {

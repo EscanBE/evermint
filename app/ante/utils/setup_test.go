@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
-	"cosmossdk.io/simapp"
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/app/ante"
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
@@ -42,7 +41,7 @@ type AnteTestSuite struct {
 func (suite *AnteTestSuite) SetupTest() {
 	checkTx := false
 
-	suite.app = helpers.EthSetup(checkTx, func(app *chainapp.Evermint, genesis simapp.GenesisState) simapp.GenesisState {
+	suite.app = helpers.EthSetup(checkTx, func(app *chainapp.Evermint, genesis chainapp.GenesisState) chainapp.GenesisState {
 		if suite.enableFeemarket {
 			// setup feemarketGenesis params
 			feemarketGenesis := feemarkettypes.DefaultGenesisState()
@@ -71,7 +70,7 @@ func (suite *AnteTestSuite) SetupTest() {
 	})
 
 	suite.ctx = suite.app.BaseApp.NewContext(checkTx, tmproto.Header{Height: 1, ChainID: constants.TestnetFullChainId, Time: time.Now().UTC()})
-	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(evmtypes.DefaultEVMDenom, sdk.OneInt())))
+	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(evmtypes.DefaultEVMDenom, sdkmath.OneInt())))
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1000000000000000000))
 	suite.app.EvmKeeper.WithChainID(suite.ctx)
 

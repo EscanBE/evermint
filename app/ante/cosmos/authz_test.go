@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/EscanBE/evermint/v12/app/ante"
 	"github.com/EscanBE/evermint/v12/constants"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -428,7 +430,7 @@ func (suite *AnteTestSuite) TestRejectMsgsInAuthz() {
 			)
 
 			if tc.isEIP712 {
-				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdk.NewInt(20))
+				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				fees := sdk.NewCoins(coinAmount)
 				cosmosTxArgs := utiltx.CosmosTxArgs{
 					TxCfg:   suite.clientCtx.TxConfig,

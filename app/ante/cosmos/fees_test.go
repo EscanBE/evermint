@@ -3,7 +3,7 @@ package cosmos_test
 import (
 	"fmt"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 
 	cosmosante "github.com/EscanBE/evermint/v12/app/ante/cosmos"
 	"github.com/EscanBE/evermint/v12/constants"
@@ -21,17 +21,17 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 		addr, priv = testutiltx.NewAccAddressAndKey()
 		// fee granter
 		fgAddr, _   = testutiltx.NewAccAddressAndKey()
-		initBalance = sdk.NewInt(1e18)
-		lowGasPrice = math.NewInt(1)
-		zero        = sdk.ZeroInt()
+		initBalance = sdkmath.NewInt(1e18)
+		lowGasPrice = sdkmath.NewInt(1)
+		zero        = sdkmath.ZeroInt()
 	)
 
 	// Testcase definitions
 	testcases := []struct {
 		name        string
-		balance     math.Int
+		balance     sdkmath.Int
 		gas         uint64
-		gasPrice    *math.Int
+		gasPrice    *sdkmath.Int
 		feeGranter  sdk.AccAddress
 		checkTx     bool
 		simulate    bool
@@ -84,7 +84,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			malleate: func() {
 				suite.ctx = suite.ctx.WithMinGasPrices(
 					sdk.NewDecCoins(
-						sdk.NewDecCoin(constants.BaseDenom, sdk.NewInt(10_000)),
+						sdk.NewDecCoin(constants.BaseDenom, sdkmath.NewInt(10_000)),
 					),
 				)
 			},
@@ -117,7 +117,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			malleate: func() {
 				suite.ctx = suite.ctx.WithMinGasPrices(
 					sdk.NewDecCoins(
-						sdk.NewDecCoin(constants.BaseDenom, sdk.NewInt(100)),
+						sdk.NewDecCoin(constants.BaseDenom, sdkmath.NewInt(100)),
 					),
 				)
 			},

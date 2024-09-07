@@ -4,14 +4,13 @@ import (
 	sdkmath "cosmossdk.io/math"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 //goland:noinspection SpellCheckingInspection
 
 func (suite *DemoTestSuite) Test_QC_Evm_Balance() {
 	balance := suite.queryEvmBalance(0, suite.CITS.WalletAccounts.Number(1).GetEthAddress().String())
-	suite.Require().True(balance.GT(sdk.ZeroInt()))
+	suite.Require().True(balance.GT(sdkmath.ZeroInt()))
 }
 
 func (suite *DemoTestSuite) Test_QC_Evm_Balance_At_Different_Blocks() {
@@ -21,7 +20,7 @@ func (suite *DemoTestSuite) Test_QC_Evm_Balance_At_Different_Blocks() {
 	senderBalanceBefore := suite.queryEvmBalance(0, sender.GetEthAddress().String())
 	receiverBalanceBefore := suite.queryEvmBalance(0, receiver.GetEthAddress().String())
 
-	suite.Require().Truef(senderBalanceBefore.GT(sdk.ZeroInt()), "sender must have balance")
+	suite.Require().Truef(senderBalanceBefore.GT(sdkmath.ZeroInt()), "sender must have balance")
 
 	contextHeightBeforeSend := suite.CITS.CurrentContext.BlockHeight()
 	suite.Commit()

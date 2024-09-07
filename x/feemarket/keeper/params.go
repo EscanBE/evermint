@@ -3,6 +3,8 @@ package keeper
 import (
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
+
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,7 +22,7 @@ func (k Keeper) GetParams(ctx sdk.Context) (params feemarkettypes.Params) {
 
 	// zero the nil params for legacy blocks
 	if params.MinGasPrice.IsNil() {
-		params.MinGasPrice = sdk.ZeroDec()
+		params.MinGasPrice = sdkmath.LegacyZeroDec()
 	}
 
 	return
@@ -71,7 +73,7 @@ func (k Keeper) SetBaseFee(ctx sdk.Context, baseFee *big.Int) {
 	if baseFee == nil {
 		params.BaseFee = nil
 	} else {
-		baseFeeSdkInt := sdk.NewIntFromBigInt(baseFee)
+		baseFeeSdkInt := sdkmath.NewIntFromBigInt(baseFee)
 		params.BaseFee = &baseFeeSdkInt
 	}
 	err := k.SetParams(ctx, params)

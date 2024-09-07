@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
@@ -257,7 +259,7 @@ func (suite *BackendTestSuite) TestSetEtherbase() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 
-				c := sdk.NewDecCoin(constants.BaseDenom, sdk.NewIntFromBigInt(big.NewInt(1)))
+				c := sdk.NewDecCoin(constants.BaseDenom, sdkmath.NewIntFromBigInt(big.NewInt(1)))
 				suite.backend.cfg.SetMinGasPrices(sdk.DecCoins{c})
 				delAddr, _ := suite.backend.GetCoinbase()
 				// account, _ := suite.backend.clientCtx.AccountRetriever.GetAccount(suite.backend.clientCtx, delAddr)
@@ -282,7 +284,7 @@ func (suite *BackendTestSuite) TestSetEtherbase() {
 		//		queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 		//		RegisterStatus(client)
 		//		RegisterValidatorAccount(queryClient, suite.acc)
-		//		c := sdk.NewDecCoin(constants.BaseDenom, sdk.NewIntFromBigInt(big.NewInt(1)))
+		//		c := sdk.NewDecCoin(constants.BaseDenom, sdkmath.NewIntFromBigInt(big.NewInt(1)))
 		//		suite.backend.cfg.SetMinGasPrices(sdk.DecCoins{c})
 		//		delAddr, _ := suite.backend.GetCoinbase()
 		//		account, _ := suite.backend.clientCtx.AccountRetriever.GetAccount(suite.backend.clientCtx, delAddr)

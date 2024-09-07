@@ -67,6 +67,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (rpc+indexer) [#138](https://github.com/EscanBE/evermint/pull/138) Improve check txs dropped pre-AnteHandle
 - (rpc) [#142](https://github.com/EscanBE/evermint/pull/142) Support flag `--allow-insecure-unlock` to protect local accounts on node
 - (refactor) [#146](https://github.com/EscanBE/evermint/pull/146) Refactor application
+- (deps) [#147](https://github.com/EscanBE/evermint/pull/147) Minor dependency refactor, remove `cosmossdk.io/simapp`
 
 ### Bug Fixes
 

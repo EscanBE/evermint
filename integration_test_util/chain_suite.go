@@ -16,7 +16,9 @@ import (
 	"time"
 	"unsafe"
 
-	simappparams "cosmossdk.io/simapp/params"
+	sdkmath "cosmossdk.io/math"
+
+	"github.com/EscanBE/evermint/v12/app/params"
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
@@ -62,7 +64,7 @@ import (
 )
 
 func init() {
-	feemarkettypes.DefaultMinGasPrice = sdk.ZeroDec()
+	feemarkettypes.DefaultMinGasPrice = sdkmath.LegacyZeroDec()
 }
 
 // ChainIntegrationTestSuite is a helper for Chain integration test.
@@ -76,7 +78,7 @@ type ChainIntegrationTestSuite struct {
 	useKeyring           bool
 	tempHolder           *itutiltypes.TemporaryHolder
 	logger               log.Logger
-	EncodingConfig       simappparams.EncodingConfig
+	EncodingConfig       params.EncodingConfig
 	ChainConstantsConfig itutiltypes.ChainConstantConfig
 	DB                   *itutiltypes.MemDB
 	TendermintApp        itutiltypes.TendermintApp
@@ -139,8 +141,8 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 				Exponent: 8,
 			},
 		},
-		InitBalanceAmount: sdk.NewInt(int64(balancePerAccount * math.Pow10(18))),
-		DefaultFeeAmount:  sdk.NewInt(int64(math.Pow10(16))),
+		InitBalanceAmount: sdkmath.NewInt(int64(balancePerAccount * math.Pow10(18))),
+		DefaultFeeAmount:  sdkmath.NewInt(int64(math.Pow10(16))),
 		DisableTendermint: disableTendermint,
 	}
 
