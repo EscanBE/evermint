@@ -11,9 +11,9 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 	cosmosed25519 "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 // ChainsIbcIntegrationTestSuite is a wrapper of ChainIntegrationTestSuite for IBC testing.

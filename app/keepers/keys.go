@@ -20,9 +20,9 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	icahosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"

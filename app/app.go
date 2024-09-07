@@ -39,9 +39,9 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
 
 	// unnamed import of statik for swagger UI support
 	_ "github.com/EscanBE/evermint/v12/client/docs/statik"

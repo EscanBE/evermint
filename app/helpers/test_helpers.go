@@ -18,8 +18,8 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/mock"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"

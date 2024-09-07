@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 // QueryDenomHash returns the denom hash of given denom trace information.

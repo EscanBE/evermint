@@ -22,7 +22,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 
 	evertypes "github.com/EscanBE/evermint/v12/types"
 )
