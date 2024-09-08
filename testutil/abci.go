@@ -75,13 +75,14 @@ func DeliverTx(
 	if err != nil {
 		return abci.ExecTxResult{}, err
 	}
-	return BroadcastTxBytes(chainApp, txConfig.TxEncoder(), cosmosTx)
+	return BroadcastTxBytes(ctx, chainApp, txConfig.TxEncoder(), cosmosTx)
 }
 
 // DeliverEthTx generates and broadcasts a Cosmos Tx populated with MsgEthereumTx messages.
 // If a private key is provided, it will attempt to sign all messages with the given private key,
 // otherwise, it will assume the messages have already been signed.
 func DeliverEthTx(
+	ctx sdk.Context,
 	chainApp *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	msg sdk.Msg,
@@ -92,7 +93,7 @@ func DeliverEthTx(
 	if err != nil {
 		return abci.ExecTxResult{}, err
 	}
-	return BroadcastTxBytes(chainApp, txConfig.TxEncoder(), ethTx)
+	return BroadcastTxBytes(ctx, chainApp, txConfig.TxEncoder(), ethTx)
 }
 
 // CheckTx checks a cosmos tx for a given set of msgs
@@ -139,7 +140,7 @@ func CheckEthTx(
 }
 
 // BroadcastTxBytes encodes a transaction and calls DeliverTx on the app.
-func BroadcastTxBytes(chainApp *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ExecTxResult, error) {
+func BroadcastTxBytes(ctx sdk.Context, chainApp *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ExecTxResult, error) {
 	// bz are bytes to be broadcasted over the network
 	bz, err := txEncoder(tx)
 	if err != nil {
@@ -147,8 +148,9 @@ func BroadcastTxBytes(chainApp *chainapp.Evermint, txEncoder sdk.TxEncoder, tx s
 	}
 
 	req := abci.RequestFinalizeBlock{
-		Height: chainApp.BaseApp.CommitMultiStore().LatestVersion() + 1, /*finalize current block so we + 1*/
-		Txs:    [][]byte{bz},
+		Height:          chainApp.BaseApp.CommitMultiStore().LatestVersion() + 1, /*finalize current block so we + 1*/
+		Txs:             [][]byte{bz},
+		ProposerAddress: ctx.BlockHeader().ProposerAddress,
 	}
 
 	res, err := chainApp.BaseApp.FinalizeBlock(&req)

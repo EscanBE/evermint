@@ -56,7 +56,7 @@ func DeployContract(
 	})
 	msgEthereumTx.From = sdk.AccAddress(from.Bytes()).String()
 
-	res, err := DeliverEthTx(chainApp, priv, msgEthereumTx)
+	res, err := DeliverEthTx(ctx, chainApp, priv, msgEthereumTx)
 	if err != nil {
 		return common.Address{}, err
 	}
@@ -90,7 +90,7 @@ func DeployContractWithFactory(
 	})
 	msgEthereumTx.From = sdk.AccAddress(from.Bytes()).String()
 
-	res, err := DeliverEthTx(chainApp, priv, msgEthereumTx)
+	res, err := DeliverEthTx(ctx, chainApp, priv, msgEthereumTx)
 	if err != nil {
 		return common.Address{}, abci.ExecTxResult{}, err
 	}
