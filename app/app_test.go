@@ -62,25 +62,22 @@ func TestEvermintExport(t *testing.T) {
 	// Initialize the chain
 	_, err = chainApp.InitChain(
 		&abci.RequestInitChain{
-			ChainId:       chainID,
-			Validators:    []abci.ValidatorUpdate{},
-			AppStateBytes: stateBytes,
+			ChainId:         chainID,
+			Validators:      []abci.ValidatorUpdate{},
+			ConsensusParams: helpers.DefaultConsensusParams,
+			AppStateBytes:   stateBytes,
 		},
 	)
-	if err != nil {
-		panic(err)
-	}
-	_, err = chainApp.Commit()
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 
-	// Making a new app object with the db, so that initchain hasn't been called
-	app2 := chainapp.NewEvermint(
-		log.NewLogger(os.Stdout), db, nil, true, map[int64]bool{}, chainapp.DefaultNodeHome, 0, encodingConfig,
-		simtestutil.NewAppOptionsWithFlagHome(chainapp.DefaultNodeHome),
-		baseapp.SetChainID(chainID),
-	)
-	_, err = app2.ExportAppStateAndValidators(false, []string{}, []string{})
+	_, err = chainApp.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Height:             chainApp.LastBlockHeight() + 1,
+		Hash:               chainApp.LastCommitID().Hash,
+		NextValidatorsHash: valSet.Hash(),
+	})
+	require.NoError(t, err)
+
+	// TODO ES: test export using CLI
+	_, err = chainApp.ExportAppStateAndValidators(true, []string{}, []string{})
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
 }

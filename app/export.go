@@ -216,7 +216,7 @@ func (app *Evermint) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs 
 			_ = iter.Close()
 		}()
 		for ; iter.Valid(); iter.Next() {
-			addr := sdk.ValAddress(iter.Key()[1:])
+			addr := sdk.ValAddress(stakingtypes.AddressFromValidatorsKey(iter.Key()))
 			validator, err := app.StakingKeeper.GetValidator(ctx, addr)
 			if err != nil {
 				panic(errorsmod.Wrapf(err, "expected validator %s not found", addr))
