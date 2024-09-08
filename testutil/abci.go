@@ -1,7 +1,10 @@
 package testutil
 
 import (
+	"cosmossdk.io/store/rootmulti"
+	storetypes "cosmossdk.io/store/types"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -23,9 +26,13 @@ import (
 //  3. EndBlock
 //  4. Commit
 func Commit(ctx sdk.Context, chainApp *chainapp.Evermint, t time.Duration, vs *cmttypes.ValidatorSet) (sdk.Context, error) {
+	ctx = ReflectChangesToCommitMultiStore(ctx, chainApp.BaseApp)
+
 	header := ctx.BlockHeader()
 
-	req := abci.RequestFinalizeBlock{Height: header.Height}
+	req := abci.RequestFinalizeBlock{
+		Height: header.Height,
+	}
 	res, err := chainApp.FinalizeBlock(&req)
 	if err != nil {
 		return ctx, err
@@ -48,7 +55,7 @@ func Commit(ctx sdk.Context, chainApp *chainapp.Evermint, t time.Duration, vs *c
 	header.Time = header.Time.Add(t)
 	header.AppHash = chainApp.LastCommitID().Hash
 
-	return ctx.WithBlockHeader(header), nil
+	return ctx.WithBlockHeader(header).WithMultiStore(chainApp.CommitMultiStore().CacheMultiStore()), nil
 }
 
 // DeliverTx delivers a cosmos tx for a given set of msgs
@@ -167,6 +174,55 @@ func BroadcastTxBytes(ctx sdk.Context, chainApp *chainapp.Evermint, txEncoder sd
 	}
 
 	return *txRes, nil
+}
+
+// ExecAndCommitStoreIfNoError execute a state transition and commit directly to the base app's commit multistore.
+// Since Cosmos-SDK v0.50, the block execution context is maintained internally,
+// that make Commit can not pass context to finalize.
+func ExecAndCommitStoreIfNoError(ctx sdk.Context, baseApp *baseapp.BaseApp, f func() error) (sdk.Context, error) {
+	ms := ctx.MultiStore()
+	if rms, ok := ms.(*rootmulti.Store); ok {
+		ctx = ctx.WithMultiStore(rms.CacheMultiStore())
+	} else if cms, ok := ms.(storetypes.CommitMultiStore); ok {
+		ctx = ctx.WithMultiStore(cms.CacheMultiStore())
+	} else if _, ok := ctx.MultiStore().(storetypes.CacheMultiStore); ok {
+		// ok
+	} else {
+		panic(fmt.Sprintf("not supported multistore type %T", ms))
+	}
+
+	err := f()
+	if err != nil {
+		return ctx.WithMultiStore(ms) /* restore */, err
+	}
+
+	// write to commit multi store
+	ctx.MultiStore().(storetypes.CacheMultiStore).Write()
+
+	// reflect new change to current context
+	return ctx.WithMultiStore(baseApp.CommitMultiStore()), nil
+}
+
+// ReflectChangesToCommitMultiStore commit the current state directly into the base app's commit multistore.
+// Since Cosmos-SDK v0.50, the block execution context is maintained internally,
+// that make Commit can not pass context to finalize.
+func ReflectChangesToCommitMultiStore(ctx sdk.Context, baseApp *baseapp.BaseApp) sdk.Context {
+	ms := ctx.MultiStore()
+	if rms, ok := ms.(*rootmulti.Store); ok {
+		ctx = ctx.WithMultiStore(rms.CacheMultiStore())
+	} else if cms, ok := ms.(storetypes.CommitMultiStore); ok {
+		ctx = ctx.WithMultiStore(cms.CacheMultiStore())
+	} else if _, ok := ctx.MultiStore().(storetypes.CacheMultiStore); ok {
+		// ok
+	} else {
+		panic(fmt.Sprintf("not supported multistore type %T", ms))
+	}
+
+	// write to commit multi store
+	ctx.MultiStore().(storetypes.CacheMultiStore).Write()
+
+	// reflect new change to current context
+	return ctx.WithMultiStore(baseApp.CommitMultiStore())
 }
 
 // checkTxBytes encodes a transaction and calls checkTx on the app.

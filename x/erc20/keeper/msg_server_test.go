@@ -31,69 +31,78 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 		selfdestructed bool
 	}{
 		{
-			"ok - sufficient funds",
-			100,
-			10,
-			func(common.Address) {},
-			func() {},
-			true,
-			false,
+			name:           "ok - sufficient funds",
+			mint:           100,
+			burn:           10,
+			malleate:       func(common.Address) {},
+			extra:          func() {},
+			expPass:        true,
+			selfdestructed: false,
 		},
 		{
-			"ok - equal funds",
-			10,
-			10,
-			func(common.Address) {},
-			func() {},
-			true,
-			false,
+			name:           "ok - equal funds",
+			mint:           10,
+			burn:           10,
+			malleate:       func(common.Address) {},
+			extra:          func() {},
+			expPass:        true,
+			selfdestructed: false,
 		},
 		{
-			"ok - suicided contract",
-			10,
-			10,
-			func(erc20 common.Address) {
+			name: "ok - suicided contract",
+			mint: 10,
+			burn: 10,
+			malleate: func(erc20 common.Address) {
 				stateDB := suite.StateDB()
 				ok := stateDB.Suicide(erc20)
 				suite.Require().True(ok)
 				suite.Require().NoError(stateDB.Commit())
 			},
-			func() {},
-			true,
-			true,
+			extra:          func() {},
+			expPass:        true,
+			selfdestructed: true,
 		},
 		{
-			"fail - insufficient funds",
-			0,
-			10,
-			func(common.Address) {},
-			func() {},
-			false,
-			false,
+			name:           "fail - insufficient funds",
+			mint:           0,
+			burn:           10,
+			malleate:       func(common.Address) {},
+			extra:          func() {},
+			expPass:        false,
+			selfdestructed: false,
 		},
 		{
-			"fail - minting disabled",
-			100,
-			10,
-			func(common.Address) {
+			name: "fail - minting disabled",
+			mint: 100,
+			burn: 10,
+			malleate: func(common.Address) {
 				params := erc20types.DefaultParams()
 				params.EnableErc20 = false
-				suite.app.Erc20Keeper.SetParams(suite.ctx, params) //nolint:errcheck
+				err := suite.app.Erc20Keeper.SetParams(suite.ctx, params)
+				suite.Require().NoError(err)
 			},
-			func() {},
-			false,
-			false,
+			extra:          func() {},
+			expPass:        false,
+			selfdestructed: false,
 		},
 		{
-			"fail - deleted module account - force fail", 100, 10, func(common.Address) {},
-			func() {
+			name:     "fail - deleted module account - force fail",
+			mint:     100,
+			burn:     10,
+			malleate: func(common.Address) {},
+			extra: func() {
 				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, erc20types.ModuleAddress.Bytes())
 				suite.app.AccountKeeper.RemoveAccount(suite.ctx, acc)
-			}, false, false,
+			},
+			expPass:        false,
+			selfdestructed: false,
 		},
-		{ //nolint:dupl
-			"fail - force evm fail", 100, 10, func(common.Address) {},
-			func() { //nolint:dupl
+		{
+			name:     "fail - force evm fail",
+			mint:     100,
+			burn:     10,
+			malleate: func(common.Address) {},
+			extra: func() { //nolint:dupl
 				mockEVMKeeper := &MockEVMKeeper{}
 				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
 					suite.app.GetKey("erc20"), suite.app.AppCodec(),
@@ -107,11 +116,16 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
 				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("forced ApplyMessage error"))
 				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			}, false, false,
+			},
+			expPass:        false,
+			selfdestructed: false,
 		},
 		{
-			"fail - force evm balance error", 100, 10, func(common.Address) {},
-			func() { //nolint:dupl
+			name:     "fail - force evm balance error",
+			mint:     100,
+			burn:     10,
+			malleate: func(common.Address) {},
+			extra: func() { //nolint:dupl
 				mockEVMKeeper := &MockEVMKeeper{}
 				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
 					suite.app.GetKey("erc20"), suite.app.AppCodec(),
@@ -131,11 +145,16 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 				// Extra call on test
 				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, nil)
 				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			}, false, false,
+			},
+			expPass:        false,
+			selfdestructed: false,
 		},
 		{
-			"fail - force balance error", 100, 10, func(common.Address) {},
-			func() {
+			name:     "fail - force balance error",
+			mint:     100,
+			burn:     10,
+			malleate: func(common.Address) {},
+			extra: func() {
 				mockEVMKeeper := &MockEVMKeeper{}
 				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
 					suite.app.GetKey("erc20"), suite.app.AppCodec(),
@@ -148,7 +167,9 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
 				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Times(4)
 				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			}, false, false,
+			},
+			expPass:        false,
+			selfdestructed: false,
 		},
 	}
 	for _, tc := range testCases {
@@ -159,9 +180,9 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 			suite.Require().NotNil(metadataCoin)
 			erc20 := pair.GetERC20Contract()
 			tc.malleate(erc20)
+
 			suite.Commit()
 
-			ctx := sdk.WrapSDKContext(suite.ctx)
 			coins := sdk.NewCoins(sdk.NewCoin(cosmosTokenBase, sdkmath.NewInt(tc.mint)))
 			sender := sdk.AccAddress(suite.address.Bytes())
 			msg := erc20types.NewMsgConvertCoin(
@@ -176,9 +197,11 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 			suite.Require().NoError(err, tc.name)
 
 			tc.extra()
-			res, err := suite.app.Erc20Keeper.ConvertCoin(ctx, msg)
-			expRes := &erc20types.MsgConvertCoinResponse{}
+
+			res, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, msg)
+
 			suite.Commit()
+
 			balance := suite.BalanceOf(common.HexToAddress(pair.Erc20Address), suite.address)
 			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, metadataCoin.Base)
 
@@ -197,7 +220,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 					_, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
 					suite.Require().False(found)
 				} else {
-					suite.Require().Equal(expRes, res)
+					suite.Require().Equal(&erc20types.MsgConvertCoinResponse{}, res)
 					suite.Require().Equal(cosmosBalance.Amount.Int64(), sdkmath.NewInt(tc.mint-tc.burn).Int64())
 					suite.Require().Equal(balance.(*big.Int).Int64(), big.NewInt(tc.burn).Int64())
 				}
@@ -357,7 +380,9 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeCoin() {
 			ctx := sdk.WrapSDKContext(suite.ctx)
 			_, err = suite.app.Erc20Keeper.ConvertCoin(ctx, msg)
 			suite.Require().NoError(err, tc.name)
+
 			suite.Commit()
+
 			balance := suite.BalanceOf(common.HexToAddress(pair.Erc20Address), suite.address)
 			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, metadataCoin.Base)
 			suite.Require().Equal(cosmosBalance.Amount.Int64(), sdkmath.NewInt(tc.mint-tc.burn).Int64())
@@ -374,14 +399,16 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeCoin() {
 			)
 
 			tc.malleate()
+
 			res, err := suite.app.Erc20Keeper.ConvertERC20(ctx, msgConvertERC20)
-			expRes := &erc20types.MsgConvertERC20Response{}
+
 			suite.Commit()
+
 			balance = suite.BalanceOf(contractAddr, suite.address)
 			cosmosBalance = suite.app.BankKeeper.GetBalance(suite.ctx, sender, pair.Denom)
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)
-				suite.Require().Equal(expRes, res)
+				suite.Require().Equal(&erc20types.MsgConvertERC20Response{}, res)
 				suite.Require().Equal(cosmosBalance.Amount.Int64(), sdkmath.NewInt(tc.mint-tc.burn+tc.reconvert).Int64())
 				suite.Require().Equal(balance.(*big.Int).Int64(), big.NewInt(tc.burn-tc.reconvert).Int64())
 			} else {
@@ -695,6 +722,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 
 			tc.malleate(contractAddr)
 			suite.Require().NotNil(contractAddr)
+
 			suite.Commit()
 
 			coinName = erc20types.CreateDenom(contractAddr.String())
@@ -707,14 +735,15 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 			)
 
 			suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(tc.mint))
+
 			suite.Commit()
-			ctx := sdk.WrapSDKContext(suite.ctx)
 
 			tc.extra()
-			res, err := suite.app.Erc20Keeper.ConvertERC20(ctx, msg)
 
-			expRes := &erc20types.MsgConvertERC20Response{}
+			res, err := suite.app.Erc20Keeper.ConvertERC20(suite.ctx, msg)
+
 			suite.Commit()
+
 			balance := suite.BalanceOf(contractAddr, suite.address)
 			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, coinName)
 			if tc.expPass {
@@ -732,7 +761,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 					_, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
 					suite.Require().False(found)
 				} else {
-					suite.Require().Equal(expRes, res)
+					suite.Require().Equal(&erc20types.MsgConvertERC20Response{}, res)
 					suite.Require().Equal(cosmosBalance.Amount, sdkmath.NewInt(tc.transfer))
 					suite.Require().Equal(balance.(*big.Int).Int64(), big.NewInt(tc.mint-tc.transfer).Int64())
 				}
@@ -757,68 +786,68 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 		expPass      bool
 	}{
 		{
-			"ok - sufficient funds",
-			100,
-			10,
-			func(common.Address) {},
-			func() {},
-			contractMinterBurner,
-			true,
+			name:         "ok - sufficient funds",
+			mint:         100,
+			convert:      10,
+			malleate:     func(common.Address) {},
+			extra:        func() {},
+			contractType: contractMinterBurner,
+			expPass:      true,
 		},
 		{
-			"ok - equal funds",
-			100,
-			100,
-			func(common.Address) {},
-			func() {},
-			contractMinterBurner,
-			true,
+			name:         "ok - equal funds",
+			mint:         100,
+			convert:      100,
+			malleate:     func(common.Address) {},
+			extra:        func() {},
+			contractType: contractMinterBurner,
+			expPass:      true,
 		},
 		{
-			"fail - insufficient funds",
-			100,
-			200,
-			func(common.Address) {},
-			func() {},
-			contractMinterBurner,
-			false,
+			name:         "fail - insufficient funds",
+			mint:         100,
+			convert:      200,
+			malleate:     func(common.Address) {},
+			extra:        func() {},
+			contractType: contractMinterBurner,
+			expPass:      false,
 		},
 		{
-			"fail - direct balance manipulation contract",
-			100,
-			10,
-			func(common.Address) {},
-			func() {},
-			contractDirectBalanceManipulation,
-			false,
+			name:         "fail - direct balance manipulation contract",
+			mint:         100,
+			convert:      10,
+			malleate:     func(common.Address) {},
+			extra:        func() {},
+			contractType: contractDirectBalanceManipulation,
+			expPass:      false,
 		},
 		{
-			"fail - malicious delayed contract",
-			100,
-			10,
-			func(common.Address) {},
-			func() {},
-			contractMaliciousDelayed,
-			false,
+			name:         "fail - malicious delayed contract",
+			mint:         100,
+			convert:      10,
+			malleate:     func(common.Address) {},
+			extra:        func() {},
+			contractType: contractMaliciousDelayed,
+			expPass:      false,
 		},
 		{
-			"fail - deleted module address - force fail",
-			100,
-			10,
-			func(common.Address) {},
-			func() {
+			name:     "fail - deleted module address - force fail",
+			mint:     100,
+			convert:  10,
+			malleate: func(common.Address) {},
+			extra: func() {
 				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, erc20types.ModuleAddress.Bytes())
 				suite.app.AccountKeeper.RemoveAccount(suite.ctx, acc)
 			},
-			contractMinterBurner,
-			false,
+			contractType: contractMinterBurner,
+			expPass:      false,
 		},
-		{ //nolint:dupl
-			"fail - force evm fail",
-			100,
-			10,
-			func(common.Address) {},
-			func() { //nolint:dupl
+		{
+			name:     "fail - force evm fail",
+			mint:     100,
+			convert:  10,
+			malleate: func(common.Address) {},
+			extra: func() { //nolint:dupl
 				mockEVMKeeper := &MockEVMKeeper{}
 				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
 					suite.app.GetKey("erc20"), suite.app.AppCodec(),
@@ -833,15 +862,15 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("forced ApplyMessage error"))
 				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
 			},
-			contractMinterBurner,
-			false,
+			contractType: contractMinterBurner,
+			expPass:      false,
 		},
 		{
-			"fail - force invalid transfer",
-			100,
-			10,
-			func(common.Address) {},
-			func() { //nolint:dupl
+			name:     "fail - force invalid transfer",
+			mint:     100,
+			convert:  10,
+			malleate: func(common.Address) {},
+			extra: func() { //nolint:dupl
 				mockEVMKeeper := &MockEVMKeeper{}
 				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
 					suite.app.GetKey("erc20"), suite.app.AppCodec(),
@@ -856,15 +885,15 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, nil)
 				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
 			},
-			contractMinterBurner,
-			false,
+			contractType: contractMinterBurner,
+			expPass:      false,
 		},
 		{
-			"fail - force fail second balance",
-			100,
-			10,
-			func(common.Address) {},
-			func() { //nolint:dupl
+			name:     "fail - force fail second balance",
+			mint:     100,
+			convert:  10,
+			malleate: func(common.Address) {},
+			extra: func() { //nolint:dupl
 				mockEVMKeeper := &MockEVMKeeper{}
 				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
 					suite.app.GetKey("erc20"), suite.app.AppCodec(),
@@ -880,15 +909,15 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("fail second balance"))
 				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
 			},
-			contractMinterBurner,
-			false,
+			contractType: contractMinterBurner,
+			expPass:      false,
 		},
 		{
-			"fail - force fail transfer",
-			100,
-			10,
-			func(common.Address) {},
-			func() {
+			name:     "fail - force fail transfer",
+			mint:     100,
+			convert:  10,
+			malleate: func(common.Address) {},
+			extra: func() {
 				mockEVMKeeper := &MockEVMKeeper{}
 				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
 					suite.app.GetKey("erc20"), suite.app.AppCodec(),
@@ -902,8 +931,8 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil)
 				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
 			},
-			contractMinterBurner,
-			false,
+			contractType: contractMinterBurner,
+			expPass:      false,
 		},
 	}
 	for _, tc := range testCases {
@@ -928,17 +957,17 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 			suite.Require().Equal(sdkmath.NewInt(tc.mint), cosmosBalance.Amount)
 
 			// Precondition: Mint escrow tokens on module account
-			suite.GrantERC20Token(contractAddr, suite.address, erc20types.ModuleAddress, "MINTER_ROLE")
-			suite.MintERC20Token(contractAddr, erc20types.ModuleAddress, erc20types.ModuleAddress, big.NewInt(tc.mint))
+			//suite.GrantERC20Token(contractAddr, suite.address, erc20types.ModuleAddress, "MINTER_ROLE")
+			suite.MintERC20Token(contractAddr, suite.address, erc20types.ModuleAddress, big.NewInt(tc.mint))
 			tokenBalance := suite.BalanceOf(contractAddr, erc20types.ModuleAddress)
 			suite.Require().Equal(big.NewInt(tc.mint), tokenBalance)
 
 			tc.malleate(contractAddr)
+
 			suite.Commit()
 
 			// Convert Coins back to ERC20s
 			receiver := suite.address
-			ctx := sdk.WrapSDKContext(suite.ctx)
 			msg := erc20types.NewMsgConvertCoin(
 				sdk.NewCoin(coinName, sdkmath.NewInt(tc.convert)),
 				receiver,
@@ -946,15 +975,16 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 			)
 
 			tc.extra()
-			res, err := suite.app.Erc20Keeper.ConvertCoin(ctx, msg)
 
-			expRes := &erc20types.MsgConvertCoinResponse{}
+			res, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, msg)
+
 			suite.Commit()
+
 			tokenBalance = suite.BalanceOf(contractAddr, suite.address)
 			cosmosBalance = suite.app.BankKeeper.GetBalance(suite.ctx, sender, coinName)
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)
-				suite.Require().Equal(expRes, res)
+				suite.Require().Equal(&erc20types.MsgConvertCoinResponse{}, res)
 				suite.Require().Equal(sdkmath.NewInt(tc.mint-tc.convert), cosmosBalance.Amount)
 				suite.Require().Equal(big.NewInt(tc.convert), tokenBalance.(*big.Int))
 			} else {
@@ -999,12 +1029,10 @@ func (suite *KeeperTestSuite) TestWrongPairOwnerERC20NativeCoin() {
 			pair.ContractOwner = erc20types.OWNER_UNSPECIFIED
 			suite.app.Erc20Keeper.SetTokenPair(suite.ctx, *pair)
 
-			ctx := sdk.WrapSDKContext(suite.ctx)
-			_, err = suite.app.Erc20Keeper.ConvertCoin(ctx, msg)
+			_, err = suite.app.Erc20Keeper.ConvertCoin(suite.ctx, msg)
 			suite.Require().Error(err, tc.name)
 
 			// Convert ERC20s back to Coins
-			ctx = sdk.WrapSDKContext(suite.ctx)
 			contractAddr := common.HexToAddress(pair.Erc20Address)
 			msgConvertERC20 := erc20types.NewMsgConvertERC20(
 				sdkmath.NewInt(tc.reconvert),
@@ -1013,7 +1041,7 @@ func (suite *KeeperTestSuite) TestWrongPairOwnerERC20NativeCoin() {
 				suite.address,
 			)
 
-			_, err = suite.app.Erc20Keeper.ConvertERC20(ctx, msgConvertERC20)
+			_, err = suite.app.Erc20Keeper.ConvertERC20(suite.ctx, msgConvertERC20)
 			suite.Require().Error(err, tc.name)
 		})
 	}
