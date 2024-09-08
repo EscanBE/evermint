@@ -24,26 +24,28 @@ func SubmitProposal(
 	pk *ethsecp256k1.PrivKey,
 	content govv1beta1.Content,
 	eventNum int,
-) (id uint64, err error) {
+) (updatedCtx sdk.Context, id uint64, err error) {
 	accountAddress := sdk.AccAddress(pk.PubKey().Address().Bytes())
 	stakeDenom := stakingtypes.DefaultParams().BondDenom
 
 	deposit := sdk.NewCoins(sdk.NewCoin(stakeDenom, sdkmath.NewInt(100000000)))
 	msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, accountAddress)
 	if err != nil {
-		return id, err
+		return ctx, id, err
 	}
-	res, err := DeliverTx(ctx, chainApp, pk, nil, msg)
+	newCtx, res, err := DeliverTx(ctx, chainApp, pk, nil, msg)
 	if err != nil {
-		return id, err
+		return ctx, id, err
 	}
+	ctx = newCtx
 
 	submitEvent := res.GetEvents()[eventNum]
 	if submitEvent.Type != "submit_proposal" || string(submitEvent.Attributes[0].Key) != "proposal_id" {
-		return id, errorsmod.Wrapf(errorsmod.Error{}, "eventNumber %d in SubmitProposal calls %s instead of submit_proposal", eventNum, submitEvent.Type)
+		return ctx, id, errorsmod.Wrapf(errorsmod.Error{}, "eventNumber %d in SubmitProposal calls %s instead of submit_proposal", eventNum, submitEvent.Type)
 	}
 
-	return strconv.ParseUint(submitEvent.Attributes[0].Value, 10, 64)
+	id, err = strconv.ParseUint(submitEvent.Attributes[0].Value, 10, 64)
+	return ctx, id, err
 }
 
 // Delegate delivers a delegate tx
@@ -53,7 +55,7 @@ func Delegate(
 	priv *ethsecp256k1.PrivKey,
 	delegateAmount sdk.Coin,
 	validator stakingtypes.Validator,
-) (abci.ExecTxResult, error) {
+) (sdk.Context, abci.ExecTxResult, error) {
 	accountAddress := sdk.AccAddress(priv.PubKey().Address().Bytes())
 	delegateMsg := stakingtypes.NewMsgDelegate(accountAddress.String(), validator.OperatorAddress, delegateAmount)
 	return DeliverTx(ctx, chainApp, priv, nil, delegateMsg)
@@ -66,7 +68,7 @@ func Vote(
 	priv *ethsecp256k1.PrivKey,
 	proposalID uint64,
 	voteOption govv1beta1.VoteOption,
-) (abci.ExecTxResult, error) {
+) (sdk.Context, abci.ExecTxResult, error) {
 	accountAddress := sdk.AccAddress(priv.PubKey().Address().Bytes())
 
 	voteMsg := govv1beta1.NewMsgVote(accountAddress, proposalID, voteOption)

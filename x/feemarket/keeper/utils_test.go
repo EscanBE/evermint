@@ -14,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -28,24 +27,21 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/stretchr/testify/require"
-
 	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdkdb "github.com/cosmos/cosmos-db"
 )
 
 func (suite *KeeperTestSuite) SetupApp(checkTx bool) {
-	t := suite.T()
 	// account key
 	priv, err := ethsecp256k1.GenerateKey()
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 	suite.address = common.BytesToAddress(priv.PubKey().Address().Bytes())
 	suite.signer = utiltx.NewSigner(priv)
 
 	// consensus key
 	priv, err = ethsecp256k1.GenerateKey()
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
 
 	header := testutil.NewHeader(
@@ -58,20 +54,20 @@ func (suite *KeeperTestSuite) SetupApp(checkTx bool) {
 	feemarkettypes.RegisterQueryServer(queryHelper, suite.app.FeeMarketKeeper)
 	suite.queryClient = feemarkettypes.NewQueryClient(queryHelper)
 
-	acc := authtypes.NewBaseAccount(suite.address.Bytes(), nil, 0, 0)
-
+	acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, suite.address.Bytes())
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 	valAddr := sdk.ValAddress(suite.address.Bytes())
 	validator, err := stakingtypes.NewValidator(valAddr.String(), priv.PubKey(), stakingtypes.Description{})
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 	validator = stakingkeeper.TestingUpdateValidator(suite.app.StakingKeeper, suite.ctx, validator, true)
 	err = suite.app.StakingKeeper.Hooks().AfterValidatorCreated(suite.ctx, utils.MustValAddressFromBech32(validator.GetOperator()))
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 
 	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
-	require.NoError(t, err)
-	suite.app.StakingKeeper.SetValidator(suite.ctx, validator)
+	suite.Require().NoError(err)
+	err = suite.app.StakingKeeper.SetValidator(suite.ctx, validator)
+	suite.Require().NoError(err)
 
 	stakingParams := stakingtypes.DefaultParams()
 	stakingParams.BondDenom = constants.BaseDenom

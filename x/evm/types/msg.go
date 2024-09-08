@@ -172,7 +172,7 @@ func (msg MsgEthereumTx) ValidateBasic() error {
 	gas := txData.GetGas()
 
 	// prevent txs with 0 gas to fill up the mempool
-	if gas == 0 {
+	if gas == 0 { // TODO ES: adjust minimum to 21000
 		return errorsmod.Wrap(ErrInvalidGasLimit, "gas limit must not be zero")
 	}
 

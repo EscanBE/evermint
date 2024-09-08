@@ -29,20 +29,20 @@ func DeployContract(
 	queryClientEvm evm.QueryClient,
 	contract evm.CompiledContract,
 	constructorArgs ...interface{},
-) (common.Address, error) {
+) (sdk.Context, common.Address, error) {
 	chainID := chainApp.EvmKeeper.ChainID()
 	from := common.BytesToAddress(priv.PubKey().Address().Bytes())
 	nonce := chainApp.EvmKeeper.GetNonce(ctx, from)
 
 	ctorArgs, err := contract.ABI.Pack("", constructorArgs...)
 	if err != nil {
-		return common.Address{}, err
+		return ctx, common.Address{}, err
 	}
 
 	data := append(contract.Bin, ctorArgs...) //nolint:gocritic
 	gas, err := tx.GasLimit(ctx, from, data, queryClientEvm)
 	if err != nil {
-		return common.Address{}, err
+		return ctx, common.Address{}, err
 	}
 
 	msgEthereumTx := evm.NewTx(&evm.EvmTxArgs{
@@ -56,16 +56,17 @@ func DeployContract(
 	})
 	msgEthereumTx.From = sdk.AccAddress(from.Bytes()).String()
 
-	res, err := DeliverEthTx(ctx, chainApp, priv, msgEthereumTx)
+	newCtx, res, err := DeliverEthTx(ctx, chainApp, priv, msgEthereumTx)
+	ctx = newCtx
 	if err != nil {
-		return common.Address{}, err
+		return ctx, common.Address{}, err
 	}
 
 	if _, err := CheckEthTxResponse(res, chainApp.AppCodec()); err != nil {
-		return common.Address{}, err
+		return ctx, common.Address{}, err
 	}
 
-	return crypto.CreateAddress(from, nonce), nil
+	return ctx, crypto.CreateAddress(from, nonce), nil
 }
 
 // DeployContractWithFactory deploys a contract using a contract factory
@@ -75,7 +76,7 @@ func DeployContractWithFactory(
 	chainApp *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	factoryAddress common.Address,
-) (common.Address, abci.ExecTxResult, error) {
+) (sdk.Context, common.Address, abci.ExecTxResult, error) {
 	chainID := chainApp.EvmKeeper.ChainID()
 	from := common.BytesToAddress(priv.PubKey().Address().Bytes())
 	factoryNonce := chainApp.EvmKeeper.GetNonce(ctx, factoryAddress)
@@ -90,16 +91,17 @@ func DeployContractWithFactory(
 	})
 	msgEthereumTx.From = sdk.AccAddress(from.Bytes()).String()
 
-	res, err := DeliverEthTx(ctx, chainApp, priv, msgEthereumTx)
+	newCtx, res, err := DeliverEthTx(ctx, chainApp, priv, msgEthereumTx)
+	ctx = newCtx
 	if err != nil {
-		return common.Address{}, abci.ExecTxResult{}, err
+		return ctx, common.Address{}, abci.ExecTxResult{}, err
 	}
 
 	if _, err := CheckEthTxResponse(res, chainApp.AppCodec()); err != nil {
-		return common.Address{}, abci.ExecTxResult{}, err
+		return ctx, common.Address{}, abci.ExecTxResult{}, err
 	}
 
-	return crypto.CreateAddress(factoryAddress, factoryNonce), res, err
+	return ctx, crypto.CreateAddress(factoryAddress, factoryNonce), res, err
 }
 
 // CheckEthTxResponse checks that the transaction was executed successfully

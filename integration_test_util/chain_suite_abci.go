@@ -164,6 +164,8 @@ func (suite *ChainIntegrationTestSuite) BroadcastTx(tx sdk.Tx) (responseDeliverT
 			suite.Require().NoError(err)
 			responseDeliverTx = res.TxResult
 		} else {
+			suite.ReflectChangesToCommitMultiStore()
+
 			req := abci.RequestFinalizeBlock{
 				Height:             suite.CurrentContext.BlockHeight(),
 				Txs:                [][]byte{bz},

@@ -313,7 +313,7 @@ func (suite *KeeperTestSuite) CommitAndBeginBlockAfter(t time.Duration) {
 // DeployContract deploys the ERC20MinterBurnerDecimalsContract.
 func (suite *KeeperTestSuite) DeployContract(name, symbol string, decimals uint8) (common.Address, error) {
 	suite.Commit()
-	addr, err := testutil.DeployContract(
+	newCtx, addr, err := testutil.DeployContract(
 		suite.ctx,
 		suite.app,
 		suite.priv,
@@ -321,13 +321,14 @@ func (suite *KeeperTestSuite) DeployContract(name, symbol string, decimals uint8
 		contracts.ERC20MinterBurnerDecimalsContract,
 		name, symbol, decimals,
 	)
+	suite.ctx = newCtx
 	suite.Commit()
 	return addr, err
 }
 
 func (suite *KeeperTestSuite) DeployContractMaliciousDelayed() (common.Address, error) {
 	suite.Commit()
-	addr, err := testutil.DeployContract(
+	newCtx, addr, err := testutil.DeployContract(
 		suite.ctx,
 		suite.app,
 		suite.priv,
@@ -335,13 +336,14 @@ func (suite *KeeperTestSuite) DeployContractMaliciousDelayed() (common.Address, 
 		contracts.ERC20MaliciousDelayedContract,
 		big.NewInt(1000000000000000000),
 	)
+	suite.ctx = newCtx
 	suite.Commit()
 	return addr, err
 }
 
 func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation() (common.Address, error) {
 	suite.Commit()
-	addr, err := testutil.DeployContract(
+	newCtx, addr, err := testutil.DeployContract(
 		suite.ctx,
 		suite.app,
 		suite.priv,
@@ -349,6 +351,7 @@ func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation() (common.
 		contracts.ERC20DirectBalanceManipulationContract,
 		big.NewInt(1000000000000000000),
 	)
+	suite.ctx = newCtx
 	suite.Commit()
 	return addr, err
 }
@@ -356,7 +359,7 @@ func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation() (common.
 // DeployContractToChain deploys the ERC20MinterBurnerDecimalsContract
 // to the Evermint chain (used on IBC tests)
 func (suite *KeeperTestSuite) DeployContractToChain(name, symbol string, decimals uint8) (common.Address, error) {
-	return testutil.DeployContract(
+	newCtx, addr, err := testutil.DeployContract(
 		s.EvermintChain.GetContext(),
 		s.EvermintChain.App.(*chainapp.Evermint),
 		suite.EvermintChain.SenderPrivKey,
@@ -364,6 +367,8 @@ func (suite *KeeperTestSuite) DeployContractToChain(name, symbol string, decimal
 		contracts.ERC20MinterBurnerDecimalsContract,
 		name, symbol, decimals,
 	)
+	suite.ctx = newCtx
+	return addr, err
 }
 
 func (suite *KeeperTestSuite) sendAndReceiveMessage(

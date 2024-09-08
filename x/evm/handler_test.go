@@ -24,7 +24,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -59,19 +58,19 @@ type EvmTestSuite struct {
 	dynamicTxFee bool
 }
 
-// DoSetupTest setup test environment, it uses`require.TestingT` to support both `testing.T` and `testing.B`.
-func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
+// DoSetupTest setup test environment
+func (suite *EvmTestSuite) DoSetupTest() {
 	checkTx := false
 
 	// account key
 	priv, err := ethsecp256k1.GenerateKey()
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 	address := common.BytesToAddress(priv.PubKey().Address().Bytes())
 	suite.signer = utiltx.NewSigner(priv)
 	suite.from = address
 	// consensus key
 	priv, err = ethsecp256k1.GenerateKey()
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 	consAddress := sdk.ConsAddress(priv.PubKey().Address())
 
 	suite.app = helpers.EthSetup(checkTx, func(chainApp *chainapp.Evermint, genesis chainapp.GenesisState) chainapp.GenesisState {
@@ -104,7 +103,7 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	genesisState[banktypes.ModuleName] = suite.app.AppCodec().MustMarshalJSON(&bankGenesis)
 
 	stateBytes, err := tmjson.MarshalIndent(genesisState, "", " ")
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 
 	// Initialize the chain
 	req := &abci.RequestInitChain{
@@ -143,25 +142,24 @@ func (suite *EvmTestSuite) DoSetupTest(t require.TestingT) {
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	evmtypes.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
 
-	acc := authtypes.NewBaseAccount(address.Bytes(), nil, 0, 0)
-
+	acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, address.Bytes())
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 	valAddr := sdk.ValAddress(address.Bytes())
 	validator, err := stakingtypes.NewValidator(valAddr.String(), priv.PubKey(), stakingtypes.Description{})
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 
 	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 	suite.app.StakingKeeper.SetValidator(suite.ctx, validator)
 
 	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 }
 
 func (suite *EvmTestSuite) SetupTest() {
-	suite.DoSetupTest(suite.T())
+	suite.DoSetupTest()
 }
 
 func (suite *EvmTestSuite) SignTx(tx *evmtypes.MsgEthereumTx) {

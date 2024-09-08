@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	abci "github.com/cometbft/cometbft/abci/types"
 	"math/big"
 	"time"
 
@@ -97,21 +98,23 @@ var _ = Describe("ERC20:", Ordered, func() {
 			})
 			Describe("for a single Cosmos Coin", func() {
 				BeforeEach(func() {
-					id, err := submitRegisterCoinProposal(s.ctx, s.app, privKey, []banktypes.Metadata{metadataIbc})
+					id, err := submitRegisterCoinProposal(privKey, []banktypes.Metadata{metadataIbc})
 					s.Require().NoError(err)
+					s.Require().NotZero(id)
 
 					proposal, err := s.app.GovKeeper.Proposals.Get(s.ctx, id)
 					s.Require().NoError(err)
 
-					_, err = testutil.Delegate(s.ctx, s.app, privKey, sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(500000000000000000)), s.validator)
+					_, err = delegate(privKey, sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(500000000000000000)), s.validator)
 					s.Require().NoError(err)
 
-					_, err = testutil.Vote(s.ctx, s.app, privKey, id, govv1beta1.OptionYes)
+					_, err = vote(privKey, id, govv1beta1.OptionYes)
 					s.Require().NoError(err)
 
 					// Make proposal pass in EndBlocker
 					duration := proposal.VotingEndTime.Sub(s.ctx.BlockTime()) + time.Hour*1
 					s.CommitAndBeginBlockAfter(duration)
+					s.CommitAndBeginBlockAfter(time.Hour) // TODO ES: remove this
 				})
 				It("should create a token pairs owned by the erc20 module", func() {
 					tokenPairs := s.app.Erc20Keeper.GetTokenPairs(s.ctx)
@@ -121,16 +124,16 @@ var _ = Describe("ERC20:", Ordered, func() {
 			})
 			Describe("for multiple Cosmos Coins", func() {
 				BeforeEach(func() {
-					id, err := submitRegisterCoinProposal(s.ctx, s.app, privKey, []banktypes.Metadata{metadataIbc, metadataCoin})
+					id, err := submitRegisterCoinProposal(privKey, []banktypes.Metadata{metadataIbc, metadataCoin})
 					s.Require().NoError(err)
 
 					proposal, err := s.app.GovKeeper.Proposals.Get(s.ctx, id)
 					s.Require().NoError(err)
 
-					_, err = testutil.Delegate(s.ctx, s.app, privKey, sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(500000000000000000)), s.validator)
+					_, err = delegate(privKey, sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(500000000000000000)), s.validator)
 					s.Require().NoError(err)
 
-					_, err = testutil.Vote(s.ctx, s.app, privKey, id, govv1beta1.OptionYes)
+					_, err = vote(privKey, id, govv1beta1.OptionYes)
 					s.Require().NoError(err)
 
 					// Make proposal pass in EndBlocker
@@ -165,16 +168,16 @@ var _ = Describe("ERC20:", Ordered, func() {
 			Describe("for a single ERC20 token", func() {
 				BeforeEach(func() {
 					// register with sufficient deposit
-					id, err := submitRegisterERC20Proposal(s.ctx, s.app, privKey, []string{contract.String()})
+					id, err := submitRegisterERC20Proposal(privKey, []string{contract.String()})
 					s.Require().NoError(err)
 
 					proposal, err := s.app.GovKeeper.Proposals.Get(s.ctx, id)
 					s.Require().NoError(err)
 
-					_, err = testutil.Delegate(s.ctx, s.app, privKey, sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(500000000000000000)), s.validator)
+					_, err = delegate(privKey, sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(500000000000000000)), s.validator)
 					s.Require().NoError(err)
 
-					_, err = testutil.Vote(s.ctx, s.app, privKey, id, govv1beta1.OptionYes)
+					_, err = vote(privKey, id, govv1beta1.OptionYes)
 					s.Require().NoError(err)
 
 					// Make proposal pass in EndBlocker
@@ -191,15 +194,15 @@ var _ = Describe("ERC20:", Ordered, func() {
 			Describe("for multiple ERC20 tokens", func() {
 				BeforeEach(func() {
 					// register with sufficient deposit
-					id, err := submitRegisterERC20Proposal(s.ctx, s.app, privKey, []string{contract.String(), contract2.String()})
+					id, err := submitRegisterERC20Proposal(privKey, []string{contract.String(), contract2.String()})
 					s.Require().NoError(err)
 					proposal, err := s.app.GovKeeper.Proposals.Get(s.ctx, id)
 					s.Require().NoError(err)
 
-					_, err = testutil.Delegate(s.ctx, s.app, privKey, sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(500000000000000000)), s.validator)
+					_, err = delegate(privKey, sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(500000000000000000)), s.validator)
 					s.Require().NoError(err)
 
-					_, err = testutil.Vote(s.ctx, s.app, privKey, id, govv1beta1.OptionYes)
+					_, err = vote(privKey, id, govv1beta1.OptionYes)
 					s.Require().NoError(err)
 
 					// Make proposal pass in EndBlocker
@@ -230,7 +233,7 @@ var _ = Describe("ERC20:", Ordered, func() {
 
 			Describe("a Cosmos coin into an ERC20 token", func() {
 				BeforeEach(func() {
-					convertCoin(s.ctx, s.app, privKey, coin)
+					convertCoin(privKey, coin)
 				})
 
 				It("should decrease coins on the sender account", func() {
@@ -251,7 +254,7 @@ var _ = Describe("ERC20:", Ordered, func() {
 
 			Describe("an ERC20 token into a Cosmos coin", func() {
 				BeforeEach(func() {
-					convertCoin(s.ctx, s.app, privKey, coin)
+					convertCoin(privKey, coin)
 					s.Commit()
 					convertERC20(s.ctx, s.app, privKey, amt, pair.GetERC20Contract())
 				})
@@ -313,7 +316,7 @@ var _ = Describe("ERC20:", Ordered, func() {
 				BeforeEach(func() {
 					convertERC20(s.ctx, s.app, privKey, amt, pair.GetERC20Contract())
 					s.Commit()
-					convertCoin(s.ctx, s.app, privKey, coin)
+					convertCoin(privKey, coin)
 				})
 
 				It("should increase tokens on the sender account", func() {
@@ -336,22 +339,27 @@ var _ = Describe("ERC20:", Ordered, func() {
 	})
 })
 
-func submitRegisterCoinProposal(ctx sdk.Context, chainApp *chainapp.Evermint, pk *ethsecp256k1.PrivKey, metadata []banktypes.Metadata) (id uint64, err error) {
+func submitRegisterCoinProposal(pk *ethsecp256k1.PrivKey, metadata []banktypes.Metadata) (id uint64, err error) {
 	content := erc20types.NewRegisterCoinProposal("test Coin", "foo", metadata...)
-	return testutil.SubmitProposal(ctx, chainApp, pk, content, 8)
+	ctx, id, err := testutil.SubmitProposal(s.ctx, s.app, pk, content, 8)
+	s.ctx = ctx
+	return id, err
 }
 
-func submitRegisterERC20Proposal(ctx sdk.Context, chainApp *chainapp.Evermint, pk *ethsecp256k1.PrivKey, addrs []string) (id uint64, err error) {
+func submitRegisterERC20Proposal(pk *ethsecp256k1.PrivKey, addrs []string) (id uint64, err error) {
 	content := erc20types.NewRegisterERC20Proposal("test token", "foo", addrs...)
-	return testutil.SubmitProposal(ctx, chainApp, pk, content, 8)
+	ctx, id, err := testutil.SubmitProposal(s.ctx, s.app, pk, content, 8)
+	s.ctx = ctx
+	return id, err
 }
 
-func convertCoin(ctx sdk.Context, chainApp *chainapp.Evermint, pk *ethsecp256k1.PrivKey, coin sdk.Coin) {
+func convertCoin(pk *ethsecp256k1.PrivKey, coin sdk.Coin) {
 	addrBz := pk.PubKey().Address().Bytes()
 
-	convertCoinMsg := erc20types.NewMsgConvertCoin(coin, common.BytesToAddress(addrBz), sdk.AccAddress(addrBz))
-	res, err := testutil.DeliverTx(ctx, chainApp, pk, nil, convertCoinMsg)
+	convertCoinMsg := erc20types.NewMsgConvertCoin(coin, common.BytesToAddress(addrBz), addrBz)
+	ctx, res, err := testutil.DeliverTx(s.ctx, s.app, pk, nil, convertCoinMsg)
 	s.Require().NoError(err)
+	s.ctx = ctx
 
 	Expect(res.IsOK()).To(BeTrue(), "failed to convert coin: %s", res.Log)
 }
@@ -359,8 +367,29 @@ func convertCoin(ctx sdk.Context, chainApp *chainapp.Evermint, pk *ethsecp256k1.
 func convertERC20(ctx sdk.Context, chainApp *chainapp.Evermint, pk *ethsecp256k1.PrivKey, amt sdkmath.Int, contract common.Address) {
 	addrBz := pk.PubKey().Address().Bytes()
 
-	convertERC20Msg := erc20types.NewMsgConvertERC20(amt, sdk.AccAddress(addrBz), contract, common.BytesToAddress(addrBz))
-	res, err := testutil.DeliverTx(ctx, chainApp, pk, nil, convertERC20Msg)
+	convertERC20Msg := erc20types.NewMsgConvertERC20(amt, addrBz, contract, common.BytesToAddress(addrBz))
+	ctx, res, err := testutil.DeliverTx(ctx, chainApp, pk, nil, convertERC20Msg)
 	s.Require().NoError(err)
+	s.ctx = ctx
 	Expect(res.IsOK()).To(BeTrue(), "failed to convert ERC20: %s", res.Log)
+}
+
+func delegate(
+	priv *ethsecp256k1.PrivKey,
+	delegateAmount sdk.Coin,
+	validator stakingtypes.Validator,
+) (abci.ExecTxResult, error) {
+	ctx, res, err := testutil.Delegate(s.ctx, s.app, priv, delegateAmount, validator)
+	s.ctx = ctx
+	return res, err
+}
+
+func vote(
+	priv *ethsecp256k1.PrivKey,
+	proposalID uint64,
+	voteOption govv1beta1.VoteOption,
+) (abci.ExecTxResult, error) {
+	ctx, res, err := testutil.Vote(s.ctx, s.app, priv, proposalID, voteOption)
+	s.ctx = ctx
+	return res, err
 }

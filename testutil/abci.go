@@ -65,7 +65,7 @@ func DeliverTx(
 	priv cryptotypes.PrivKey,
 	gasPrice *sdkmath.Int,
 	msgs ...sdk.Msg,
-) (abci.ExecTxResult, error) {
+) (sdk.Context, abci.ExecTxResult, error) {
 	txConfig := chainApp.GetTxConfig()
 	cosmosTx, err := tx.PrepareCosmosTx(
 		ctx,
@@ -80,7 +80,7 @@ func DeliverTx(
 		},
 	)
 	if err != nil {
-		return abci.ExecTxResult{}, err
+		return ctx, abci.ExecTxResult{}, err
 	}
 	return BroadcastTxBytes(ctx, chainApp, txConfig.TxEncoder(), cosmosTx)
 }
@@ -93,12 +93,12 @@ func DeliverEthTx(
 	chainApp *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	msg sdk.Msg,
-) (abci.ExecTxResult, error) {
+) (sdk.Context, abci.ExecTxResult, error) {
 	txConfig := chainApp.GetTxConfig()
 
 	ethTx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msg)
 	if err != nil {
-		return abci.ExecTxResult{}, err
+		return ctx, abci.ExecTxResult{}, err
 	}
 	return BroadcastTxBytes(ctx, chainApp, txConfig.TxEncoder(), ethTx)
 }
@@ -147,11 +147,16 @@ func CheckEthTx(
 }
 
 // BroadcastTxBytes encodes a transaction and calls DeliverTx on the app.
-func BroadcastTxBytes(ctx sdk.Context, chainApp *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ExecTxResult, error) {
+// This function returns sdk.Context because it called Finalize block, so changes to Commit Multistore must be reflected to the new context.
+func BroadcastTxBytes(ctx sdk.Context, chainApp *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (sdk.Context, abci.ExecTxResult, error) {
+	oldCtx := ctx
+
+	ctx = ReflectChangesToCommitMultiStore(ctx, chainApp.BaseApp)
+
 	// bz are bytes to be broadcasted over the network
 	bz, err := txEncoder(tx)
 	if err != nil {
-		return abci.ExecTxResult{}, err
+		return oldCtx, abci.ExecTxResult{}, err
 	}
 
 	req := abci.RequestFinalizeBlock{
@@ -162,18 +167,18 @@ func BroadcastTxBytes(ctx sdk.Context, chainApp *chainapp.Evermint, txEncoder sd
 
 	res, err := chainApp.BaseApp.FinalizeBlock(&req)
 	if err != nil {
-		return abci.ExecTxResult{}, errorsmod.Wrap(err, "failed to finalize block")
+		return oldCtx, abci.ExecTxResult{}, errorsmod.Wrap(err, "failed to finalize block")
 	}
 	if len(res.TxResults) != 1 {
-		return abci.ExecTxResult{}, fmt.Errorf("unexpected transaction results. Expected 1, got: %d", len(res.TxResults))
+		return ctx, abci.ExecTxResult{}, fmt.Errorf("unexpected transaction results. Expected 1, got: %d", len(res.TxResults))
 	}
 
 	txRes := res.TxResults[0]
 	if txRes.Code != 0 {
-		return abci.ExecTxResult{}, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "tx log: %s", txRes.Log)
+		return ctx, abci.ExecTxResult{}, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "tx log: %s", txRes.Log)
 	}
 
-	return *txRes, nil
+	return ctx, *txRes, nil
 }
 
 // ReflectChangesToCommitMultiStore commit the current state directly into the base app's commit multistore.

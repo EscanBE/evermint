@@ -101,7 +101,8 @@ var _ = Describe("Feemarket", func() {
 						p := malleate()
 						to := utiltx.GenerateAddress()
 						msgEthereumTx := buildEthTx(privKey, &to, p.gasLimit, p.gasPrice, p.gasFeeCap, p.gasTipCap, p.accesses)
-						res, err := testutil.DeliverEthTx(s.ctx, s.app, privKey, msgEthereumTx)
+						newCtx, res, err := testutil.DeliverEthTx(s.ctx, s.app, privKey, msgEthereumTx)
+						s.ctx = newCtx
 						Expect(err).To(BeNil())
 						Expect(res.IsOK()).To(Equal(true), "transaction should have succeeded", res.GetLog())
 					},
@@ -117,7 +118,7 @@ var _ = Describe("Feemarket", func() {
 						p := malleate()
 						to := utiltx.GenerateAddress()
 						msgEthereumTx := buildEthTx(privKey, &to, p.gasLimit, p.gasPrice, p.gasFeeCap, p.gasTipCap, p.accesses)
-						res, err := testutil.DeliverEthTx(s.ctx, s.app, privKey, msgEthereumTx)
+						_, res, err := testutil.DeliverEthTx(s.ctx, s.app, privKey, msgEthereumTx)
 						Expect(err).ToNot(BeNil(), "transaction should have failed", res.GetLog())
 					},
 					Entry("legacy tx", func() txParams {

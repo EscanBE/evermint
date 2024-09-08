@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	storemetrics "cosmossdk.io/store/metrics"
 	"crypto/ecdsa"
 	"encoding/hex"
 	"github.com/cosmos/cosmos-sdk/codec/address"
@@ -82,7 +83,7 @@ func (s *KeeperTestSuite) SetupTest() {
 		vAuthStoreKey := storetypes.NewKVStoreKey(vauthtypes.StoreKey)
 
 		db := sdkdb.NewMemDB()
-		stateStore := store.NewCommitMultiStore(db, log.NewNopLogger(), nil)
+		stateStore := store.NewCommitMultiStore(db, log.NewNopLogger(), storemetrics.NewNoOpMetrics())
 		stateStore.MountStoreWithDB(authStoreKey, storetypes.StoreTypeIAVL, db)
 		stateStore.MountStoreWithDB(bankStoreKey, storetypes.StoreTypeIAVL, db)
 		stateStore.MountStoreWithDB(evmStoreKey, storetypes.StoreTypeIAVL, db)

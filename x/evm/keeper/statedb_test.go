@@ -7,17 +7,15 @@ import (
 	"github.com/EscanBE/evermint/v12/constants"
 
 	"cosmossdk.io/store/prefix"
+	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
+	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
+	"github.com/EscanBE/evermint/v12/x/evm/statedb"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -223,7 +221,7 @@ func (suite *KeeperTestSuite) TestSetNonce() {
 
 func (suite *KeeperTestSuite) TestGetCodeHash() {
 	addr := utiltx.GenerateAddress()
-	baseAcc := &authtypes.BaseAccount{Address: sdk.AccAddress(addr.Bytes()).String()}
+	baseAcc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
 	suite.app.AccountKeeper.SetAccount(suite.ctx, baseAcc)
 
 	testCases := []struct {
@@ -267,7 +265,7 @@ func (suite *KeeperTestSuite) TestGetCodeHash() {
 
 func (suite *KeeperTestSuite) TestSetCode() {
 	addr := utiltx.GenerateAddress()
-	baseAcc := &authtypes.BaseAccount{Address: sdk.AccAddress(addr.Bytes()).String()}
+	baseAcc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
 	suite.app.AccountKeeper.SetAccount(suite.ctx, baseAcc)
 
 	testCases := []struct {
@@ -316,7 +314,7 @@ func (suite *KeeperTestSuite) TestSetCode() {
 
 func (suite *KeeperTestSuite) TestKeeperSetCode() {
 	addr := utiltx.GenerateAddress()
-	baseAcc := &authtypes.BaseAccount{Address: sdk.AccAddress(addr.Bytes()).String()}
+	baseAcc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
 	suite.app.AccountKeeper.SetAccount(suite.ctx, baseAcc)
 
 	testCases := []struct {

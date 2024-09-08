@@ -115,11 +115,18 @@ func (b *Backend) SendRawTransaction(data hexutil.Bytes) (common.Hash, error) {
 		return common.Hash{}, errors.New("only replay-protected (EIP-155) transactions allowed over RPC")
 	}
 
+	signer := ethtypes.LatestSignerForChainID(b.chainID)
+	sender, err := signer.Sender(tx)
+	if err != nil {
+		return common.Hash{}, err
+	}
+
 	ethereumTx := &evmtypes.MsgEthereumTx{}
 	if err := ethereumTx.FromEthereumTx(tx); err != nil {
 		b.logger.Error("transaction converting failed", "error", err.Error())
 		return common.Hash{}, err
 	}
+	ethereumTx.From = sdk.AccAddress(sender.Bytes()).String()
 
 	if err := ethereumTx.ValidateBasic(); err != nil {
 		b.logger.Debug("tx failed basic validation", "error", err.Error())
