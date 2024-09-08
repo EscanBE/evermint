@@ -2,6 +2,7 @@ package params
 
 import (
 	"cosmossdk.io/x/tx/signing"
+	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/address"
@@ -46,4 +47,9 @@ func MakeEncodingConfig() EncodingConfig {
 		TxConfig:          txCfg,
 		Amino:             amino,
 	}
+}
+
+func init() {
+	cmdcfg.SetBech32Prefixes(sdk.GetConfig())
+	cmdcfg.SetBip44CoinType(sdk.GetConfig())
 }

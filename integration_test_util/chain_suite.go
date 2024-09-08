@@ -6,7 +6,6 @@ import (
 	"cosmossdk.io/store/rootmulti"
 	storetypes "cosmossdk.io/store/types"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/utils"
 	sdkdb "github.com/cosmos/cosmos-db"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"math"
@@ -219,7 +218,9 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 		require.NoError(t, err)
 
 		val = stakingkeeper.TestingUpdateValidator(app.StakingKeeper(), ctx, val, true)
-		err = app.DistributionKeeper().Hooks().AfterValidatorCreated(ctx, utils.MustValAddressFromBech32(val.GetOperator()))
+		valAddr, err := app.StakingKeeper().ValidatorAddressCodec().StringToBytes(val.GetOperator())
+		require.NoError(t, err)
+		err = app.DistributionKeeper().Hooks().AfterValidatorCreated(ctx, valAddr)
 		require.NoError(t, err)
 		err = app.StakingKeeper().SetValidatorByConsAddr(ctx, val)
 		require.NoError(t, err)

@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"reflect"
 )
 
@@ -48,12 +47,4 @@ func Coalesce[T any](first T, others ...T) T {
 	}
 	var tNil T
 	return tNil
-}
-
-func MustValAddressFromBech32(valoper string) sdk.ValAddress {
-	valAddr, err := sdk.ValAddressFromBech32(valoper)
-	if err != nil {
-		panic(err)
-	}
-	return valAddr
 }

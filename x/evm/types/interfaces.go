@@ -4,10 +4,10 @@ import (
 	"context"
 	"math/big"
 
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
+	addresscodec "cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
@@ -41,6 +41,7 @@ type BankKeeper interface {
 type StakingKeeper interface {
 	GetHistoricalInfo(ctx context.Context, height int64) (stakingtypes.HistoricalInfo, error)
 	GetValidatorByConsAddr(ctx context.Context, consAddr sdk.ConsAddress) (stakingtypes.Validator, error)
+	ValidatorAddressCodec() addresscodec.Codec
 }
 
 // FeeMarketKeeper

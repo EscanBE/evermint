@@ -112,7 +112,11 @@ func (k Keeper) ValidatorAccount(c context.Context, req *evmtypes.QueryValidator
 		return nil, errorsmod.Wrapf(err, "validator not found for %s", consAddr.String())
 	}
 
-	accAddr := sdk.AccAddress(validator.GetOperator())
+	accAddrBz, err := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(validator.GetOperator())
+	if err != nil {
+		return nil, errorsmod.Wrapf(err, "failed to parse not found for %s", consAddr.String())
+	}
+	accAddr := sdk.AccAddress(accAddrBz)
 
 	res := evmtypes.QueryValidatorAccountResponse{
 		AccountAddress: accAddr.String(),

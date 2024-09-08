@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
+	"bytes"
 	"encoding/json"
-	"github.com/EscanBE/evermint/v12/utils"
 	"math"
 	"math/big"
 	"strconv"
@@ -106,7 +106,10 @@ func (suite *KeeperTestSuite) DoSetupTest() {
 	validator, err := stakingtypes.NewValidator(valAddr.String(), privCons.PubKey(), stakingtypes.Description{})
 	suite.Require().NoError(err)
 	validator = stakingkeeper.TestingUpdateValidator(suite.app.StakingKeeper, suite.ctx, validator, true)
-	err = suite.app.StakingKeeper.Hooks().AfterValidatorCreated(suite.ctx, utils.MustValAddressFromBech32(validator.GetOperator()))
+	valAddrBz, err := suite.app.StakingKeeper.ValidatorAddressCodec().StringToBytes(validator.GetOperator())
+	suite.Require().NoError(err)
+	suite.Require().True(bytes.Equal(valAddr.Bytes(), valAddrBz))
+	err = suite.app.StakingKeeper.Hooks().AfterValidatorCreated(suite.ctx, valAddr)
 	suite.Require().NoError(err)
 	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
 	suite.Require().NoError(err)

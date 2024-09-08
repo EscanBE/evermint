@@ -438,10 +438,12 @@ func (suite *KeeperTestSuite) TestQueryValidatorAccount() {
 		{
 			"success",
 			func() {
+				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, suite.address.Bytes())
+				suite.Require().NotNil(acc)
 				expAccount = &evmtypes.QueryValidatorAccountResponse{
 					AccountAddress: sdk.AccAddress(suite.address.Bytes()).String(),
-					Sequence:       0,
-					AccountNumber:  0,
+					Sequence:       acc.GetSequence(),
+					AccountNumber:  acc.GetAccountNumber(),
 				}
 				req = &evmtypes.QueryValidatorAccountRequest{
 					ConsAddress: suite.consAddress.String(),
@@ -450,17 +452,18 @@ func (suite *KeeperTestSuite) TestQueryValidatorAccount() {
 			true,
 		},
 		{
-			"success with seq and account number",
+			"success with seq increased",
 			func() {
 				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, suite.address.Bytes())
-				suite.Require().NoError(acc.SetSequence(10))
-				suite.Require().NoError(acc.SetAccountNumber(1))
+				suite.Require().NotNil(acc)
+				oldSeqNumber := acc.GetSequence()
+				suite.Require().NoError(acc.SetSequence(oldSeqNumber + 1))
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 				expAccount = &evmtypes.QueryValidatorAccountResponse{
 					AccountAddress: sdk.AccAddress(suite.address.Bytes()).String(),
-					Sequence:       10,
-					AccountNumber:  1,
+					Sequence:       oldSeqNumber + 1,
+					AccountNumber:  acc.GetAccountNumber(),
 				}
 				req = &evmtypes.QueryValidatorAccountRequest{
 					ConsAddress: suite.consAddress.String(),

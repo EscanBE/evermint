@@ -2,7 +2,6 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	"github.com/EscanBE/evermint/v12/utils"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -18,8 +17,15 @@ func (k Keeper) GetCoinbaseAddress(ctx sdk.Context, proposerAddress sdk.ConsAddr
 		)
 	}
 
-	// TODO ES: should use val codec?
-	coinbase := common.BytesToAddress(utils.MustValAddressFromBech32(validator.GetOperator()))
+	valAddr, err := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(validator.GetOperator())
+	if err != nil {
+		return common.Address{}, errorsmod.Wrapf(
+			err,
+			"failed to decode validator operator address %s",
+			validator.GetOperator(),
+		)
+	}
+	coinbase := common.BytesToAddress(valAddr)
 	return coinbase, nil
 }
 

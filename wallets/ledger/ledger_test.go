@@ -20,10 +20,10 @@ import (
 func init() {
 	encodingConfig := chainapp.RegisterEncodingConfig()
 	eip712.SetEncodingConfig(encodingConfig)
-	sdk.GetConfig().SetBech32PrefixForAccount("cosmos", "")
+	sdk.GetConfig().SetBech32PrefixForAccount(constants.Bech32Prefix, "")
 }
 
-func (suite *LedgerTestSuite) TestEvmosLedgerDerivation() {
+func (suite *LedgerTestSuite) TestEvermintLedgerDerivation() {
 	testCases := []struct {
 		name     string
 		mockFunc func()

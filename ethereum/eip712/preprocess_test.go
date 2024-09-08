@@ -2,6 +2,8 @@ package eip712_test
 
 import (
 	"encoding/hex"
+	"fmt"
+	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
 	"strings"
 	"testing"
 
@@ -24,12 +26,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func init() {
+	cmdcfg.SetBech32Prefixes(sdk.GetConfig())
+}
+
 // Testing Constants
 var (
-	chainID = constants.TestnetFullChainId
-	ctx     = client.Context{}.WithTxConfig(
-		chainapp.RegisterEncodingConfig().TxConfig,
-	)
+	chainID        = constants.TestnetFullChainId
+	encodingConfig = chainapp.RegisterEncodingConfig()
+	ctx            = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 )
 var feePayerAddress = marker.ReplaceAbleAddress("evm17xpfvakm2amg962yls6f84z3kell8c5lcryk68")
 
@@ -44,11 +49,8 @@ type TestCaseStruct struct {
 }
 
 func TestLedgerPreprocessing(t *testing.T) {
+	fmt.Println(encodingConfig.TxConfig.SigningContext().AddressCodec())
 	// Update bech32 prefix
-	sdk.GetConfig().SetBech32PrefixForAccount(constants.Bech32Prefix, "")
-
-	encodingConfig := chainapp.RegisterEncodingConfig()
-
 	testCases := []TestCaseStruct{
 		createBasicTestCase(t),
 		createPopulatedTestCase(t),
