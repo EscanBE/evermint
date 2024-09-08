@@ -22,7 +22,7 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 		GasPrice: big.NewInt(1),
 	}
 	signedTx := evmtypes.NewTx(ethContractCreationTxParams)
-	signedTx.From = addr.Hex()
+	signedTx.From = sdk.AccAddress(addr.Bytes()).String()
 	err := signedTx.Sign(suite.ethSigner, testutiltx.NewSigner(privKey))
 	suite.Require().NoError(err)
 
@@ -33,7 +33,7 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 		GasPrice: big.NewInt(1),
 	}
 	unprotectedTx := evmtypes.NewTx(uprotectedEthTxParams)
-	unprotectedTx.From = addr.Hex()
+	unprotectedTx.From = sdk.AccAddress(addr.Bytes()).String()
 	err = unprotectedTx.Sign(ethtypes.HomesteadSigner{}, testutiltx.NewSigner(privKey))
 	suite.Require().NoError(err)
 
@@ -101,7 +101,7 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 				addr2, _ := testutiltx.NewAddrKey()
 
 				copied := *signedTx
-				copied.From = addr2.Hex()
+				copied.From = sdk.AccAddress(addr2.Bytes()).String()
 
 				return &copied
 			}(),

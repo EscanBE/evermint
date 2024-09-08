@@ -39,8 +39,6 @@ func (suite *ChainIntegrationTestSuite) PrepareEthTx(
 		return nil, err
 	}
 
-	ethMsg.From = ""
-
 	txGasLimit += ethMsg.GetGas()
 	txFee = txFee.Add(sdk.Coin{Denom: suite.ChainConstantsConfig.GetMinDenom(), Amount: sdkmath.NewIntFromBigInt(ethMsg.GetFee())})
 

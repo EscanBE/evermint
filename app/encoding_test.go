@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math/big"
 	"testing"
 
@@ -25,7 +26,7 @@ func TestRegisterEncodingConfig(t *testing.T) {
 		Input:     []byte{},
 	}
 	msg := evmtypes.NewTx(&ethTxParams)
-	msg.From = addr.Hex()
+	msg.From = sdk.AccAddress(addr.Bytes()).String()
 
 	ethSigner := ethtypes.LatestSignerForChainID(big.NewInt(1))
 	err := msg.Sign(ethSigner, signer)

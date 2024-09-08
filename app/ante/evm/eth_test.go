@@ -41,7 +41,7 @@ func (suite *AnteTestSuite) TestNewExternalOwnedAccountVerificationDecorator() {
 	}
 
 	tx := evmtypes.NewTx(ethContractCreationTxParams)
-	tx.From = addr.Hex()
+	tx.From = sdk.AccAddress(addr.Bytes()).String()
 
 	testCases := []struct {
 		name     string
@@ -180,7 +180,7 @@ func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
 	}
 
 	tx := evmtypes.NewTx(ethContractCreationTxParams)
-	tx.From = addr.Hex()
+	tx.From = sdk.AccAddress(addr.Bytes()).String()
 
 	testCases := []struct {
 		name      string
@@ -275,7 +275,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 	}
 
 	tx := evmtypes.NewTx(ethContractCreationTxParams)
-	tx.From = addr.Hex()
+	tx.From = sdk.AccAddress(addr.Bytes()).String()
 
 	ethCfg := suite.app.EvmKeeper.GetParams(suite.ctx).
 		ChainConfig.EthereumConfig(chainID)
@@ -294,7 +294,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 		Accesses: &ethtypes.AccessList{{Address: addr, StorageKeys: nil}},
 	}
 	tx2 := evmtypes.NewTx(eth2TxContractParams)
-	tx2.From = addr.Hex()
+	tx2.From = sdk.AccAddress(addr.Bytes()).String()
 	tx2Priority := int64(1)
 
 	tx3GasLimit := evertypes.BlockGasLimit(suite.ctx) + uint64(1)
@@ -318,7 +318,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 		Accesses:  &ethtypes.AccessList{{Address: addr, StorageKeys: nil}},
 	}
 	dynamicFeeTx := evmtypes.NewTx(dynamicTxContractParams)
-	dynamicFeeTx.From = addr.Hex()
+	dynamicFeeTx.From = sdk.AccAddress(addr.Bytes()).String()
 	dynamicFeeTxPriority := int64(1)
 
 	zeroBalanceAddr := testutiltx.GenerateAddress()
@@ -588,7 +588,7 @@ func (suite *AnteTestSuite) TestCanTransferDecorator() {
 	tx := evmtypes.NewTx(ethContractCreationTxParams)
 	tx2 := evmtypes.NewTx(ethContractCreationTxParams)
 
-	tx.From = addr.Hex()
+	tx.From = sdk.AccAddress(addr.Bytes()).String()
 
 	err := tx.Sign(suite.ethSigner, testutiltx.NewSigner(privKey))
 	suite.Require().NoError(err)
@@ -673,7 +673,7 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		GasPrice: big.NewInt(1),
 	}
 	contract := evmtypes.NewTx(ethTxContractParamsNonce0)
-	contract.From = addr.Hex()
+	contract.From = sdk.AccAddress(addr.Bytes()).String()
 	err := contract.Sign(suite.ethSigner, testutiltx.NewSigner(privKey))
 	suite.Require().NoError(err)
 
@@ -687,7 +687,7 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		GasPrice: big.NewInt(1),
 	}
 	tx := evmtypes.NewTx(ethTxParamsNonce0)
-	tx.From = addr.Hex()
+	tx.From = sdk.AccAddress(addr.Bytes()).String()
 	err = tx.Sign(suite.ethSigner, testutiltx.NewSigner(privKey))
 	suite.Require().NoError(err)
 
@@ -700,7 +700,7 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		GasPrice: big.NewInt(1),
 	}
 	tx2 := evmtypes.NewTx(ethTxParamsNonce1)
-	tx2.From = addr.Hex()
+	tx2.From = sdk.AccAddress(addr.Bytes()).String()
 	err = tx2.Sign(suite.ethSigner, testutiltx.NewSigner(privKey))
 	suite.Require().NoError(err)
 

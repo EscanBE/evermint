@@ -1,6 +1,7 @@
 package indexer_test
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math/big"
 	"testing"
 
@@ -36,7 +37,7 @@ func TestKVIndexer(t *testing.T) {
 		GasLimit: 21000,
 	}
 	tx := evmtypes.NewTx(&ethTxParams)
-	tx.From = from.Hex()
+	tx.From = sdk.AccAddress(from.Bytes()).String()
 	require.NoError(t, tx.Sign(ethSigner, signer))
 	txHash := tx.AsTransaction().Hash()
 

@@ -3,7 +3,6 @@ package keeper
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
@@ -45,10 +44,10 @@ func CheckSenderBalance(
 func (k *Keeper) DeductTxCostsFromUserBalance(
 	ctx sdk.Context,
 	fees sdk.Coins,
-	from common.Address,
+	from sdk.AccAddress,
 ) error {
 	// fetch sender account
-	signerAcc, err := authante.GetSignerAcc(ctx, k.accountKeeper, from.Bytes())
+	signerAcc, err := authante.GetSignerAcc(ctx, k.accountKeeper, from)
 	if err != nil {
 		return errorsmod.Wrapf(err, "account not found for sender %s", from)
 	}

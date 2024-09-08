@@ -778,7 +778,7 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 		}
 
 		msgEvmTx := evmtypes.NewTx(evmTxArgs)
-		msgEvmTx.From = sender.GetEthAddress().String()
+		msgEvmTx.From = sender.GetCosmosAddress().String()
 
 		return msgEvmTx
 	}
@@ -801,7 +801,7 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 		}
 
 		msgEvmTx := evmtypes.NewTx(evmTxArgs)
-		msgEvmTx.From = sender.GetEthAddress().String()
+		msgEvmTx.From = sender.GetCosmosAddress().String()
 
 		return msgEvmTx
 	}

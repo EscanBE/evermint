@@ -74,7 +74,7 @@ func (suite *AnteTestSuite) BuildTestEthTx(
 	}
 
 	msgEthereumTx := evmtypes.NewTx(ethTxParams)
-	msgEthereumTx.From = from.String()
+	msgEthereumTx.From = sdk.AccAddress(from.Bytes()).String()
 	return msgEthereumTx
 }
 
@@ -114,7 +114,6 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 	err = msg.Sign(suite.ethSigner, utiltx.NewSigner(priv))
 	suite.Require().NoError(err)
 
-	msg.From = ""
 	err = builder.SetMsgs(msg)
 	suite.Require().NoError(err)
 

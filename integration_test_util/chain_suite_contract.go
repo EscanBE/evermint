@@ -422,7 +422,7 @@ func (suite *ChainIntegrationTestSuite) prepareMsgEthereumTx(ctx sdk.Context, se
 	}
 
 	msgEthereumTx := evmtypes.NewTx(evmTxArgs)
-	msgEthereumTx.From = from.String()
+	msgEthereumTx.From = sdk.AccAddress(from.Bytes()).String()
 
 	return msgEthereumTx
 }

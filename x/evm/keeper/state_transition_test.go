@@ -454,7 +454,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 				ethMsg, _, err = newEthMsgTx(getNonce(suite.address.Bytes()), suite.address, suite.signer, txSigner, ethtypes.AccessListTxType, nil, nil)
 				suite.Require().NoError(err)
 
-				ethMsg.From = suite.address.Hex()
+				ethMsg.From = sdk.AccAddress(suite.address.Bytes()).String()
 				err = ethMsg.Sign(txSigner, suite.signer)
 				suite.Require().NoError(err)
 			},
@@ -492,7 +492,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
 				ethMsg = evmtypes.NewTx(&ethTxParams)
-				ethMsg.From = suite.address.Hex()
+				ethMsg.From = sdk.AccAddress(suite.address.Bytes()).String()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 			},
@@ -530,7 +530,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
 				ethMsg = evmtypes.NewTx(&ethTxParams)
-				ethMsg.From = suite.address.Hex()
+				ethMsg.From = sdk.AccAddress(suite.address.Bytes()).String()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 			},
@@ -560,7 +560,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
 				ethMsg = evmtypes.NewTx(&ethTxParams)
-				ethMsg.From = suite.address.Hex()
+				ethMsg.From = sdk.AccAddress(suite.address.Bytes()).String()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 			},
@@ -591,7 +591,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
 				ethMsg = evmtypes.NewTx(&ethTxParams)
-				ethMsg.From = suite.address.Hex()
+				ethMsg.From = sdk.AccAddress(suite.address.Bytes()).String()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 			},
@@ -710,7 +710,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
 				ethMsg := evmtypes.NewTx(&ethTxParams)
-				ethMsg.From = suite.address.Hex()
+				ethMsg.From = sdk.AccAddress(suite.address.Bytes()).String()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
@@ -744,7 +744,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
 				ethMsg := evmtypes.NewTx(&ethTxParams)
-				ethMsg.From = suite.address.Hex()
+				ethMsg.From = sdk.AccAddress(suite.address.Bytes()).String()
 				err := ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
@@ -778,7 +778,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
 				ethMsg := evmtypes.NewTx(&ethTxParams)
-				ethMsg.From = suite.address.Hex()
+				ethMsg.From = sdk.AccAddress(suite.address.Bytes()).String()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
@@ -812,7 +812,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
 				ethMsg := evmtypes.NewTx(&ethTxParams)
-				ethMsg.From = suite.address.Hex()
+				ethMsg.From = sdk.AccAddress(suite.address.Bytes()).String()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
@@ -957,7 +957,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
 				ethMsg := evmtypes.NewTx(&ethTxParams)
-				ethMsg.From = suite.address.Hex()
+				ethMsg.From = sdk.AccAddress(suite.address.Bytes()).String()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
@@ -990,7 +990,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
 				ethMsg := evmtypes.NewTx(&ethTxParams)
-				ethMsg.From = suite.address.Hex()
+				ethMsg.From = sdk.AccAddress(suite.address.Bytes()).String()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
@@ -1023,7 +1023,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
 				ethMsg := evmtypes.NewTx(&ethTxParams)
-				ethMsg.From = suite.address.Hex()
+				ethMsg.From = sdk.AccAddress(suite.address.Bytes()).String()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
@@ -1057,7 +1057,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
 
 				ethMsg := evmtypes.NewTx(&ethTxParams)
-				ethMsg.From = suite.address.Hex()
+				ethMsg.From = sdk.AccAddress(suite.address.Bytes()).String()
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
@@ -1138,7 +1138,7 @@ func (suite *KeeperTestSuite) createContractMsgTx(nonce uint64, signer ethtypes.
 	ethMsg := &evmtypes.MsgEthereumTx{}
 	err := ethMsg.FromEthereumTx(ethTx)
 	suite.Require().NoError(err)
-	ethMsg.From = suite.address.Hex()
+	ethMsg.From = sdk.AccAddress(suite.address.Bytes()).String()
 
 	return ethMsg, ethMsg.Sign(signer, suite.signer)
 }

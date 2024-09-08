@@ -51,8 +51,6 @@ func PrepareEthTx(
 			}
 		}
 
-		msgEthTx.From = ""
-
 		txGasLimit += msgEthTx.GetGas()
 		txFee = txFee.Add(sdk.Coin{Denom: constants.BaseDenom, Amount: sdkmath.NewIntFromBigInt(msgEthTx.GetFee())})
 	}
@@ -114,7 +112,7 @@ func CreateEthTx(
 		Accesses:  &ethtypes.AccessList{},
 	}
 	msgEthereumTx := evmtypes.NewTx(evmTxParams)
-	msgEthereumTx.From = fromAddr.String()
+	msgEthereumTx.From = sdk.AccAddress(fromAddr.Bytes()).String()
 
 	// If we are creating multiple eth Tx's with different senders, we need to sign here rather than later.
 	if privKey != nil {

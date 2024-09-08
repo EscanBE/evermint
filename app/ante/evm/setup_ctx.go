@@ -183,9 +183,8 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
-		// Validate `From` field
-		if msgEthTx.From != "" {
-			return ctx, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "invalid From %s, expect empty string", msgEthTx.From)
+		if _, err := sdk.AccAddressFromBech32(msgEthTx.From); err != nil {
+			return ctx, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "invalid From %s, expect bech32 address", msgEthTx.From)
 		}
 
 		txGasLimit += msgEthTx.GetGas()

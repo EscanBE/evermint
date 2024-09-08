@@ -54,7 +54,7 @@ func DoBenchmark(b *testing.B, txBuilder TxBuilder) {
 	suite, contractAddr := SetupContract(b)
 
 	msg := txBuilder(suite, contractAddr)
-	msg.From = suite.address.Hex()
+	msg.From = sdk.AccAddress(suite.address.Bytes()).String()
 	err := msg.Sign(ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID()), suite.signer)
 	require.NoError(b, err)
 
@@ -166,7 +166,7 @@ func BenchmarkMessageCall(b *testing.B) {
 	}
 	msg := evmtypes.NewTx(ethTxParams)
 
-	msg.From = suite.address.Hex()
+	msg.From = sdk.AccAddress(suite.address.Bytes()).String()
 	err = msg.Sign(ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID()), suite.signer)
 	require.NoError(b, err)
 

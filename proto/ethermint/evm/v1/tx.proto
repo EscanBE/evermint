@@ -23,6 +23,7 @@ service Msg {
 
 // MsgEthereumTx encapsulates an Ethereum transaction as an SDK message.
 message MsgEthereumTx {
+  option (cosmos.msg.v1.signer) = "signer";
   option (gogoproto.goproto_getters) = false;
 
   // data is inner transaction data of the Ethereum transaction
@@ -32,7 +33,7 @@ message MsgEthereumTx {
   double size = 2 [(gogoproto.jsontag) = "-"];
   // hash of the transaction in hex format
   string hash = 3 [(gogoproto.moretags) = "rlp:\"-\""];
-  // from is the ethereum signer address in hex format. This address value is checked
+  // from is the ethereum signer address in bech32 format. This address value is checked
   // against the address derived from the signature (V, R, S) using the
   // secp256k1 elliptic curve
   string from = 4;

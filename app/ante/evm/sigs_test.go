@@ -1,6 +1,7 @@
 package evm_test
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math/big"
 
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
@@ -30,7 +31,7 @@ func (suite *AnteTestSuite) TestSignatures() {
 		GasPrice: big.NewInt(1),
 	}
 	msgEthereumTx := evmtypes.NewTx(ethTxParams)
-	msgEthereumTx.From = addr.Hex()
+	msgEthereumTx.From = sdk.AccAddress(addr.Bytes()).String()
 
 	// CreateTestTx will sign the msgEthereumTx but not sign the cosmos tx since we have signCosmosTx as false
 	tx := suite.CreateTestTx(msgEthereumTx, privKey, 1, false)

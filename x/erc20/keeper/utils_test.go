@@ -281,7 +281,7 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 	}
 	ercTransferTx := evmtypes.NewTx(ercTransferTxParams)
 
-	ercTransferTx.From = suite.address.Hex()
+	ercTransferTx.From = sdk.AccAddress(from.Bytes()).String()
 	err = ercTransferTx.Sign(ethtypes.LatestSignerForChainID(chainID), suite.signer)
 	suite.Require().NoError(err)
 	rsp, err := suite.app.EvmKeeper.EthereumTx(ctx, ercTransferTx)

@@ -2,6 +2,7 @@ package backend
 
 import (
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
@@ -37,13 +38,13 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 
 	txEncoder := suite.backend.clientCtx.TxConfig.TxEncoder()
 
-	msgEthereumTx.From = from.String()
+	msgEthereumTx.From = sdk.AccAddress(from.Bytes()).String()
 	_ = msgEthereumTx.Sign(ethSigner, suite.signer)
 
 	tx, _ := msgEthereumTx.BuildTx(suite.backend.clientCtx.TxConfig.NewTxBuilder(), evmtypes.DefaultEVMDenom)
 	txBz, _ := txEncoder(tx)
 
-	msgEthereumTx2.From = from.String()
+	msgEthereumTx2.From = sdk.AccAddress(from.Bytes()).String()
 	_ = msgEthereumTx2.Sign(ethSigner, suite.signer)
 
 	tx2, _ := msgEthereumTx.BuildTx(suite.backend.clientCtx.TxConfig.NewTxBuilder(), evmtypes.DefaultEVMDenom)

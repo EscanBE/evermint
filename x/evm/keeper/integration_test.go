@@ -243,6 +243,6 @@ func buildEthTx(
 		Input:     data,
 	}
 	msgEthereumTx := evmtypes.NewTx(ethTxParams)
-	msgEthereumTx.From = from.String()
+	msgEthereumTx.From = sdk.AccAddress(from.Bytes()).String()
 	return msgEthereumTx
 }

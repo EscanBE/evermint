@@ -87,7 +87,7 @@ func (suite *KeeperTestSuite) DeployTestContract(t require.TestingT, owner commo
 		erc20DeployTx = evmtypes.NewTx(ethTxParams)
 	}
 
-	erc20DeployTx.From = suite.address.Hex()
+	erc20DeployTx.From = sdk.AccAddress(suite.address.Bytes()).String()
 	err = erc20DeployTx.Sign(ethtypes.LatestSignerForChainID(chainID), suite.signer)
 	require.NoError(t, err)
 	rsp, err := suite.app.EvmKeeper.EthereumTx(ctx, erc20DeployTx)
@@ -137,7 +137,7 @@ func (suite *KeeperTestSuite) TransferERC20Token(t require.TestingT, contractAdd
 		ercTransferTx = evmtypes.NewTx(ethTxParams)
 	}
 
-	ercTransferTx.From = suite.address.Hex()
+	ercTransferTx.From = sdk.AccAddress(suite.address.Bytes()).String()
 	err = ercTransferTx.Sign(ethtypes.LatestSignerForChainID(chainID), suite.signer)
 	require.NoError(t, err)
 	rsp, err := suite.app.EvmKeeper.EthereumTx(ctx, ercTransferTx)
@@ -189,7 +189,7 @@ func (suite *KeeperTestSuite) DeployTestMessageCall(t require.TestingT) common.A
 		erc20DeployTx = evmtypes.NewTx(ethTxParams)
 	}
 
-	erc20DeployTx.From = suite.address.Hex()
+	erc20DeployTx.From = sdk.AccAddress(suite.address.Bytes()).String()
 	err = erc20DeployTx.Sign(ethtypes.LatestSignerForChainID(chainID), suite.signer)
 	require.NoError(t, err)
 	rsp, err := suite.app.EvmKeeper.EthereumTx(ctx, erc20DeployTx)

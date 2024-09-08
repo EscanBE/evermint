@@ -437,7 +437,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 		suite.Require().Len(*evmTxArgs.Accesses, 2)
 
 		msgEthereumTx := evmtypes.NewTx(evmTxArgs)
-		msgEthereumTx.From = sender.GetEthAddress().String()
+		msgEthereumTx.From = sender.GetCosmosAddress().String()
 
 		_, err = suite.CITS.DeliverEthTx(sender, msgEthereumTx)
 		suite.Require().NoError(err)

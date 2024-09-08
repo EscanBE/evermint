@@ -33,7 +33,7 @@ var _ evmtypes.MsgServer = &Keeper{}
 func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) (*evmtypes.MsgEthereumTxResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	sender := msg.From
+	senderAccAddr := sdk.MustAccAddressFromBech32(msg.From)
 	tx := msg.AsTransaction()
 	txIndex := k.GetTxCountTransient(ctx) - 1
 
@@ -100,7 +100,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 	// supply the fields those are used in sdk event construction
 	receipt.TxHash = common.HexToHash(response.Hash)
 	if tx.To() == nil && !response.Failed() {
-		receipt.ContractAddress = crypto.CreateAddress(common.HexToAddress(sender), tx.Nonce())
+		receipt.ContractAddress = crypto.CreateAddress(common.BytesToAddress(senderAccAddr), tx.Nonce())
 	}
 	receipt.GasUsed = response.GasUsed
 	receipt.BlockNumber = big.NewInt(ctx.BlockHeight())
@@ -127,7 +127,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, evmtypes.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, sender),
+			sdk.NewAttribute(sdk.AttributeKeySender, senderAccAddr.String()),
 		),
 	})
 

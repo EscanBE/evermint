@@ -633,7 +633,7 @@ func (suite *KeeperTestSuite) TestAddLog() {
 		Input:    []byte("test"),
 	}
 	msg := evmtypes.NewTx(ethTxParams)
-	msg.From = addr.Hex()
+	msg.From = sdk.AccAddress(addr.Bytes()).String()
 
 	tx := suite.CreateTestTx(msg, privKey)
 	msg, _ = tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
@@ -649,7 +649,7 @@ func (suite *KeeperTestSuite) TestAddLog() {
 		Input:    []byte("test"),
 	}
 	msg2 := evmtypes.NewTx(ethTx2Params)
-	msg2.From = addr.Hex()
+	msg2.From = sdk.AccAddress(addr.Bytes()).String()
 
 	ethTx3Params := &evmtypes.EvmTxArgs{
 		ChainID:   big.NewInt(constants.TestnetEIP155ChainId),
@@ -662,7 +662,7 @@ func (suite *KeeperTestSuite) TestAddLog() {
 		Input:     []byte("test"),
 	}
 	msg3 := evmtypes.NewTx(ethTx3Params)
-	msg3.From = addr.Hex()
+	msg3.From = sdk.AccAddress(addr.Bytes()).String()
 
 	tx3 := suite.CreateTestTx(msg3, privKey)
 	msg3, _ = tx3.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
@@ -679,7 +679,7 @@ func (suite *KeeperTestSuite) TestAddLog() {
 		Input:     []byte("test"),
 	}
 	msg4 := evmtypes.NewTx(ethTx4Params)
-	msg4.From = addr.Hex()
+	msg4.From = sdk.AccAddress(addr.Bytes()).String()
 
 	testCases := []struct {
 		name        string
