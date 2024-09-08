@@ -139,13 +139,13 @@ func Setup(
 	return chainApp
 }
 
-func GenesisStateWithValSet(app *chainapp.Evermint, genesisState chainapp.GenesisState,
+func GenesisStateWithValSet(chainApp *chainapp.Evermint, genesisState chainapp.GenesisState,
 	valSet *cmttypes.ValidatorSet, genAccs []authtypes.GenesisAccount,
 	balances ...banktypes.Balance,
 ) chainapp.GenesisState {
 	// set genesis accounts
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), genAccs)
-	genesisState[authtypes.ModuleName] = app.AppCodec().MustMarshalJSON(authGenesis)
+	genesisState[authtypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(authGenesis)
 
 	validators := make([]stakingtypes.Validator, 0, len(valSet.Validators))
 	delegations := make([]stakingtypes.Delegation, 0, len(valSet.Validators))
@@ -176,7 +176,7 @@ func GenesisStateWithValSet(app *chainapp.Evermint, genesisState chainapp.Genesi
 	stakingParams := stakingtypes.DefaultParams()
 	stakingParams.BondDenom = constants.BaseDenom
 	stakingGenesis := stakingtypes.NewGenesisState(stakingParams, validators, delegations)
-	genesisState[stakingtypes.ModuleName] = app.AppCodec().MustMarshalJSON(stakingGenesis)
+	genesisState[stakingtypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(stakingGenesis)
 
 	totalSupply := sdk.NewCoins()
 	for _, b := range balances {
@@ -197,7 +197,7 @@ func GenesisStateWithValSet(app *chainapp.Evermint, genesisState chainapp.Genesi
 
 	// update total supply
 	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply, []banktypes.Metadata{}, []banktypes.SendEnabled{})
-	genesisState[banktypes.ModuleName] = app.AppCodec().MustMarshalJSON(bankGenesis)
+	genesisState[banktypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(bankGenesis)
 
 	return genesisState
 }

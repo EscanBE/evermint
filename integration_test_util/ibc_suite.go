@@ -2,15 +2,16 @@ package integration_test_util
 
 //goland:noinspection SpellCheckingInspection
 import (
+	sdkmath "cosmossdk.io/math"
 	"crypto/ed25519"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math/big"
 	"time"
 
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 	cosmosed25519 "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -41,22 +42,38 @@ func CreateChainsIbcIntegrationTestSuite(chain1, chain2 *ChainIntegrationTestSui
 	}
 
 	if relayer1 == nil {
-		relayer1 = NewTestAccount(chain1.t, nil)
+		relayer1 = chain1.CreateAccount()
 		chain1.MintCoin(relayer1, chain1.NewBaseCoin(9))
+		fmt.Println("Generated relayer for chain 1:", relayer1.GetCosmosAddress().String())
 	}
 	if relayer2 == nil {
-		relayer2 = NewTestAccount(chain2.t, nil)
+		relayer2 = chain2.CreateAccount()
 		chain2.MintCoin(relayer2, chain2.NewBaseCoin(9))
+		fmt.Println("Generated relayer for chain 2:", relayer2.GetCosmosAddress().String())
 	}
+
+	chain1.Commit()
+	chain2.Commit()
 
 	baseFeeChain1 := chain1.ChainApp.FeeMarketKeeper().GetBaseFee(chain1.CurrentContext)
 	baseFeeChain2 := chain2.ChainApp.FeeMarketKeeper().GetBaseFee(chain2.CurrentContext)
 
-	chain1.ChainApp.FeeMarketKeeper().SetBaseFee(chain1.CurrentContext, big.NewInt(0))
-	chain2.ChainApp.FeeMarketKeeper().SetBaseFee(chain2.CurrentContext, big.NewInt(0))
+	zeroFee := func(c *ChainIntegrationTestSuite) {
+		zero := sdkmath.ZeroInt()
 
-	chain1.Commit()
-	chain2.Commit()
+		c.ExecAndCommitStoreIfNoError(func() error {
+			fmKeeper := c.ChainApp.FeeMarketKeeper()
+			fmParams := fmKeeper.GetParams(c.CurrentContext)
+			fmParams.MinGasPrice = sdkmath.LegacyZeroDec()
+			fmParams.BaseFee = &zero
+			err := fmKeeper.SetParams(c.CurrentContext, fmParams)
+			c.Require().NoError(err)
+
+			return nil
+		})
+	}
+	zeroFee(chain1)
+	zeroFee(chain2)
 
 	coordinator := newIbcTestingCoordinator(chain1, chain2, relayer1, relayer2)
 
@@ -79,12 +96,19 @@ func CreateChainsIbcIntegrationTestSuite(chain1, chain2 *ChainIntegrationTestSui
 
 	coordinator.Setup(suite.Path)
 
+	// update header to current context
 	chain1.CurrentContext = chain1.createNewContext(chain1.CurrentContext, testChain1.CurrentHeader)
 	chain2.CurrentContext = chain2.createNewContext(chain2.CurrentContext, testChain2.CurrentHeader)
 
 	// restore base fee which was set to 0 for IBC initialization purpose
-	chain1.ChainApp.FeeMarketKeeper().SetBaseFee(chain1.CurrentContext, baseFeeChain1)
-	chain2.ChainApp.FeeMarketKeeper().SetBaseFee(chain2.CurrentContext, baseFeeChain2)
+	chain1.ExecAndCommitStoreIfNoError(func() error {
+		chain1.ChainApp.FeeMarketKeeper().SetBaseFee(chain1.CurrentContext, baseFeeChain1)
+		return nil
+	})
+	chain2.ExecAndCommitStoreIfNoError(func() error {
+		chain2.ChainApp.FeeMarketKeeper().SetBaseFee(chain2.CurrentContext, baseFeeChain2)
+		return nil
+	})
 
 	suite.CommitAllChains() // commit fee-market
 

@@ -54,7 +54,6 @@ import (
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
 	srvflags "github.com/EscanBE/evermint/v12/server/flags"
 	evertypes "github.com/EscanBE/evermint/v12/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	// Force-load the tracer engines to trigger registration due to Go-Ethereum v1.10.15 changes
 	_ "github.com/ethereum/go-ethereum/eth/tracers/js"
 	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
@@ -89,7 +88,8 @@ type Evermint struct {
 	invCheckPeriod uint
 
 	// the module manager
-	mm *module.Manager
+	mm           *module.Manager
+	ModuleBasics module.BasicManager // delivered from module manager, with installed codec
 
 	// the configurator
 	configurator module.Configurator
@@ -104,8 +104,6 @@ func init() {
 	DefaultNodeHome = filepath.Join(userHomeDir, constants.ApplicationHome)
 
 	sdk.DefaultPowerReduction = evertypes.PowerReduction // 10^18
-	// modify fee market parameter defaults through global
-	feemarkettypes.DefaultMinGasPrice = MainnetMinGasPrices
 }
 
 // NewEvermint returns a reference to a new initialized Evermint application.
@@ -174,6 +172,7 @@ func NewEvermint(
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	chainApp.mm = module.NewManager(appModules(chainApp, encodingConfig, skipGenesisInvariants)...)
+	chainApp.ModuleBasics = newBasicManagerFromManager(chainApp)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the

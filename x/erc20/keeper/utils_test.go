@@ -74,12 +74,11 @@ func (suite *KeeperTestSuite) DoSetupTest() {
 	suite.consAddress = consAddress
 
 	// init app
-	chainID := constants.TestnetFullChainId
 	suite.app = helpers.Setup(false, feemarkettypes.DefaultGenesisState(), chainID)
 	header := testutil.NewHeader(
 		1, time.Now().UTC(), chainID, consAddress, nil, nil,
 	)
-	suite.ctx = suite.app.BaseApp.NewContext(false).WithBlockHeader(header)
+	suite.ctx = suite.app.BaseApp.NewContext(false).WithBlockHeader(header).WithChainID(chainID)
 
 	// query clients
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
@@ -167,7 +166,7 @@ func (suite *KeeperTestSuite) SetupIBCTest() {
 	err = s.app.StakingKeeper.SetValidatorByConsAddr(suite.EvermintChain.GetContext(), validators[0])
 	suite.Require().NoError(err)
 
-	_, err = s.app.EvmKeeper.GetCoinbaseAddress(suite.EvermintChain.GetContext(), sdk.ConsAddress(suite.EvermintChain.CurrentHeader.ProposerAddress))
+	_, err = s.app.EvmKeeper.GetCoinbaseAddress(suite.EvermintChain.GetContext(), suite.EvermintChain.CurrentHeader.ProposerAddress)
 	suite.Require().NoError(err)
 	// Mint coins locked on the account generated with secp.
 	amt, ok := sdkmath.NewIntFromString("1000000000000000000000")

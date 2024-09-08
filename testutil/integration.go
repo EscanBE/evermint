@@ -43,7 +43,7 @@ func SubmitProposal(
 		return id, errorsmod.Wrapf(errorsmod.Error{}, "eventNumber %d in SubmitProposal calls %s instead of submit_proposal", eventNum, submitEvent.Type)
 	}
 
-	return strconv.ParseUint(string(submitEvent.Attributes[0].Value), 10, 64)
+	return strconv.ParseUint(submitEvent.Attributes[0].Value, 10, 64)
 }
 
 // Delegate delivers a delegate tx

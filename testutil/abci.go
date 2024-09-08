@@ -22,39 +22,31 @@ import (
 //  2. DeliverTx
 //  3. EndBlock
 //  4. Commit
-func Commit(ctx sdk.Context, app *chainapp.Evermint, t time.Duration, vs *cmttypes.ValidatorSet) (sdk.Context, error) {
+func Commit(ctx sdk.Context, chainApp *chainapp.Evermint, t time.Duration, vs *cmttypes.ValidatorSet) (sdk.Context, error) {
 	header := ctx.BlockHeader()
 
-	if vs != nil {
-		req := abci.RequestFinalizeBlock{Height: header.Height}
-		res, err := app.FinalizeBlock(&req)
-		if err != nil {
-			return ctx, err
-		}
+	req := abci.RequestFinalizeBlock{Height: header.Height}
+	res, err := chainApp.FinalizeBlock(&req)
+	if err != nil {
+		return ctx, err
+	}
 
+	if vs != nil {
 		nextVals, err := applyValSetChanges(vs, res.ValidatorUpdates)
 		if err != nil {
 			return ctx, err
 		}
 		header.ValidatorsHash = vs.Hash()
 		header.NextValidatorsHash = nextVals.Hash()
-	} else {
-		if _, err := app.EndBlocker(ctx); err != nil {
-			return ctx, err
-		}
 	}
 
-	if _, err := app.Commit(); err != nil {
+	if _, err := chainApp.Commit(); err != nil {
 		return ctx, err
 	}
 
 	header.Height++
 	header.Time = header.Time.Add(t)
-	header.AppHash = app.LastCommitID().Hash
-
-	if _, err := app.BeginBlocker(ctx); err != nil {
-		return ctx, err
-	}
+	header.AppHash = chainApp.LastCommitID().Hash
 
 	return ctx.WithBlockHeader(header), nil
 }
@@ -147,18 +139,21 @@ func CheckEthTx(
 }
 
 // BroadcastTxBytes encodes a transaction and calls DeliverTx on the app.
-func BroadcastTxBytes(app *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ExecTxResult, error) {
+func BroadcastTxBytes(chainApp *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ExecTxResult, error) {
 	// bz are bytes to be broadcasted over the network
 	bz, err := txEncoder(tx)
 	if err != nil {
 		return abci.ExecTxResult{}, err
 	}
 
-	req := abci.RequestFinalizeBlock{Txs: [][]byte{bz}}
+	req := abci.RequestFinalizeBlock{
+		Height: chainApp.BaseApp.CommitMultiStore().LatestVersion() + 1, /*finalize current block so we + 1*/
+		Txs:    [][]byte{bz},
+	}
 
-	res, err := app.BaseApp.FinalizeBlock(&req)
+	res, err := chainApp.BaseApp.FinalizeBlock(&req)
 	if err != nil {
-		return abci.ExecTxResult{}, err
+		return abci.ExecTxResult{}, errorsmod.Wrap(err, "failed to finalize block")
 	}
 	if len(res.TxResults) != 1 {
 		return abci.ExecTxResult{}, fmt.Errorf("unexpected transaction results. Expected 1, got: %d", len(res.TxResults))
@@ -166,21 +161,21 @@ func BroadcastTxBytes(app *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx
 
 	txRes := res.TxResults[0]
 	if txRes.Code != 0 {
-		return abci.ExecTxResult{}, errorsmod.Wrapf(errortypes.ErrInvalidRequest, txRes.Log)
+		return abci.ExecTxResult{}, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "tx log: %s", txRes.Log)
 	}
 
 	return *txRes, nil
 }
 
 // checkTxBytes encodes a transaction and calls checkTx on the app.
-func checkTxBytes(app *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ResponseCheckTx, error) {
+func checkTxBytes(chainApp *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ResponseCheckTx, error) {
 	bz, err := txEncoder(tx)
 	if err != nil {
 		return abci.ResponseCheckTx{}, err
 	}
 
 	req := abci.RequestCheckTx{Tx: bz}
-	res, err := app.BaseApp.CheckTx(&req)
+	res, err := chainApp.BaseApp.CheckTx(&req)
 	if err != nil {
 		return abci.ResponseCheckTx{}, err
 	}

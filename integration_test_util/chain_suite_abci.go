@@ -40,17 +40,23 @@ func (suite *ChainIntegrationTestSuite) createNewContext(oldCtx sdk.Context, hea
 	// NewContext function keeps the multistore
 	// but resets other context fields
 	// GasMeter is set as InfiniteGasMeter
+
 	var newCtx sdk.Context
 	if suite.HasTendermint() {
 		newCtx = sdk.NewContext(suite.BaseApp().CommitMultiStore(), header, false, suite.BaseApp().Logger())
+
+		newCtx = newCtx.WithChainID(oldCtx.ChainID())
+		// set the reset-ted fields to keep the current ctx settings
+
+		newCtx = newCtx.WithMinGasPrices(oldCtx.MinGasPrices())
+		newCtx = newCtx.WithEventManager(oldCtx.EventManager())
+		newCtx = newCtx.WithKVGasConfig(oldCtx.KVGasConfig())
+		newCtx = newCtx.WithTransientKVGasConfig(oldCtx.TransientKVGasConfig())
 	} else {
-		newCtx = suite.BaseApp().NewContext(false).WithBlockHeader(header)
+		newCtx = oldCtx.
+			WithMultiStore(suite.BaseApp().CommitMultiStore()).
+			WithBlockHeader(header)
 	}
-	// set the reset-ted fields to keep the current ctx settings
-	newCtx = newCtx.WithMinGasPrices(oldCtx.MinGasPrices())
-	newCtx = newCtx.WithEventManager(oldCtx.EventManager())
-	newCtx = newCtx.WithKVGasConfig(oldCtx.KVGasConfig())
-	newCtx = newCtx.WithTransientKVGasConfig(oldCtx.TransientKVGasConfig())
 
 	return newCtx
 }
@@ -158,7 +164,13 @@ func (suite *ChainIntegrationTestSuite) BroadcastTx(tx sdk.Tx) (responseDeliverT
 			suite.Require().NoError(err)
 			responseDeliverTx = res.TxResult
 		} else {
-			req := abci.RequestFinalizeBlock{Txs: [][]byte{bz}}
+			req := abci.RequestFinalizeBlock{
+				Height:             suite.CurrentContext.BlockHeight(),
+				Txs:                [][]byte{bz},
+				ProposerAddress:    suite.CurrentContext.BlockHeader().ProposerAddress,
+				NextValidatorsHash: suite.CurrentContext.BlockHeader().NextValidatorsHash,
+				Time:               suite.CurrentContext.BlockHeader().Time,
+			}
 			res, err := suite.BaseApp().FinalizeBlock(&req)
 			if err != nil {
 				return abci.ExecTxResult{}, err
@@ -212,22 +224,25 @@ func (suite *ChainIntegrationTestSuite) commit(ctx sdk.Context, t time.Duration,
 
 	header := ctx.BlockHeader()
 
+	req := abci.RequestFinalizeBlock{
+		Height:             header.Height,
+		Hash:               header.AppHash,
+		NextValidatorsHash: header.NextValidatorsHash,
+		ProposerAddress:    header.ProposerAddress,
+		Time:               header.Time,
+	}
+	res, err := chainApp.BaseApp().FinalizeBlock(&req)
+	if err != nil {
+		return header, nil, err
+	}
+
 	if vs != nil {
-		req := abci.RequestFinalizeBlock{Height: header.Height}
-		res, err := chainApp.BaseApp().FinalizeBlock(&req)
-		if err != nil {
-			return header, nil, err
-		}
 		nextVals, err = applyValSetChanges(vs, res.ValidatorUpdates)
 		if err != nil {
 			return header, nil, err
 		}
 		header.ValidatorsHash = vs.Hash()
 		header.NextValidatorsHash = nextVals.Hash()
-	} else {
-		if _, err := chainApp.EndBlocker(ctx); err != nil {
-			return header, nil, err
-		}
 	}
 
 	if _, err := chainApp.BaseApp().Commit(); err != nil {

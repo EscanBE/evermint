@@ -10,7 +10,6 @@ import (
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 )
@@ -116,24 +115,32 @@ func (suite *ChainIntegrationTestSuite) MintCoinToCosmosAddress(receiver sdk.Acc
 
 	coins := sdk.NewCoins(coin)
 
-	err := suite.ChainApp.BankKeeper().MintCoins(suite.CurrentContext, minttypes.ModuleName, coins)
-	suite.Require().NoError(err)
+	suite.ExecAndCommitStoreIfNoError(func() error {
+		err := suite.ChainApp.BankKeeper().MintCoins(suite.CurrentContext, minttypes.ModuleName, coins)
+		suite.Require().NoError(err)
 
-	err = suite.ChainApp.BankKeeper().SendCoinsFromModuleToAccount(suite.CurrentContext, minttypes.ModuleName, receiver, coins)
-	suite.Require().NoError(err)
+		err = suite.ChainApp.BankKeeper().SendCoinsFromModuleToAccount(suite.CurrentContext, minttypes.ModuleName, receiver, coins)
+		suite.Require().NoError(err)
+
+		return nil
+	})
 }
 
 // MintCoinToModuleAccount mints a new amount of coin into given module account.
-func (suite *ChainIntegrationTestSuite) MintCoinToModuleAccount(receiver authtypes.ModuleAccountI, coin sdk.Coin) {
+func (suite *ChainIntegrationTestSuite) MintCoinToModuleAccount(receiver sdk.ModuleAccountI, coin sdk.Coin) {
 	suite.Require().NotNil(receiver)
 
 	coins := sdk.NewCoins(coin)
 
-	err := suite.ChainApp.BankKeeper().MintCoins(suite.CurrentContext, minttypes.ModuleName, coins)
-	suite.Require().NoError(err)
+	suite.ExecAndCommitStoreIfNoError(func() error {
+		err := suite.ChainApp.BankKeeper().MintCoins(suite.CurrentContext, minttypes.ModuleName, coins)
+		suite.Require().NoError(err)
 
-	err = suite.ChainApp.BankKeeper().SendCoinsFromModuleToModule(suite.CurrentContext, minttypes.ModuleName, receiver.GetName(), coins)
-	suite.Require().NoError(err)
+		err = suite.ChainApp.BankKeeper().SendCoinsFromModuleToModule(suite.CurrentContext, minttypes.ModuleName, receiver.GetName(), coins)
+		suite.Require().NoError(err)
+
+		return nil
+	})
 }
 
 // NewBaseCoin returns an instance of sdk.Coin of base coin with given amount.

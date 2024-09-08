@@ -8,8 +8,13 @@ import (
 	ethparams "github.com/ethereum/go-ethereum/params"
 )
 
-// DefaultMinGasPrice is 0 (i.e disabled)
-var DefaultMinGasPrice = sdkmath.LegacyZeroDec()
+var (
+	// DefaultBaseFee is 1B wei (1 Gwei)
+	DefaultBaseFee uint64 = ethparams.InitialBaseFee
+
+	// DefaultMinGasPrice is 1B wei (1 Gwei)
+	DefaultMinGasPrice = sdkmath.LegacyNewDec(1_000_000_000)
+)
 
 // Parameter keys
 var (
@@ -54,7 +59,7 @@ func NewParams(
 func DefaultParams() Params {
 	return NewParams(
 		false,
-		ethparams.InitialBaseFee,
+		DefaultBaseFee,
 		DefaultMinGasPrice,
 	)
 }

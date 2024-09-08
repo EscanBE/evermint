@@ -1,0 +1,20 @@
+package integration_test_util
+
+import (
+	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
+)
+
+// CreateAccount put new test account into account store
+func (suite *ChainIntegrationTestSuite) CreateAccount() *itutiltypes.TestAccount {
+	newTA := NewTestAccount(suite.T(), nil)
+
+	accountKeeper := suite.ChainApp.AccountKeeper()
+
+	suite.ExecAndCommitStoreIfNoError(func() error {
+		newA := accountKeeper.NewAccountWithAddress(suite.CurrentContext, newTA.GetCosmosAddress())
+		accountKeeper.SetAccount(suite.CurrentContext, newA)
+		return nil
+	})
+
+	return newTA
+}

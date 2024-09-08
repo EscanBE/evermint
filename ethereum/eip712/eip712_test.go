@@ -114,6 +114,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 
 	signModes := []signing.SignMode{
 		signing.SignMode_SIGN_MODE_DIRECT,
+		signing.SignMode_SIGN_MODE_TEXTUAL,
 		signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
 	}
 
@@ -136,7 +137,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 		expectSuccess bool
 	}{
 		{
-			title: "Succeeds - Standard MsgSend",
+			title: "succeed - Standard MsgSend",
 			msgs: []sdk.Msg{
 				banktypes.NewMsgSend(
 					suite.createTestAddress(),
@@ -147,7 +148,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			expectSuccess: true,
 		},
 		{
-			title: "Succeeds - Standard MsgVote",
+			title: "succeed - Standard MsgVote",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
 					suite.createTestAddress(),
@@ -158,7 +159,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			expectSuccess: true,
 		},
 		{
-			title: "Succeeds - Standard MsgDelegate",
+			title: "succeed - Standard MsgDelegate",
 			msgs: []sdk.Msg{
 				stakingtypes.NewMsgDelegate(
 					suite.createTestAddress().String(),
@@ -169,7 +170,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			expectSuccess: true,
 		},
 		{
-			title: "Succeeds - Standard MsgWithdrawDelegationReward",
+			title: "succeed - Standard MsgWithdrawDelegationReward",
 			msgs: []sdk.Msg{
 				distributiontypes.NewMsgWithdrawDelegatorReward(
 					suite.createTestAddress().String(),
@@ -179,7 +180,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			expectSuccess: true,
 		},
 		{
-			title: "Succeeds - Two Single-Signer MsgDelegate",
+			title: "succeed - Two Single-Signer MsgDelegate",
 			msgs: []sdk.Msg{
 				stakingtypes.NewMsgDelegate(
 					testParams.address.String(),
@@ -195,7 +196,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			expectSuccess: true,
 		},
 		{
-			title: "Succeeds - Single-Signer MsgVote V1 with Omitted Value",
+			title: "succeed - Single-Signer MsgVote V1 with Omitted Value",
 			msgs: []sdk.Msg{
 				govtypesv1.NewMsgVote(
 					testParams.address,
@@ -207,7 +208,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			expectSuccess: true,
 		},
 		{
-			title: "Succeeds - Single-Signer MsgSend + MsgVote",
+			title: "succeed - Single-Signer MsgSend + MsgVote",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
 					testParams.address,
@@ -223,7 +224,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			expectSuccess: !suite.useLegacyEIP712TypedData,
 		},
 		{
-			title: "Succeeds - Single-Signer 2x MsgVoteV1 with Different Schemas",
+			title: "succeed - Single-Signer 2x MsgVoteV1 with Different Schemas",
 			msgs: []sdk.Msg{
 				govtypesv1.NewMsgVote(
 					testParams.address,
@@ -241,7 +242,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			expectSuccess: !suite.useLegacyEIP712TypedData,
 		},
 		{
-			title: "Fails - Two MsgVotes with Different Signers",
+			title: "fail - Two MsgVotes with Different Signers",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
 					suite.createTestAddress(),
@@ -257,12 +258,12 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			expectSuccess: false,
 		},
 		{
-			title:         "Fails - Empty Transaction",
+			title:         "fail - Empty Transaction",
 			msgs:          []sdk.Msg{},
 			expectSuccess: false,
 		},
 		{
-			title:   "Fails - Invalid ChainID",
+			title:   "fail - Invalid ChainID",
 			chainID: "invalidchainid",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
@@ -274,7 +275,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			expectSuccess: false,
 		},
 		{
-			title: "Fails - Includes TimeoutHeight",
+			title: "fail - Includes TimeoutHeight",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
 					suite.createTestAddress(),
@@ -286,7 +287,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			expectSuccess: false,
 		},
 		{
-			title: "Fails - Single Message / Multi-Signer",
+			title: "fail - Single Message / Multi-Signer",
 			msgs: []sdk.Msg{
 				banktypes.NewMsgMultiSend(
 					banktypes.NewInput(

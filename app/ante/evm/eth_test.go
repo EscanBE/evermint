@@ -307,6 +307,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 		Accesses: &ethtypes.AccessList{{Address: addr, StorageKeys: nil}},
 	}
 	tx3 := evmtypes.NewTx(eth3TxContractParams)
+	tx3.From = sdk.AccAddress(addr.Bytes()).String()
 
 	dynamicTxContractParams := &evmtypes.EvmTxArgs{
 		ChainID:   chainID,
@@ -331,7 +332,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 		GasLimit: 1_000_000,
 		GasPrice: big.NewInt(0),
 	})
-	zeroFeeLegacyTx.From = zeroBalanceAddr.Hex()
+	zeroFeeLegacyTx.From = sdk.AccAddress(zeroBalanceAddr.Bytes()).String()
 	zeroFeeAccessListTx := evmtypes.NewTx(&evmtypes.EvmTxArgs{
 		ChainID:  chainID,
 		Nonce:    1,
@@ -340,7 +341,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 		GasPrice: big.NewInt(0),
 		Accesses: &ethtypes.AccessList{{Address: zeroBalanceAddr, StorageKeys: nil}},
 	})
-	zeroFeeAccessListTx.From = zeroBalanceAddr.Hex()
+	zeroFeeAccessListTx.From = sdk.AccAddress(zeroBalanceAddr.Bytes()).String()
 
 	var vmdb *statedb.StateDB
 
@@ -712,37 +713,42 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		expPanic bool
 	}{
 		{
-			"invalid transaction type",
-			&testutiltx.InvalidTx{},
-			func() {},
-			false, true,
+			name:     "invalid transaction type",
+			tx:       &testutiltx.InvalidTx{},
+			malleate: func() {},
+			expPass:  false,
+			expPanic: true,
 		},
 		{
-			"no signers",
-			evmtypes.NewTx(ethTxParamsNonce1),
-			func() {},
-			false, false,
+			name:     "no signers",
+			tx:       evmtypes.NewTx(ethTxParamsNonce1),
+			malleate: func() {},
+			expPass:  false,
+			expPanic: true,
 		},
 		{
-			"account not set to store",
-			tx,
-			func() {},
-			false, false,
+			name:     "account not set to store",
+			tx:       tx,
+			malleate: func() {},
+			expPass:  false,
+			expPanic: false,
 		},
 		{
-			"success - create contract",
-			contract,
-			func() {
+			name: "success - create contract",
+			tx:   contract,
+			malleate: func() {
 				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 			},
-			true, false,
+			expPass:  true,
+			expPanic: false,
 		},
 		{
-			"success - call",
-			tx2,
-			func() {},
-			true, false,
+			name:     "success - call",
+			tx:       tx2,
+			malleate: func() {},
+			expPass:  true,
+			expPanic: false,
 		},
 	}
 

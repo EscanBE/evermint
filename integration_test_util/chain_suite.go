@@ -3,6 +3,8 @@ package integration_test_util
 //goland:noinspection SpellCheckingInspection
 import (
 	"context"
+	"cosmossdk.io/store/rootmulti"
+	storetypes "cosmossdk.io/store/types"
 	"fmt"
 	"github.com/EscanBE/evermint/v12/utils"
 	sdkdb "github.com/cosmos/cosmos-db"
@@ -90,7 +92,7 @@ type ChainIntegrationTestSuite struct {
 	CurrentContext       sdk.Context // might be out-dated if Tendermint is used
 	ValidatorAccounts    itutiltypes.TestAccounts
 	WalletAccounts       itutiltypes.TestAccounts
-	ModuleAccounts       map[string]authtypes.ModuleAccountI
+	ModuleAccounts       map[string]sdk.ModuleAccountI
 	QueryClients         *itutiltypes.QueryClients
 	EvmTxIndexer         *kvindexer.KVIndexer
 	RpcBackend           *rpcbackend.Backend
@@ -198,7 +200,9 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 		chainCfg.CosmosChainId,
 		validatorAccounts.Number(1).GetConsensusAddress(),
 	)
-	ctx := baseApp.NewContext(false).WithBlockHeader(header)
+	ctx := baseApp.NewContext(false).
+		WithBlockHeader(header).
+		WithChainID(chainCfg.CosmosChainId)
 
 	evmParams := app.EvmKeeper().GetParams(ctx)
 	evmParams.EvmDenom = chainCfg.BaseDenom
@@ -239,10 +243,10 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 		ChainApp:          app,
 		TendermintApp:     tmApp,
 		ValidatorSet:      valSet,
-		CurrentContext:    ctx,
+		CurrentContext:    ctx.WithMultiStore(baseApp.CommitMultiStore().CacheMultiStore()),
 		ValidatorAccounts: validatorAccounts,
 		WalletAccounts:    walletAccounts,
-		ModuleAccounts:    make(map[string]authtypes.ModuleAccountI),
+		ModuleAccounts:    make(map[string]sdk.ModuleAccountI),
 		EvmTxIndexer:      kvindexer.NewKVIndexer(evmIndexerDb, log.NewNopLogger(), clientCtx),
 		EthSigner:         ethtypes.LatestSignerForChainID(chainCfg.EvmChainIdBigInt),
 		TestConfig:        testConfig,
@@ -262,7 +266,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 		var account sdk.AccountI
 		err = encodingConfig.InterfaceRegistry.UnpackAny(acc, &account)
 		require.NoError(t, err)
-		moduleAccount, ok := account.(authtypes.ModuleAccountI)
+		moduleAccount, ok := account.(sdk.ModuleAccountI)
 		require.True(t, ok)
 		result.ModuleAccounts[moduleAccount.GetName()] = moduleAccount
 	}
@@ -680,4 +684,29 @@ func createFirstBlockHeader(
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
 		EvidenceHash:       tmhash.Sum([]byte("evidence")),
 	}
+}
+
+// ExecAndCommitStoreIfNoError execute a state transition and commit directly to the base app's commit multistore.
+// Since Cosmos-SDK v0.50, the block execution context is maintained internally,
+// that make Commit can not pass context to finalize.
+func (suite *ChainIntegrationTestSuite) ExecAndCommitStoreIfNoError(f func() error) {
+	ms := suite.CurrentContext.MultiStore()
+	if rms, ok := ms.(*rootmulti.Store); ok {
+		suite.CurrentContext = suite.CurrentContext.WithMultiStore(rms.CacheMultiStore())
+	} else if cms, ok := ms.(storetypes.CommitMultiStore); ok {
+		suite.CurrentContext = suite.CurrentContext.WithMultiStore(cms.CacheMultiStore())
+	} else if _, ok := suite.CurrentContext.MultiStore().(storetypes.CacheMultiStore); ok {
+		// ok
+	} else {
+		panic(fmt.Sprintf("not supported multistore type %T", ms))
+	}
+
+	err := f()
+	suite.Require().NoError(err)
+
+	// write to commit multi store
+	suite.CurrentContext.MultiStore().(storetypes.CacheMultiStore).Write()
+
+	// reflect new change to current context
+	suite.CurrentContext = suite.CurrentContext.WithMultiStore(suite.BaseApp().CommitMultiStore())
 }

@@ -67,12 +67,19 @@ const (
 // NewRootCmd creates a new root command for our binary. It is called once in the
 // main function.
 func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
-	encodingConfig := chainapp.RegisterEncodingConfig()
+	// we "pre"-instantiate the application for getting the injected/configured encoding configuration
+	tempChainApp := initTemporaryChainApp()
+	defer func() {
+		if err := tempChainApp.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
 	initClientCtx := client.Context{}.
-		WithCodec(encodingConfig.Codec).
-		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
-		WithTxConfig(encodingConfig.TxConfig).
-		WithLegacyAmino(encodingConfig.Amino).
+		WithCodec(tempChainApp.AppCodec()).
+		WithInterfaceRegistry(tempChainApp.InterfaceRegistry()).
+		WithTxConfig(tempChainApp.GetTxConfig()).
+		WithLegacyAmino(tempChainApp.LegacyAmino()).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.FlagBroadcastMode).
@@ -80,6 +87,13 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		WithKeyringOptions(appkeyring.Option()).
 		WithViper(ViperEnvPrefix).
 		WithLedgerHasProtobuf(true)
+
+	encodingConfig := params.EncodingConfig{
+		InterfaceRegistry: tempChainApp.InterfaceRegistry(),
+		Codec:             tempChainApp.AppCodec(),
+		TxConfig:          tempChainApp.GetTxConfig(),
+		Amino:             tempChainApp.LegacyAmino(),
+	}
 
 	eip712.SetEncodingConfig(encodingConfig)
 
@@ -221,7 +235,7 @@ You gonna get "data/application.db" unpacked
 	rootCmd.AddCommand(
 		sdkserver.StatusCommand(),
 		queryCommand(),
-		txCommand(),
+		txCommand(tempChainApp),
 		appclient.KeyCommands(chainapp.DefaultNodeHome),
 	)
 	rootCmd, err := srvflags.AddTxFlags(rootCmd)
@@ -271,7 +285,7 @@ func queryCommand() *cobra.Command {
 	return cmd
 }
 
-func txCommand() *cobra.Command {
+func txCommand(chainApp *chainapp.Evermint) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "tx",
 		Short:                      "Transactions subcommands",
@@ -292,7 +306,7 @@ func txCommand() *cobra.Command {
 		authcmd.GetDecodeCommand(),
 	)
 
-	chainapp.ModuleBasics.AddTxCommands(cmd)
+	chainApp.ModuleBasics.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -406,23 +420,23 @@ func (a appCreator) appExport(
 	appOpts servertypes.AppOptions,
 	modulesToExport []string,
 ) (servertypes.ExportedApp, error) {
-	var app *chainapp.Evermint
+	var chainApp *chainapp.Evermint
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
 	if !ok || homePath == "" {
 		return servertypes.ExportedApp{}, errors.New("application home not set")
 	}
 
 	if height != -1 {
-		app = chainapp.NewEvermint(logger, db, traceStore, false, map[int64]bool{}, "", uint(1), a.encCfg, appOpts)
+		chainApp = chainapp.NewEvermint(logger, db, traceStore, false, map[int64]bool{}, "", uint(1), a.encCfg, appOpts)
 
-		if err := app.LoadHeight(height); err != nil {
+		if err := chainApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		app = chainapp.NewEvermint(logger, db, traceStore, true, map[int64]bool{}, "", uint(1), a.encCfg, appOpts)
+		chainApp = chainapp.NewEvermint(logger, db, traceStore, true, map[int64]bool{}, "", uint(1), a.encCfg, appOpts)
 	}
 
-	return app.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
+	return chainApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
 }
 
 // initCometBftConfig helps to override default CometBFT Config values.
@@ -436,4 +450,34 @@ func initCometBftConfig() *cmtcfg.Config {
 	// cfg.P2P.MaxNumOutboundPeers = 40
 
 	return cfg
+}
+
+func initTemporaryChainApp() *chainapp.Evermint {
+	encodingConfig := chainapp.RegisterEncodingConfig()
+
+	// we "pre"-instantiate the application for getting the injected/configured encoding configuration
+	initAppOptions := viper.New()
+	tempDir := func() string {
+		dir, err := os.MkdirTemp("", constants.ApplicationHome)
+		if err != nil {
+			dir = chainapp.DefaultNodeHome
+		}
+		defer func() {
+			_ = os.RemoveAll(dir)
+		}()
+
+		return dir
+	}()
+	initAppOptions.Set(flags.FlagHome, tempDir)
+	return chainapp.NewEvermint(
+		log.NewNopLogger(),
+		sdkdb.NewMemDB(),
+		nil,
+		true,
+		map[int64]bool{},
+		tempDir,
+		0,
+		encodingConfig,
+		initAppOptions,
+	)
 }

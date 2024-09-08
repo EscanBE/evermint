@@ -24,15 +24,15 @@ import (
 // compiled contract data and constructor arguments
 func DeployContract(
 	ctx sdk.Context,
-	app *chainapp.Evermint,
+	chainApp *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	queryClientEvm evm.QueryClient,
 	contract evm.CompiledContract,
 	constructorArgs ...interface{},
 ) (common.Address, error) {
-	chainID := app.EvmKeeper.ChainID()
+	chainID := chainApp.EvmKeeper.ChainID()
 	from := common.BytesToAddress(priv.PubKey().Address().Bytes())
-	nonce := app.EvmKeeper.GetNonce(ctx, from)
+	nonce := chainApp.EvmKeeper.GetNonce(ctx, from)
 
 	ctorArgs, err := contract.ABI.Pack("", constructorArgs...)
 	if err != nil {
@@ -49,19 +49,19 @@ func DeployContract(
 		ChainID:   chainID,
 		Nonce:     nonce,
 		GasLimit:  gas,
-		GasFeeCap: app.FeeMarketKeeper.GetBaseFee(ctx),
+		GasFeeCap: chainApp.FeeMarketKeeper.GetBaseFee(ctx),
 		GasTipCap: big.NewInt(1),
 		Input:     data,
 		Accesses:  &ethtypes.AccessList{},
 	})
 	msgEthereumTx.From = sdk.AccAddress(from.Bytes()).String()
 
-	res, err := DeliverEthTx(app, priv, msgEthereumTx)
+	res, err := DeliverEthTx(chainApp, priv, msgEthereumTx)
 	if err != nil {
 		return common.Address{}, err
 	}
 
-	if _, err := CheckEthTxResponse(res, app.AppCodec()); err != nil {
+	if _, err := CheckEthTxResponse(res, chainApp.AppCodec()); err != nil {
 		return common.Address{}, err
 	}
 
@@ -72,14 +72,14 @@ func DeployContract(
 // with the provided factoryAddress
 func DeployContractWithFactory(
 	ctx sdk.Context,
-	app *chainapp.Evermint,
+	chainApp *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	factoryAddress common.Address,
 ) (common.Address, abci.ExecTxResult, error) {
-	chainID := app.EvmKeeper.ChainID()
+	chainID := chainApp.EvmKeeper.ChainID()
 	from := common.BytesToAddress(priv.PubKey().Address().Bytes())
-	factoryNonce := app.EvmKeeper.GetNonce(ctx, factoryAddress)
-	nonce := app.EvmKeeper.GetNonce(ctx, from)
+	factoryNonce := chainApp.EvmKeeper.GetNonce(ctx, factoryAddress)
+	nonce := chainApp.EvmKeeper.GetNonce(ctx, from)
 
 	msgEthereumTx := evm.NewTx(&evm.EvmTxArgs{
 		ChainID:  chainID,
@@ -90,12 +90,12 @@ func DeployContractWithFactory(
 	})
 	msgEthereumTx.From = sdk.AccAddress(from.Bytes()).String()
 
-	res, err := DeliverEthTx(app, priv, msgEthereumTx)
+	res, err := DeliverEthTx(chainApp, priv, msgEthereumTx)
 	if err != nil {
 		return common.Address{}, abci.ExecTxResult{}, err
 	}
 
-	if _, err := CheckEthTxResponse(res, app.AppCodec()); err != nil {
+	if _, err := CheckEthTxResponse(res, chainApp.AppCodec()); err != nil {
 		return common.Address{}, abci.ExecTxResult{}, err
 	}
 

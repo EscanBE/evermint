@@ -153,6 +153,19 @@ func appModules(
 	}
 }
 
+// ModuleBasics defines the module BasicManager that is in charge of setting up basic,
+// non-dependant module elements, such as codec registration
+// and genesis verification.
+func newBasicManagerFromManager(app *Evermint) module.BasicManager {
+	basicManager := module.NewBasicManagerFromManager(
+		app.mm,
+		map[string]module.AppModuleBasic{
+			genutiltypes.ModuleName: ModuleBasics[genutiltypes.ModuleName],
+			govtypes.ModuleName:     ModuleBasics[govtypes.ModuleName],
+		})
+	return basicManager
+}
+
 /*
 orderBeginBlockers tells the app's module manager how to set the order of
 BeginBlockers, which are run at the beginning of every block.
