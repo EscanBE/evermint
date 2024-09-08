@@ -10,11 +10,8 @@ func (suite *ChainIntegrationTestSuite) CreateAccount() *itutiltypes.TestAccount
 
 	accountKeeper := suite.ChainApp.AccountKeeper()
 
-	suite.ExecAndCommitStoreIfNoError(func() error {
-		newA := accountKeeper.NewAccountWithAddress(suite.CurrentContext, newTA.GetCosmosAddress())
-		accountKeeper.SetAccount(suite.CurrentContext, newA)
-		return nil
-	})
+	newA := accountKeeper.NewAccountWithAddress(suite.CurrentContext, newTA.GetCosmosAddress())
+	accountKeeper.SetAccount(suite.CurrentContext, newA)
 
 	return newTA
 }

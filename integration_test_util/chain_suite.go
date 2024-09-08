@@ -686,10 +686,10 @@ func createFirstBlockHeader(
 	}
 }
 
-// ExecAndCommitStoreIfNoError execute a state transition and commit directly to the base app's commit multistore.
+// ReflectChangesToCommitMultiStore commit the current state directly into the base app's commit multistore.
 // Since Cosmos-SDK v0.50, the block execution context is maintained internally,
 // that make Commit can not pass context to finalize.
-func (suite *ChainIntegrationTestSuite) ExecAndCommitStoreIfNoError(f func() error) {
+func (suite *ChainIntegrationTestSuite) ReflectChangesToCommitMultiStore() {
 	ms := suite.CurrentContext.MultiStore()
 	if rms, ok := ms.(*rootmulti.Store); ok {
 		suite.CurrentContext = suite.CurrentContext.WithMultiStore(rms.CacheMultiStore())
@@ -700,9 +700,6 @@ func (suite *ChainIntegrationTestSuite) ExecAndCommitStoreIfNoError(f func() err
 	} else {
 		panic(fmt.Sprintf("not supported multistore type %T", ms))
 	}
-
-	err := f()
-	suite.Require().NoError(err)
 
 	// write to commit multi store
 	suite.CurrentContext.MultiStore().(storetypes.CacheMultiStore).Write()

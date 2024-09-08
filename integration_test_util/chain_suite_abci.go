@@ -218,6 +218,8 @@ func (suite *ChainIntegrationTestSuite) BroadcastTxAsync(tx sdk.Tx) (resultBroad
 //
 // - Finally, returns the updated header.
 func (suite *ChainIntegrationTestSuite) commit(ctx sdk.Context, t time.Duration, vs *cmttypes.ValidatorSet) (tmproto.Header, *cmttypes.ValidatorSet, error) {
+	suite.ReflectChangesToCommitMultiStore()
+
 	var nextVals *cmttypes.ValidatorSet
 
 	chainApp := suite.ChainApp

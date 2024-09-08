@@ -176,33 +176,6 @@ func BroadcastTxBytes(ctx sdk.Context, chainApp *chainapp.Evermint, txEncoder sd
 	return *txRes, nil
 }
 
-// ExecAndCommitStoreIfNoError execute a state transition and commit directly to the base app's commit multistore.
-// Since Cosmos-SDK v0.50, the block execution context is maintained internally,
-// that make Commit can not pass context to finalize.
-func ExecAndCommitStoreIfNoError(ctx sdk.Context, baseApp *baseapp.BaseApp, f func() error) (sdk.Context, error) {
-	ms := ctx.MultiStore()
-	if rms, ok := ms.(*rootmulti.Store); ok {
-		ctx = ctx.WithMultiStore(rms.CacheMultiStore())
-	} else if cms, ok := ms.(storetypes.CommitMultiStore); ok {
-		ctx = ctx.WithMultiStore(cms.CacheMultiStore())
-	} else if _, ok := ctx.MultiStore().(storetypes.CacheMultiStore); ok {
-		// ok
-	} else {
-		panic(fmt.Sprintf("not supported multistore type %T", ms))
-	}
-
-	err := f()
-	if err != nil {
-		return ctx.WithMultiStore(ms) /* restore */, err
-	}
-
-	// write to commit multi store
-	ctx.MultiStore().(storetypes.CacheMultiStore).Write()
-
-	// reflect new change to current context
-	return ctx.WithMultiStore(baseApp.CommitMultiStore()), nil
-}
-
 // ReflectChangesToCommitMultiStore commit the current state directly into the base app's commit multistore.
 // Since Cosmos-SDK v0.50, the block execution context is maintained internally,
 // that make Commit can not pass context to finalize.

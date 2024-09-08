@@ -115,15 +115,11 @@ func (suite *ChainIntegrationTestSuite) MintCoinToCosmosAddress(receiver sdk.Acc
 
 	coins := sdk.NewCoins(coin)
 
-	suite.ExecAndCommitStoreIfNoError(func() error {
-		err := suite.ChainApp.BankKeeper().MintCoins(suite.CurrentContext, minttypes.ModuleName, coins)
-		suite.Require().NoError(err)
+	err := suite.ChainApp.BankKeeper().MintCoins(suite.CurrentContext, minttypes.ModuleName, coins)
+	suite.Require().NoError(err)
 
-		err = suite.ChainApp.BankKeeper().SendCoinsFromModuleToAccount(suite.CurrentContext, minttypes.ModuleName, receiver, coins)
-		suite.Require().NoError(err)
-
-		return nil
-	})
+	err = suite.ChainApp.BankKeeper().SendCoinsFromModuleToAccount(suite.CurrentContext, minttypes.ModuleName, receiver, coins)
+	suite.Require().NoError(err)
 }
 
 // MintCoinToModuleAccount mints a new amount of coin into given module account.
@@ -132,15 +128,11 @@ func (suite *ChainIntegrationTestSuite) MintCoinToModuleAccount(receiver sdk.Mod
 
 	coins := sdk.NewCoins(coin)
 
-	suite.ExecAndCommitStoreIfNoError(func() error {
-		err := suite.ChainApp.BankKeeper().MintCoins(suite.CurrentContext, minttypes.ModuleName, coins)
-		suite.Require().NoError(err)
+	err := suite.ChainApp.BankKeeper().MintCoins(suite.CurrentContext, minttypes.ModuleName, coins)
+	suite.Require().NoError(err)
 
-		err = suite.ChainApp.BankKeeper().SendCoinsFromModuleToModule(suite.CurrentContext, minttypes.ModuleName, receiver.GetName(), coins)
-		suite.Require().NoError(err)
-
-		return nil
-	})
+	err = suite.ChainApp.BankKeeper().SendCoinsFromModuleToModule(suite.CurrentContext, minttypes.ModuleName, receiver.GetName(), coins)
+	suite.Require().NoError(err)
 }
 
 // NewBaseCoin returns an instance of sdk.Coin of base coin with given amount.

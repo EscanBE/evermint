@@ -61,16 +61,12 @@ func CreateChainsIbcIntegrationTestSuite(chain1, chain2 *ChainIntegrationTestSui
 	zeroFee := func(c *ChainIntegrationTestSuite) {
 		zero := sdkmath.ZeroInt()
 
-		c.ExecAndCommitStoreIfNoError(func() error {
-			fmKeeper := c.ChainApp.FeeMarketKeeper()
-			fmParams := fmKeeper.GetParams(c.CurrentContext)
-			fmParams.MinGasPrice = sdkmath.LegacyZeroDec()
-			fmParams.BaseFee = &zero
-			err := fmKeeper.SetParams(c.CurrentContext, fmParams)
-			c.Require().NoError(err)
-
-			return nil
-		})
+		fmKeeper := c.ChainApp.FeeMarketKeeper()
+		fmParams := fmKeeper.GetParams(c.CurrentContext)
+		fmParams.MinGasPrice = sdkmath.LegacyZeroDec()
+		fmParams.BaseFee = &zero
+		err := fmKeeper.SetParams(c.CurrentContext, fmParams)
+		c.Require().NoError(err)
 	}
 	zeroFee(chain1)
 	zeroFee(chain2)
@@ -101,14 +97,8 @@ func CreateChainsIbcIntegrationTestSuite(chain1, chain2 *ChainIntegrationTestSui
 	chain2.CurrentContext = chain2.createNewContext(chain2.CurrentContext, testChain2.CurrentHeader)
 
 	// restore base fee which was set to 0 for IBC initialization purpose
-	chain1.ExecAndCommitStoreIfNoError(func() error {
-		chain1.ChainApp.FeeMarketKeeper().SetBaseFee(chain1.CurrentContext, baseFeeChain1)
-		return nil
-	})
-	chain2.ExecAndCommitStoreIfNoError(func() error {
-		chain2.ChainApp.FeeMarketKeeper().SetBaseFee(chain2.CurrentContext, baseFeeChain2)
-		return nil
-	})
+	chain1.ChainApp.FeeMarketKeeper().SetBaseFee(chain1.CurrentContext, baseFeeChain1)
+	chain2.ChainApp.FeeMarketKeeper().SetBaseFee(chain2.CurrentContext, baseFeeChain2)
 
 	suite.CommitAllChains() // commit fee-market
 
