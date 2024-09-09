@@ -170,7 +170,7 @@ func (suite *ChainIntegrationTestSuite) signCosmosTx(
 		Sequence:      seq,
 	}
 	sigV2, err = clienttx.SignWithPrivKey(
-		context.Background(), // TODO ES: is this correct?
+		ctx,
 		signMode,
 		signerData,
 		txBuilder, account.PrivateKey, txCfg,

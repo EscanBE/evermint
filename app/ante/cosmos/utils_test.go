@@ -107,7 +107,7 @@ func createTx(priv cryptotypes.PrivKey, msgs ...sdk.Msg) (sdk.Tx, error) {
 		Sequence:      0,
 	}
 	sigV2, err = clienttx.SignWithPrivKey(
-		context.Background(),
+		context.TODO(),
 		signMode, signerData,
 		txBuilder, priv, encodingConfig.TxConfig,
 		0,

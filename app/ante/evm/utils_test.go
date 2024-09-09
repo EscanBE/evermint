@@ -149,7 +149,7 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 			Sequence:      txData.GetNonce(),
 		}
 		sigV2, err = clienttx.SignWithPrivKey(
-			context.Background(),
+			suite.ctx,
 			signMode, signerData,
 			txBuilder, priv, suite.clientCtx.TxConfig, txData.GetNonce(),
 		)
