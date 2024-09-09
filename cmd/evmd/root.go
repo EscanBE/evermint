@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"cosmossdk.io/client/v2/autocli"
+
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/EscanBE/evermint/v12/utils"
@@ -37,10 +39,11 @@ import (
 	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/config"
+	clientconfig "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -112,7 +115,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 				return err
 			}
 
-			initClientCtx, err = config.ReadFromClientConfig(initClientCtx)
+			initClientCtx, err = clientconfig.ReadFromClientConfig(initClientCtx)
 			if err != nil {
 				return err
 			}
@@ -216,8 +219,6 @@ You gonna get "data/application.db" unpacked
 		NewConvertAddressCmd(),
 	}
 
-	// End of command rename chain
-
 	rootCmd.AddCommand(commands...)
 
 	appserver.AddCommands(
@@ -242,6 +243,11 @@ You gonna get "data/application.db" unpacked
 	// add rosetta
 	rootCmd.AddCommand(rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec))
 
+	autoCliOpts := enrichAutoCliOpts(tempChainApp.AutoCliOpts(), initClientCtx)
+	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
+		panic(err)
+	}
+
 	const minimumDefaultGasAdjustment = 1.2
 	if //goland:noinspection GoBoolExpressions
 	flags.DefaultGasAdjustment < minimumDefaultGasAdjustment {
@@ -250,6 +256,16 @@ You gonna get "data/application.db" unpacked
 	}
 
 	return rootCmd, encodingConfig
+}
+
+func enrichAutoCliOpts(autoCliOpts autocli.AppOptions, clientCtx client.Context) autocli.AppOptions {
+	autoCliOpts.AddressCodec = addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
+	autoCliOpts.ValidatorAddressCodec = addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix())
+	autoCliOpts.ConsensusAddressCodec = addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix())
+
+	autoCliOpts.ClientCtx = clientCtx
+
+	return autoCliOpts
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
@@ -275,7 +291,6 @@ func queryCommand() *cobra.Command {
 		authcmd.QueryTxCmd(),
 	)
 
-	chainapp.ModuleBasics.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -374,7 +389,7 @@ func (a appCreator) newApp(logger log.Logger, db sdkdb.DB, traceStore io.Writer,
 		if err := v.ReadInConfig(); err != nil {
 			panic(err)
 		}
-		conf := new(config.ClientConfig)
+		conf := new(clientconfig.ClientConfig)
 		if err := v.Unmarshal(conf); err != nil {
 			panic(err)
 		}

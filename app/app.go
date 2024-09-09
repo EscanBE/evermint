@@ -8,6 +8,14 @@ import (
 	"os"
 	"path/filepath"
 
+	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
+	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
+	"cosmossdk.io/client/v2/autocli"
+	"cosmossdk.io/core/appmodule"
+
+	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
+	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
+
 	"github.com/EscanBE/evermint/v12/utils"
 
 	"github.com/EscanBE/evermint/v12/app/params"
@@ -207,10 +215,20 @@ func NewEvermint(
 
 	chainApp.mm.RegisterInvariants(chainApp.CrisisKeeper)
 	chainApp.configurator = module.NewConfigurator(chainApp.appCodec, chainApp.MsgServiceRouter(), chainApp.GRPCQueryRouter())
-	chainApp.mm.RegisterServices(chainApp.configurator)
+	if err := chainApp.mm.RegisterServices(chainApp.configurator); err != nil {
+		panic(err)
+	}
+
+	autocliv1.RegisterQueryServer(chainApp.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(chainApp.mm.Modules))
+
+	reflectionSvc, err := runtimeservices.NewReflectionService()
+	if err != nil {
+		panic(err)
+	}
+	reflectionv1.RegisterReflectionServiceServer(chainApp.GRPCQueryRouter(), reflectionSvc)
 
 	// add test gRPC service for testing gRPC queries in isolation
-	// testdata.RegisterTestServiceServer(app.GRPCQueryRouter(), testdata.TestServiceImpl{})
+	// testdata.RegisterTestServiceServer(chainApp.GRPCQueryRouter(), testdata.TestServiceImpl{})
 
 	// initialize stores
 	chainApp.MountKVStores(chainApp.GetKVStoreKey())
@@ -444,6 +462,27 @@ func (app *Evermint) GetBaseApp() *baseapp.BaseApp {
 // GetTxConfig implements the TestingApp interface.
 func (app *Evermint) GetTxConfig() client.TxConfig {
 	return app.txConfig
+}
+
+// AutoCliOpts returns the autocli options for the app.
+func (app *Evermint) AutoCliOpts() autocli.AppOptions {
+	modules := make(map[string]appmodule.AppModule, 0)
+	for _, m := range app.mm.Modules {
+		if moduleWithName, ok := m.(module.HasName); ok {
+			moduleName := moduleWithName.Name()
+			if appModule, ok := moduleWithName.(appmodule.AppModule); ok {
+				modules[moduleName] = appModule
+			}
+		}
+	}
+
+	return autocli.AppOptions{
+		Modules:               modules,
+		ModuleOptions:         runtimeservices.ExtractAutoCLIOptions(app.mm.Modules),
+		AddressCodec:          authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
+		ValidatorAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
+		ConsensusAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
+	}
 }
 
 // GetStakingKeeper implements the TestingApp interface.
