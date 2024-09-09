@@ -68,7 +68,7 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 		{
 			name: "pass - BaseAccount",
 			malleate: func() {
-				acc := authtypes.NewBaseAccountWithAddress(address.Bytes())
+				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, address.Bytes())
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 			},
 			genState: &evmtypes.GenesisState{
@@ -91,7 +91,8 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 					DelegatedVesting: nil,
 					EndTime:          suite.ctx.BlockTime().Unix() + 1000,
 				}
-				suite.app.AccountKeeper.SetAccount(suite.ctx, baseVestingAccount)
+				acc := suite.app.AccountKeeper.NewAccount(suite.ctx, baseVestingAccount)
+				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 			},
 			genState: &evmtypes.GenesisState{
 				Params: evmtypes.DefaultParams(),
@@ -123,7 +124,7 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 		{
 			name: "pass - ignore empty account code checking with non-empty code-hash",
 			malleate: func() {
-				acc := authtypes.NewBaseAccount(address.Bytes(), nil, 0, 0)
+				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, address.Bytes())
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 				suite.app.EvmKeeper.SetCodeHash(suite.ctx, address, common.BytesToHash([]byte{1, 2, 3}))

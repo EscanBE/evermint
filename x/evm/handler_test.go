@@ -137,7 +137,7 @@ func (suite *EvmTestSuite) DoSetupTest() {
 		NextValidatorsHash: tmhash.Sum([]byte("next_validators")),
 		ConsensusHash:      tmhash.Sum([]byte("consensus")),
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
-	})
+	}).WithChainID(req.ChainId)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	evmtypes.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
@@ -193,7 +193,7 @@ func (suite *EvmTestSuite) TestHandleMsgEthereumTx() {
 		expPass  bool
 	}{
 		{
-			"passed",
+			"pass",
 			func() {
 				to := common.BytesToAddress(suite.to)
 				ethTxParams := &evmtypes.EvmTxArgs{
@@ -205,6 +205,7 @@ func (suite *EvmTestSuite) TestHandleMsgEthereumTx() {
 					GasPrice: big.NewInt(10000),
 				}
 				tx = evmtypes.NewTx(ethTxParams)
+				tx.From = sdk.AccAddress(suite.from.Bytes()).String()
 				suite.SignTx(tx)
 			},
 			true,
@@ -213,6 +214,7 @@ func (suite *EvmTestSuite) TestHandleMsgEthereumTx() {
 			"insufficient balance",
 			func() {
 				tx = evmtypes.NewTx(defaultEthTxParams)
+				tx.From = sdk.AccAddress(suite.from.Bytes()).String()
 				suite.SignTx(tx)
 			},
 			false,
@@ -221,6 +223,7 @@ func (suite *EvmTestSuite) TestHandleMsgEthereumTx() {
 			"tx encoding failed",
 			func() {
 				tx = evmtypes.NewTx(defaultEthTxParams)
+				tx.From = sdk.AccAddress(suite.from.Bytes()).String()
 			},
 			false,
 		},
@@ -235,6 +238,7 @@ func (suite *EvmTestSuite) TestHandleMsgEthereumTx() {
 			"VerifySig failed",
 			func() {
 				tx = evmtypes.NewTx(defaultEthTxParams)
+				tx.From = sdk.AccAddress(suite.from.Bytes()).String()
 			},
 			false,
 		},

@@ -126,6 +126,9 @@ func newMsgEthereumTx(
 
 	msg := MsgEthereumTx{Data: dataAny}
 	msg.Hash = msg.AsTransaction().Hash().Hex()
+
+	// TODO ES: assign From here
+
 	return &msg
 }
 
@@ -240,6 +243,9 @@ func (msg MsgEthereumTx) GetSignBytes() []byte {
 // The function will fail if the sender address is not defined for the msg or if
 // the sender is not registered on the keyring
 func (msg *MsgEthereumTx) Sign(ethSigner ethtypes.Signer, keyringSigner keyring.Signer) error {
+	if msg.From == "" {
+		return fmt.Errorf("sender address not defined for message")
+	}
 	from := msg.GetFrom()
 	if from.Empty() {
 		return fmt.Errorf("sender address not defined for message")

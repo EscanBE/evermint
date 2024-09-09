@@ -543,15 +543,15 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasicAdvanced() {
 
 func (suite *MsgsTestSuite) TestMsgEthereumTx_Sign() {
 	testCases := []struct {
-		msg        string
+		name       string
 		txParams   *evmtypes.EvmTxArgs
 		ethSigner  ethtypes.Signer
 		malleate   func(tx *evmtypes.MsgEthereumTx)
 		expectPass bool
 	}{
 		{
-			"pass - EIP2930 signer",
-			&evmtypes.EvmTxArgs{
+			name: "pass - EIP2930 signer",
+			txParams: &evmtypes.EvmTxArgs{
 				ChainID:  suite.chainID,
 				Nonce:    0,
 				To:       &suite.to,
@@ -559,66 +559,52 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_Sign() {
 				Input:    []byte("test"),
 				Accesses: &ethtypes.AccessList{},
 			},
-			ethtypes.NewEIP2930Signer(suite.chainID),
-			func(tx *evmtypes.MsgEthereumTx) { tx.From = sdk.AccAddress(suite.from.Bytes()).String() },
-			true,
+			ethSigner:  ethtypes.NewEIP2930Signer(suite.chainID),
+			malleate:   func(tx *evmtypes.MsgEthereumTx) { tx.From = sdk.AccAddress(suite.from.Bytes()).String() },
+			expectPass: true,
 		},
 		{
-			"pass - EIP155 signer",
-			&evmtypes.EvmTxArgs{
+			name: "pass - EIP155 signer",
+			txParams: &evmtypes.EvmTxArgs{
 				ChainID:  suite.chainID,
 				Nonce:    0,
 				To:       &suite.to,
 				GasLimit: 100000,
 				Input:    []byte("test"),
 			},
-			ethtypes.NewEIP155Signer(suite.chainID),
-			func(tx *evmtypes.MsgEthereumTx) { tx.From = sdk.AccAddress(suite.from.Bytes()).String() },
-			true,
+			ethSigner:  ethtypes.NewEIP155Signer(suite.chainID),
+			malleate:   func(tx *evmtypes.MsgEthereumTx) { tx.From = sdk.AccAddress(suite.from.Bytes()).String() },
+			expectPass: true,
 		},
 		{
-			"pass - Homestead signer",
-			&evmtypes.EvmTxArgs{
+			name: "pass - Homestead signer",
+			txParams: &evmtypes.EvmTxArgs{
 				ChainID:  suite.chainID,
 				Nonce:    0,
 				To:       &suite.to,
 				GasLimit: 100000,
 				Input:    []byte("test"),
 			},
-			ethtypes.HomesteadSigner{},
-			func(tx *evmtypes.MsgEthereumTx) { tx.From = sdk.AccAddress(suite.from.Bytes()).String() },
-			true,
+			ethSigner:  ethtypes.HomesteadSigner{},
+			malleate:   func(tx *evmtypes.MsgEthereumTx) { tx.From = sdk.AccAddress(suite.from.Bytes()).String() },
+			expectPass: true,
 		},
 		{
-			"pass - Frontier signer",
-			&evmtypes.EvmTxArgs{
+			name: "pass - Frontier signer",
+			txParams: &evmtypes.EvmTxArgs{
 				ChainID:  suite.chainID,
 				Nonce:    0,
 				To:       &suite.to,
 				GasLimit: 100000,
 				Input:    []byte("test"),
 			},
-			ethtypes.FrontierSigner{},
-			func(tx *evmtypes.MsgEthereumTx) { tx.From = sdk.AccAddress(suite.from.Bytes()).String() },
-			true,
+			ethSigner:  ethtypes.FrontierSigner{},
+			malleate:   func(tx *evmtypes.MsgEthereumTx) { tx.From = sdk.AccAddress(suite.from.Bytes()).String() },
+			expectPass: true,
 		},
 		{
-			"no from address ",
-			&evmtypes.EvmTxArgs{
-				ChainID:  suite.chainID,
-				Nonce:    0,
-				To:       &suite.to,
-				GasLimit: 100000,
-				Input:    []byte("test"),
-				Accesses: &ethtypes.AccessList{},
-			},
-			ethtypes.NewEIP2930Signer(suite.chainID),
-			func(tx *evmtypes.MsgEthereumTx) { tx.From = "" },
-			false,
-		},
-		{
-			"from address ≠ signer address",
-			&evmtypes.EvmTxArgs{
+			name: "fail - no from address",
+			txParams: &evmtypes.EvmTxArgs{
 				ChainID:  suite.chainID,
 				Nonce:    0,
 				To:       &suite.to,
@@ -626,25 +612,46 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_Sign() {
 				Input:    []byte("test"),
 				Accesses: &ethtypes.AccessList{},
 			},
-			ethtypes.NewEIP2930Signer(suite.chainID),
-			func(tx *evmtypes.MsgEthereumTx) { tx.From = sdk.AccAddress(suite.to.Bytes()).String() },
-			false,
+			ethSigner:  ethtypes.NewEIP2930Signer(suite.chainID),
+			malleate:   func(tx *evmtypes.MsgEthereumTx) { tx.From = "" },
+			expectPass: false,
+		},
+		{
+			name: "fail - from address ≠ signer address",
+			txParams: &evmtypes.EvmTxArgs{
+				ChainID:  suite.chainID,
+				Nonce:    0,
+				To:       &suite.to,
+				GasLimit: 100000,
+				Input:    []byte("test"),
+				Accesses: &ethtypes.AccessList{},
+			},
+			ethSigner: ethtypes.NewEIP2930Signer(suite.chainID),
+			malleate: func(tx *evmtypes.MsgEthereumTx) {
+				tx.From = sdk.AccAddress(suite.to.Bytes()).String()
+			},
+			expectPass: false,
 		},
 	}
 
-	for i, tc := range testCases {
-		tx := evmtypes.NewTx(tc.txParams)
-		tc.malleate(tx)
-		err := tx.Sign(tc.ethSigner, suite.signer)
-		if tc.expectPass {
-			suite.Require().NoError(err, "valid test %d failed: %s", i, tc.msg)
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			tx := evmtypes.NewTx(tc.txParams)
+			tx.From = sdk.AccAddress(suite.from.Bytes()).String()
+
+			tc.malleate(tx)
+			err := tx.Sign(tc.ethSigner, suite.signer)
+			if !tc.expectPass {
+				suite.Require().Error(err)
+				return
+			}
+
+			suite.Require().NoError(err)
 
 			sender, err := tx.GetSender(suite.chainID)
-			suite.Require().NoError(err, tc.msg)
-			suite.Require().Equal(sdk.AccAddress(sender.Bytes()).String(), tx.From, tc.msg)
-		} else {
-			suite.Require().Error(err, "invalid test %d passed: %s", i, tc.msg)
-		}
+			suite.Require().NoError(err)
+			suite.Require().Equal(sdk.AccAddress(sender.Bytes()).String(), tx.From, tc.name)
+		})
 	}
 }
 

@@ -119,10 +119,13 @@ func (suite *KeeperTestSuite) TestQueryCosmosAccount() {
 		{
 			"success",
 			func() {
+				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, suite.address.Bytes())
+				suite.Require().NotNil(acc)
+
 				expAccount = &evmtypes.QueryCosmosAccountResponse{
 					CosmosAddress: sdk.AccAddress(suite.address.Bytes()).String(),
-					Sequence:      0,
-					AccountNumber: 0,
+					Sequence:      acc.GetSequence(),
+					AccountNumber: acc.GetAccountNumber(),
 				}
 				req = &evmtypes.QueryCosmosAccountRequest{
 					Address: suite.address.String(),
@@ -134,14 +137,20 @@ func (suite *KeeperTestSuite) TestQueryCosmosAccount() {
 			"success with seq and account number",
 			func() {
 				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, suite.address.Bytes())
-				suite.Require().NoError(acc.SetSequence(10))
-				suite.Require().NoError(acc.SetAccountNumber(1))
+				suite.Require().NotNil(acc)
+
+				nextSeqNumber := acc.GetSequence() + 1
+				nextAccNumber := suite.app.AccountKeeper.NextAccountNumber(suite.ctx)
+
+				suite.Require().NoError(acc.SetSequence(nextSeqNumber))
+				suite.Require().NoError(acc.SetAccountNumber(nextAccNumber))
+
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 				expAccount = &evmtypes.QueryCosmosAccountResponse{
 					CosmosAddress: sdk.AccAddress(suite.address.Bytes()).String(),
-					Sequence:      10,
-					AccountNumber: 1,
+					Sequence:      nextSeqNumber,
+					AccountNumber: nextAccNumber,
 				}
 				req = &evmtypes.QueryCosmosAccountRequest{
 					Address: suite.address.String(),
