@@ -40,7 +40,7 @@ which runs on top of the [CometBFT](https://github.com/cometbft/cometbft) consen
 - Evermint is for research and development purpose.
 - Evermint is fork of open source Evmos v12.1.6 plus bug fixes.
 - Evermint is [currently removing some modules](https://github.com/EscanBE/evermint/issues/41) from Evmos codebase and only keep `x/evm`, `x/erc20`, `x/feemarket`. The goal is to make it more simple for research and only focus on the skeleton of Evmos.
-- After upgraded to Cosmos-SDK v0.50, Evermint is now has many breaking change to the Legacy Evmos v12.1.6, if you might want to use libraries previously developed for Evmos v12.1.6, you might need to use [Evermint version which uses v0.47 and below](https://github.com/EscanBE/evermint/commits/e2bd47ca39aa97d388d5165962228f77419dea47).
+- After upgraded to Cosmos-SDK v0.50, Evermint is now has many breaking change to the Legacy Evmos v12.1.6. If you want to use the open-source libraries previously developed for Evmos v12.1.6, you might need to use [Evermint version which uses Cosmos-SDK v0.47 and below](https://github.com/EscanBE/evermint/tree/v12.3.0-cosmos47).
 
 ## Documentation
 
@@ -66,4 +66,4 @@ evmd convert-address evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz evmos
 4. [`snapshots` command](https://github.com/EscanBE/evermint/pull/12)
 5. [`inspect` command](https://github.com/EscanBE/evermint/pull/14)
 6. [Flag `--allow-insecure-unlock`](https://github.com/EscanBE/evermint/pull/142)
-7. Dependencies updated: `Cosmos-SDK v0.50.8`, `CometBFT v0.38.9`, `ibc-go v8.3.2`, `go-ethereum v1.10.26`
+7. Dependencies updated: `Cosmos-SDK v0.50.9`, `CometBFT v0.38.12`, `ibc-go v8.5.0`, `go-ethereum v1.10.26`
