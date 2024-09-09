@@ -255,12 +255,11 @@ func (suite *KeeperTestSuite) MintFeeCollector(coins sdk.Coins) {
 }
 
 func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transferData []byte) *evmtypes.MsgEthereumTx {
-	ctx := sdk.WrapSDKContext(suite.ctx)
 	chainID := suite.app.EvmKeeper.ChainID()
 
 	args, err := json.Marshal(&evmtypes.TransactionArgs{To: &contractAddr, From: &from, Data: (*hexutil.Bytes)(&transferData)})
 	suite.Require().NoError(err)
-	res, err := suite.queryClientEvm.EstimateGas(ctx, &evmtypes.EthCallRequest{
+	res, err := suite.queryClientEvm.EstimateGas(suite.ctx, &evmtypes.EthCallRequest{
 		Args:   args,
 		GasCap: config.DefaultGasCap,
 	})
@@ -286,7 +285,7 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 	ercTransferTx.From = sdk.AccAddress(from.Bytes()).String()
 	err = ercTransferTx.Sign(ethtypes.LatestSignerForChainID(chainID), suite.signer)
 	suite.Require().NoError(err)
-	rsp, err := suite.app.EvmKeeper.EthereumTx(ctx, ercTransferTx)
+	rsp, err := suite.app.EvmKeeper.EthereumTx(suite.ctx, ercTransferTx)
 	suite.Require().NoError(err)
 	suite.Require().Empty(rsp.VmError)
 	return ercTransferTx
