@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/EscanBE/evermint/v12/utils"
 	"io"
 	"net/http"
 	"os"
@@ -19,6 +20,7 @@ import (
 	cmtos "github.com/cometbft/cometbft/libs/os"
 	sdkdb "github.com/cosmos/cosmos-db"
 
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
@@ -27,13 +29,12 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
-
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
@@ -173,6 +174,17 @@ func NewEvermint(
 	// must be passed by reference here.
 	chainApp.mm = module.NewManager(appModules(chainApp, encodingConfig, skipGenesisInvariants)...)
 	chainApp.ModuleBasics = newBasicManagerFromManager(chainApp)
+
+	{
+		txConfigWithTextual, err := utils.GetTxConfigWithSignModeTextureEnabled(
+			authtxconfig.NewBankKeeperCoinMetadataQueryFn(chainApp.BankKeeper),
+			appCodec,
+		)
+		if err != nil {
+			panic(err)
+		}
+		chainApp.txConfig = txConfigWithTextual
+	}
 
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the

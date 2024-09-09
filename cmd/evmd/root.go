@@ -4,8 +4,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"errors"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	"github.com/EscanBE/evermint/v12/utils"
 	"io"
 	"os"
 	"path/filepath"
@@ -120,13 +119,8 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 			// sets the RPC client needed for SIGN_MODE_TEXTUAL. This sign mode
 			// is only available if the client is online.
 			if !initClientCtx.Offline {
-				txConfigOpts := tx.ConfigOptions{
-					EnabledSignModes:           append(tx.DefaultSignModes, signing.SignMode_SIGN_MODE_TEXTUAL),
-					TextualCoinMetadataQueryFn: authtxconfig.NewGRPCCoinMetadataQueryFn(initClientCtx),
-				}
-				txConfigWithTextual, err := tx.NewTxConfigWithOptions(
-					initClientCtx.Codec,
-					txConfigOpts,
+				txConfigWithTextual, err := utils.GetTxConfigWithSignModeTextureEnabled(
+					authtxconfig.NewGRPCCoinMetadataQueryFn(initClientCtx), initClientCtx.Codec,
 				)
 				if err != nil {
 					return err
