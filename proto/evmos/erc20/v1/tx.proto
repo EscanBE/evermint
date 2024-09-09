@@ -27,6 +27,8 @@ service Msg {
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
+// TODO ES: add signer tag and use bech32 format for addresses
+
 // MsgConvertCoin defines a Msg to convert a native Cosmos coin to a ERC20 token
 message MsgConvertCoin {
   // coin is a Cosmos coin whose denomination is registered in a token pair. The coin

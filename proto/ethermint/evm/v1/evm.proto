@@ -5,6 +5,8 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/EscanBE/evermint/v12/x/evm/types";
 
+// TODO ES: add check force enable London,... logics and remove all the check in code
+
 // Params defines the EVM module parameters
 message Params {
   // evm_denom represents the token denomination used to run the EVM state
