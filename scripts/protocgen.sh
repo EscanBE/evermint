@@ -21,3 +21,5 @@ done
 # move proto files to the right places
 cp -r github.com/EscanBE/evermint/v*/* ./
 rm -rf github.com
+
+sh ./scripts/protocgen-pulsar.sh

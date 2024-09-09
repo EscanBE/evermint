@@ -41,6 +41,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	testdata_pulsar "github.com/cosmos/cosmos-sdk/testutil/testdata/testpb"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -225,9 +226,8 @@ func NewEvermint(
 		panic(err)
 	}
 	reflectionv1.RegisterReflectionServiceServer(chainApp.GRPCQueryRouter(), reflectionSvc)
-
 	// add test gRPC service for testing gRPC queries in isolation
-	// testdata.RegisterTestServiceServer(chainApp.GRPCQueryRouter(), testdata.TestServiceImpl{})
+	testdata_pulsar.RegisterQueryServer(chainApp.GRPCQueryRouter(), testdata_pulsar.QueryImpl{})
 
 	// initialize stores
 	chainApp.MountKVStores(chainApp.GetKVStoreKey())
