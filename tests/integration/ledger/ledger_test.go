@@ -3,9 +3,8 @@ package ledger_test
 import (
 	"bytes"
 	"context"
-	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
-
 	sdkmath "cosmossdk.io/math"
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 
 	params "github.com/EscanBE/evermint/v12/app/params"
 
@@ -57,7 +56,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 	encodingConfig = chainapp.RegisterEncodingConfig()
 
 	s.SetupTest()
-	s.SetupChainAppApp()
+	s.SetupChainApp()
 
 	Describe("Adding a key from ledger using the CLI", func() {
 		BeforeEach(func() {
@@ -91,8 +90,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 				out, err := sdktestutilcli.ExecTestCLICmd(clientCtx, cmd, []string{
 					ledgerKey,
 					s.FormatFlag(flags.FlagUseLedger),
-					s.FormatFlag(flags.FlagKeyType),
-					string(hd.EthSecp256k1Type),
+					s.FormatFlag(flags.FlagKeyType), string(hd.EthSecp256k1Type),
 				})
 
 				s.Require().NoError(err)
@@ -103,7 +101,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 			})
 		})
 	})
-	Describe("Singing a transactions", func() {
+	Describe("Signing a transactions", func() {
 		BeforeEach(func() {
 			krHome = s.T().TempDir()
 
@@ -123,8 +121,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 			cmd.SetArgs([]string{
 				ledgerKey,
 				s.FormatFlag(flags.FlagUseLedger),
-				s.FormatFlag(flags.FlagKeyType),
-				"eth_secp256k1",
+				s.FormatFlag(flags.FlagKeyType), "eth_secp256k1",
 			})
 			// add ledger key for following tests
 			s.Require().NoError(cmd.ExecuteContext(ctx))
@@ -148,7 +145,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 					msg := []byte("test message")
 
 					signed, _, err := kr.SignByAddress(ledgerAddr, msg, signingtypes.SignMode_SIGN_MODE_TEXTUAL)
-					s.Require().NoError(err, "failed to sign messsage")
+					s.Require().NoError(err, "failed to sign message")
 
 					valid := s.pubKey.VerifySignature(msg, signed)
 					s.Require().True(valid, "invalid signature returned")
@@ -157,7 +154,7 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 					mocks.MSignSECP256K1(s.ledger, signErrMock, mocks.ErrMockedSigning)
 
 					ledgerAddr, err := keyRecord.GetAddress()
-					s.Require().NoError(err, "can't retirieve ledger addr from a keyring")
+					s.Require().NoError(err, "can't retrieve ledger addr from a keyring")
 
 					msg := []byte("test message")
 
@@ -205,9 +202,10 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 						sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(1000)).String(),
 						s.FormatFlag(flags.FlagUseLedger),
 						s.FormatFlag(flags.FlagSkipConfirmation),
+						s.FormatFlag(flags.FlagSignMode), flags.SignModeTextual,
 					})
 					out := bytes.NewBufferString("")
-					cmd.SetOutput(out)
+					cmd.SetErr(out)
 
 					err := cmd.Execute()
 
@@ -223,9 +221,10 @@ var _ = Describe("Ledger CLI and keyring functionality: ", func() {
 						sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(1000)).String(),
 						s.FormatFlag(flags.FlagUseLedger),
 						s.FormatFlag(flags.FlagSkipConfirmation),
+						s.FormatFlag(flags.FlagSignMode), flags.SignModeTextual,
 					})
 					out := bytes.NewBufferString("")
-					cmd.SetOutput(out)
+					cmd.SetErr(out)
 
 					err := cmd.Execute()
 

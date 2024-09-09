@@ -8,10 +8,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/EscanBE/evermint/v12/app/params"
+	"github.com/stretchr/testify/suite"
 
-	"github.com/EscanBE/evermint/v12/app/helpers"
-	"github.com/EscanBE/evermint/v12/constants"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/crypto/tmhash"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmversion "github.com/cometbft/cometbft/proto/tendermint/version"
+	rpcclientmock "github.com/cometbft/cometbft/rpc/client/mock"
+	"github.com/cometbft/cometbft/version"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -19,23 +23,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/server"
+	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
+	"github.com/EscanBE/evermint/v12/app/helpers"
+	"github.com/EscanBE/evermint/v12/app/params"
+	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/crypto/hd"
 	"github.com/EscanBE/evermint/v12/tests/integration/ledger/mocks"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/cometbft/cometbft/crypto/tmhash"
-	"github.com/cometbft/cometbft/version"
-	"github.com/stretchr/testify/suite"
+	"github.com/EscanBE/evermint/v12/utils"
 
 	clientkeys "github.com/EscanBE/evermint/v12/client/keys"
 	appkeyring "github.com/EscanBE/evermint/v12/crypto/keyring"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmversion "github.com/cometbft/cometbft/proto/tendermint/version"
-	rpcclientmock "github.com/cometbft/cometbft/rpc/client/mock"
 	cosmosledger "github.com/cosmos/cosmos-sdk/crypto/ledger"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -84,13 +87,13 @@ func (suite *LedgerTestSuite) SetupTest() {
 	suite.accAddr = sdk.AccAddress(ethAddr.Bytes())
 }
 
-func (suite *LedgerTestSuite) SetupChainAppApp() {
+func (suite *LedgerTestSuite) SetupChainApp() {
 	consAddress := sdk.ConsAddress(utiltx.GenerateAddress().Bytes())
 
 	// init app
 	chainID := constants.TestnetFullChainId
 	suite.app = helpers.Setup(false, feemarkettypes.DefaultGenesisState(), chainID)
-	suite.ctx = suite.app.BaseApp.NewContext(false).WithBlockHeader(tmproto.Header{
+	header := tmproto.Header{
 		Height:          1,
 		ChainID:         chainID,
 		Time:            time.Now().UTC(),
@@ -113,7 +116,27 @@ func (suite *LedgerTestSuite) SetupChainAppApp() {
 		NextValidatorsHash: tmhash.Sum([]byte("next_validators")),
 		ConsensusHash:      tmhash.Sum([]byte("consensus")),
 		LastResultsHash:    tmhash.Sum([]byte("last_result")),
-	})
+	}
+
+	suite.ctx = suite.app.BaseApp.NewContext(false).WithBlockHeader(header).WithChainID(chainID)
+
+	{ // finalize & commit block so the query context can be created
+		_, err := suite.app.FinalizeBlock(&abci.RequestFinalizeBlock{
+			Height: header.Height,
+		})
+		suite.Require().NoError(err)
+		_, err = suite.app.Commit()
+		suite.Require().NoError(err)
+
+		header.Height++
+		header.Time = header.Time.Add(time.Second)
+		suite.ctx = suite.ctx.
+			WithBlockHeader(header).
+			WithMultiStore(suite.app.CommitMultiStore().CacheMultiStore())
+
+		_, err = suite.app.BeginBlocker(suite.ctx)
+		suite.Require().NoError(err)
+	}
 }
 
 func (suite *LedgerTestSuite) NewKeyringAndCtxs(krHome string, input io.Reader, encCfg params.EncodingConfig) (keyring.Keyring, client.Context, context.Context) {
@@ -123,15 +146,15 @@ func (suite *LedgerTestSuite) NewKeyringAndCtxs(krHome string, input io.Reader, 
 		krHome,
 		input,
 		encCfg.Codec,
-		s.MockKeyringOption(),
+		suite.MockKeyringOption(),
 	)
-	s.Require().NoError(err)
-	s.accRetriever = mocks.NewAccountRetriever(s.T())
+	suite.Require().NoError(err)
+	suite.accRetriever = mocks.NewAccountRetriever(suite.T())
 
 	initClientCtx := client.Context{}.
 		WithCodec(encCfg.Codec).
 		// NOTE: cmd.Execute() panics without account retriever
-		WithAccountRetriever(s.accRetriever).
+		WithAccountRetriever(suite.accRetriever).
 		WithTxConfig(encCfg.TxConfig).
 		WithLedgerHasProtobuf(true).
 		WithUseLedger(true).
@@ -139,10 +162,31 @@ func (suite *LedgerTestSuite) NewKeyringAndCtxs(krHome string, input io.Reader, 
 		WithClient(mocks.MockTendermintRPC{Client: rpcclientmock.Client{}}).
 		WithChainID(constants.TestnetFullChainId)
 
-	srvCtx := server.NewDefaultContext()
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, client.ClientContextKey, &initClientCtx)
+
+	srvCtx := server.NewDefaultContext()
 	ctx = context.WithValue(ctx, server.ServerContextKey, srvCtx)
+
+	{ // create a new tx config with textual signing enabled
+		txConfigWithTextual, err := utils.GetTxConfigWithSignModeTextureEnabled(
+			authtxconfig.NewBankKeeperCoinMetadataQueryFn(s.app.BankKeeper),
+			initClientCtx.Codec,
+		)
+		suite.Require().NoError(err)
+		initClientCtx = initClientCtx.WithTxConfig(txConfigWithTextual)
+		ctx = context.WithValue(ctx, client.ClientContextKey, &initClientCtx)
+	}
+
+	{ // inject the query context into the context so signing texture can query coin metadata
+		queryCtx, err := suite.app.CreateQueryContext(suite.app.LastBlockHeight(), false)
+		suite.Require().NoError(err)
+		ctx = context.WithValue(ctx, sdk.SdkContextKey, queryCtx)
+	}
+
+	{ // update the client context with the cmd context so signing texture can use the context to query coin metadata
+		initClientCtx = initClientCtx.WithCmdContext(ctx)
+		ctx = context.WithValue(ctx, client.ClientContextKey, &initClientCtx)
+	}
 
 	return kr, initClientCtx, ctx
 }
