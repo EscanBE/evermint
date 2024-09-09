@@ -17,6 +17,10 @@ const (
 	NewBlockWaitTimeout = 60 * time.Second
 )
 
+var (
+	receivedQuitSignal bool
+)
+
 // EVMIndexerService indexes transactions for json-rpc service.
 type EVMIndexerService struct {
 	cmtsvc.BaseService
@@ -44,11 +48,16 @@ func (eis *EVMIndexerService) OnStart() error {
 		return err
 	}
 	latestBlock := status.SyncInfo.LatestBlockHeight
+
 	newBlockSignal := make(chan struct{}, 1)
+	// quitSignalReBroadcast is used to re-broadcast quit signal to other goroutines.
+	quitSignalReBroadcast := make(chan struct{}, 1)
 
 	// Use SubscribeUnbuffered here to ensure both subscriptions does not get
 	// canceled due to not pulling messages fast enough. Cause this might
 	// sometimes happen when there are no other subscribers.
+	subscriber := ServiceName
+	subscriptionQuery := cmttypes.QueryForEvent(cmttypes.EventNewBlockHeader).String()
 	blockHeadersChan, err := eis.client.Subscribe(
 		ctx,
 		ServiceName,
@@ -58,18 +67,34 @@ func (eis *EVMIndexerService) OnStart() error {
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if err := eis.client.Unsubscribe(ctx, subscriber, subscriptionQuery); err != nil {
+			eis.Logger.Error("failed to unsubscribe", "err", err)
+		}
+	}()
 
 	go func() {
+	processBlockHeader:
 		for {
-			msg := <-blockHeadersChan
-			eventDataHeader := msg.Data.(cmttypes.EventDataNewBlockHeader)
-			if eventDataHeader.Header.Height > latestBlock {
-				latestBlock = eventDataHeader.Header.Height
-				// notify
-				select {
-				case newBlockSignal <- struct{}{}:
-				default:
+			select {
+			case msg := <-blockHeadersChan:
+				eventDataHeader := msg.Data.(cmttypes.EventDataNewBlockHeader)
+				if eventDataHeader.Header.Height > latestBlock {
+					latestBlock = eventDataHeader.Header.Height
+					// notify
+					select {
+					case newBlockSignal <- struct{}{}:
+					default:
+					}
 				}
+			case <-eis.Quit():
+				quitSignalReBroadcast <- struct{}{}
+				break processBlockHeader
+			case <-quitSignalReBroadcast:
+				quitSignalReBroadcast <- struct{}{}
+				break processBlockHeader
+			default:
+				time.Sleep(50 * time.Millisecond)
 			}
 		}
 	}()
@@ -104,6 +129,16 @@ func (eis *EVMIndexerService) OnStart() error {
 	}
 
 	for {
+		select {
+		case <-eis.Quit():
+			quitSignalReBroadcast <- struct{}{}
+			return nil
+		case <-quitSignalReBroadcast:
+			quitSignalReBroadcast <- struct{}{}
+			return nil
+		default:
+			// process new block
+		}
 		if lastIndexedBlock >= latestBlock {
 			// nothing to index. wait for signal of new block
 
@@ -121,6 +156,8 @@ func (eis *EVMIndexerService) OnStart() error {
 			select {
 			case <-newBlockSignal:
 			case <-time.After(NewBlockWaitTimeout):
+			case <-eis.Quit():
+				return nil
 			}
 			continue
 		}

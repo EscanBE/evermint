@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"cosmossdk.io/log"
+	"errors"
 	"fmt"
 	servercmtlog "github.com/cosmos/cosmos-sdk/server/log"
 	"golang.org/x/sync/errgroup"
@@ -258,7 +260,7 @@ func startStandAlone(ctx *server.Context, opts StartOptions) error {
 	}
 
 	svr.SetLogger(servercmtlog.CometLoggerWrapper{Logger: ctx.Logger.With("server", "abci")})
-	gr, goCtx := prepareStartCtx(ctx, false)
+	gr, goCtx := prepareStartCtx(false, ctx.Logger)
 
 	gr.Go(func() error {
 		err = svr.Start()
@@ -280,7 +282,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts StartOpt
 	cfg := ctx.Config
 	home := cfg.RootDir
 	logger := ctx.Logger
-	gr, goCtx := prepareStartCtx(ctx, true)
+	gr, goCtx := prepareStartCtx(true, ctx.Logger)
 
 	if cpuProfile := ctx.Viper.GetString(srvflags.CPUProfile); cpuProfile != "" {
 		fp, err := ethdebug.ExpandHome(cpuProfile)
@@ -447,9 +449,30 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts StartOpt
 			if evmTxIndexer.IsReady() {
 				break
 			}
+			if err := goCtx.Err(); err != nil && errors.Is(err, context.Canceled) {
+				break
+			}
 
 			logger.Info("indexer still in progress, keep waiting")
 		}
+
+		go func() {
+			for {
+				select {
+				case <-goCtx.Done():
+					if err = indexerService.Stop(); err != nil {
+						logger.Error("failed to stop indexer service", "error", err)
+					}
+					return
+				default:
+					time.Sleep(2 * time.Second)
+				}
+			}
+		}()
+
+		defer func() {
+			_ = indexerService.Stop()
+		}()
 	}
 
 	if config.API.Enable || config.JSONRPC.Enable {
@@ -558,12 +581,12 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts StartOpt
 
 		clientCtx := clientCtx.WithChainID(genDoc.ChainID)
 
-		tmEndpoint := "/websocket"
-		tmRPCAddr := cfg.RPC.ListenAddress
+		cometEndpoint := "/websocket"
+		cometRPCAddr := cfg.RPC.ListenAddress
 
 		errCh := make(chan error)
 		gr.Go(func() error {
-			httpSrv, httpSrvDone, err = StartJSONRPC(ctx, clientCtx, tmRPCAddr, tmEndpoint, &config, evmTxIndexer)
+			httpSrv, httpSrvDone, err = StartJSONRPC(ctx, clientCtx, cometRPCAddr, cometEndpoint, &config, evmTxIndexer)
 			if err != nil {
 				errCh <- err
 				return err
@@ -691,11 +714,11 @@ func startTelemetry(cfg servercfg.Config) (*telemetry.Metrics, error) {
 	return telemetry.New(cfg.Telemetry)
 }
 
-func prepareStartCtx(svrCtx *server.Context, block bool) (*errgroup.Group, context.Context) {
+func prepareStartCtx(block bool, logger log.Logger) (*errgroup.Group, context.Context) {
 	goCtx, cancelFn := context.WithCancel(context.Background())
 
 	g, goCtx := errgroup.WithContext(goCtx)
-	server.ListenForQuitSignals(g, block, cancelFn, svrCtx.Logger)
+	server.ListenForQuitSignals(g, block, cancelFn, logger)
 
 	return g, goCtx
 }
