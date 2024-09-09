@@ -63,8 +63,8 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	rm -rf "$HOMEDIR"
 
 	# Set client config
-	"$BINARY" config keyring-backend $KEYRING --home "$HOMEDIR"
-	"$BINARY" config chain-id $CHAINID --home "$HOMEDIR"
+	"$BINARY" config set client chain-id $CHAINID --home "$HOMEDIR"
+	"$BINARY" config set client keyring-backend $KEYRING --home "$HOMEDIR"
 
 	# Recover keys from mnemonics
   echo "${MNEMONICS[0]}" | "$BINARY" keys add "${KEYS[0]}" --recover --keyring-backend $KEYRING --algo $KEYALGO --home "$HOMEDIR"
@@ -123,6 +123,7 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	# Change proposal periods to pass within a reasonable time for local testing
 	sed -i.bak 's/"max_deposit_period": "172800s"/"max_deposit_period": "30s"/g' "$HOMEDIR"/config/genesis.json
 	sed -i.bak 's/"voting_period": "172800s"/"voting_period": "30s"/g' "$HOMEDIR"/config/genesis.json
+	sed -i.bak 's/"expedited_voting_period": "86400s"/"expedited_voting_period": "15s"/g' "$HOMEDIR"/config/genesis.json
 
 	# set custom pruning settings
 	sed -i.bak 's/pruning = "default"/pruning = "custom"/g' "$APP_TOML"
@@ -141,7 +142,8 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	jq -r --arg total_supply "$total_supply" '.app_state["bank"]["supply"][0]["amount"]=$total_supply' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 
 	# Sign genesis transaction
-	"$BINARY" gentx "${KEYS[0]}" "1000000000000000000000$MIN_DENOM" --keyring-backend $KEYRING --chain-id $CHAINID --home "$HOMEDIR"
+	BASE_FEE="$(cat "$GENESIS" | jq -r .app_state.feemarket.params.base_fee)"
+	"$BINARY" gentx "${KEYS[0]}" "1000000000000000000000$MIN_DENOM" --gas-prices "$BASE_FEE$MIN_DENOM" --keyring-backend $KEYRING --chain-id $CHAINID --home "$HOMEDIR"
 	## In case you want to create multiple validators at genesis
 	## 1. Back to `"$BINARY" keys add` step, init more keys
 	## 2. Back to `"$BINARY" add-genesis-account` step, add balance for those
@@ -159,6 +161,9 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 		echo "pending mode is on, please wait for the first block committed."
 	fi
 fi
+
+# Fix the initial height format
+sed -i.bak 's/"initial_height": 1,/"initial_height": "1",/g' "$HOMEDIR"/config/genesis.json
 
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
 "$BINARY" start \
