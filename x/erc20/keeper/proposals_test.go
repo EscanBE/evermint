@@ -102,7 +102,7 @@ func (suite *KeeperTestSuite) setupRegisterCoin(metadata banktypes.Metadata) *er
 	suite.Require().NoError(err)
 
 	// pair := types.NewTokenPair(contractAddr, cosmosTokenBase, true, types.OWNER_MODULE)
-	pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata)
+	pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata, false)
 	suite.Require().NoError(err)
 	suite.Commit()
 	return pair
@@ -234,7 +234,7 @@ func (suite KeeperTestSuite) TestRegisterCoin() { //nolint:govet // we can copy 
 
 			tc.malleate()
 
-			pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata)
+			pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata, false)
 			suite.Commit()
 
 			expPair := &erc20types.TokenPair{

@@ -16,6 +16,7 @@ import (
 // TxFullGov submit gov proposal, full vote Yes and wait gov passed.
 func (suite *ChainIntegrationTestSuite) TxFullGov(proposer *itutiltypes.TestAccount, newProposalContent govtypeslegacy.Content) uint64 {
 	suite.Require().NotNil(proposer)
+	suite.Require().NoError(newProposalContent.ValidateBasic())
 
 	depositAmount := sdkmath.NewInt(int64(0.1 * math.Pow10(18)))
 	msg, err := govtypeslegacy.NewMsgSubmitProposal(newProposalContent, sdk.NewCoins(

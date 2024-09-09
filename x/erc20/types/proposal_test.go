@@ -230,7 +230,7 @@ func (suite *ProposalTestSuite) TestRegisterCoinProposal() {
 	}
 
 	for i, tc := range testCases {
-		tx := erc20types.NewRegisterCoinProposal(tc.title, tc.description, tc.metadata)
+		tx := erc20types.NewRegisterCoinProposal(tc.title, tc.description, []banktypes.Metadata{tc.metadata}, false)
 		err := tx.ValidateBasic()
 
 		if tc.expectPass {

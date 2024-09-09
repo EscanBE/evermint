@@ -23,6 +23,10 @@ import (
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 )
 
+var (
+	flagOverrideExistingBankMetadata = "override-existing-bank-metadata"
+)
+
 // NewTxCmd returns a root CLI command handler for erc20 transaction commands
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
@@ -205,9 +209,14 @@ Where metadata.json contains (example):
 				return err
 			}
 
+			overrideExistingBankMetadata, err := cmd.Flags().GetBool(flagOverrideExistingBankMetadata)
+			if err != nil {
+				return err
+			}
+
 			from := clientCtx.GetFromAddress()
 
-			content := erc20types.NewRegisterCoinProposal(title, description, metadata...)
+			content := erc20types.NewRegisterCoinProposal(title, description, metadata, overrideExistingBankMetadata)
 
 			msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
@@ -221,6 +230,7 @@ Where metadata.json contains (example):
 	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
 	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
 	cmd.Flags().String(cli.FlagDeposit, "1"+constants.BaseDenom, "deposit of proposal")
+	cmd.Flags().Bool(flagOverrideExistingBankMetadata, false, "force override existing bank metadata if any. Introduced since IBC v8 integrated as it automatically creates the bank denom metadata upon receive packet")
 	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
 		panic(err)
 	}

@@ -43,11 +43,12 @@ func CreateDenom(address string) string {
 }
 
 // NewRegisterCoinProposal returns new instance of RegisterCoinProposal
-func NewRegisterCoinProposal(title, description string, coinMetadata ...banktypes.Metadata) v1beta1.Content {
+func NewRegisterCoinProposal(title, description string, coinMetadata []banktypes.Metadata, overrideExistingBankMetadata bool) v1beta1.Content {
 	return &RegisterCoinProposal{
-		Title:       title,
-		Description: description,
-		Metadata:    coinMetadata,
+		Title:                        title,
+		Description:                  description,
+		Metadata:                     coinMetadata,
+		OverrideExistingBankMetadata: overrideExistingBankMetadata,
 	}
 }
 

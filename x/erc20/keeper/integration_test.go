@@ -340,7 +340,7 @@ var _ = Describe("ERC20:", Ordered, func() {
 })
 
 func submitRegisterCoinProposal(pk *ethsecp256k1.PrivKey, metadata []banktypes.Metadata) (id uint64, err error) {
-	content := erc20types.NewRegisterCoinProposal("test Coin", "foo", metadata...)
+	content := erc20types.NewRegisterCoinProposal("test Coin", "foo", metadata, true)
 	ctx, id, err := testutil.SubmitProposal(s.ctx, s.app, pk, content, 8)
 	s.ctx = ctx
 	return id, err

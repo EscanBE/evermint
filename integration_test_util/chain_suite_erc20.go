@@ -57,7 +57,8 @@ func (suite *ChainIntegrationTestSuite) TxFullRegisterCoinByMetadata(proposer *i
 	content := erc20types.NewRegisterCoinProposal(
 		fmt.Sprintf("Register ERC-20 token pairs for %s", metadata.Base),
 		fmt.Sprintf("Register ERC-20 token pairs for %s", metadata.Base),
-		metadata,
+		[]banktypes.Metadata{metadata},
+		true,
 	)
 
 	return suite.TxFullGov(proposer, content)
