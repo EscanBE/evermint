@@ -357,7 +357,7 @@ func submitRegisterERC20Proposal(pk *ethsecp256k1.PrivKey, addrs []string) (id u
 func convertCoin(pk *ethsecp256k1.PrivKey, coin sdk.Coin) {
 	addrBz := pk.PubKey().Address().Bytes()
 
-	convertCoinMsg := erc20types.NewMsgConvertCoin(coin, common.BytesToAddress(addrBz), addrBz)
+	convertCoinMsg := erc20types.NewMsgConvertCoin(coin, addrBz, addrBz)
 	ctx, res, err := testutil.DeliverTx(s.ctx, s.app, pk, nil, convertCoinMsg)
 	s.Require().NoError(err)
 	s.ctx = ctx
@@ -368,7 +368,7 @@ func convertCoin(pk *ethsecp256k1.PrivKey, coin sdk.Coin) {
 func convertERC20(ctx sdk.Context, chainApp *chainapp.Evermint, pk *ethsecp256k1.PrivKey, amt sdkmath.Int, contract common.Address) {
 	addrBz := pk.PubKey().Address().Bytes()
 
-	convertERC20Msg := erc20types.NewMsgConvertERC20(amt, addrBz, contract, common.BytesToAddress(addrBz))
+	convertERC20Msg := erc20types.NewMsgConvertERC20(amt, addrBz, contract, addrBz)
 	ctx, res, err := testutil.DeliverTx(ctx, chainApp, pk, nil, convertERC20Msg)
 	s.Require().NoError(err)
 	s.ctx = ctx

@@ -187,7 +187,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 			sender := sdk.AccAddress(suite.address.Bytes())
 			msg := erc20types.NewMsgConvertCoin(
 				sdk.NewCoin(cosmosTokenBase, sdkmath.NewInt(tc.burn)),
-				suite.address,
+				suite.address.Bytes(),
 				sender,
 			)
 
@@ -373,7 +373,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeCoin() {
 			suite.Require().NoError(err, tc.name)
 			msg := erc20types.NewMsgConvertCoin(
 				sdk.NewCoin(cosmosTokenBase, sdkmath.NewInt(tc.burn)),
-				suite.address,
+				suite.address.Bytes(),
 				sender,
 			)
 
@@ -393,7 +393,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeCoin() {
 				sdkmath.NewInt(tc.reconvert),
 				sender,
 				contractAddr,
-				suite.address,
+				suite.address.Bytes(),
 			)
 
 			tc.malleate()
@@ -729,7 +729,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 				sdkmath.NewInt(tc.transfer),
 				sender,
 				contractAddr,
-				suite.address,
+				suite.address.Bytes(),
 			)
 
 			suite.MintERC20Token(contractAddr, suite.address, suite.address, big.NewInt(tc.mint))
@@ -968,7 +968,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 			receiver := suite.address
 			msg := erc20types.NewMsgConvertCoin(
 				sdk.NewCoin(coinName, sdkmath.NewInt(tc.convert)),
-				receiver,
+				receiver.Bytes(),
 				sender,
 			)
 
@@ -1020,7 +1020,7 @@ func (suite *KeeperTestSuite) TestWrongPairOwnerERC20NativeCoin() {
 			suite.Require().NoError(err)
 			msg := erc20types.NewMsgConvertCoin(
 				sdk.NewCoin(cosmosTokenBase, sdkmath.NewInt(tc.burn)),
-				suite.address,
+				suite.address.Bytes(),
 				sender,
 			)
 
@@ -1036,7 +1036,7 @@ func (suite *KeeperTestSuite) TestWrongPairOwnerERC20NativeCoin() {
 				sdkmath.NewInt(tc.reconvert),
 				sender,
 				contractAddr,
-				suite.address,
+				suite.address.Bytes(),
 			)
 
 			_, err = suite.app.Erc20Keeper.ConvertERC20(suite.ctx, msgConvertERC20)
@@ -1190,7 +1190,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeIBCVoucher() {
 			sender := sdk.AccAddress(suite.address.Bytes())
 			msg := erc20types.NewMsgConvertCoin(
 				sdk.NewCoin(ibcBase, sdkmath.NewInt(tc.burn)),
-				suite.address,
+				suite.address.Bytes(),
 				sender,
 			)
 
@@ -1373,7 +1373,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeIBCVoucher() {
 			suite.Require().NoError(err, tc.name)
 			msg := erc20types.NewMsgConvertCoin(
 				sdk.NewCoin(ibcBase, sdkmath.NewInt(tc.burn)),
-				suite.address,
+				suite.address.Bytes(),
 				sender,
 			)
 
@@ -1391,7 +1391,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeIBCVoucher() {
 				sdkmath.NewInt(tc.reconvert),
 				sender,
 				contractAddr,
-				suite.address,
+				suite.address.Bytes(),
 			)
 
 			tc.malleate()

@@ -27,14 +27,14 @@ service Msg {
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
-// TODO ES: add signer tag and use bech32 format for addresses
-
 // MsgConvertCoin defines a Msg to convert a native Cosmos coin to a ERC20 token
 message MsgConvertCoin {
+  option (cosmos.msg.v1.signer) = "sender";
+
   // coin is a Cosmos coin whose denomination is registered in a token pair. The coin
   // amount defines the amount of coins to convert.
   cosmos.base.v1beta1.Coin coin = 1 [(gogoproto.nullable) = false];
-  // receiver is the hex address to receive ERC20 token
+  // receiver is the cosmos bech32 address to receive ERC20 token
   string receiver = 2;
   // sender is the cosmos bech32 address from the owner of the given Cosmos coins
   string sender = 3;
@@ -46,13 +46,15 @@ message MsgConvertCoinResponse {}
 // MsgConvertERC20 defines a Msg to convert a ERC20 token to a native Cosmos
 // coin.
 message MsgConvertERC20 {
+  option (cosmos.msg.v1.signer) = "sender";
+
   // contract_address of an ERC20 token contract, that is registered in a token pair
   string contract_address = 1;
   // amount of ERC20 tokens to convert
   string amount = 2 [(gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
-  // receiver is the bech32 address to receive native Cosmos coins
+  // receiver is the cosmos bech32 address to receive native Cosmos coins
   string receiver = 3;
-  // sender is the hex address from the owner of the given ERC20 tokens
+  // sender is the cosmos bech32 from the owner of the given ERC20 tokens
   string sender = 4;
 }
 

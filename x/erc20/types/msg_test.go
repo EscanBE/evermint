@@ -30,8 +30,8 @@ func (suite *MsgsTestSuite) TestMsgConvertCoinGetters() {
 	msgInvalid := erc20types.MsgConvertCoin{}
 	msg := erc20types.NewMsgConvertCoin(
 		sdk.NewCoin("test", sdkmath.NewInt(100)),
-		utiltx.GenerateAddress(),
-		sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+		utiltx.GenerateAddress().Bytes(),
+		utiltx.GenerateAddress().Bytes(),
 	)
 	suite.Require().Equal(erc20types.RouterKey, msg.Route())
 	suite.Require().Equal(erc20types.TypeMsgConvertCoin, msg.Type())
@@ -41,107 +41,115 @@ func (suite *MsgsTestSuite) TestMsgConvertCoinGetters() {
 
 func (suite *MsgsTestSuite) TestMsgConvertCoinNew() {
 	testCases := []struct {
-		msg        string
+		name       string
 		coin       sdk.Coin
-		receiver   common.Address
+		receiver   sdk.AccAddress
 		sender     sdk.AccAddress
 		expectPass bool
 	}{
 		{
-			"msg convert coin - pass",
-			sdk.NewCoin("test", sdkmath.NewInt(100)),
-			utiltx.GenerateAddress(),
-			sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
-			true,
+			name:       "pass - msg convert coin",
+			coin:       sdk.NewCoin("test", sdkmath.NewInt(100)),
+			receiver:   sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			sender:     sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			expectPass: true,
 		},
 	}
 
-	for i, tc := range testCases {
-		tx := erc20types.NewMsgConvertCoin(tc.coin, tc.receiver, tc.sender)
-		err := tx.ValidateBasic()
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			tx := erc20types.NewMsgConvertCoin(tc.coin, tc.receiver, tc.sender)
 
-		if tc.expectPass {
-			suite.Require().NoError(err, "valid test %d failed: %s, %v", i, tc.msg)
-		} else {
-			suite.Require().Error(err, "invalid test %d passed: %s, %v", i, tc.msg)
-		}
+			err := tx.ValidateBasic()
+			if tc.expectPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
 
 func (suite *MsgsTestSuite) TestMsgConvertCoin() {
 	testCases := []struct {
-		msg        string
+		name       string
 		coin       sdk.Coin
 		receiver   string
 		sender     string
 		expectPass bool
 	}{
 		{
-			"invalid denom",
-			sdk.Coin{
+			name: "fail - invalid denom",
+			coin: sdk.Coin{
 				Denom:  "",
 				Amount: sdkmath.NewInt(100),
 			},
-			"0x0000",
-			utiltx.GenerateAddress().String(),
-			false,
+			receiver:   sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			sender:     sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			expectPass: false,
 		},
 		{
-			"negative coin amount",
-			sdk.Coin{
+			name: "fail - negative coin amount",
+			coin: sdk.Coin{
 				Denom:  "coin",
 				Amount: sdkmath.NewInt(-100),
 			},
-			"0x0000",
-			utiltx.GenerateAddress().String(),
-			false,
+			receiver:   sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			sender:     sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			expectPass: false,
 		},
 		{
-			"msg convert coin - invalid sender",
-			sdk.NewCoin("coin", sdkmath.NewInt(100)),
-			utiltx.GenerateAddress().String(),
-			constants.Bech32Prefix + "invalid",
-			false,
+			name:       "fail - msg convert coin - invalid sender",
+			coin:       sdk.NewCoin("coin", sdkmath.NewInt(100)),
+			receiver:   sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			sender:     constants.Bech32Prefix + "invalid",
+			expectPass: false,
 		},
 		{
-			"msg convert coin - invalid receiver",
-			sdk.NewCoin("coin", sdkmath.NewInt(100)),
-			"0x0000",
-			sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
-			false,
+			name:       "fail - msg convert coin - invalid receiver",
+			coin:       sdk.NewCoin("coin", sdkmath.NewInt(100)),
+			receiver:   constants.Bech32Prefix + "invalid",
+			sender:     sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			expectPass: false,
 		},
 		{
-			"msg convert coin - pass",
-			sdk.NewCoin("coin", sdkmath.NewInt(100)),
-			utiltx.GenerateAddress().String(),
-			sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
-			true,
+			name:       "pass - msg convert coin",
+			coin:       sdk.NewCoin("coin", sdkmath.NewInt(100)),
+			receiver:   sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			sender:     sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			expectPass: true,
 		},
 		{
-			"msg convert coin - pass with `erc20/` denom",
-			sdk.NewCoin("erc20/0xdac17f958d2ee523a2206206994597c13d831ec7", sdkmath.NewInt(100)),
-			utiltx.GenerateAddress().String(),
-			sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
-			true,
+			name:       "pass - msg convert coin - pass with `erc20/` denom",
+			coin:       sdk.NewCoin("erc20/0xdac17f958d2ee523a2206206994597c13d831ec7", sdkmath.NewInt(100)),
+			receiver:   sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			sender:     sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			expectPass: true,
 		},
 		{
-			"msg convert coin - pass with `ibc/{hash}` denom",
-			sdk.NewCoin("ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdkmath.NewInt(100)),
-			utiltx.GenerateAddress().String(),
-			sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
-			true,
+			name:       "pass - msg convert coin - pass with `ibc/{hash}` denom",
+			coin:       sdk.NewCoin("ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2", sdkmath.NewInt(100)),
+			receiver:   sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			sender:     sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			expectPass: true,
 		},
 	}
 
-	for i, tc := range testCases {
-		tx := erc20types.MsgConvertCoin{tc.coin, tc.receiver, tc.sender}
-		err := tx.ValidateBasic()
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			tx := erc20types.MsgConvertCoin{
+				Coin:     tc.coin,
+				Receiver: tc.receiver,
+				Sender:   tc.sender,
+			}
 
-		if tc.expectPass {
-			suite.Require().NoError(err, "valid test %d failed: %s, %v", i, tc.msg)
-		} else {
-			suite.Require().Error(err, "invalid test %d passed: %s, %v", i, tc.msg)
-		}
+			err := tx.ValidateBasic()
+			if tc.expectPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
 
@@ -149,9 +157,9 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20Getters() {
 	msgInvalid := erc20types.MsgConvertERC20{}
 	msg := erc20types.NewMsgConvertERC20(
 		sdkmath.NewInt(100),
-		sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+		utiltx.GenerateAddress().Bytes(),
 		utiltx.GenerateAddress(),
-		utiltx.GenerateAddress(),
+		utiltx.GenerateAddress().Bytes(),
 	)
 	suite.Require().Equal(erc20types.RouterKey, msg.Route())
 	suite.Require().Equal(erc20types.TypeMsgConvertERC20, msg.Type())
@@ -161,38 +169,40 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20Getters() {
 
 func (suite *MsgsTestSuite) TestMsgConvertERC20New() {
 	testCases := []struct {
-		msg        string
+		name       string
 		amount     sdkmath.Int
 		receiver   sdk.AccAddress
 		contract   common.Address
-		sender     common.Address
+		sender     sdk.AccAddress
 		expectPass bool
 	}{
 		{
-			"msg convert erc20 - pass",
-			sdkmath.NewInt(100),
-			sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
-			utiltx.GenerateAddress(),
-			utiltx.GenerateAddress(),
-			true,
+			name:       "pass - msg convert erc20",
+			amount:     sdkmath.NewInt(100),
+			receiver:   sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			contract:   utiltx.GenerateAddress(),
+			sender:     sdk.AccAddress(utiltx.GenerateAddress().Bytes()),
+			expectPass: true,
 		},
 	}
 
-	for i, tc := range testCases {
-		tx := erc20types.NewMsgConvertERC20(tc.amount, tc.receiver, tc.contract, tc.sender)
-		err := tx.ValidateBasic()
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			tx := erc20types.NewMsgConvertERC20(tc.amount, tc.receiver, tc.contract, tc.sender)
 
-		if tc.expectPass {
-			suite.Require().NoError(err, "valid test %d failed: %s, %v", i, tc.msg)
-		} else {
-			suite.Require().Error(err, "invalid test %d passed: %s, %v", i, tc.msg)
-		}
+			err := tx.ValidateBasic()
+			if tc.expectPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
 
 func (suite *MsgsTestSuite) TestMsgConvertERC20() {
 	testCases := []struct {
-		msg        string
+		name       string
 		amount     sdkmath.Int
 		receiver   string
 		contract   string
@@ -200,56 +210,63 @@ func (suite *MsgsTestSuite) TestMsgConvertERC20() {
 		expectPass bool
 	}{
 		{
-			"invalid contract hex address",
-			sdkmath.NewInt(100),
-			sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
-			sdk.AccAddress{}.String(),
-			utiltx.GenerateAddress().String(),
-			false,
+			name:       "fail - invalid contract hex address",
+			amount:     sdkmath.NewInt(100),
+			receiver:   sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			contract:   sdk.AccAddress{}.String(),
+			sender:     sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			expectPass: false,
 		},
 		{
-			"negative coin amount",
-			sdkmath.NewInt(-100),
-			sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
-			utiltx.GenerateAddress().String(),
-			utiltx.GenerateAddress().String(),
-			false,
+			name:       "fail - negative coin amount",
+			amount:     sdkmath.NewInt(-100),
+			receiver:   sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			contract:   utiltx.GenerateAddress().String(),
+			sender:     sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			expectPass: false,
 		},
 		{
-			"invalid receiver address",
-			sdkmath.NewInt(100),
-			sdk.AccAddress{}.String(),
-			utiltx.GenerateAddress().String(),
-			utiltx.GenerateAddress().String(),
-			false,
+			name:       "fail - invalid receiver address",
+			amount:     sdkmath.NewInt(100),
+			receiver:   constants.Bech32Prefix + "invalid",
+			contract:   utiltx.GenerateAddress().String(),
+			sender:     sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			expectPass: false,
 		},
 		{
-			"invalid sender address",
-			sdkmath.NewInt(100),
-			sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
-			utiltx.GenerateAddress().String(),
-			sdk.AccAddress{}.String(),
-			false,
+			name:       "fail - invalid sender address",
+			amount:     sdkmath.NewInt(100),
+			receiver:   sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			contract:   utiltx.GenerateAddress().String(),
+			sender:     constants.Bech32Prefix + "invalid",
+			expectPass: false,
 		},
 		{
-			"msg convert erc20 - pass",
-			sdkmath.NewInt(100),
-			sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
-			utiltx.GenerateAddress().String(),
-			utiltx.GenerateAddress().String(),
-			true,
+			name:       "pass - msg convert erc20",
+			amount:     sdkmath.NewInt(100),
+			receiver:   sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			contract:   utiltx.GenerateAddress().String(),
+			sender:     sdk.AccAddress(utiltx.GenerateAddress().Bytes()).String(),
+			expectPass: true,
 		},
 	}
 
-	for i, tc := range testCases {
-		tx := erc20types.MsgConvertERC20{tc.contract, tc.amount, tc.receiver, tc.sender}
-		err := tx.ValidateBasic()
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			tx := erc20types.MsgConvertERC20{
+				ContractAddress: tc.contract,
+				Amount:          tc.amount,
+				Receiver:        tc.receiver,
+				Sender:          tc.sender,
+			}
 
-		if tc.expectPass {
-			suite.Require().NoError(err, "valid test %d failed: %s, %v", i, tc.msg)
-		} else {
-			suite.Require().Error(err, "invalid test %d passed: %s, %v", i, tc.msg)
-		}
+			err := tx.ValidateBasic()
+			if tc.expectPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
 

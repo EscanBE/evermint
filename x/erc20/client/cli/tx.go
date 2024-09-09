@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"cosmossdk.io/errors"
 	"fmt"
+	"strings"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -61,21 +63,29 @@ func NewConvertCoinCmd() *cobra.Command {
 				return err
 			}
 
-			var receiver string
+			var receiver sdk.AccAddress
 			sender := cliCtx.GetFromAddress()
 
 			if len(args) == 2 {
-				receiver = args[1]
-				if err := evertypes.ValidateAddress(receiver); err != nil {
-					return fmt.Errorf("invalid receiver hex address %w", err)
+				receiverStr := strings.ToLower(args[1])
+				if strings.HasPrefix(receiverStr, "0x") {
+					if err := evertypes.ValidateAddress(receiverStr); err != nil {
+						return fmt.Errorf("invalid receiver hex address %w", err)
+					}
+					receiver = common.HexToAddress(receiverStr).Bytes()
+				} else {
+					receiver, err = sdk.AccAddressFromBech32(receiverStr)
+					if err != nil {
+						return errors.Wrap(err, "invalid receiver bech32 address")
+					}
 				}
 			} else {
-				receiver = common.BytesToAddress(sender).Hex()
+				receiver = sender
 			}
 
 			msg := &erc20types.MsgConvertCoin{
 				Coin:     coin,
-				Receiver: receiver,
+				Receiver: receiver.String(),
 				Sender:   sender.String(),
 			}
 
@@ -113,7 +123,7 @@ func NewConvertERC20Cmd() *cobra.Command {
 				return fmt.Errorf("invalid amount %s", args[1])
 			}
 
-			from := common.BytesToAddress(cliCtx.GetFromAddress().Bytes())
+			from := cliCtx.GetFromAddress()
 
 			receiver := cliCtx.GetFromAddress()
 			if len(args) == 3 {
@@ -127,7 +137,7 @@ func NewConvertERC20Cmd() *cobra.Command {
 				ContractAddress: contract,
 				Amount:          amount,
 				Receiver:        receiver.String(),
-				Sender:          from.Hex(),
+				Sender:          from.String(),
 			}
 
 			if err := msg.ValidateBasic(); err != nil {
