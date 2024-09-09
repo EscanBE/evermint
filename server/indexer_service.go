@@ -17,9 +17,7 @@ const (
 	NewBlockWaitTimeout = 60 * time.Second
 )
 
-var (
-	receivedQuitSignal bool
-)
+var receivedQuitSignal bool
 
 // EVMIndexerService indexes transactions for json-rpc service.
 type EVMIndexerService struct {

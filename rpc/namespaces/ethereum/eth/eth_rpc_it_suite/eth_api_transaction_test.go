@@ -3,10 +3,11 @@ package eth_rpc_it_suite
 import (
 	"encoding/json"
 	"fmt"
-	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"math/big"
 	"math/rand"
 	"reflect"
+
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 
 	"github.com/EscanBE/evermint/v12/integration_test_util"
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"

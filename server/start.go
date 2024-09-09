@@ -2,11 +2,8 @@ package server
 
 import (
 	"context"
-	"cosmossdk.io/log"
 	"errors"
 	"fmt"
-	servercmtlog "github.com/cosmos/cosmos-sdk/server/log"
-	"golang.org/x/sync/errgroup"
 	"io"
 	"net"
 	"net/http"
@@ -14,6 +11,11 @@ import (
 	"path/filepath"
 	"runtime/pprof"
 	"time"
+
+	"cosmossdk.io/log"
+
+	servercmtlog "github.com/cosmos/cosmos-sdk/server/log"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/indexer"

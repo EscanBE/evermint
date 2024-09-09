@@ -2,8 +2,9 @@ package inspect
 
 import (
 	"fmt"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	"path/filepath"
+
+	evertypes "github.com/EscanBE/evermint/v12/types"
 
 	errorsmod "cosmossdk.io/errors"
 

@@ -3,9 +3,10 @@ package ledger_test
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
 	"regexp"
 	"testing"
+
+	"github.com/EscanBE/evermint/v12/rename_chain/marker"
 
 	sdkmath "cosmossdk.io/math"
 

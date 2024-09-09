@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/version"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/EscanBE/evermint/v12/constants"
 

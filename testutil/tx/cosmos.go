@@ -1,8 +1,9 @@
 package tx
 
 import (
-	"google.golang.org/protobuf/proto"
 	"math"
+
+	"google.golang.org/protobuf/proto"
 
 	"github.com/EscanBE/evermint/v12/constants"
 

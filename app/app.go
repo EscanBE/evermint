@@ -3,11 +3,12 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/utils"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/EscanBE/evermint/v12/utils"
 
 	"github.com/EscanBE/evermint/v12/app/params"
 

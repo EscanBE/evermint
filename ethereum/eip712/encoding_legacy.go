@@ -1,10 +1,11 @@
 package eip712
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"encoding/json"
 	"errors"
 	"fmt"
+
+	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 

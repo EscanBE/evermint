@@ -1,9 +1,10 @@
 package keeper
 
 import (
-	storetypes "cosmossdk.io/store/types"
 	"fmt"
 	"math/big"
+
+	storetypes "cosmossdk.io/store/types"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"

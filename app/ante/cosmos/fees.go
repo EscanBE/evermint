@@ -2,11 +2,12 @@ package cosmos
 
 import (
 	"fmt"
+	"math"
+
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	"math"
 
 	sdkmath "cosmossdk.io/math"
 

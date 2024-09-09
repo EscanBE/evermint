@@ -3,8 +3,9 @@ package types
 import (
 	"errors"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math/big"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	sdkmath "cosmossdk.io/math"
 

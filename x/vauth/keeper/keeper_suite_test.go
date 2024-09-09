@@ -1,13 +1,15 @@
 package keeper_test
 
 import (
-	storemetrics "cosmossdk.io/store/metrics"
 	"crypto/ecdsa"
 	"encoding/hex"
-	"github.com/cosmos/cosmos-sdk/codec/address"
-	"github.com/cosmos/cosmos-sdk/runtime"
 	"testing"
 	"time"
+
+	storemetrics "cosmossdk.io/store/metrics"
+
+	"github.com/cosmos/cosmos-sdk/codec/address"
+	"github.com/cosmos/cosmos-sdk/runtime"
 
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/rename_chain/marker"

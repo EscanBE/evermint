@@ -3,6 +3,7 @@ package cli
 import (
 	"encoding/hex"
 	"fmt"
+
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 
 	errorsmod "cosmossdk.io/errors"

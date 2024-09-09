@@ -3,8 +3,9 @@ package keys
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client/keys"
 	"io"
+
+	"github.com/cosmos/cosmos-sdk/client/keys"
 
 	"sigs.k8s.io/yaml"
 

@@ -1,10 +1,12 @@
 package keeper_test
 
 import (
-	storetypes "cosmossdk.io/store/types"
 	_ "embed"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math/big"
+
+	storetypes "cosmossdk.io/store/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/EscanBE/evermint/v12/constants"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"

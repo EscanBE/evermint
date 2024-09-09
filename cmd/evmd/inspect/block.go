@@ -3,10 +3,11 @@ package inspect
 import (
 	"encoding/json"
 	"fmt"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	evertypes "github.com/EscanBE/evermint/v12/types"
 
 	errorsmod "cosmossdk.io/errors"
 

@@ -1,14 +1,16 @@
 package main
 
 import (
-	storetypes "cosmossdk.io/store/types"
 	"errors"
 	"fmt"
-	"github.com/EscanBE/evermint/v12/utils"
 	"io"
 	"os"
 	"path/filepath"
 	"time"
+
+	storetypes "cosmossdk.io/store/types"
+
+	"github.com/EscanBE/evermint/v12/utils"
 
 	"github.com/EscanBE/evermint/v12/app/params"
 

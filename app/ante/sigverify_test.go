@@ -1,8 +1,9 @@
 package ante_test
 
 import (
-	storetypes "cosmossdk.io/store/types"
 	"testing"
+
+	storetypes "cosmossdk.io/store/types"
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
 

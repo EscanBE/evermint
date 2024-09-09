@@ -5,10 +5,11 @@ import (
 	"crypto/ed25519"
 	"encoding/json"
 	"fmt"
-	sdkdb "github.com/cosmos/cosmos-db"
-	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	"strings"
 	"time"
+
+	sdkdb "github.com/cosmos/cosmos-db"
+	sdkserver "github.com/cosmos/cosmos-sdk/server"
 
 	"github.com/EscanBE/evermint/v12/app/params"
 

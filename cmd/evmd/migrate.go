@@ -1,10 +1,11 @@
 package main
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"encoding/json"
 	"fmt"
 	"time"
+
+	errorsmod "cosmossdk.io/errors"
 
 	"github.com/EscanBE/evermint/v12/constants"
 

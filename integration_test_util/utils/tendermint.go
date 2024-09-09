@@ -4,9 +4,10 @@ package utils
 import (
 	"context"
 	"fmt"
+	"time"
+
 	cmtdb "github.com/cometbft/cometbft-db"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	"time"
 
 	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/constants"

@@ -107,7 +107,7 @@ func (msg MsgConvertERC20) ValidateBasic() error {
 	if err != nil {
 		return errorsmod.Wrap(err, "invalid sender address")
 	}
-	
+
 	return nil
 }
 

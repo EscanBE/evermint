@@ -1,9 +1,10 @@
 package types
 
 import (
-	storetypes "cosmossdk.io/store/types"
 	fmt "fmt"
 	math "math"
+
+	storetypes "cosmossdk.io/store/types"
 )
 
 // ErrorNegativeGasConsumed defines an error thrown when the amount of gas refunded results in a

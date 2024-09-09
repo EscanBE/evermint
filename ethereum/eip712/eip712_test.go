@@ -114,7 +114,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 
 	signModes := []signing.SignMode{
 		signing.SignMode_SIGN_MODE_DIRECT,
-		//signing.SignMode_SIGN_MODE_TEXTUAL, // TODO ES: use this, enable signing texture for it
+		// signing.SignMode_SIGN_MODE_TEXTUAL, // TODO ES: use this, enable signing texture for it
 		signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
 	}
 

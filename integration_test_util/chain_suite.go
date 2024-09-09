@@ -3,11 +3,7 @@ package integration_test_util
 //goland:noinspection SpellCheckingInspection
 import (
 	"context"
-	"cosmossdk.io/store/rootmulti"
-	storetypes "cosmossdk.io/store/types"
 	"fmt"
-	sdkdb "github.com/cosmos/cosmos-db"
-	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"math"
 	"math/big"
 	"os"
@@ -19,6 +15,12 @@ import (
 	"testing"
 	"time"
 	"unsafe"
+
+	"cosmossdk.io/store/rootmulti"
+	storetypes "cosmossdk.io/store/types"
+
+	sdkdb "github.com/cosmos/cosmos-db"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
 	sdkmath "cosmossdk.io/math"
 

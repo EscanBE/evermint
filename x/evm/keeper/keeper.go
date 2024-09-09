@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"fmt"
+	"math/big"
+
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
 

@@ -3,9 +3,10 @@ package eip712_test
 import (
 	"encoding/hex"
 	"fmt"
-	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
 	"strings"
 	"testing"
+
+	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"

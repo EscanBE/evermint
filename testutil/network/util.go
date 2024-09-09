@@ -2,15 +2,17 @@ package network
 
 import (
 	"context"
-	"cosmossdk.io/log"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
+	"time"
+
+	"cosmossdk.io/log"
+
 	servercfg "github.com/EscanBE/evermint/v12/server/config"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	servercmtlog "github.com/cosmos/cosmos-sdk/server/log"
-	"path/filepath"
-	"time"
 
 	"github.com/EscanBE/evermint/v12/constants"
 

@@ -2,11 +2,12 @@ package integration_test_util
 
 //goland:noinspection SpellCheckingInspection
 import (
-	sdkmath "cosmossdk.io/math"
 	"crypto/ed25519"
 	"fmt"
 	"math/big"
 	"time"
+
+	sdkmath "cosmossdk.io/math"
 
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	cmttypes "github.com/cometbft/cometbft/types"

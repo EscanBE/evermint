@@ -3,9 +3,10 @@ package types
 import (
 	"errors"
 	"fmt"
+	"math/big"
+
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"google.golang.org/protobuf/proto"
-	"math/big"
 
 	sdkmath "cosmossdk.io/math"
 

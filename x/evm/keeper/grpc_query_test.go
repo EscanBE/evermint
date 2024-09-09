@@ -1,10 +1,11 @@
 package keeper_test
 
 import (
-	storetypes "cosmossdk.io/store/types"
 	"encoding/json"
 	"fmt"
 	"math/big"
+
+	storetypes "cosmossdk.io/store/types"
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 

@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"

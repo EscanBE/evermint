@@ -1,9 +1,10 @@
 package cli
 
 import (
-	"cosmossdk.io/errors"
 	"fmt"
 	"strings"
+
+	"cosmossdk.io/errors"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -25,9 +26,7 @@ import (
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 )
 
-var (
-	flagOverrideExistingBankMetadata = "override-existing-bank-metadata"
-)
+var flagOverrideExistingBankMetadata = "override-existing-bank-metadata"
 
 // NewTxCmd returns a root CLI command handler for erc20 transaction commands
 func NewTxCmd() *cobra.Command {

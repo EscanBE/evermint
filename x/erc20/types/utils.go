@@ -2,9 +2,10 @@ package types
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"regexp"
 	"strings"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )

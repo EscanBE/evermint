@@ -1,9 +1,10 @@
 package eip712
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"errors"
 	"fmt"
+
+	errorsmod "cosmossdk.io/errors"
 
 	"github.com/EscanBE/evermint/v12/app/params"
 

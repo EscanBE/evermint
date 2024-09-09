@@ -1,10 +1,11 @@
 package keeper_test
 
 import (
-	storetypes "cosmossdk.io/store/types"
 	"fmt"
 	"math"
 	"math/big"
+
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/testutil"

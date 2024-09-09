@@ -1,8 +1,10 @@
 package cosmos
 
 import (
-	txsigning "cosmossdk.io/x/tx/signing"
 	"fmt"
+
+	txsigning "cosmossdk.io/x/tx/signing"
+
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
 	errorsmod "cosmossdk.io/errors"

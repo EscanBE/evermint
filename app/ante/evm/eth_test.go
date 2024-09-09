@@ -1,10 +1,11 @@
 package evm_test
 
 import (
-	storetypes "cosmossdk.io/store/types"
 	"math"
 	"math/big"
 	"time"
+
+	storetypes "cosmossdk.io/store/types"
 
 	sdkmath "cosmossdk.io/math"
 

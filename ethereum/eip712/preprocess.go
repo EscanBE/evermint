@@ -2,6 +2,7 @@ package eip712
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

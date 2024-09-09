@@ -2,9 +2,10 @@ package keeper_test
 
 import (
 	"errors"
-	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"math/big"
 	"testing"
+
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"

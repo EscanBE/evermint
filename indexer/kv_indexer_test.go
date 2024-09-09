@@ -1,9 +1,10 @@
 package indexer_test
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math/big"
 	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"

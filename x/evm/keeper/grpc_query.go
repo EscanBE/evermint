@@ -2,12 +2,13 @@ package keeper
 
 import (
 	"context"
-	errorsmod "cosmossdk.io/errors"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
 	"time"
+
+	errorsmod "cosmossdk.io/errors"
 
 	"github.com/EscanBE/evermint/v12/utils"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"

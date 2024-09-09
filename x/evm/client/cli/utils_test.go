@@ -1,9 +1,10 @@
 package cli
 
 import (
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
 	"strings"
 	"testing"
+
+	"github.com/EscanBE/evermint/v12/rename_chain/marker"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -30,8 +31,8 @@ func cosmosAddressFromArg(addr string) (sdk.AccAddress, error) {
 }
 
 func TestAddressFormats(t *testing.T) {
-	var validBech32Addr = marker.ReplaceAbleAddress("evm18wvvwfmq77a6d8tza4h5sfuy2yj3jj88v603m8")
-	var invalidBech32Addr = validBech32Addr + "m"
+	validBech32Addr := marker.ReplaceAbleAddress("evm18wvvwfmq77a6d8tza4h5sfuy2yj3jj88v603m8")
+	invalidBech32Addr := validBech32Addr + "m"
 
 	testCases := []struct {
 		name        string

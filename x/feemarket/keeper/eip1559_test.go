@@ -1,8 +1,9 @@
 package keeper_test
 
 import (
-	storetypes "cosmossdk.io/store/types"
 	"math/big"
+
+	storetypes "cosmossdk.io/store/types"
 
 	sdkmath "cosmossdk.io/math"
 
