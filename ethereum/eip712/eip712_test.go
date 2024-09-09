@@ -114,7 +114,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 
 	signModes := []signing.SignMode{
 		signing.SignMode_SIGN_MODE_DIRECT,
-		//signing.SignMode_SIGN_MODE_TEXTUAL, // TODO ES: use this?
+		//signing.SignMode_SIGN_MODE_TEXTUAL, // TODO ES: use this, enable signing texture for it
 		signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
 	}
 
@@ -130,14 +130,15 @@ func (suite *EIP712TestSuite) TestEIP712() {
 	}
 
 	testCases := []struct {
-		title         string
-		chainID       string
-		msgs          []sdk.Msg
-		timeoutHeight uint64
-		expectSuccess bool
+		name                     string
+		chainID                  string
+		msgs                     []sdk.Msg
+		timeoutHeight            uint64
+		wantSuccess              bool
+		wantErrSignDocFlattening *bool
 	}{
 		{
-			title: "succeed - Standard MsgSend",
+			name: "success - Standard MsgSend",
 			msgs: []sdk.Msg{
 				banktypes.NewMsgSend(
 					suite.createTestAddress(),
@@ -145,10 +146,10 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					suite.makeCoins(suite.denom, sdkmath.NewInt(1)),
 				),
 			},
-			expectSuccess: true,
+			wantSuccess: true,
 		},
 		{
-			title: "succeed - Standard MsgVote",
+			name: "success - Standard MsgVote",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
 					suite.createTestAddress(),
@@ -156,10 +157,10 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					govtypes.OptionNo,
 				),
 			},
-			expectSuccess: true,
+			wantSuccess: true,
 		},
 		{
-			title: "succeed - Standard MsgDelegate",
+			name: "success - Standard MsgDelegate",
 			msgs: []sdk.Msg{
 				stakingtypes.NewMsgDelegate(
 					suite.createTestAddress().String(),
@@ -167,20 +168,20 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					suite.makeCoins(suite.denom, sdkmath.NewInt(1))[0],
 				),
 			},
-			expectSuccess: true,
+			wantSuccess: true,
 		},
 		{
-			title: "succeed - Standard MsgWithdrawDelegationReward",
+			name: "success - Standard MsgWithdrawDelegationReward",
 			msgs: []sdk.Msg{
 				distributiontypes.NewMsgWithdrawDelegatorReward(
 					suite.createTestAddress().String(),
 					sdk.ValAddress(suite.createTestAddress()).String(),
 				),
 			},
-			expectSuccess: true,
+			wantSuccess: true,
 		},
 		{
-			title: "succeed - Two Single-Signer MsgDelegate",
+			name: "success - Two Single-Signer MsgDelegate",
 			msgs: []sdk.Msg{
 				stakingtypes.NewMsgDelegate(
 					testParams.address.String(),
@@ -193,10 +194,10 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					suite.makeCoins(suite.denom, sdkmath.NewInt(5))[0],
 				),
 			},
-			expectSuccess: true,
+			wantSuccess: true,
 		},
 		{
-			title: "succeed - Single-Signer MsgVote V1 with Omitted Value",
+			name: "success - Single-Signer MsgVote V1 with Omitted Value",
 			msgs: []sdk.Msg{
 				govtypesv1.NewMsgVote(
 					testParams.address,
@@ -205,10 +206,10 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					"",
 				),
 			},
-			expectSuccess: true,
+			wantSuccess: true,
 		},
 		{
-			title: "succeed - Single-Signer MsgSend + MsgVote",
+			name: "success - Single-Signer MsgSend + MsgVote",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
 					testParams.address,
@@ -221,10 +222,10 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
 				),
 			},
-			expectSuccess: !suite.useLegacyEIP712TypedData,
+			wantSuccess: !suite.useLegacyEIP712TypedData,
 		},
 		{
-			title: "succeed - Single-Signer 2x MsgVoteV1 with Different Schemas",
+			name: "success - Single-Signer 2x MsgVoteV1 with Different Schemas",
 			msgs: []sdk.Msg{
 				govtypesv1.NewMsgVote(
 					testParams.address,
@@ -239,10 +240,10 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					"Has Metadata",
 				),
 			},
-			expectSuccess: !suite.useLegacyEIP712TypedData,
+			wantSuccess: !suite.useLegacyEIP712TypedData,
 		},
 		{
-			title: "fail - Two MsgVotes with Different Signers",
+			name: "fail - Multiple messages with Different Signers (MsgVote x/gov)",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
 					suite.createTestAddress(),
@@ -255,15 +256,35 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					govtypes.OptionAbstain,
 				),
 			},
-			expectSuccess: false,
+			wantSuccess: false,
 		},
 		{
-			title:         "fail - Empty Transaction",
-			msgs:          []sdk.Msg{},
-			expectSuccess: false,
+			name: "fail - Multiple messages with Different Signers (MsgSend x/bank)",
+			msgs: []sdk.Msg{
+				banktypes.NewMsgSend(
+					suite.createTestAddress(),
+					suite.createTestAddress(),
+					suite.makeCoins(suite.denom, sdkmath.NewInt(100)),
+				),
+				banktypes.NewMsgSend(
+					suite.createTestAddress(),
+					suite.createTestAddress(),
+					suite.makeCoins(suite.denom, sdkmath.NewInt(100)),
+				),
+			},
+			wantSuccess: false,
 		},
 		{
-			title:   "fail - Invalid ChainID",
+			name:        "fail - Empty Transaction",
+			msgs:        []sdk.Msg{},
+			wantSuccess: false,
+			wantErrSignDocFlattening: func() *bool {
+				b := true
+				return &b
+			}(),
+		},
+		{
+			name:    "fail - Invalid ChainID",
 			chainID: "invalidchainid",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
@@ -272,10 +293,10 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					govtypes.OptionNo,
 				),
 			},
-			expectSuccess: false,
+			wantSuccess: false,
 		},
 		{
-			title: "fail - Includes TimeoutHeight",
+			name: "fail - Includes TimeoutHeight",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
 					suite.createTestAddress(),
@@ -284,35 +305,13 @@ func (suite *EIP712TestSuite) TestEIP712() {
 				),
 			},
 			timeoutHeight: 1000,
-			expectSuccess: false,
-		},
-		{
-			title: "fail - Single Message / Multi-Signer",
-			msgs: []sdk.Msg{
-				banktypes.NewMsgMultiSend(
-					banktypes.NewInput(
-						suite.createTestAddress(),
-						suite.makeCoins(suite.denom, sdkmath.NewInt(100)),
-					),
-					[]banktypes.Output{
-						banktypes.NewOutput(
-							suite.createTestAddress(),
-							suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
-						),
-						banktypes.NewOutput(
-							suite.createTestAddress(),
-							suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
-						),
-					},
-				),
-			},
-			expectSuccess: false,
+			wantSuccess:   false,
 		},
 	}
 
 	for _, tc := range testCases {
 		for _, signMode := range signModes {
-			suite.Run(tc.title, func() {
+			suite.Run(tc.name, func() {
 				privKey, pubKey := suite.createTestKeyPair()
 
 				txBuilder := suite.clientCtx.TxConfig.NewTxBuilder()
@@ -365,14 +364,25 @@ func (suite *EIP712TestSuite) TestEIP712() {
 				)
 				suite.Require().NoError(err)
 
-				suite.verifyEIP712SignatureVerification(tc.expectSuccess, *privKey, *pubKey, bz)
+				suite.verifyEIP712SignatureVerification(tc.wantSuccess, *privKey, *pubKey, bz)
 
 				// Verify payload flattening only if the payload is in valid JSON format
 				if signMode == signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON {
-					suite.verifySignDocFlattening(bz)
+					var wantErrSignDocFlattening bool
+					if tc.wantErrSignDocFlattening != nil {
+						wantErrSignDocFlattening = *tc.wantErrSignDocFlattening
+					}
 
-					if tc.expectSuccess {
-						suite.verifyBasicTypedData(bz)
+					err := suite.verifySignDocFlattening(bz)
+
+					if wantErrSignDocFlattening {
+						suite.Require().Error(err)
+					} else {
+						suite.Require().NoError(err)
+
+						if tc.wantSuccess {
+							suite.verifyBasicTypedData(bz)
+						}
 					}
 				}
 			})
@@ -418,14 +428,17 @@ func (suite *EIP712TestSuite) verifyEIP712SignatureVerification(expectedSuccess 
 
 // verifySignDocFlattening tests the flattening algorithm against the sign doc's JSON payload,
 // using verifyPayloadAgainstFlattened.
-func (suite *EIP712TestSuite) verifySignDocFlattening(signDoc []byte) {
+func (suite *EIP712TestSuite) verifySignDocFlattening(signDoc []byte) error {
 	payload := gjson.ParseBytes(signDoc)
 	suite.Require().True(payload.IsObject())
 
 	flattened, _, err := eip712.FlattenPayloadMessages(payload)
-	suite.Require().NoError(err)
+	if err != nil {
+		return err
+	}
 
 	suite.verifyPayloadAgainstFlattened(payload, flattened)
+	return nil
 }
 
 // verifyPayloadAgainstFlattened compares a payload against its flattened counterpart to ensure that
