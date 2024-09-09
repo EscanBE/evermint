@@ -122,7 +122,11 @@ func (suite *LedgerTestSuite) SetupChainApp() {
 
 	{ // finalize & commit block so the query context can be created
 		_, err := suite.app.FinalizeBlock(&abci.RequestFinalizeBlock{
-			Height: header.Height,
+			Height:             header.Height,
+			Hash:               header.AppHash,
+			Time:               header.Time,
+			ProposerAddress:    header.ProposerAddress,
+			NextValidatorsHash: header.NextValidatorsHash,
 		})
 		suite.Require().NoError(err)
 		_, err = suite.app.Commit()

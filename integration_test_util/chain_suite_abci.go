@@ -166,12 +166,15 @@ func (suite *ChainIntegrationTestSuite) BroadcastTx(tx sdk.Tx) (responseDeliverT
 		} else {
 			suite.ReflectChangesToCommitMultiStore()
 
+			header := suite.CurrentContext.BlockHeader()
+
 			req := abci.RequestFinalizeBlock{
-				Height:             suite.CurrentContext.BlockHeight(),
+				Height:             header.Height,
 				Txs:                [][]byte{bz},
-				ProposerAddress:    suite.CurrentContext.BlockHeader().ProposerAddress,
-				NextValidatorsHash: suite.CurrentContext.BlockHeader().NextValidatorsHash,
-				Time:               suite.CurrentContext.BlockHeader().Time,
+				Hash:               header.AppHash,
+				Time:               header.Time,
+				ProposerAddress:    header.ProposerAddress,
+				NextValidatorsHash: header.NextValidatorsHash,
 			}
 			res, err := suite.BaseApp().FinalizeBlock(&req)
 			if err != nil {
@@ -231,9 +234,9 @@ func (suite *ChainIntegrationTestSuite) commit(ctx sdk.Context, t time.Duration,
 	req := abci.RequestFinalizeBlock{
 		Height:             header.Height,
 		Hash:               header.AppHash,
-		NextValidatorsHash: header.NextValidatorsHash,
-		ProposerAddress:    header.ProposerAddress,
 		Time:               header.Time,
+		ProposerAddress:    header.ProposerAddress,
+		NextValidatorsHash: header.NextValidatorsHash,
 	}
 	res, err := chainApp.BaseApp().FinalizeBlock(&req)
 	if err != nil {

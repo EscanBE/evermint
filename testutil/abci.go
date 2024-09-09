@@ -31,7 +31,11 @@ func Commit(ctx sdk.Context, chainApp *chainapp.Evermint, t time.Duration, vs *c
 	header := ctx.BlockHeader()
 
 	req := abci.RequestFinalizeBlock{
-		Height: header.Height,
+		Height:             header.Height,
+		Hash:               header.AppHash,
+		Time:               header.Time,
+		ProposerAddress:    header.ProposerAddress,
+		NextValidatorsHash: header.NextValidatorsHash,
 	}
 	res, err := chainApp.FinalizeBlock(&req)
 	if err != nil {
@@ -159,10 +163,15 @@ func BroadcastTxBytes(ctx sdk.Context, chainApp *chainapp.Evermint, txEncoder sd
 		return oldCtx, abci.ExecTxResult{}, err
 	}
 
+	header := ctx.BlockHeader()
+
 	req := abci.RequestFinalizeBlock{
-		Height:          chainApp.BaseApp.CommitMultiStore().LatestVersion() + 1, /*finalize current block so we + 1*/
-		Txs:             [][]byte{bz},
-		ProposerAddress: ctx.BlockHeader().ProposerAddress,
+		Height:             header.Height,
+		Txs:                [][]byte{bz},
+		Hash:               header.AppHash,
+		Time:               header.Time,
+		ProposerAddress:    header.ProposerAddress,
+		NextValidatorsHash: header.NextValidatorsHash,
 	}
 
 	res, err := chainApp.BaseApp.FinalizeBlock(&req)

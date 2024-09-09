@@ -1,23 +1,23 @@
 package keeper_test
 
 import (
-	abci "github.com/cometbft/cometbft/abci/types"
 	"math/big"
 	"time"
 
-	"github.com/EscanBE/evermint/v12/constants"
-
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
+	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/EscanBE/evermint/v12/testutil"
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
@@ -112,9 +112,9 @@ var _ = Describe("ERC20:", Ordered, func() {
 					s.Require().NoError(err)
 
 					// Make proposal pass in EndBlocker
-					duration := proposal.VotingEndTime.Sub(s.ctx.BlockTime()) + time.Hour*1
+					duration := proposal.VotingEndTime.Sub(s.ctx.BlockTime()) + time.Hour
 					s.CommitAndBeginBlockAfter(duration)
-					s.CommitAndBeginBlockAfter(time.Hour) // TODO ES: remove this
+					s.Commit()
 				})
 				It("should create a token pairs owned by the erc20 module", func() {
 					tokenPairs := s.app.Erc20Keeper.GetTokenPairs(s.ctx)
@@ -137,7 +137,7 @@ var _ = Describe("ERC20:", Ordered, func() {
 					s.Require().NoError(err)
 
 					// Make proposal pass in EndBlocker
-					duration := proposal.VotingEndTime.Sub(s.ctx.BlockTime()) + 1
+					duration := proposal.VotingEndTime.Sub(s.ctx.BlockTime()) + time.Hour
 					s.CommitAndBeginBlockAfter(duration)
 					s.Commit()
 				})
@@ -181,7 +181,7 @@ var _ = Describe("ERC20:", Ordered, func() {
 					s.Require().NoError(err)
 
 					// Make proposal pass in EndBlocker
-					duration := proposal.VotingEndTime.Sub(s.ctx.BlockTime()) + 1
+					duration := proposal.VotingEndTime.Sub(s.ctx.BlockTime()) + time.Hour
 					s.CommitAndBeginBlockAfter(duration)
 					s.Commit()
 				})
@@ -196,6 +196,7 @@ var _ = Describe("ERC20:", Ordered, func() {
 					// register with sufficient deposit
 					id, err := submitRegisterERC20Proposal(privKey, []string{contract.String(), contract2.String()})
 					s.Require().NoError(err)
+
 					proposal, err := s.app.GovKeeper.Proposals.Get(s.ctx, id)
 					s.Require().NoError(err)
 
@@ -206,7 +207,7 @@ var _ = Describe("ERC20:", Ordered, func() {
 					s.Require().NoError(err)
 
 					// Make proposal pass in EndBlocker
-					duration := proposal.VotingEndTime.Sub(s.ctx.BlockTime()) + 1
+					duration := proposal.VotingEndTime.Sub(s.ctx.BlockTime()) + time.Hour
 					s.CommitAndBeginBlockAfter(duration)
 					s.Commit()
 				})

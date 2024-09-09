@@ -293,7 +293,7 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 
 // Commit commits and starts a new block with an updated context.
 func (suite *KeeperTestSuite) Commit() {
-	suite.CommitAndBeginBlockAfter(time.Hour * 1)
+	suite.CommitAndBeginBlockAfter(time.Hour)
 }
 
 // Commit commits a block at a given time. Reminder: At the end of each
