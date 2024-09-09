@@ -64,9 +64,6 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 
-	// unnamed import of statik for swagger UI support
-	_ "github.com/EscanBE/evermint/v12/client/docs/statik"
-
 	srvflags "github.com/EscanBE/evermint/v12/server/flags"
 	"github.com/EscanBE/evermint/v12/x/erc20"
 	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"

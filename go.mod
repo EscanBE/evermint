@@ -3,6 +3,8 @@ module github.com/EscanBE/evermint/v12
 go 1.22.4
 
 require (
+	cosmossdk.io/api v0.7.5
+	cosmossdk.io/client/v2 v2.0.0-beta.3
 	cosmossdk.io/core v0.11.1
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/log v1.4.0
@@ -39,7 +41,6 @@ require (
 	github.com/onsi/gomega v1.28.0
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/pkg/errors v0.9.1
-	github.com/rakyll/statik v0.1.7
 	github.com/rs/cors v1.11.1
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.1
@@ -66,8 +67,6 @@ require (
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/iam v1.1.9 // indirect
 	cloud.google.com/go/storage v1.41.0 // indirect
-	cosmossdk.io/api v0.7.5 // indirect
-	cosmossdk.io/client/v2 v2.0.0-beta.3 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/depinject v1.0.0 // indirect
 	cosmossdk.io/x/circuit v0.1.1 // indirect

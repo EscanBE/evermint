@@ -186,7 +186,6 @@ build-all: tools build lint test vulncheck
 ###############################################################################
 
 TOOLS_DESTDIR  ?= $(GOPATH)/bin
-STATIK         = $(TOOLS_DESTDIR)/statik
 RUNSIM         = $(TOOLS_DESTDIR)/runsim
 
 # Install the runsim binary with a temporary workaround of entering an outside
@@ -198,11 +197,6 @@ runsim: $(RUNSIM)
 $(RUNSIM):
 	@echo "Installing runsim..."
 	@(cd /tmp && ${GO_MOD} go install github.com/cosmos/tools/cmd/runsim@master)
-
-statik: $(STATIK)
-$(STATIK):
-	@echo "Installing statik..."
-	@(cd /tmp && go install github.com/rakyll/statik@v0.1.6)
 
 contract-tools:
 ifeq (, $(shell which stringer))
@@ -248,7 +242,7 @@ else
 endif
 
 tools: tools-stamp
-tools-stamp: contract-tools docs-tools statik runsim
+tools-stamp: contract-tools docs-tools runsim
 	# Create dummy file to satisfy dependency and avoid
 	# rebuilding when this Makefile target is hit twice
 	# in a row.
@@ -258,7 +252,7 @@ tools-clean:
 	rm -f $(RUNSIM)
 	rm -f tools-stamp
 
-.PHONY: runsim statik tools contract-tools tools-stamp tools-clean
+.PHONY: runsim tools contract-tools tools-stamp tools-clean
 
 go.sum: go.mod
 	echo "Ensure dependencies have not been modified ..." >&2
@@ -272,16 +266,6 @@ vulncheck: $(BUILDDIR)/
 ###############################################################################
 ###                              Documentation                              ###
 ###############################################################################
-
-update-swagger-docs: statik
-	$(BINDIR)/statik -src=client/docs/swagger-ui -dest=client/docs -f -m
-	@if [ -n "$(git status --porcelain)" ]; then \
-        echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
-        exit 1;\
-    else \
-        echo "\033[92mSwagger docs are in sync\033[0m";\
-    fi
-.PHONY: update-swagger-docs
 
 godocs:
 	@echo "--> Wait a few seconds and visit http://localhost:6060/pkg/github.com/EscanBE/evermint"
@@ -372,7 +356,7 @@ lint-fix-contracts:
 .PHONY: lint lint-fix
 
 format:
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/docs/statik/statik.go" -not -name '*.pb.go' | xargs gofumpt -w -l
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs gofumpt -w -l
 
 .PHONY: format
 

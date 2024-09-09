@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/EscanBE/evermint/v12/client/docs"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
@@ -21,7 +24,6 @@ import (
 	"github.com/EscanBE/evermint/v12/app/params"
 
 	"github.com/gorilla/mux"
-	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 
 	"cosmossdk.io/log"
@@ -52,9 +54,6 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
-
-	// unnamed import of statik for swagger UI support
-	_ "github.com/EscanBE/evermint/v12/client/docs/statik"
 
 	"github.com/EscanBE/evermint/v12/app/ante"
 	ethante "github.com/EscanBE/evermint/v12/app/ante/evm"
@@ -511,12 +510,12 @@ func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router, enableSwagger bool) e
 		return nil
 	}
 
-	statikFS, err := fs.New()
+	root, err := fs.Sub(docs.SwaggerUI, "swagger-ui")
 	if err != nil {
 		return err
 	}
 
-	staticServer := http.FileServer(statikFS)
+	staticServer := http.FileServer(http.FS(root))
 	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
 
 	return nil
