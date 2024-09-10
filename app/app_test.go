@@ -77,7 +77,6 @@ func TestEvermintExport(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// TODO ES: test export using CLI
 	_, err = chainApp.ExportAppStateAndValidators(true, []string{}, []string{})
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
 }

@@ -42,7 +42,7 @@ import (
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
-	jsonrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
+	cmtjrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 	tmstate "github.com/cometbft/cometbft/state"
 	"github.com/cometbft/cometbft/store"
 	cmttypes "github.com/cometbft/cometbft/types"
@@ -51,7 +51,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	cosmostxtypes "github.com/cosmos/cosmos-sdk/types/tx"
+	sdktxtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -180,7 +180,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 	walletAccounts := newWalletsAccounts(t)
 
 	// Init database
-	cometDB := cmtdb.NewMemDB()
+	cmtDB := cmtdb.NewMemDB()
 	evmIndexerDb := sdkdb.NewMemDB() // use dedicated db for EVM Tx-Indexer to prevent data corruption
 
 	// Setup chain app
@@ -194,7 +194,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 	}
 
 	logger := log.NewNopLogger()
-	app, tmApp, valSet := itutiltypes.NewChainApp(chainCfg, disableTendermint, testConfig, encodingConfig, cometDB, validatorAccounts, walletAccounts, genesisAccountBalance, tempHolder, logger)
+	app, tmApp, valSet := itutiltypes.NewChainApp(chainCfg, disableTendermint, testConfig, encodingConfig, cmtDB, validatorAccounts, walletAccounts, genesisAccountBalance, tempHolder, logger)
 	baseApp := app.BaseApp()
 
 	header := createFirstBlockHeader(
@@ -242,7 +242,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 			chainCfg.BaseDenom,
 			constants.BaseDenomExponent,
 		),
-		DB:                cometDB,
+		DB:                cmtDB,
 		ChainApp:          app,
 		TendermintApp:     tmApp,
 		ValidatorSet:      valSet,
@@ -411,7 +411,7 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 	stakingtypes.RegisterQueryServer(queryHelper, stakingkeeper.Querier{Keeper: suite.ChainApp.StakingKeeper()})
 	stakingQueryClient := stakingtypes.NewQueryClient(queryHelper)
 
-	serviceClient := cosmostxtypes.NewServiceClient(queryHelper)
+	serviceClient := sdktxtypes.NewServiceClient(queryHelper)
 
 	rpcQueryClient := rpctypes.QueryClient{
 		ServiceClient: serviceClient,
@@ -424,7 +424,7 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 		rpcAddr26657, supported := suite.TendermintApp.GetRpcAddr()
 		suite.Require().True(supported)
 
-		httpClient26657, err := jsonrpcclient.DefaultHTTPClient(rpcAddr26657)
+		httpClient26657, err := cmtjrpcclient.DefaultHTTPClient(rpcAddr26657)
 		suite.Require().NoError(err)
 
 		tendermintRpcHttpClient, err = httpclient.NewWithClient(rpcAddr26657, "/websocket", httpClient26657)
@@ -457,7 +457,7 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 		clientQueryCtx = clientQueryCtx.WithClient(tendermintRpcHttpClient)
 	}
 
-	cosmostxtypes.RegisterServiceServer(
+	sdktxtypes.RegisterServiceServer(
 		queryHelper,
 		authtx.NewTxServer(clientQueryCtx, suite.BaseApp().Simulate, suite.ChainApp.InterfaceRegistry()),
 	)

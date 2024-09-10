@@ -260,7 +260,7 @@ import (
 	"encoding/json"
 
 	"cosmossdk.io/log"
-	dbm "github.com/cosmos/cosmos-db"
+	sdkdb "github.com/cosmos/cosmos-db"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/simapp"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"

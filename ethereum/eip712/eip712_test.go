@@ -2,10 +2,22 @@ package eip712_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
-	"testing"
-
 	chainapp "github.com/EscanBE/evermint/v12/app"
+	"github.com/EscanBE/evermint/v12/app/helpers"
+	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
+	"github.com/EscanBE/evermint/v12/utils"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/crypto/tmhash"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmversion "github.com/cometbft/cometbft/proto/tendermint/version"
+	"github.com/cometbft/cometbft/version"
+	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
+	"testing"
+	"time"
+
 	"github.com/EscanBE/evermint/v12/app/params"
 	"github.com/EscanBE/evermint/v12/constants"
 
@@ -43,7 +55,7 @@ const (
 type EIP712TestSuite struct {
 	suite.Suite
 
-	config                   params.EncodingConfig
+	encodingConfig           params.EncodingConfig
 	clientCtx                client.Context
 	useLegacyEIP712TypedData bool
 	denom                    string
@@ -67,12 +79,53 @@ func TestEIP712TestSuite(t *testing.T) {
 }
 
 func (suite *EIP712TestSuite) SetupTest() {
-	suite.config = chainapp.RegisterEncodingConfig()
-	suite.clientCtx = client.Context{}.WithTxConfig(suite.config.TxConfig)
+	tempChainApp, _ := initTemporaryChainApp()
+	defer func() {
+		if err := tempChainApp.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	suite.encodingConfig = params.EncodingConfig{
+		InterfaceRegistry: tempChainApp.InterfaceRegistry(),
+		Codec:             tempChainApp.AppCodec(),
+		TxConfig:          tempChainApp.GetTxConfig(),
+		Amino:             tempChainApp.LegacyAmino(),
+	}
+
+	{
+		goCtx := context.Background()
+
+		clientCtx := client.Context{}.
+			WithCodec(tempChainApp.AppCodec()).
+			WithInterfaceRegistry(tempChainApp.InterfaceRegistry()).
+			WithTxConfig(tempChainApp.GetTxConfig()).
+			WithLegacyAmino(tempChainApp.LegacyAmino())
+
+		// create a new tx config with textual signing enabled
+		txConfigWithTextual, err := utils.GetTxConfigWithSignModeTextureEnabled(
+			authtxconfig.NewBankKeeperCoinMetadataQueryFn(tempChainApp.BankKeeper),
+			clientCtx.Codec,
+		)
+		suite.Require().NoError(err)
+		clientCtx = clientCtx.WithTxConfig(txConfigWithTextual)
+		goCtx = context.WithValue(goCtx, client.ClientContextKey, &clientCtx)
+
+		// inject the query context into the context so signing texture can query coin metadata
+		queryCtx, err := tempChainApp.CreateQueryContext(tempChainApp.LastBlockHeight(), false)
+		suite.Require().NoError(err)
+		goCtx = context.WithValue(goCtx, sdk.SdkContextKey, queryCtx)
+
+		// update the client context with the cmd context so signing texture can use the context to query coin metadata
+		clientCtx = clientCtx.WithCmdContext(goCtx)
+
+		suite.clientCtx = clientCtx
+	}
+
 	suite.denom = constants.BaseDenom
 
 	sdk.GetConfig().SetBech32PrefixForAccount(constants.Bech32Prefix, "")
-	eip712.SetEncodingConfig(suite.config)
+	eip712.SetEncodingConfig(suite.encodingConfig)
 }
 
 // createTestAddress creates random test addresses for messages
@@ -114,7 +167,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 
 	signModes := []signing.SignMode{
 		signing.SignMode_SIGN_MODE_DIRECT,
-		// signing.SignMode_SIGN_MODE_TEXTUAL, // TODO ES: use this, enable signing texture for it
+		//signing.SignMode_SIGN_MODE_TEXTUAL, // TODO ESL: enable?
 		signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
 	}
 
@@ -636,4 +689,63 @@ func (suite *EIP712TestSuite) TestTypedDataGeneration() {
 	typedData, err = eip712.WrapTxToTypedData(0, []byte(payloadRaw))
 	suite.Require().NoError(err)
 	suite.Require().False(typedData.Types["TypemsgType1"] == nil)
+}
+
+func initTemporaryChainApp() (*chainapp.Evermint, sdk.Context) {
+	consAddress := sdk.ConsAddress(utiltx.GenerateAddress().Bytes())
+	tempChainApp := helpers.Setup(false, feemarkettypes.DefaultGenesisState(), chainID)
+	header := tmproto.Header{
+		Height:          1,
+		ChainID:         chainID,
+		Time:            time.Now().UTC(),
+		ProposerAddress: consAddress.Bytes(),
+
+		Version: tmversion.Consensus{
+			Block: version.BlockProtocol,
+		},
+		LastBlockId: tmproto.BlockID{
+			Hash: tmhash.Sum([]byte("block_id")),
+			PartSetHeader: tmproto.PartSetHeader{
+				Total: 11,
+				Hash:  tmhash.Sum([]byte("partset_header")),
+			},
+		},
+		AppHash:            tmhash.Sum([]byte("app")),
+		DataHash:           tmhash.Sum([]byte("data")),
+		EvidenceHash:       tmhash.Sum([]byte("evidence")),
+		ValidatorsHash:     tmhash.Sum([]byte("validators")),
+		NextValidatorsHash: tmhash.Sum([]byte("next_validators")),
+		ConsensusHash:      tmhash.Sum([]byte("consensus")),
+		LastResultsHash:    tmhash.Sum([]byte("last_result")),
+	}
+
+	ctx := tempChainApp.BaseApp.NewContext(false).WithBlockHeader(header).WithChainID(chainID)
+
+	{
+		// Finalize & commit block so the query context can be created.
+		// The query context is needed for the signing texture to query coin metadata.
+		_, err := tempChainApp.FinalizeBlock(&abci.RequestFinalizeBlock{
+			Height:             header.Height,
+			Hash:               header.AppHash,
+			Time:               header.Time,
+			ProposerAddress:    header.ProposerAddress,
+			NextValidatorsHash: header.NextValidatorsHash,
+		})
+		if err != nil {
+			panic(err)
+		}
+
+		_, err = tempChainApp.Commit()
+		if err != nil {
+			panic(err)
+		}
+
+		header.Height++
+		header.Time = header.Time.Add(time.Second)
+		ctx = ctx.
+			WithBlockHeader(header).
+			WithMultiStore(tempChainApp.CommitMultiStore().CacheMultiStore())
+	}
+
+	return tempChainApp, ctx
 }

@@ -15,7 +15,7 @@ import (
 	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	cosmostxtypes "github.com/cosmos/cosmos-sdk/types/tx"
+	sdktxtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -188,13 +188,13 @@ func (suite *ChainIntegrationTestSuite) signCosmosTx(
 }
 
 // QueryTxResponse returns the TxResponse for the given tx
-func (suite *ChainIntegrationTestSuite) QueryTxResponse(tx authsigning.Tx) *cosmostxtypes.GetTxResponse {
+func (suite *ChainIntegrationTestSuite) QueryTxResponse(tx authsigning.Tx) *sdktxtypes.GetTxResponse {
 	var bz []byte
 	bz, err := suite.EncodingConfig.TxConfig.TxEncoder()(tx)
 	suite.Require().NoError(err)
 	txHash := hex.EncodeToString(cmttypes.Tx(bz).Hash())
 
-	txResponse, err := suite.QueryClients.ServiceClient.GetTx(context.Background(), &cosmostxtypes.GetTxRequest{
+	txResponse, err := suite.QueryClients.ServiceClient.GetTx(context.Background(), &sdktxtypes.GetTxRequest{
 		Hash: txHash,
 	})
 	suite.Require().NoError(err)

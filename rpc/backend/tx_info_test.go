@@ -14,7 +14,7 @@ import (
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/ethereum/go-ethereum/common"
@@ -326,7 +326,7 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 	testCases := []struct {
 		name         string
 		registerMock func()
-		block        *tmrpctypes.ResultBlock
+		block        *cmtrpctypes.ResultBlock
 		idx          hexutil.Uint
 		expRPCTx     *rpctypes.RPCTransaction
 		expPass      bool
@@ -341,7 +341,7 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByBlockAndIndexError(indexer, 1, 1)
 			},
-			&tmrpctypes.ResultBlock{Block: cmttypes.MakeBlock(1, []cmttypes.Tx{bz}, nil, nil)},
+			&cmtrpctypes.ResultBlock{Block: cmttypes.MakeBlock(1, []cmttypes.Tx{bz}, nil, nil)},
 			1,
 			nil,
 			true,
@@ -358,7 +358,7 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByBlockAndIndex(indexer, 1, 0)
 			},
-			&tmrpctypes.ResultBlock{Block: defaultBlock},
+			&cmtrpctypes.ResultBlock{Block: defaultBlock},
 			0,
 			nil,
 			false,
@@ -379,7 +379,7 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				suite.Require().NoError(err)
 				RegisterBaseFee(queryClient, sdkmath.NewInt(1))
 			},
-			&tmrpctypes.ResultBlock{Block: defaultBlock},
+			&cmtrpctypes.ResultBlock{Block: defaultBlock},
 			0,
 			txFromMsg,
 			true,
@@ -396,7 +396,7 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByBlockAndIndex(indexer, 1, 0)
 			},
-			&tmrpctypes.ResultBlock{Block: defaultBlock},
+			&cmtrpctypes.ResultBlock{Block: defaultBlock},
 			0,
 			txFromMsg,
 			true,

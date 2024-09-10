@@ -3,10 +3,10 @@ package types
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/types/tx"
+	sdktxtypes "github.com/cosmos/cosmos-sdk/types/tx"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/proto/tendermint/crypto"
+	tmcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
 	"github.com/cosmos/cosmos-sdk/client"
 
@@ -19,7 +19,7 @@ import (
 //   - EVM module queries
 //   - Fee market module queries
 type QueryClient struct {
-	tx.ServiceClient
+	sdktxtypes.ServiceClient
 	evmtypes.QueryClient
 	FeeMarket feemarkettypes.QueryClient
 }
@@ -27,7 +27,7 @@ type QueryClient struct {
 // NewQueryClient creates a new gRPC query client
 func NewQueryClient(clientCtx client.Context) *QueryClient {
 	return &QueryClient{
-		ServiceClient: tx.NewServiceClient(clientCtx),
+		ServiceClient: sdktxtypes.NewServiceClient(clientCtx),
 		QueryClient:   evmtypes.NewQueryClient(clientCtx),
 		FeeMarket:     feemarkettypes.NewQueryClient(clientCtx),
 	}
@@ -38,7 +38,7 @@ func NewQueryClient(clientCtx client.Context) *QueryClient {
 // performed at one below this height (at the IAVL version) in order to obtain the correct merkle
 // proof. Proof queries at height less than or equal to 2 are not supported.
 // Issue: https://github.com/cosmos/cosmos-sdk/issues/6567
-func (QueryClient) GetProof(clientCtx client.Context, storeKey string, key []byte) ([]byte, *crypto.ProofOps, error) {
+func (QueryClient) GetProof(clientCtx client.Context, storeKey string, key []byte) ([]byte, *tmcrypto.ProofOps, error) {
 	height := clientCtx.Height
 	// ABCI queries at height less than or equal to 2 are not supported.
 	// Base app does not support queries for height less than or equal to 1.

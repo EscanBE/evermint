@@ -7,7 +7,7 @@ import (
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/cosmos/cosmos-sdk/client"
-	cosmostxtypes "github.com/cosmos/cosmos-sdk/types/tx"
+	sdktxtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -33,6 +33,6 @@ type QueryClients struct {
 	IbcTransfer             ibctransfertypes.QueryClient
 	Slashing                slashingtypes.QueryClient
 	Staking                 stakingtypes.QueryClient
-	ServiceClient           cosmostxtypes.ServiceClient
+	ServiceClient           sdktxtypes.ServiceClient
 	Rpc                     *rpctypes.QueryClient
 }

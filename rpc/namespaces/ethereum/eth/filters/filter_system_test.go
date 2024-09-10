@@ -10,7 +10,7 @@ import (
 
 	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/rpc/ethereum/pubsub"
-	coretypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/eth/filters"
@@ -29,7 +29,7 @@ func TestEventSystem(t *testing.T) {
 		ctx:        context.Background(),
 		lightMode:  false,
 		index:      index,
-		topicChans: make(map[string]chan<- coretypes.ResultEvent, len(index)),
+		topicChans: make(map[string]chan<- cmtrpctypes.ResultEvent, len(index)),
 		indexMux:   new(sync.RWMutex),
 		install:    make(chan *Subscription),
 		uninstall:  make(chan *Subscription),
@@ -77,7 +77,7 @@ func newSubscription(id string, event string) *Subscription {
 		hashes:    make(chan []common.Hash),
 		headers:   make(chan *ethtypes.Header),
 		installed: make(chan struct{}),
-		eventCh:   make(chan coretypes.ResultEvent),
+		eventCh:   make(chan cmtrpctypes.ResultEvent),
 		err:       make(chan error),
 	}
 }

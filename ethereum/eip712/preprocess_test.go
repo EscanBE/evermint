@@ -2,7 +2,6 @@ package eip712_test
 
 import (
 	"encoding/hex"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -50,7 +49,6 @@ type TestCaseStruct struct {
 }
 
 func TestLedgerPreprocessing(t *testing.T) {
-	fmt.Println(encodingConfig.TxConfig.SigningContext().AddressCodec())
 	// Update bech32 prefix
 	testCases := []TestCaseStruct{
 		createBasicTestCase(t),

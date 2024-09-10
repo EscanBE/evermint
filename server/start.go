@@ -19,7 +19,7 @@ import (
 
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/indexer"
-	rpcclient "github.com/cometbft/cometbft/rpc/client"
+	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -77,14 +77,13 @@ func NewDefaultStartOptions(appCreator types.AppCreator, defaultNodeHome string)
 	}
 }
 
-// StartCmd runs the service passed in, either stand-alone or in-process with
-// Tendermint.
+// StartCmd runs the service passed in, either stand-alone or in-process with CometBFT.
 func StartCmd(opts StartOptions) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "Run the full node",
-		Long: `Run the full node application with Tendermint in or out of process. By
-default, the application will run with Tendermint in process.
+		Long: `Run the full node application with CometBFT in or out of process. By
+default, the application will run with CometBFT in process.
 
 Pruning options can be provided via the '--pruning' flag or alternatively with '--pruning-keep-recent',
 'pruning-keep-every', and 'pruning-interval' together.
@@ -171,10 +170,10 @@ which accepts a path for the resulting pprof file.
 	cmd.Flags().Uint64(server.FlagPruningKeepRecent, 0, "Number of recent heights to keep on disk (ignored if pruning is not 'custom')")
 	cmd.Flags().Uint64(server.FlagPruningInterval, 0, "Height interval at which pruned heights are removed from disk (ignored if pruning is not 'custom')") //nolint:lll
 	cmd.Flags().Uint(server.FlagInvCheckPeriod, 0, "Assert registered invariants every N blocks")
-	cmd.Flags().Uint64(server.FlagMinRetainBlocks, 0, "Minimum block height offset during ABCI commit to prune Tendermint blocks")
+	cmd.Flags().Uint64(server.FlagMinRetainBlocks, 0, "Minimum block height offset during ABCI commit to prune CometBFT blocks")
 	cmd.Flags().String(srvflags.AppDBBackend, "", "The type of database for application and snapshots databases")
 
-	cmd.Flags().Bool(srvflags.GRPCOnly, false, "Start the node in gRPC query only mode without Tendermint process")
+	cmd.Flags().Bool(srvflags.GRPCOnly, false, "Start the node in gRPC query only mode without CometBFT process")
 	cmd.Flags().Bool(srvflags.GRPCEnable, true, "Define if the gRPC server should be enabled")
 	cmd.Flags().String(srvflags.GRPCAddress, srvconfig.DefaultGRPCAddress, "the gRPC server address to listen on")
 	cmd.Flags().Bool(srvflags.GRPCWebEnable, true, "Define if the gRPC-Web server should be enabled. (Note: gRPC must also be enabled.)")
@@ -210,7 +209,7 @@ which accepts a path for the resulting pprof file.
 	cmd.Flags().Uint64(server.FlagStateSyncSnapshotInterval, 0, "State sync snapshot interval")
 	cmd.Flags().Uint32(server.FlagStateSyncSnapshotKeepRecent, 2, "State sync snapshot to keep")
 
-	// add support for all Tendermint-specific command line options
+	// add support for all CometBFT-specific command line options
 	cmtcmd.AddNodeFlags(cmd)
 	return cmd
 }
@@ -353,11 +352,10 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts StartOpt
 	genDocProvider := cmtnode.DefaultGenesisDocProviderFunc(cfg)
 
 	var (
-		tmNode   *cmtnode.Node
+		cmtNode  *cmtnode.Node
 		gRPCOnly = ctx.Viper.GetBool(srvflags.GRPCOnly)
 	)
 
-	// TODO ES: replace all Tendermint into CometBFT
 	if gRPCOnly {
 		logger.Info("starting node in query only mode; CometBFT is disabled")
 		config.GRPC.Enable = true
@@ -365,7 +363,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts StartOpt
 		logger.Info("starting node with ABCI CometBFT in-process")
 
 		cmtApp := server.NewCometABCIWrapper(app)
-		tmNode, err = cmtnode.NewNode(
+		cmtNode, err = cmtnode.NewNode(
 			cfg,
 			cmtprivval.LoadOrGenFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile()),
 			nodeKey,
@@ -380,23 +378,23 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts StartOpt
 			return err
 		}
 
-		if err := tmNode.Start(); err != nil {
+		if err := cmtNode.Start(); err != nil {
 			logger.Error("failed start CometBFT server", "error", err.Error())
 			return err
 		}
 
 		defer func() {
-			if tmNode.IsRunning() {
-				_ = tmNode.Stop()
+			if cmtNode.IsRunning() {
+				_ = cmtNode.Stop()
 			}
 		}()
 	}
 
 	// Add the tx service to the gRPC router. We only need to register this
 	// service if API or gRPC or JSONRPC is enabled, and avoid doing so in the general
-	// case, because it spawns a new local tendermint RPC client.
-	if (config.API.Enable || config.GRPC.Enable || config.JSONRPC.Enable) && tmNode != nil {
-		clientCtx = clientCtx.WithClient(local.New(tmNode))
+	// case, because it spawns a new local CometBFT RPC client.
+	if (config.API.Enable || config.GRPC.Enable || config.JSONRPC.Enable) && cmtNode != nil {
+		clientCtx = clientCtx.WithClient(local.New(cmtNode))
 
 		app.RegisterTxService(clientCtx)
 		app.RegisterTendermintService(clientCtx)
@@ -426,7 +424,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts StartOpt
 
 		idxLogger := ctx.Logger.With("indexer", "evm")
 		evmTxIndexer = indexer.NewKVIndexer(idxDB, idxLogger, clientCtx)
-		indexerService := NewEVMIndexerService(evmTxIndexer, clientCtx.Client.(rpcclient.Client))
+		indexerService := NewEVMIndexerService(evmTxIndexer, clientCtx.Client.(cmtrpcclient.Client))
 		indexerService.SetLogger(servercmtlog.CometLoggerWrapper{Logger: idxLogger})
 
 		errCh := make(chan error)
@@ -583,12 +581,12 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts StartOpt
 
 		clientCtx := clientCtx.WithChainID(genDoc.ChainID)
 
-		cometEndpoint := "/websocket"
-		cometRPCAddr := cfg.RPC.ListenAddress
+		cmtEndpoint := "/websocket"
+		cmtRPCAddr := cfg.RPC.ListenAddress
 
 		errCh := make(chan error)
 		gr.Go(func() error {
-			httpSrv, httpSrvDone, err = StartJSONRPC(ctx, clientCtx, cometRPCAddr, cometEndpoint, &config, evmTxIndexer)
+			httpSrv, httpSrvDone, err = StartJSONRPC(ctx, clientCtx, cmtRPCAddr, cmtEndpoint, &config, evmTxIndexer)
 			if err != nil {
 				errCh <- err
 				return err
@@ -619,7 +617,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts StartOpt
 	}
 
 	// At this point it is safe to block the process if we're in query only mode as
-	// we do not need to start Rosetta or handle any Tendermint related processes.
+	// we do not need to start Rosetta or handle any CometBFT related processes.
 	if gRPCOnly {
 		// wait for signal capture and gracefully return
 		return gr.Wait()
@@ -627,7 +625,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts StartOpt
 
 	var rosettaSrv crgserver.Server
 	ctx.Logger.Debug("Rosetta not enabled", "rosettaSrv", rosettaSrv)
-	// TODO ES: check enable Rosetta
+	// TODO ESL: check enable Rosetta
 	/*
 		if config.Rosetta.Enable {
 			offlineMode := config.Rosetta.Offline

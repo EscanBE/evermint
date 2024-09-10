@@ -11,7 +11,7 @@ import (
 
 	sdkdb "github.com/cosmos/cosmos-db"
 
-	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -118,8 +118,8 @@ func (suite *BackendTestSuite) buildEthereumTx() (*evmtypes.MsgEthereumTx, []byt
 
 // buildFormattedBlock returns a formatted block for testing
 func (suite *BackendTestSuite) buildFormattedBlock(
-	blockRes *tmrpctypes.ResultBlockResults,
-	resBlock *tmrpctypes.ResultBlock,
+	blockRes *cmtrpctypes.ResultBlockResults,
+	resBlock *cmtrpctypes.ResultBlock,
 	fullTx bool,
 	tx *evmtypes.MsgEthereumTx,
 	validator sdk.AccAddress,
@@ -152,7 +152,7 @@ func (suite *BackendTestSuite) buildFormattedBlock(
 	)
 }
 
-func createTestReceipt(root []byte, resBlock *tmrpctypes.ResultBlock, tx *evmtypes.MsgEthereumTx, failed bool, gasUsed uint64) *ethtypes.Receipt {
+func createTestReceipt(root []byte, resBlock *cmtrpctypes.ResultBlock, tx *evmtypes.MsgEthereumTx, failed bool, gasUsed uint64) *ethtypes.Receipt {
 	var status uint64
 	if failed {
 		status = ethtypes.ReceiptStatusFailed

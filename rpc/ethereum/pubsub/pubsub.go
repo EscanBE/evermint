@@ -6,31 +6,31 @@ import (
 
 	"github.com/pkg/errors"
 
-	coretypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 )
 
 type UnsubscribeFunc func()
 
 type EventBus interface {
-	AddTopic(name string, src <-chan coretypes.ResultEvent) error
+	AddTopic(name string, src <-chan cmtrpctypes.ResultEvent) error
 	RemoveTopic(name string)
-	Subscribe(name string) (<-chan coretypes.ResultEvent, UnsubscribeFunc, error)
+	Subscribe(name string) (<-chan cmtrpctypes.ResultEvent, UnsubscribeFunc, error)
 	Topics() []string
 }
 
 type memEventBus struct {
-	topics          map[string]<-chan coretypes.ResultEvent
+	topics          map[string]<-chan cmtrpctypes.ResultEvent
 	topicsMux       *sync.RWMutex
-	subscribers     map[string]map[uint64]chan<- coretypes.ResultEvent
+	subscribers     map[string]map[uint64]chan<- cmtrpctypes.ResultEvent
 	subscribersMux  *sync.RWMutex
 	currentUniqueID uint64
 }
 
 func NewEventBus() EventBus {
 	return &memEventBus{
-		topics:         make(map[string]<-chan coretypes.ResultEvent),
+		topics:         make(map[string]<-chan cmtrpctypes.ResultEvent),
 		topicsMux:      new(sync.RWMutex),
-		subscribers:    make(map[string]map[uint64]chan<- coretypes.ResultEvent),
+		subscribers:    make(map[string]map[uint64]chan<- cmtrpctypes.ResultEvent),
 		subscribersMux: new(sync.RWMutex),
 	}
 }
@@ -51,7 +51,7 @@ func (m *memEventBus) Topics() (topics []string) {
 	return topics
 }
 
-func (m *memEventBus) AddTopic(name string, src <-chan coretypes.ResultEvent) error {
+func (m *memEventBus) AddTopic(name string, src <-chan cmtrpctypes.ResultEvent) error {
 	m.topicsMux.RLock()
 	_, ok := m.topics[name]
 	m.topicsMux.RUnlock()
@@ -75,7 +75,7 @@ func (m *memEventBus) RemoveTopic(name string) {
 	m.topicsMux.Unlock()
 }
 
-func (m *memEventBus) Subscribe(name string) (<-chan coretypes.ResultEvent, UnsubscribeFunc, error) {
+func (m *memEventBus) Subscribe(name string) (<-chan cmtrpctypes.ResultEvent, UnsubscribeFunc, error) {
 	m.topicsMux.RLock()
 	_, ok := m.topics[name]
 	m.topicsMux.RUnlock()
@@ -84,13 +84,13 @@ func (m *memEventBus) Subscribe(name string) (<-chan coretypes.ResultEvent, Unsu
 		return nil, nil, errors.Errorf("topic not found: %s", name)
 	}
 
-	ch := make(chan coretypes.ResultEvent)
+	ch := make(chan cmtrpctypes.ResultEvent)
 	m.subscribersMux.Lock()
 	defer m.subscribersMux.Unlock()
 
 	id := m.GenUniqueID()
 	if _, ok := m.subscribers[name]; !ok {
-		m.subscribers[name] = make(map[uint64]chan<- coretypes.ResultEvent)
+		m.subscribers[name] = make(map[uint64]chan<- cmtrpctypes.ResultEvent)
 	}
 	m.subscribers[name][id] = ch
 
@@ -103,7 +103,7 @@ func (m *memEventBus) Subscribe(name string) (<-chan coretypes.ResultEvent, Unsu
 	return ch, unsubscribe, nil
 }
 
-func (m *memEventBus) publishTopic(name string, src <-chan coretypes.ResultEvent) {
+func (m *memEventBus) publishTopic(name string, src <-chan cmtrpctypes.ResultEvent) {
 	for {
 		msg, ok := <-src
 		if !ok {
@@ -129,7 +129,7 @@ func (m *memEventBus) closeAllSubscribers(name string) {
 	}
 }
 
-func (m *memEventBus) publishAllSubscribers(name string, msg coretypes.ResultEvent) {
+func (m *memEventBus) publishAllSubscribers(name string, msg cmtrpctypes.ResultEvent) {
 	m.subscribersMux.RLock()
 	defer m.subscribersMux.RUnlock()
 

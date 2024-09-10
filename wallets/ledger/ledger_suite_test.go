@@ -19,7 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptoTypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	txTypes "github.com/cosmos/cosmos-sdk/types/tx"
+	sdktxtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	auxTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -119,7 +119,7 @@ func (suite *LedgerTestSuite) getMockTxProtobuf() []byte {
 	msgAsAny, err := codectypes.NewAnyWithValue(msg)
 	suite.Require().NoError(err)
 
-	body := &txTypes.TxBody{
+	body := &sdktxtypes.TxBody{
 		Messages: []*codectypes.Any{
 			msgAsAny,
 		},
@@ -131,24 +131,24 @@ func (suite *LedgerTestSuite) getMockTxProtobuf() []byte {
 	pubKeyAsAny, err := codectypes.NewAnyWithValue(pubKey)
 	suite.Require().NoError(err)
 
-	signingMode := txTypes.ModeInfo_Single_{
-		Single: &txTypes.ModeInfo_Single{
+	signingMode := sdktxtypes.ModeInfo_Single_{
+		Single: &sdktxtypes.ModeInfo_Single{
 			Mode: signing.SignMode_SIGN_MODE_DIRECT,
 		},
 	}
 
-	signerInfo := &txTypes.SignerInfo{
+	signerInfo := &sdktxtypes.SignerInfo{
 		PublicKey: pubKeyAsAny,
-		ModeInfo: &txTypes.ModeInfo{
+		ModeInfo: &sdktxtypes.ModeInfo{
 			Sum: &signingMode,
 		},
 		Sequence: 6,
 	}
 
-	fee := txTypes.Fee{Amount: sdk.NewCoins(sdk.NewInt64Coin(constants.BaseDenom, 150)), GasLimit: 20000}
+	fee := sdktxtypes.Fee{Amount: sdk.NewCoins(sdk.NewInt64Coin(constants.BaseDenom, 150)), GasLimit: 20000}
 
-	authInfo := &txTypes.AuthInfo{
-		SignerInfos: []*txTypes.SignerInfo{signerInfo},
+	authInfo := &sdktxtypes.AuthInfo{
+		SignerInfos: []*sdktxtypes.SignerInfo{signerInfo},
 		Fee:         &fee,
 	}
 

@@ -11,8 +11,8 @@ import (
 
 	"cosmossdk.io/log"
 
-	coretypes "github.com/cometbft/cometbft/rpc/core/types"
-	rpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmtjrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 	cmttypes "github.com/cometbft/cometbft/types"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -39,11 +39,11 @@ type Backend interface {
 	GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (map[string]interface{}, error)
 	HeaderByNumber(blockNum types.BlockNumber) (*ethtypes.Header, error)
 	HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error)
-	TendermintBlockByHash(hash common.Hash) (*coretypes.ResultBlock, error)
-	TendermintBlockResultByNumber(height *int64) (*coretypes.ResultBlockResults, error)
+	TendermintBlockByHash(hash common.Hash) (*cmtrpctypes.ResultBlock, error)
+	TendermintBlockResultByNumber(height *int64) (*cmtrpctypes.ResultBlockResults, error)
 	GetLogs(blockHash common.Hash) ([][]*ethtypes.Log, error)
 	GetLogsByHeight(*int64) ([][]*ethtypes.Log, error)
-	BlockBloom(blockRes *coretypes.ResultBlockResults) ethtypes.Bloom
+	BlockBloom(blockRes *cmtrpctypes.ResultBlockResults) ethtypes.Bloom
 
 	BloomStatus() (uint64, uint64)
 
@@ -78,7 +78,7 @@ type PublicFilterAPI struct {
 }
 
 // NewPublicAPI returns a new PublicFilterAPI instance.
-func NewPublicAPI(logger log.Logger, clientCtx client.Context, tmWSClient *rpcclient.WSClient, backend Backend) *PublicFilterAPI {
+func NewPublicAPI(logger log.Logger, clientCtx client.Context, tmWSClient *cmtjrpcclient.WSClient, backend Backend) *PublicFilterAPI {
 	logger = logger.With("api", "filter")
 	api := &PublicFilterAPI{
 		logger:    logger,
@@ -144,7 +144,7 @@ func (api *PublicFilterAPI) NewPendingTransactionFilter() rpc.ID {
 		s:        pendingTxSub,
 	}
 
-	go func(txsCh <-chan coretypes.ResultEvent, errCh <-chan error) {
+	go func(txsCh <-chan cmtrpctypes.ResultEvent, errCh <-chan error) {
 		defer cancelSubs()
 
 		for {
@@ -208,7 +208,7 @@ func (api *PublicFilterAPI) NewPendingTransactions(ctx context.Context) (*rpc.Su
 		return nil, err
 	}
 
-	go func(txsCh <-chan coretypes.ResultEvent) {
+	go func(txsCh <-chan cmtrpctypes.ResultEvent) {
 		defer cancelSubs()
 
 		for {
@@ -270,7 +270,7 @@ func (api *PublicFilterAPI) NewBlockFilter() rpc.ID {
 
 	api.filters[headerSub.ID()] = &filter{typ: filters.BlocksSubscription, deadline: time.NewTimer(deadline), hashes: []common.Hash{}, s: headerSub}
 
-	go func(headersCh <-chan coretypes.ResultEvent, errCh <-chan error) {
+	go func(headersCh <-chan cmtrpctypes.ResultEvent, errCh <-chan error) {
 		defer cancelSubs()
 
 		for {
@@ -321,7 +321,7 @@ func (api *PublicFilterAPI) NewHeads(ctx context.Context) (*rpc.Subscription, er
 		return &rpc.Subscription{}, err
 	}
 
-	go func(headersCh <-chan coretypes.ResultEvent) {
+	go func(headersCh <-chan cmtrpctypes.ResultEvent) {
 		defer cancelSubs()
 
 		for {
@@ -340,7 +340,7 @@ func (api *PublicFilterAPI) NewHeads(ctx context.Context) (*rpc.Subscription, er
 
 				baseFee := types.BaseFeeFromEvents(data.ResultFinalizeBlock.Events)
 
-				// TODO ES: fetch bloom from events
+				// TODO ESL: fetch bloom from events
 				header := types.EthHeaderFromTendermint(data.Block.Header, ethtypes.Bloom{}, baseFee)
 				_ = notifier.Notify(rpcSub.ID, header) // #nosec G703
 			case <-rpcSub.Err():
@@ -371,7 +371,7 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 		return &rpc.Subscription{}, err
 	}
 
-	go func(logsCh <-chan coretypes.ResultEvent) {
+	go func(logsCh <-chan cmtrpctypes.ResultEvent) {
 		defer cancelSubs()
 
 		for {
@@ -468,7 +468,7 @@ func (api *PublicFilterAPI) NewFilter(criteria filters.FilterCriteria) (rpc.ID, 
 		s:        logsSub,
 	}
 
-	go func(eventCh <-chan coretypes.ResultEvent) {
+	go func(eventCh <-chan cmtrpctypes.ResultEvent) {
 		defer cancelSubs()
 
 		for {

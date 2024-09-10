@@ -13,7 +13,7 @@ import (
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	coretypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -93,7 +93,7 @@ func (suite *ChainIntegrationTestSuite) DeliverTxAsync(
 	signer *itutiltypes.TestAccount,
 	gasPrice *sdkmath.Int,
 	msgs ...sdk.Msg,
-) (*coretypes.ResultBroadcastTx, error) {
+) (*cmtrpctypes.ResultBroadcastTx, error) {
 	suite.Require().NotNil(signer)
 
 	tx, err := suite.PrepareCosmosTx(
@@ -196,7 +196,7 @@ func (suite *ChainIntegrationTestSuite) BroadcastTx(tx sdk.Tx) (responseDeliverT
 }
 
 // BroadcastTxAsync is the same as BroadcastTx but with Async delivery mode.
-func (suite *ChainIntegrationTestSuite) BroadcastTxAsync(tx sdk.Tx) (resultBroadcastTx *coretypes.ResultBroadcastTx, err error) {
+func (suite *ChainIntegrationTestSuite) BroadcastTxAsync(tx sdk.Tx) (resultBroadcastTx *cmtrpctypes.ResultBroadcastTx, err error) {
 	suite.EnsureTendermint()
 	// bz are bytes to be broadcast over the network
 	var bz []byte

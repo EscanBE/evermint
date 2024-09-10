@@ -115,14 +115,5 @@ func SetupWithGenesisValSet(t *testing.T, valSet *cmttypes.ValidatorSet, genAccs
 	})
 	require.NoError(t, err)
 
-	// TODO ES: do we need to begin a new block immediately?
-	//app.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{
-	//	ChainID:            chainID,
-	//	Height:             app.LastBlockHeight() + 1,
-	//	AppHash:            app.LastCommitID().Hash,
-	//	ValidatorsHash:     valSet.Hash(),
-	//	NextValidatorsHash: valSet.Hash(),
-	//}})
-
 	return app
 }

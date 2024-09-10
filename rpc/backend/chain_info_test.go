@@ -14,7 +14,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
 	rpc "github.com/EscanBE/evermint/v12/rpc/types"
@@ -28,14 +28,14 @@ func (suite *BackendTestSuite) TestBaseFee() {
 
 	testCases := []struct {
 		name         string
-		blockRes     *tmrpctypes.ResultBlockResults
+		blockRes     *cmtrpctypes.ResultBlockResults
 		registerMock func()
 		expBaseFee   *big.Int
 		expPass      bool
 	}{
 		{
 			"fail - grpc BaseFee error",
-			&tmrpctypes.ResultBlockResults{Height: 1},
+			&cmtrpctypes.ResultBlockResults{Height: 1},
 			func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFeeError(queryClient)
@@ -45,7 +45,7 @@ func (suite *BackendTestSuite) TestBaseFee() {
 		},
 		{
 			"fail - grpc BaseFee error - with non feemarket block event",
-			&tmrpctypes.ResultBlockResults{
+			&cmtrpctypes.ResultBlockResults{
 				Height: 1,
 				FinalizeBlockEvents: []abci.Event{
 					{
@@ -62,7 +62,7 @@ func (suite *BackendTestSuite) TestBaseFee() {
 		},
 		{
 			"fail - grpc BaseFee error - with feemarket block event",
-			&tmrpctypes.ResultBlockResults{
+			&cmtrpctypes.ResultBlockResults{
 				Height: 1,
 				FinalizeBlockEvents: []abci.Event{
 					{
@@ -79,7 +79,7 @@ func (suite *BackendTestSuite) TestBaseFee() {
 		},
 		{
 			"fail - grpc BaseFee error - with feemarket block event with wrong attribute value",
-			&tmrpctypes.ResultBlockResults{
+			&cmtrpctypes.ResultBlockResults{
 				Height: 1,
 				FinalizeBlockEvents: []abci.Event{
 					{
@@ -99,7 +99,7 @@ func (suite *BackendTestSuite) TestBaseFee() {
 		},
 		{
 			"fail - base fee or london fork not enabled",
-			&tmrpctypes.ResultBlockResults{Height: 1},
+			&cmtrpctypes.ResultBlockResults{Height: 1},
 			func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFeeDisabled(queryClient)
@@ -109,7 +109,7 @@ func (suite *BackendTestSuite) TestBaseFee() {
 		},
 		{
 			"pass",
-			&tmrpctypes.ResultBlockResults{Height: 1},
+			&cmtrpctypes.ResultBlockResults{Height: 1},
 			func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFee(queryClient, baseFee)

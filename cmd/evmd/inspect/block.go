@@ -12,7 +12,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	tmstore "github.com/cometbft/cometbft/store"
-	sdkdb "github.com/cosmos/cosmos-db" // TODO ES: refactor rename
+	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
 )

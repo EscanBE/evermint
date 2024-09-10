@@ -204,7 +204,7 @@ func (msg *MsgEthereumTx) GetMsgs() []sdk.Msg {
 }
 
 func (msg *MsgEthereumTx) GetMsgsV2() ([]proto.Message, error) {
-	// TODO ES: implement
+	// TODO ESL: implement
 	return nil, errors.New("not implemented")
 }
 

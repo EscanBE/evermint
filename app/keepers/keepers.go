@@ -195,7 +195,6 @@ func NewAppKeeper(
 		sdk.GetConfig().GetBech32AccountAddrPrefix(),
 		authAddr,
 	)
-	// TODO ES: add address codec to existing Evermint modules
 
 	appKeepers.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec,

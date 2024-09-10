@@ -13,7 +13,7 @@ import (
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 )
 
-// AccountKeeper defines the expected account keeper interface
+// AccountKeeper defines the expected x/auth keeper interface
 type AccountKeeper interface {
 	NewAccountWithAddress(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 	GetModuleAddress(moduleName string) sdk.AccAddress
@@ -26,25 +26,14 @@ type AccountKeeper interface {
 	GetParams(ctx context.Context) (params authtypes.Params)
 }
 
-// BankKeeper defines the expected interface needed to retrieve account balances.
-// TODO ES: remove?
-type BankKeeper interface {
-	authtypes.BankKeeper
-	GetBalance(ctx context.Context, addr sdk.AccAddress, denom string) sdk.Coin
-	SendCoinsFromModuleToAccount(context sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
-	MintCoins(ctx context.Context, moduleName string, amt sdk.Coins) error
-	BurnCoins(ctx context.Context, moduleName string, amt sdk.Coins) error
-	SpendableCoin(ctx context.Context, addr sdk.AccAddress, denom string) sdk.Coin
-}
-
-// StakingKeeper returns the historical headers kept in store.
+// StakingKeeper defines the expected x/staking keeper interface
 type StakingKeeper interface {
 	GetHistoricalInfo(ctx context.Context, height int64) (stakingtypes.HistoricalInfo, error)
 	GetValidatorByConsAddr(ctx context.Context, consAddr sdk.ConsAddress) (stakingtypes.Validator, error)
 	ValidatorAddressCodec() addresscodec.Codec
 }
 
-// FeeMarketKeeper
+// FeeMarketKeeper defines the expected x/feemarket keeper interface
 type FeeMarketKeeper interface {
 	GetBaseFee(ctx sdk.Context) *big.Int
 	GetParams(ctx sdk.Context) feemarkettypes.Params

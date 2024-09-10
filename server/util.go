@@ -18,7 +18,7 @@ import (
 
 	"cosmossdk.io/log"
 	tmcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
-	rpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
+	cmtjrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 )
 
 // AddCommands adds server commands
@@ -59,13 +59,13 @@ func AddCommands(
 	)
 }
 
-func ConnectTmWS(tmRPCAddr, tmEndpoint string, logger log.Logger) *rpcclient.WSClient {
-	tmWsClient, err := rpcclient.NewWS(tmRPCAddr, tmEndpoint,
-		rpcclient.MaxReconnectAttempts(256),
-		rpcclient.ReadWait(120*time.Second),
-		rpcclient.WriteWait(120*time.Second),
-		rpcclient.PingPeriod(50*time.Second),
-		rpcclient.OnReconnect(func() {
+func ConnectTmWS(tmRPCAddr, tmEndpoint string, logger log.Logger) *cmtjrpcclient.WSClient {
+	tmWsClient, err := cmtjrpcclient.NewWS(tmRPCAddr, tmEndpoint,
+		cmtjrpcclient.MaxReconnectAttempts(256),
+		cmtjrpcclient.ReadWait(120*time.Second),
+		cmtjrpcclient.WriteWait(120*time.Second),
+		cmtjrpcclient.PingPeriod(50*time.Second),
+		cmtjrpcclient.OnReconnect(func() {
 			logger.Debug("EVM RPC reconnects to Tendermint WS", "address", tmRPCAddr+tmEndpoint)
 		}),
 	)

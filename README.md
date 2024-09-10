@@ -47,7 +47,7 @@ which runs on top of the [CometBFT](https://github.com/cometbft/cometbft) consen
 Evermint does not maintain its own documentation site, user can refer to Evmos documentation hosted at [evmos/docs](https://github.com/evmos/docs) and can be found at [docs.evmos.org](https://docs.evmos.org).
 Head over there and check it out.
 
-**Note**: Requires [Go 1.20+](https://golang.org/dl/)
+**Note**: Requires [Go 1.22+](https://golang.org/dl/)
 
 ## Quick Start
 

@@ -12,7 +12,7 @@ import (
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	cmtquery "github.com/cometbft/cometbft/libs/pubsub/query"
 	coretypes "github.com/cometbft/cometbft/rpc/core/types"
-	rpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
+	cmtjrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 	cmttypes "github.com/cometbft/cometbft/types"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -41,7 +41,7 @@ var (
 type EventSystem struct {
 	logger     log.Logger
 	ctx        context.Context
-	tmWSClient *rpcclient.WSClient
+	tmWSClient *cmtjrpcclient.WSClient
 
 	// light client mode
 	lightMode bool
@@ -62,7 +62,7 @@ type EventSystem struct {
 //
 // The returned manager has a loop that needs to be stopped with the Stop function
 // or by stopping the given mux.
-func NewEventSystem(logger log.Logger, tmWSClient *rpcclient.WSClient) *EventSystem {
+func NewEventSystem(logger log.Logger, tmWSClient *cmtjrpcclient.WSClient) *EventSystem {
 	index := make(filterIndex)
 	for i := filters.UnknownSubscription; i < filters.LastIndexSubscription; i++ {
 		index[i] = make(map[rpc.ID]*Subscription)

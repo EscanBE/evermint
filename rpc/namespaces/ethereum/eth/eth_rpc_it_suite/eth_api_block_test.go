@@ -15,7 +15,7 @@ import (
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
+	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -186,7 +186,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 		blockBloom := suite.CITS.RpcBackend.BlockBloom(resultBlockResult)
 
 		baseFee := suite.App().FeeMarketKeeper().GetBaseFee(suite.Ctx())
-		consensusParams, err := suite.CITS.QueryClients.ClientQueryCtx.Client.(tmrpcclient.NetworkClient).ConsensusParams(context.Background(), ptrInt64(testBlockHeight))
+		consensusParams, err := suite.CITS.QueryClients.ClientQueryCtx.Client.(cmtrpcclient.NetworkClient).ConsensusParams(context.Background(), ptrInt64(testBlockHeight))
 		suite.Require().NoError(err, "failed to fetch consensus params of test block")
 		suite.Equal(int64(40_000_000), consensusParams.ConsensusParams.Block.MaxGas, "invalid setup?")
 

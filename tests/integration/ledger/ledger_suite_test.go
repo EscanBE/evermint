@@ -120,7 +120,9 @@ func (suite *LedgerTestSuite) SetupChainApp() {
 
 	suite.ctx = suite.app.BaseApp.NewContext(false).WithBlockHeader(header).WithChainID(chainID)
 
-	{ // finalize & commit block so the query context can be created
+	{
+		// Finalize & commit block so the query context can be created.
+		// The query context is needed for the signing texture to query coin metadata.
 		_, err := suite.app.FinalizeBlock(&abci.RequestFinalizeBlock{
 			Height:             header.Height,
 			Hash:               header.AppHash,
@@ -137,9 +139,6 @@ func (suite *LedgerTestSuite) SetupChainApp() {
 		suite.ctx = suite.ctx.
 			WithBlockHeader(header).
 			WithMultiStore(suite.app.CommitMultiStore().CacheMultiStore())
-
-		_, err = suite.app.BeginBlocker(suite.ctx)
-		suite.Require().NoError(err)
 	}
 }
 

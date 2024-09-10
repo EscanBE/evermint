@@ -6,19 +6,19 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	"github.com/cometbft/cometbft/proto/tendermint/crypto"
+	tmcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 )
 
 func init() {
 	feemarkettypes.DefaultMinGasPrice = sdkmath.LegacyZeroDec()
 }
 
-func mookProofs(num int, withData bool) *crypto.ProofOps {
-	var proofOps *crypto.ProofOps
+func mookProofs(num int, withData bool) *tmcrypto.ProofOps {
+	var proofOps *tmcrypto.ProofOps
 	if num > 0 {
-		proofOps = new(crypto.ProofOps)
+		proofOps = new(tmcrypto.ProofOps)
 		for i := 0; i < num; i++ {
-			proof := crypto.ProofOp{}
+			proof := tmcrypto.ProofOp{}
 			if withData {
 				proof.Data = []byte("\n\031\n\003KEY\022\005VALUE\032\013\010\001\030\001 \001*\003\000\002\002")
 			}
@@ -32,7 +32,7 @@ func (suite *BackendTestSuite) TestGetHexProofs() {
 	defaultRes := []string{""}
 	testCases := []struct {
 		name  string
-		proof *crypto.ProofOps
+		proof *tmcrypto.ProofOps
 		exp   []string
 	}{
 		{
