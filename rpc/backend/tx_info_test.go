@@ -549,9 +549,7 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 		{
 			name: "fail - Receipts do not match",
 			registerMock: func() []*abci.ExecTxResult {
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
-				RegisterParamsWithoutHeader(queryClient, 1)
 				_, err := RegisterBlock(client, 1, txBz)
 				suite.Require().NoError(err)
 
@@ -570,9 +568,7 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 		{
 			name: "pass - receipt match",
 			registerMock: func() []*abci.ExecTxResult {
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
-				RegisterParamsWithoutHeader(queryClient, 1)
 				_, err := RegisterBlock(client, 1, txBz)
 				suite.Require().NoError(err)
 
@@ -588,7 +584,6 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 					msgEthereumTx,
 					&receipt,
 					common.Big0, // effective gas price
-					msgEthereumTx.AsTransaction().ChainId(),
 				)
 				suite.Require().NoError(err)
 				return rpcReceipt

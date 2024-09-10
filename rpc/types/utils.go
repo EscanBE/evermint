@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math/big"
 
 	"cosmossdk.io/log"
@@ -261,13 +262,8 @@ func NewRPCReceiptFromReceipt(
 	ethMsg *evmtypes.MsgEthereumTx,
 	ethReceipt *ethtypes.Receipt,
 	effectiveGasPrice *big.Int,
-	chainID *big.Int,
 ) (receipt *RPCReceipt, err error) {
-	from, err := ethMsg.GetSender(chainID)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get sender")
-	}
-
+	from := common.BytesToAddress(sdk.MustAccAddressFromBech32(ethMsg.From))
 	txData, err := evmtypes.UnpackTxData(ethMsg.Data)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to unpack tx data")

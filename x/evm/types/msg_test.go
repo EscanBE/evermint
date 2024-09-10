@@ -685,9 +685,10 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_Sign() {
 
 			suite.Require().NoError(err)
 
-			sender, err := tx.GetSender(suite.chainID)
+			ethTx := tx.AsTransaction()
+			from, err := tc.ethSigner.Sender(ethTx)
 			suite.Require().NoError(err)
-			suite.Require().Equal(sdk.AccAddress(sender.Bytes()).String(), tx.From, tc.name)
+			suite.Require().Equal(tx.From, sdk.AccAddress(from.Bytes()).String())
 		})
 	}
 }

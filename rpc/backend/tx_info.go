@@ -174,11 +174,6 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 
 	ethMsg := cosmosTx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
-	chainID, err := b.ChainID()
-	if err != nil {
-		return nil, err
-	}
-
 	icReceipt, err := TxReceiptFromEvent(txResult.Events)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse receipt from events")
@@ -269,7 +264,6 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 		ethMsg,
 		receipt,
 		effectiveGasPrice,
-		chainID.ToInt(),
 	)
 }
 

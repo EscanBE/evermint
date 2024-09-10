@@ -48,9 +48,9 @@ func (s sortGasAndReward) Less(i, j int) bool {
 // Todo: include the ability to specify a blockNumber
 func (b *Backend) getAccountNonce(accAddr common.Address, pending bool, height int64, logger log.Logger) (uint64, error) {
 	queryClient := authtypes.NewQueryClient(b.clientCtx)
-	adr := sdk.AccAddress(accAddr.Bytes()).String()
+	bech32AccAddr := sdk.AccAddress(accAddr.Bytes()).String()
 	ctx := types.ContextWithHeight(height)
-	res, err := queryClient.Account(ctx, &authtypes.QueryAccountRequest{Address: adr})
+	res, err := queryClient.Account(ctx, &authtypes.QueryAccountRequest{Address: bech32AccAddr})
 	if err != nil {
 		st, ok := status.FromError(err)
 		// treat as account doesn't exist yet
@@ -88,11 +88,7 @@ func (b *Backend) getAccountNonce(accAddr common.Address, pending bool, height i
 				break
 			}
 
-			sender, err := ethMsg.GetSender(b.chainID)
-			if err != nil {
-				continue
-			}
-			if sender == accAddr {
+			if bech32AccAddr == ethMsg.From {
 				nonce++
 			}
 		}
