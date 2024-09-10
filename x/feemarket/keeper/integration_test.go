@@ -191,9 +191,9 @@ var _ = Describe("Feemarket", func() {
 				baseFee = 10_000_000_000
 				minGasPrices = baseFee + 30_000_000_000
 
-				// Note that the tests run the same transactions with `gasLimit = 100000`.
+				// Note that the tests run the same transactions with `gasLimit = 100_000`.
 				// With the fee calculation `Fee = (baseFee + tip) * gasLimit`,
-				// a `minGasPrices = 40_000_000_000` results in `minGlobalFee = 4000000000000000`
+				// a `minGasPrices = 40_000_000_000` results in `minGlobalFee = 4_000_000_000_000_000`
 				privKey, _ = setupTestWithContext("1", sdkmath.LegacyNewDec(minGasPrices), sdkmath.NewInt(baseFee))
 			})
 

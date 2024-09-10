@@ -105,10 +105,14 @@ func setupTestWithContext(valMinGasPrice string, minGasPrice sdkmath.LegacyDec, 
 	privKey, msg := setupTest(valMinGasPrice + s.denom)
 	params := feemarkettypes.DefaultParams()
 	params.MinGasPrice = minGasPrice
+	params.BaseFee = &baseFee
 	err := s.app.FeeMarketKeeper.SetParams(s.ctx, params)
 	s.Require().NoError(err)
-	s.app.FeeMarketKeeper.SetBaseFee(s.ctx, baseFee.BigInt())
-	s.Commit()
+
+	// Don't call Commit because that will trigger fee market updates,
+	// and that will trigger re-computation or autocorrect,
+	// which fails testcases with base fee < min gas price.
+	s.ctx = testutil.ReflectChangesToCommitMultiStore(s.ctx, s.app.BaseApp)
 
 	return privKey, msg
 }
