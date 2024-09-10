@@ -3,6 +3,8 @@ package types
 import (
 	"errors"
 	"fmt"
+	ethparams "github.com/ethereum/go-ethereum/params"
+	"math"
 	"math/big"
 
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
@@ -175,13 +177,13 @@ func (msg MsgEthereumTx) ValidateBasic() error {
 
 	gas := txData.GetGas()
 
-	// prevent txs with 0 gas to fill up the mempool
-	if gas == 0 { // TODO ES: adjust minimum to 21000
-		return errorsmod.Wrap(ErrInvalidGasLimit, "gas limit must not be zero")
+	// prevent txs with very low gas to fill up the mempool
+	if gas < ethparams.TxGas {
+		return errorsmod.Wrapf(ErrInvalidGasLimit, "gas limit must be minimum: %d", ethparams.TxGas)
 	}
 
 	// prevent gas limit from overflow
-	if g := new(big.Int).SetUint64(gas); !g.IsInt64() {
+	if gas > math.MaxInt64 {
 		return errorsmod.Wrap(ErrGasOverflow, "gas limit must be less than math.MaxInt64")
 	}
 

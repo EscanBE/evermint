@@ -2,7 +2,6 @@ package backend
 
 import (
 	"fmt"
-
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 
 	sdkmath "cosmossdk.io/math"
@@ -22,7 +21,7 @@ import (
 
 func (suite *BackendTestSuite) TestSendTransaction() {
 	gasPrice := new(hexutil.Big)
-	gas := hexutil.Uint64(1)
+	gas := hexutil.Uint64(21000)
 	zeroGas := hexutil.Uint64(0)
 	toAddr := utiltx.GenerateAddress()
 	priv, _ := ethsecp256k1.GenerateKey()
