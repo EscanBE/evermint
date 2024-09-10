@@ -46,6 +46,7 @@ func DeployContract(
 	}
 
 	msgEthereumTx := evm.NewTx(&evm.EvmTxArgs{
+		From:      from,
 		ChainID:   chainID,
 		Nonce:     nonce,
 		GasLimit:  gas,
@@ -54,7 +55,6 @@ func DeployContract(
 		Input:     data,
 		Accesses:  &ethtypes.AccessList{},
 	})
-	msgEthereumTx.From = sdk.AccAddress(from.Bytes()).String()
 
 	newCtx, res, err := DeliverEthTx(ctx, chainApp, priv, msgEthereumTx)
 	ctx = newCtx
@@ -83,13 +83,13 @@ func DeployContractWithFactory(
 	nonce := chainApp.EvmKeeper.GetNonce(ctx, from)
 
 	msgEthereumTx := evm.NewTx(&evm.EvmTxArgs{
+		From:     from,
 		ChainID:  chainID,
 		Nonce:    nonce,
 		To:       &factoryAddress,
 		GasLimit: uint64(100000),
 		GasPrice: big.NewInt(1000000000),
 	})
-	msgEthereumTx.From = sdk.AccAddress(from.Bytes()).String()
 
 	newCtx, res, err := DeliverEthTx(ctx, chainApp, priv, msgEthereumTx)
 	ctx = newCtx

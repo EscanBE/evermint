@@ -126,7 +126,7 @@ func NewEthValidateBasicDecorator(ek EVMKeeper) EthValidateBasicDecorator {
 
 // AnteHandle handles basic validation of tx
 func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
-	// no need to validate basic on recheck tx, call next antehandler
+	// no need to validate basic on recheck tx, call next AnteHandler
 	if ctx.IsReCheckTx() {
 		return next(ctx, tx, simulate)
 	}

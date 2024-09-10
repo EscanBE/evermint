@@ -205,6 +205,7 @@ func buildEthTx(
 	data := make([]byte, 0)
 	gasLimit := uint64(100000)
 	ethTxParams := &evmtypes.EvmTxArgs{
+		From:      from,
 		ChainID:   chainID,
 		Nonce:     nonce,
 		To:        to,
@@ -215,7 +216,5 @@ func buildEthTx(
 		Input:     data,
 		Accesses:  accesses,
 	}
-	msgEthereumTx := evmtypes.NewTx(ethTxParams)
-	msgEthereumTx.From = sdk.AccAddress(from.Bytes()).String()
-	return msgEthereumTx
+	return evmtypes.NewTx(ethTxParams)
 }

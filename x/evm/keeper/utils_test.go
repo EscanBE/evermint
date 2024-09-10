@@ -66,6 +66,7 @@ func (suite *KeeperTestSuite) DeployTestContract(t require.TestingT, owner commo
 	var erc20DeployTx *evmtypes.MsgEthereumTx
 	if suite.enableFeemarket {
 		ethTxParams := &evmtypes.EvmTxArgs{
+			From:      suite.address,
 			ChainID:   chainID,
 			Nonce:     nonce,
 			GasLimit:  res.Gas,
@@ -77,6 +78,7 @@ func (suite *KeeperTestSuite) DeployTestContract(t require.TestingT, owner commo
 		erc20DeployTx = evmtypes.NewTx(ethTxParams)
 	} else {
 		ethTxParams := &evmtypes.EvmTxArgs{
+			From:     suite.address,
 			ChainID:  chainID,
 			Nonce:    nonce,
 			GasLimit: res.Gas,
@@ -85,7 +87,6 @@ func (suite *KeeperTestSuite) DeployTestContract(t require.TestingT, owner commo
 		erc20DeployTx = evmtypes.NewTx(ethTxParams)
 	}
 
-	erc20DeployTx.From = sdk.AccAddress(suite.address.Bytes()).String()
 	err = erc20DeployTx.Sign(ethtypes.LatestSignerForChainID(chainID), suite.signer)
 	require.NoError(t, err)
 	rsp, err := suite.app.EvmKeeper.EthereumTx(suite.ctx, erc20DeployTx)
@@ -113,6 +114,7 @@ func (suite *KeeperTestSuite) TransferERC20Token(t require.TestingT, contractAdd
 	var ercTransferTx *evmtypes.MsgEthereumTx
 	if suite.enableFeemarket {
 		ethTxParams := &evmtypes.EvmTxArgs{
+			From:      suite.address,
 			ChainID:   chainID,
 			Nonce:     nonce,
 			To:        &contractAddr,
@@ -125,6 +127,7 @@ func (suite *KeeperTestSuite) TransferERC20Token(t require.TestingT, contractAdd
 		ercTransferTx = evmtypes.NewTx(ethTxParams)
 	} else {
 		ethTxParams := &evmtypes.EvmTxArgs{
+			From:     suite.address,
 			ChainID:  chainID,
 			Nonce:    nonce,
 			To:       &contractAddr,
@@ -134,7 +137,6 @@ func (suite *KeeperTestSuite) TransferERC20Token(t require.TestingT, contractAdd
 		ercTransferTx = evmtypes.NewTx(ethTxParams)
 	}
 
-	ercTransferTx.From = sdk.AccAddress(suite.address.Bytes()).String()
 	err = ercTransferTx.Sign(ethtypes.LatestSignerForChainID(chainID), suite.signer)
 	require.NoError(t, err)
 	rsp, err := suite.app.EvmKeeper.EthereumTx(suite.ctx, ercTransferTx)
@@ -166,6 +168,7 @@ func (suite *KeeperTestSuite) DeployTestMessageCall(t require.TestingT) common.A
 	var erc20DeployTx *evmtypes.MsgEthereumTx
 	if suite.enableFeemarket {
 		ethTxParams := &evmtypes.EvmTxArgs{
+			From:      suite.address,
 			ChainID:   chainID,
 			Nonce:     nonce,
 			GasLimit:  res.Gas,
@@ -177,6 +180,7 @@ func (suite *KeeperTestSuite) DeployTestMessageCall(t require.TestingT) common.A
 		erc20DeployTx = evmtypes.NewTx(ethTxParams)
 	} else {
 		ethTxParams := &evmtypes.EvmTxArgs{
+			From:     suite.address,
 			ChainID:  chainID,
 			Nonce:    nonce,
 			GasLimit: res.Gas,
@@ -185,7 +189,6 @@ func (suite *KeeperTestSuite) DeployTestMessageCall(t require.TestingT) common.A
 		erc20DeployTx = evmtypes.NewTx(ethTxParams)
 	}
 
-	erc20DeployTx.From = sdk.AccAddress(suite.address.Bytes()).String()
 	err = erc20DeployTx.Sign(ethtypes.LatestSignerForChainID(chainID), suite.signer)
 	require.NoError(t, err)
 	rsp, err := suite.app.EvmKeeper.EthereumTx(suite.ctx, erc20DeployTx)

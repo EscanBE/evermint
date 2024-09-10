@@ -29,6 +29,8 @@ type CosmosTxArgs struct {
 	TxCfg client.TxConfig
 	// Priv is the private key that will be used to sign the tx
 	Priv cryptotypes.PrivKey
+	// Nonce is the nonce to be used on the tx, used to cache the account sequence
+	Nonce *uint64
 	// ChainID is the chain's id on cosmos format, e.g. 'evermint_80808-1'
 	ChainID string
 	// Gas to be used on the tx

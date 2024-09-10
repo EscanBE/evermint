@@ -13,7 +13,6 @@ import (
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/ethereum/go-ethereum/common"
@@ -354,7 +353,7 @@ func (suite *KeeperTestSuite) TestRefund() {
 		expPanic  bool
 	}{
 		{
-			"success - add and subtract refund",
+			"pass - add and subtract refund",
 			func(vmdb vm.StateDB) {
 				vmdb.AddRefund(11)
 			},
@@ -621,7 +620,8 @@ func (suite *KeeperTestSuite) CreateTestTx(msg *evmtypes.MsgEthereumTx, priv cry
 
 func (suite *KeeperTestSuite) TestAddLog() {
 	addr, privKey := utiltx.NewAddrKey()
-	ethTxParams := &evmtypes.EvmTxArgs{
+	ethTx1Params := &evmtypes.EvmTxArgs{
+		From:     addr,
 		ChainID:  big.NewInt(constants.TestnetEIP155ChainId),
 		Nonce:    0,
 		To:       &suite.address,
@@ -630,14 +630,13 @@ func (suite *KeeperTestSuite) TestAddLog() {
 		GasPrice: big.NewInt(1),
 		Input:    []byte("test"),
 	}
-	msg := evmtypes.NewTx(ethTxParams)
-	msg.From = sdk.AccAddress(addr.Bytes()).String()
-
-	tx := suite.CreateTestTx(msg, privKey)
-	msg, _ = tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
-	txHash := msg.AsTransaction().Hash()
+	msg1 := evmtypes.NewTx(ethTx1Params)
+	tx1 := suite.CreateTestTx(msg1, privKey)
+	msg1, _ = tx1.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+	txHash1 := msg1.AsTransaction().Hash()
 
 	ethTx2Params := &evmtypes.EvmTxArgs{
+		From:     addr,
 		ChainID:  big.NewInt(constants.TestnetEIP155ChainId),
 		Nonce:    2,
 		To:       &suite.address,
@@ -647,9 +646,12 @@ func (suite *KeeperTestSuite) TestAddLog() {
 		Input:    []byte("test"),
 	}
 	msg2 := evmtypes.NewTx(ethTx2Params)
-	msg2.From = sdk.AccAddress(addr.Bytes()).String()
+	tx2 := suite.CreateTestTx(msg2, privKey)
+	msg2, _ = tx2.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+	txHash2 := msg2.AsTransaction().Hash()
 
 	ethTx3Params := &evmtypes.EvmTxArgs{
+		From:      addr,
 		ChainID:   big.NewInt(constants.TestnetEIP155ChainId),
 		Nonce:     0,
 		To:        &suite.address,
@@ -660,13 +662,12 @@ func (suite *KeeperTestSuite) TestAddLog() {
 		Input:     []byte("test"),
 	}
 	msg3 := evmtypes.NewTx(ethTx3Params)
-	msg3.From = sdk.AccAddress(addr.Bytes()).String()
-
 	tx3 := suite.CreateTestTx(msg3, privKey)
 	msg3, _ = tx3.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 	txHash3 := msg3.AsTransaction().Hash()
 
 	ethTx4Params := &evmtypes.EvmTxArgs{
+		From:      addr,
 		ChainID:   big.NewInt(constants.TestnetEIP155ChainId),
 		Nonce:     1,
 		To:        &suite.address,
@@ -677,7 +678,9 @@ func (suite *KeeperTestSuite) TestAddLog() {
 		Input:     []byte("test"),
 	}
 	msg4 := evmtypes.NewTx(ethTx4Params)
-	msg4.From = sdk.AccAddress(addr.Bytes()).String()
+	tx4 := suite.CreateTestTx(msg4, privKey)
+	msg4, _ = tx4.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+	txHash4 := msg4.AsTransaction().Hash()
 
 	testCases := []struct {
 		name        string
@@ -686,32 +689,60 @@ func (suite *KeeperTestSuite) TestAddLog() {
 		malleate    func(vm.StateDB)
 	}{
 		{
-			"tx hash from message",
-			txHash,
-			&ethtypes.Log{
+			name: "legacy tx - tx hash from message",
+			hash: txHash1,
+			log: &ethtypes.Log{
 				Address: addr,
 				Topics:  make([]common.Hash, 0),
 			},
-			&ethtypes.Log{
+			expLog: &ethtypes.Log{
 				Address: addr,
-				TxHash:  txHash,
+				TxHash:  txHash1,
 				Topics:  make([]common.Hash, 0),
 			},
-			func(vm.StateDB) {},
+			malleate: func(vm.StateDB) {},
 		},
 		{
-			"dynamicfee tx hash from message",
-			txHash3,
-			&ethtypes.Log{
+			name: "legacy tx - tx hash from message",
+			hash: txHash2,
+			log: &ethtypes.Log{
 				Address: addr,
 				Topics:  make([]common.Hash, 0),
 			},
-			&ethtypes.Log{
+			expLog: &ethtypes.Log{
+				Address: addr,
+				TxHash:  txHash2,
+				Topics:  make([]common.Hash, 0),
+			},
+			malleate: func(vm.StateDB) {},
+		},
+		{
+			name: "Dynamic Fee - tx hash from message",
+			hash: txHash3,
+			log: &ethtypes.Log{
+				Address: addr,
+				Topics:  make([]common.Hash, 0),
+			},
+			expLog: &ethtypes.Log{
 				Address: addr,
 				TxHash:  txHash3,
 				Topics:  make([]common.Hash, 0),
 			},
-			func(vm.StateDB) {},
+			malleate: func(vm.StateDB) {},
+		},
+		{
+			name: "Dynamic Fee - tx hash from message",
+			hash: txHash4,
+			log: &ethtypes.Log{
+				Address: addr,
+				Topics:  make([]common.Hash, 0),
+			},
+			expLog: &ethtypes.Log{
+				Address: addr,
+				TxHash:  txHash4,
+				Topics:  make([]common.Hash, 0),
+			},
+			malleate: func(vm.StateDB) {},
 		},
 	}
 

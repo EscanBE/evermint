@@ -271,6 +271,7 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 	evmParams := suite.app.EvmKeeper.GetParams(suite.ctx)
 	suite.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(evmParams.EvmDenom, sdkmath.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64()*int64(res.Gas)))))
 	ercTransferTxParams := &evmtypes.EvmTxArgs{
+		From:      from,
 		ChainID:   chainID,
 		Nonce:     nonce,
 		To:        &contractAddr,
@@ -282,7 +283,6 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 	}
 	ercTransferTx := evmtypes.NewTx(ercTransferTxParams)
 
-	ercTransferTx.From = sdk.AccAddress(from.Bytes()).String()
 	err = ercTransferTx.Sign(ethtypes.LatestSignerForChainID(chainID), suite.signer)
 	suite.Require().NoError(err)
 	rsp, err := suite.app.EvmKeeper.EthereumTx(suite.ctx, ercTransferTx)

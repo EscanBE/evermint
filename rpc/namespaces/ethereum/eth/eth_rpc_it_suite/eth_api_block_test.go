@@ -414,6 +414,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 		suite.Commit()
 
 		evmTxArgs := &evmtypes.EvmTxArgs{
+			From:      sender.GetEthAddress(),
 			ChainID:   evmKeeper.ChainID(),
 			Nonce:     nonceSender,
 			GasLimit:  300_000,
@@ -437,7 +438,6 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 		suite.Require().Len(*evmTxArgs.Accesses, 2)
 
 		msgEthereumTx := evmtypes.NewTx(evmTxArgs)
-		msgEthereumTx.From = sender.GetCosmosAddress().String()
 
 		_, err = suite.CITS.DeliverEthTx(sender, msgEthereumTx)
 		suite.Require().NoError(err)

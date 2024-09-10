@@ -625,7 +625,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts StartOpt
 
 	var rosettaSrv crgserver.Server
 	ctx.Logger.Debug("Rosetta not enabled", "rosettaSrv", rosettaSrv)
-	// TODO ESL: check enable Rosetta
+	// TODO ES: check enable Rosetta
 	/*
 		if config.Rosetta.Enable {
 			offlineMode := config.Rosetta.Offline

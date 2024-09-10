@@ -340,7 +340,7 @@ func (api *PublicFilterAPI) NewHeads(ctx context.Context) (*rpc.Subscription, er
 
 				baseFee := types.BaseFeeFromEvents(data.ResultFinalizeBlock.Events)
 
-				// TODO ESL: fetch bloom from events
+				// TODO ES: fetch bloom from events
 				header := types.EthHeaderFromTendermint(data.Block.Header, ethtypes.Bloom{}, baseFee)
 				_ = notifier.Notify(rpcSub.ID, header) // #nosec G703
 			case <-rpcSub.Err():

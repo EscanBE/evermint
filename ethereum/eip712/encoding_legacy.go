@@ -175,11 +175,6 @@ func legacyDecodeProtobufSignDoc(signDocBytes []byte) (apitypes.TypedData, error
 		return apitypes.TypedData{}, fmt.Errorf("invalid chain ID passed as argument: %w", err)
 	}
 
-	stdFee := &legacytx.StdFee{
-		Amount: authInfo.Fee.Amount,
-		Gas:    authInfo.Fee.GasLimit,
-	}
-
 	signers, err := getMsgV1Signers(msg)
 	if err != nil {
 		return apitypes.TypedData{}, errorsmod.Wrap(err, "failed to get signers")
@@ -196,7 +191,10 @@ func legacyDecodeProtobufSignDoc(signDocBytes []byte) (apitypes.TypedData, error
 		signDoc.AccountNumber,
 		signerInfo.Sequence,
 		body.TimeoutHeight,
-		*stdFee,
+		legacytx.StdFee{
+			Amount: authInfo.Fee.Amount,
+			Gas:    authInfo.Fee.GasLimit,
+		},
 		msgs,
 		body.Memo,
 	)

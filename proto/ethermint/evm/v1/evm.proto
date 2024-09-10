@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/EscanBE/evermint/v12/x/evm/types";
 
-// TODO ESL: add check force enable London,... logics and remove all the check in code
+// TODO ES: add check force enable London,... logics and remove all the check in code
 
 // Params defines the EVM module parameters
 message Params {

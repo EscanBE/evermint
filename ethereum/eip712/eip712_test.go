@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"testing"
+	"time"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/app/helpers"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
@@ -15,8 +18,6 @@ import (
 	tmversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	"github.com/cometbft/cometbft/version"
 	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
-	"testing"
-	"time"
 
 	"github.com/EscanBE/evermint/v12/app/params"
 	"github.com/EscanBE/evermint/v12/constants"
@@ -167,7 +168,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 
 	signModes := []signing.SignMode{
 		signing.SignMode_SIGN_MODE_DIRECT,
-		//signing.SignMode_SIGN_MODE_TEXTUAL, // TODO ESL: enable?
+		// signing.SignMode_SIGN_MODE_TEXTUAL, // TODO ES: enable?
 		signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
 	}
 
@@ -191,7 +192,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 		wantErrSignDocFlattening *bool
 	}{
 		{
-			name: "success - Standard MsgSend",
+			name: "pass - Standard MsgSend",
 			msgs: []sdk.Msg{
 				banktypes.NewMsgSend(
 					suite.createTestAddress(),
@@ -202,7 +203,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			wantSuccess: true,
 		},
 		{
-			name: "success - Standard MsgVote",
+			name: "pass - Standard MsgVote",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
 					suite.createTestAddress(),
@@ -213,7 +214,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			wantSuccess: true,
 		},
 		{
-			name: "success - Standard MsgDelegate",
+			name: "pass - Standard MsgDelegate",
 			msgs: []sdk.Msg{
 				stakingtypes.NewMsgDelegate(
 					suite.createTestAddress().String(),
@@ -224,7 +225,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			wantSuccess: true,
 		},
 		{
-			name: "success - Standard MsgWithdrawDelegationReward",
+			name: "pass - Standard MsgWithdrawDelegationReward",
 			msgs: []sdk.Msg{
 				distributiontypes.NewMsgWithdrawDelegatorReward(
 					suite.createTestAddress().String(),
@@ -234,7 +235,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			wantSuccess: true,
 		},
 		{
-			name: "success - Two Single-Signer MsgDelegate",
+			name: "pass - Two Single-Signer MsgDelegate",
 			msgs: []sdk.Msg{
 				stakingtypes.NewMsgDelegate(
 					testParams.address.String(),
@@ -250,7 +251,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			wantSuccess: true,
 		},
 		{
-			name: "success - Single-Signer MsgVote V1 with Omitted Value",
+			name: "pass - Single-Signer MsgVote V1 with Omitted Value",
 			msgs: []sdk.Msg{
 				govtypesv1.NewMsgVote(
 					testParams.address,
@@ -262,7 +263,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			wantSuccess: true,
 		},
 		{
-			name: "success - Single-Signer MsgSend + MsgVote",
+			name: "pass - Single-Signer MsgSend + MsgVote",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
 					testParams.address,
@@ -278,7 +279,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 			wantSuccess: !suite.useLegacyEIP712TypedData,
 		},
 		{
-			name: "success - Single-Signer 2x MsgVoteV1 with Different Schemas",
+			name: "pass - Single-Signer 2x MsgVoteV1 with Different Schemas",
 			msgs: []sdk.Msg{
 				govtypesv1.NewMsgVote(
 					testParams.address,

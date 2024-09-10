@@ -4,8 +4,6 @@ import (
 	"math/big"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
@@ -18,6 +16,7 @@ func TestRegisterEncodingConfig(t *testing.T) {
 	signer := utiltx.NewSigner(key)
 
 	ethTxParams := evmtypes.EvmTxArgs{
+		From:      addr,
 		ChainID:   big.NewInt(1),
 		Nonce:     1,
 		Amount:    big.NewInt(10),
@@ -27,7 +26,6 @@ func TestRegisterEncodingConfig(t *testing.T) {
 		Input:     []byte{},
 	}
 	msg := evmtypes.NewTx(&ethTxParams)
-	msg.From = sdk.AccAddress(addr.Bytes()).String()
 
 	ethSigner := ethtypes.LatestSignerForChainID(big.NewInt(1))
 	err := msg.Sign(ethSigner, signer)

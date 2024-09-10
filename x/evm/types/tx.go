@@ -13,7 +13,6 @@ import (
 // EvmTxArgs encapsulates all possible params to create all EVM txs types.
 // This includes LegacyTx, DynamicFeeTx and AccessListTx
 type EvmTxArgs struct {
-	// TODO ES: move "from" here
 	Nonce     uint64
 	GasLimit  uint64
 	Input     []byte
@@ -22,6 +21,7 @@ type EvmTxArgs struct {
 	ChainID   *big.Int
 	Amount    *big.Int
 	GasTipCap *big.Int
+	From      common.Address
 	To        *common.Address
 	Accesses  *ethtypes.AccessList
 }

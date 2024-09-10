@@ -393,7 +393,8 @@ func NewEthBasicValidationDecorator() EthBasicValidationDecorator {
 }
 
 // AnteHandle handles basic validation for the Ethereum transaction:
-//  1. Value is not negative
+//  1. Value is not negative and not greater than 256 bits
+//  2. GasPrice/GasFeeCap/GasTipCap, if available, is not negative and not greater than 256 bits
 func (bvd EthBasicValidationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)

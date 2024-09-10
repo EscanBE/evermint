@@ -37,6 +37,6 @@ type Fork struct {
 	UpgradeInfo string
 
 	// Function that runs some custom state transition code at the beginning of a fork.
-	// TODO ESL: what this for?
+	// TODO ES: what this for?
 	BeginForkLogic func(ctx sdk.Context, keepers *keepers.AppKeepers)
 }

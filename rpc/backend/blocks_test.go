@@ -416,7 +416,7 @@ func (suite *BackendTestSuite) TestGetBlockByHash() {
 			true,
 		},
 		{
-			name:      "success - indexer returns error",
+			name:      "pass - indexer returns error",
 			hash:      common.BytesToHash(block.Hash()),
 			fullTx:    true,
 			baseFee:   sdkmath.NewInt(1).BigInt(),

@@ -231,6 +231,7 @@ func (suite *KeeperTestSuite) TestCheckSenderBalance() {
 			}
 
 			ethTxParams := &evmtypes.EvmTxArgs{
+				From:      common.HexToAddress(tc.from),
 				ChainID:   zeroInt.BigInt(),
 				Nonce:     1,
 				To:        &to,
@@ -242,7 +243,6 @@ func (suite *KeeperTestSuite) TestCheckSenderBalance() {
 				Accesses:  tc.accessList,
 			}
 			tx := evmtypes.NewTx(ethTxParams)
-			tx.From = sdk.AccAddress(common.HexToAddress(tc.from).Bytes()).String()
 
 			txData, _ := evmtypes.UnpackTxData(tx.Data)
 
@@ -503,6 +503,7 @@ func (suite *KeeperTestSuite) TestVerifyFeeAndDeductTxCostsFromUserBalance() {
 			suite.Require().NoError(err, "Unexpected error while committing to vmdb: %d", err)
 
 			ethTxParams := &evmtypes.EvmTxArgs{
+				From:      common.HexToAddress(tc.from),
 				ChainID:   zeroInt.BigInt(),
 				Nonce:     1,
 				To:        &suite.address,
@@ -514,7 +515,6 @@ func (suite *KeeperTestSuite) TestVerifyFeeAndDeductTxCostsFromUserBalance() {
 				Accesses:  tc.accessList,
 			}
 			tx := evmtypes.NewTx(ethTxParams)
-			tx.From = sdk.AccAddress(common.HexToAddress(tc.from).Bytes()).String()
 
 			txData, _ := evmtypes.UnpackTxData(tx.Data)
 

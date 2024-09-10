@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/EscanBE/evermint/v12/app/ante"
@@ -313,6 +315,7 @@ func (suite *AnteTestSuite) TestRejectMsgsInAuthz() {
 	}
 
 	msgEthereumTx := evmtypes.NewTx(&evmtypes.EvmTxArgs{
+		From:      common.BytesToAddress(testAddresses[0]),
 		ChainID:   big.NewInt(constants.TestnetEIP155ChainId),
 		Nonce:     0,
 		GasLimit:  100_000,

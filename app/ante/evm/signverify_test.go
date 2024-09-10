@@ -15,6 +15,7 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 	addr, privKey := testutiltx.NewAddrKey()
 
 	ethContractCreationTxParams := &evmtypes.EvmTxArgs{
+		From:     addr,
 		ChainID:  suite.app.EvmKeeper.ChainID(),
 		Nonce:    1,
 		Amount:   big.NewInt(10),
@@ -22,18 +23,17 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 		GasPrice: big.NewInt(1),
 	}
 	signedTx := evmtypes.NewTx(ethContractCreationTxParams)
-	signedTx.From = sdk.AccAddress(addr.Bytes()).String()
 	err := signedTx.Sign(suite.ethSigner, testutiltx.NewSigner(privKey))
 	suite.Require().NoError(err)
 
 	uprotectedEthTxParams := &evmtypes.EvmTxArgs{
+		From:     addr,
 		Nonce:    1,
 		Amount:   big.NewInt(10),
 		GasLimit: 1000,
 		GasPrice: big.NewInt(1),
 	}
 	unprotectedTx := evmtypes.NewTx(uprotectedEthTxParams)
-	unprotectedTx.From = sdk.AccAddress(addr.Bytes()).String()
 	err = unprotectedTx.Sign(ethtypes.HomesteadSigner{}, testutiltx.NewSigner(privKey))
 	suite.Require().NoError(err)
 
@@ -46,7 +46,7 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 		expPanic            bool
 	}{
 		{
-			name:                "ReCheckTx",
+			name:                "fail - ReCheckTx",
 			tx:                  &testutiltx.InvalidTx{},
 			allowUnprotectedTxs: false,
 			reCheckTx:           true,
@@ -54,7 +54,7 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 			expPanic:            true,
 		},
 		{
-			name:                "invalid transaction type",
+			name:                "fail - invalid transaction type",
 			tx:                  &testutiltx.InvalidTx{},
 			allowUnprotectedTxs: false,
 			reCheckTx:           false,
@@ -62,7 +62,7 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 			expPanic:            true,
 		},
 		{
-			name: "invalid sender",
+			name: "fail - invalid sender",
 			tx: evmtypes.NewTx(&evmtypes.EvmTxArgs{
 				To:       &addr,
 				Nonce:    1,
@@ -75,28 +75,28 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 			expPass:             false,
 		},
 		{
-			name:                "successful signature verification",
+			name:                "pass - successful signature verification",
 			tx:                  signedTx,
 			allowUnprotectedTxs: false,
 			reCheckTx:           false,
 			expPass:             true,
 		},
 		{
-			name:                "invalid, reject unprotected txs",
+			name:                "fail - invalid, reject unprotected txs",
 			tx:                  unprotectedTx,
 			allowUnprotectedTxs: false,
 			reCheckTx:           false,
 			expPass:             false,
 		},
 		{
-			name:                "successful, allow unprotected txs",
+			name:                "pass - allow unprotected txs",
 			tx:                  unprotectedTx,
 			allowUnprotectedTxs: true,
 			reCheckTx:           false,
 			expPass:             true,
 		},
 		{
-			name: "invalid, reject if sender is already set and doesn't match the signature",
+			name: "fail - reject if sender is already set and doesn't match the signature",
 			tx: func() *evmtypes.MsgEthereumTx {
 				addr2, _ := testutiltx.NewAddrKey()
 

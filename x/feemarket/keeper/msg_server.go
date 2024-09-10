@@ -13,7 +13,6 @@ import (
 // proposal passes, it updates the module parameters. The update can only be
 // performed if the requested authority is the Cosmos SDK governance module
 // account.
-// TODO ES: check update gov params
 func (k *Keeper) UpdateParams(goCtx context.Context, req *feemarkettypes.MsgUpdateParams) (*feemarkettypes.MsgUpdateParamsResponse, error) {
 	if k.authority.String() != req.Authority {
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority.String(), req.Authority)

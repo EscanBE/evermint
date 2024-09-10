@@ -90,7 +90,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			},
 		},
 		{
-			name:        "success - sufficient balance to pay fees & min gas prices is zero",
+			name:        "pass - sufficient balance to pay fees & min gas prices is zero",
 			balance:     initBalance,
 			gas:         10_000_000,
 			gasPrice:    &lowGasPrice,
@@ -107,7 +107,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			},
 		},
 		{
-			name:        "success - sufficient balance to pay fees (fees > required fees)",
+			name:        "pass - sufficient balance to pay fees (fees > required fees)",
 			balance:     initBalance,
 			gas:         10_000_000,
 			checkTx:     true,
@@ -123,7 +123,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			},
 		},
 		{
-			name:        "success - zero fees",
+			name:        "pass - zero fees",
 			balance:     initBalance,
 			gas:         100,
 			gasPrice:    &zero,
@@ -155,7 +155,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			errContains: fmt.Sprintf("%s does not not allow to pay fees for %s", fgAddr, addr),
 		},
 		{
-			name:        "success - with authorized fee granter",
+			name:        "pass - with authorized fee granter",
 			balance:     initBalance,
 			gas:         10_000_000,
 			feeGranter:  fgAddr,

@@ -3,9 +3,10 @@ package types
 import (
 	"errors"
 	"fmt"
-	ethparams "github.com/ethereum/go-ethereum/params"
 	"math"
 	"math/big"
+
+	ethparams "github.com/ethereum/go-ethereum/params"
 
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"google.golang.org/protobuf/proto"
@@ -44,12 +45,6 @@ const (
 
 // NewTx returns a reference to a new Ethereum transaction message.
 func NewTx(
-	tx *EvmTxArgs,
-) *MsgEthereumTx {
-	return newMsgEthereumTx(tx)
-}
-
-func newMsgEthereumTx(
 	tx *EvmTxArgs,
 ) *MsgEthereumTx {
 	var (
@@ -128,8 +123,7 @@ func newMsgEthereumTx(
 
 	msg := MsgEthereumTx{Data: dataAny}
 	msg.Hash = msg.AsTransaction().Hash().Hex()
-
-	// TODO ES: assign From here
+	msg.From = sdk.AccAddress(tx.From.Bytes()).String()
 
 	return &msg
 }
@@ -205,7 +199,7 @@ func (msg *MsgEthereumTx) GetMsgs() []sdk.Msg {
 }
 
 func (msg *MsgEthereumTx) GetMsgsV2() ([]proto.Message, error) {
-	// TODO ESL: implement
+	// TODO ES: implement
 	return nil, errors.New("not implemented")
 }
 

@@ -4,8 +4,6 @@ import (
 	"math/big"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 
@@ -32,13 +30,13 @@ func TestKVIndexer(t *testing.T) {
 
 	to := common.BigToAddress(big.NewInt(1))
 	ethTxParams := evmtypes.EvmTxArgs{
+		From:     from,
 		Nonce:    0,
 		To:       &to,
 		Amount:   big.NewInt(1000),
 		GasLimit: 21000,
 	}
 	tx := evmtypes.NewTx(&ethTxParams)
-	tx.From = sdk.AccAddress(from.Bytes()).String()
 	require.NoError(t, tx.Sign(ethSigner, signer))
 	txHash := tx.AsTransaction().Hash()
 

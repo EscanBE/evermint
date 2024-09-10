@@ -28,11 +28,15 @@ func (suite *AnteTestSuite) TestEthSetupContextDecorator() {
 		tx      sdk.Tx
 		expPass bool
 	}{
-		{"invalid transaction type - does not implement GasTx", &testutiltx.InvalidTx{}, false},
 		{
-			"success - transaction implement GasTx",
-			tx,
-			true,
+			name:    "fail - invalid transaction type - does not implement GasTx",
+			tx:      &testutiltx.InvalidTx{},
+			expPass: false,
+		},
+		{
+			name:    "pass - transaction implement GasTx",
+			tx:      tx,
+			expPass: true,
 		},
 	}
 

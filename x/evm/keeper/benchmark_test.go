@@ -83,6 +83,7 @@ func BenchmarkTokenTransfer(b *testing.B) {
 		require.NoError(b, err)
 		nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 		ethTxParams := &evmtypes.EvmTxArgs{
+			From:     suite.address,
 			ChainID:  suite.app.EvmKeeper.ChainID(),
 			Nonce:    nonce,
 			To:       &contract,
@@ -101,6 +102,7 @@ func BenchmarkEmitLogs(b *testing.B) {
 		require.NoError(b, err)
 		nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 		ethTxParams := &evmtypes.EvmTxArgs{
+			From:     suite.address,
 			ChainID:  suite.app.EvmKeeper.ChainID(),
 			Nonce:    nonce,
 			To:       &contract,
@@ -119,6 +121,7 @@ func BenchmarkTokenTransferFrom(b *testing.B) {
 		require.NoError(b, err)
 		nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 		ethTxParams := &evmtypes.EvmTxArgs{
+			From:     suite.address,
 			ChainID:  suite.app.EvmKeeper.ChainID(),
 			Nonce:    nonce,
 			To:       &contract,
@@ -137,6 +140,7 @@ func BenchmarkTokenMint(b *testing.B) {
 		require.NoError(b, err)
 		nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 		ethTxParams := &evmtypes.EvmTxArgs{
+			From:     suite.address,
 			ChainID:  suite.app.EvmKeeper.ChainID(),
 			Nonce:    nonce,
 			To:       &contract,
@@ -156,6 +160,7 @@ func BenchmarkMessageCall(b *testing.B) {
 	require.NoError(b, err)
 	nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 	ethTxParams := &evmtypes.EvmTxArgs{
+		From:     suite.address,
 		ChainID:  suite.app.EvmKeeper.ChainID(),
 		Nonce:    nonce,
 		To:       &contract,
@@ -166,7 +171,6 @@ func BenchmarkMessageCall(b *testing.B) {
 	}
 	msg := evmtypes.NewTx(ethTxParams)
 
-	msg.From = sdk.AccAddress(suite.address.Bytes()).String()
 	err = msg.Sign(ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID()), suite.signer)
 	require.NoError(b, err)
 

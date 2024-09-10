@@ -233,6 +233,7 @@ func buildEthTx(
 	nonce := getNonce(from.Bytes())
 	data := make([]byte, 0)
 	ethTxParams := &evmtypes.EvmTxArgs{
+		From:      from,
 		ChainID:   chainID,
 		To:        to,
 		Nonce:     nonce,
@@ -243,7 +244,5 @@ func buildEthTx(
 		Accesses:  accesses,
 		Input:     data,
 	}
-	msgEthereumTx := evmtypes.NewTx(ethTxParams)
-	msgEthereumTx.From = sdk.AccAddress(from.Bytes()).String()
-	return msgEthereumTx
+	return evmtypes.NewTx(ethTxParams)
 }

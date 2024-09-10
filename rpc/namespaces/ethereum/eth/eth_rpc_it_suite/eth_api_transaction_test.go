@@ -765,6 +765,7 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 		gasTipCap := big.NewInt(10000)
 		gasFeeCap := new(big.Int).Mul(baseFee, gasTipCap)
 		evmTxArgs := &evmtypes.EvmTxArgs{
+			From:      sender.GetEthAddress(),
 			Nonce:     suite.App().EvmKeeper().GetNonce(suite.Ctx(), sender.GetEthAddress()),
 			GasLimit:  21000,
 			Input:     nil,
@@ -778,7 +779,6 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 		}
 
 		msgEvmTx := evmtypes.NewTx(evmTxArgs)
-		msgEvmTx.From = sender.GetCosmosAddress().String()
 
 		return msgEvmTx
 	}
@@ -788,6 +788,7 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 
 		baseFee := suite.App().FeeMarketKeeper().GetBaseFee(suite.Ctx())
 		evmTxArgs := &evmtypes.EvmTxArgs{
+			From:      sender.GetEthAddress(),
 			Nonce:     suite.App().EvmKeeper().GetNonce(suite.Ctx(), sender.GetEthAddress()),
 			GasLimit:  21000,
 			Input:     nil,
@@ -801,7 +802,6 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 		}
 
 		msgEvmTx := evmtypes.NewTx(evmTxArgs)
-		msgEvmTx.From = sender.GetCosmosAddress().String()
 
 		return msgEvmTx
 	}

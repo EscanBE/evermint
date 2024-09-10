@@ -196,7 +196,7 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 			false,
 		},
 		{
-			"success - default app options",
+			"pass - default app options",
 			ante.HandlerOptions{
 				Cdc:                    suite.app.AppCodec(),
 				AccountKeeper:          &suite.app.AccountKeeper,

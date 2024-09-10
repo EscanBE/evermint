@@ -173,18 +173,16 @@ func decodeProtobufSignDoc(signDocBytes []byte) (apitypes.TypedData, error) {
 		return apitypes.TypedData{}, fmt.Errorf("invalid chain ID passed as argument: %w", err)
 	}
 
-	stdFee := &legacytx.StdFee{
-		Amount: authInfo.Fee.Amount,
-		Gas:    authInfo.Fee.GasLimit,
-	}
-
 	// WrapTxToTypedData expects the payload as an Amino Sign Doc
 	signBytes := legacytx.StdSignBytes(
 		signDoc.ChainId,
 		signDoc.AccountNumber,
 		signerInfo.Sequence,
 		body.TimeoutHeight,
-		*stdFee,
+		legacytx.StdFee{
+			Amount: authInfo.Fee.Amount,
+			Gas:    authInfo.Fee.GasLimit,
+		},
 		msgs,
 		body.Memo,
 	)

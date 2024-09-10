@@ -410,6 +410,7 @@ func (suite *ChainIntegrationTestSuite) prepareMsgEthereumTx(ctx sdk.Context, se
 	}
 
 	evmTxArgs := &evmtypes.EvmTxArgs{
+		From:      from,
 		ChainID:   suite.ChainApp.EvmKeeper().ChainID(),
 		Nonce:     suite.ChainApp.EvmKeeper().GetNonce(ctx, from),
 		GasLimit:  gas,
@@ -422,7 +423,6 @@ func (suite *ChainIntegrationTestSuite) prepareMsgEthereumTx(ctx sdk.Context, se
 	}
 
 	msgEthereumTx := evmtypes.NewTx(evmTxArgs)
-	msgEthereumTx.From = sdk.AccAddress(from.Bytes()).String()
 
 	return msgEthereumTx
 }

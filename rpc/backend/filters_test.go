@@ -52,7 +52,7 @@ func (suite *BackendTestSuite) TestGetLogs() {
 			false,
 		},
 		{
-			"success - getting logs with block hash",
+			"pass - getting logs with block hash",
 			func(hash common.Hash) {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				_, err := RegisterBlockByHash(client, hash, bz)
