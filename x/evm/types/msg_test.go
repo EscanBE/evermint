@@ -143,19 +143,20 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasic() {
 		exp_2_255 = new(big.Int).Exp(big.NewInt(2), big.NewInt(255), nil)
 	)
 	testCases := []struct {
-		name       string
-		to         string
-		amount     *big.Int
-		gasLimit   uint64
-		gasPrice   *big.Int
-		gasFeeCap  *big.Int
-		gasTipCap  *big.Int
-		nilData    bool
-		from       string
-		accessList *ethtypes.AccessList
-		chainID    *big.Int
-		expectPass bool
-		errMsg     string
+		name        string
+		to          string
+		amount      *big.Int
+		gasLimit    uint64
+		gasPrice    *big.Int
+		gasFeeCap   *big.Int
+		gasTipCap   *big.Int
+		nilData     bool
+		from        string
+		accessList  *ethtypes.AccessList
+		chainID     *big.Int
+		expectPass  bool
+		errMsg      string
+		postRunFunc func(tx *evmtypes.MsgEthereumTx)
 	}{
 		{
 			name:       "pass - with recipient - Legacy Tx",
@@ -259,8 +260,7 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasic() {
 			errMsg:     "gas limit must not be zero",
 		},
 		{
-			// TODO ES: FIXME, the gas is being set to zero after converting back
-			name:       "FIXME: fail - nil gas price - Legacy Tx",
+			name:       "pass - nil gas price will become zero gas price - Legacy Tx",
 			to:         suite.to.Hex(),
 			from:       sdk.AccAddress(suite.from.Bytes()).String(),
 			amount:     hundredInt,
@@ -269,8 +269,17 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasic() {
 			gasFeeCap:  nil,
 			gasTipCap:  nil,
 			chainID:    validChainID,
-			expectPass: false,
-			errMsg:     "gas price cannot be nil",
+			expectPass: true,
+			postRunFunc: func(tx *evmtypes.MsgEthereumTx) {
+				suite.Require().Zero(tx.AsTransaction().GasPrice().Sign())
+
+				txData, err := evmtypes.UnpackTxData(tx.Data)
+				suite.Require().NoError(err)
+				suite.Require().Zero(txData.GetGasPrice().Sign())
+
+				_, ok := txData.(*evmtypes.LegacyTx)
+				suite.Require().True(ok)
+			},
 		},
 		{
 			name:       "fail - negative gas price - Legacy Tx",

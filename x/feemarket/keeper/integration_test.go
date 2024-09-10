@@ -34,8 +34,7 @@ var _ = Describe("Feemarket", func() {
 					_, err := testutil.CheckTx(s.ctx, s.app, privKey, &gasPrice, &msg)
 					Expect(err).ToNot(BeNil(), "transaction should have failed")
 					Expect(
-						strings.Contains(err.Error(),
-							"provided fee < minimum global fee"),
+						strings.Contains(err.Error(), "provided fee < minimum global fee"),
 					).To(BeTrue(), err.Error())
 				})
 
@@ -53,8 +52,7 @@ var _ = Describe("Feemarket", func() {
 					_, _, err := testutil.DeliverTx(s.ctx, s.app, privKey, &gasPrice, &msg)
 					Expect(err).NotTo(BeNil(), "transaction should have failed")
 					Expect(
-						strings.Contains(err.Error(),
-							"provided fee < minimum global fee"),
+						strings.Contains(err.Error(), "provided fee < minimum global fee"),
 					).To(BeTrue(), err.Error())
 				})
 
@@ -62,7 +60,7 @@ var _ = Describe("Feemarket", func() {
 					gasPrice := sdkmath.NewInt(3)
 					newCtx, res, err := testutil.DeliverTx(s.ctx, s.app, privKey, &gasPrice, &msg)
 					s.ctx = newCtx
-					s.Require().NoError(err)
+					Expect(err).To(BeNil())
 					Expect(res.IsOK()).To(Equal(true), "transaction should have succeeded", res.GetLog())
 				})
 			})
@@ -79,8 +77,7 @@ var _ = Describe("Feemarket", func() {
 					_, err := testutil.CheckTx(s.ctx, s.app, privKey, &gasPrice, &msg)
 					Expect(err).ToNot(BeNil(), "transaction should have failed")
 					Expect(
-						strings.Contains(err.Error(),
-							"insufficient fee"),
+						strings.Contains(err.Error(), "insufficient fee"),
 					).To(BeTrue(), err.Error())
 				})
 
@@ -98,8 +95,7 @@ var _ = Describe("Feemarket", func() {
 					_, _, err := testutil.DeliverTx(s.ctx, s.app, privKey, &gasPrice, &msg)
 					Expect(err).NotTo(BeNil(), "transaction should have failed")
 					Expect(
-						strings.Contains(err.Error(),
-							"provided fee < minimum global fee"),
+						strings.Contains(err.Error(), "provided fee < minimum global fee"),
 					).To(BeTrue(), err.Error())
 				})
 
@@ -125,8 +121,7 @@ var _ = Describe("Feemarket", func() {
 					_, err := testutil.CheckTx(s.ctx, s.app, privKey, &gasPrice, &msg)
 					Expect(err).ToNot(BeNil(), "transaction should have failed")
 					Expect(
-						strings.Contains(err.Error(),
-							"insufficient fee"),
+						strings.Contains(err.Error(), "insufficient fee"),
 					).To(BeTrue(), err.Error())
 				})
 
@@ -135,8 +130,7 @@ var _ = Describe("Feemarket", func() {
 					_, err := testutil.CheckTx(s.ctx, s.app, privKey, &gasPrice, &msg)
 					Expect(err).ToNot(BeNil(), "transaction should have failed")
 					Expect(
-						strings.Contains(err.Error(),
-							"insufficient fee"),
+						strings.Contains(err.Error(), "insufficient fee"),
 					).To(BeTrue(), err.Error())
 				})
 
@@ -155,8 +149,7 @@ var _ = Describe("Feemarket", func() {
 					_, _, err := testutil.DeliverTx(s.ctx, s.app, privKey, &gasPrice, &msg)
 					Expect(err).NotTo(BeNil(), "transaction should have failed")
 					Expect(
-						strings.Contains(err.Error(),
-							"provided fee < minimum global fee"),
+						strings.Contains(err.Error(), "provided fee < minimum global fee"),
 					).To(BeTrue(), err.Error())
 				})
 
@@ -165,8 +158,7 @@ var _ = Describe("Feemarket", func() {
 					_, err := testutil.CheckTx(s.ctx, s.app, privKey, &gasPrice, &msg)
 					Expect(err).ToNot(BeNil(), "transaction should have failed")
 					Expect(
-						strings.Contains(err.Error(),
-							"insufficient fee"),
+						strings.Contains(err.Error(), "insufficient fee"),
 					).To(BeTrue(), err.Error())
 				})
 				It("should accept transactions with gasPrice >= baseFee", func() {
@@ -199,10 +191,9 @@ var _ = Describe("Feemarket", func() {
 				baseFee = 10_000_000_000
 				minGasPrices = baseFee + 30_000_000_000
 
-				// Note that the tests run the same transactions with `gasLimit =
-				// 100000`. With the fee calculation `Fee = (baseFee + tip) * gasLimit`,
-				// a `minGasPrices = 40_000_000_000` results in `minGlobalFee =
-				// 4000000000000000`
+				// Note that the tests run the same transactions with `gasLimit = 100000`.
+				// With the fee calculation `Fee = (baseFee + tip) * gasLimit`,
+				// a `minGasPrices = 40_000_000_000` results in `minGlobalFee = 4000000000000000`
 				privKey, _ = setupTestWithContext("1", sdkmath.LegacyNewDec(minGasPrices), sdkmath.NewInt(baseFee))
 			})
 
@@ -215,22 +206,42 @@ var _ = Describe("Feemarket", func() {
 						_, err := testutil.CheckEthTx(s.app, privKey, msgEthereumTx)
 						Expect(err).ToNot(BeNil(), "transaction should have failed")
 						Expect(
-							strings.Contains(err.Error(),
-								"provided fee < minimum global fee"),
+							strings.Contains(err.Error(), "provided fee < minimum global fee"),
 						).To(BeTrue(), err.Error())
 					},
 					Entry("legacy tx", func() txParams {
-						return txParams{big.NewInt(minGasPrices - 10_000_000_000), nil, nil, nil}
+						return txParams{
+							gasPrice:  big.NewInt(minGasPrices - 10_000_000_000),
+							gasFeeCap: nil,
+							gasTipCap: nil,
+							accesses:  nil,
+						}
 					}),
 					Entry("dynamic tx with GasFeeCap < MinGasPrices, no gasTipCap", func() txParams {
-						return txParams{nil, big.NewInt(minGasPrices - 10_000_000_000), big.NewInt(0), &ethtypes.AccessList{}}
+						return txParams{
+							gasPrice:  nil,
+							gasFeeCap: big.NewInt(minGasPrices - 10_000_000_000),
+							gasTipCap: big.NewInt(0),
+							accesses:  &ethtypes.AccessList{},
+						}
 					}),
 					Entry("dynamic tx with GasFeeCap < MinGasPrices, max gasTipCap", func() txParams {
-						// Note that max priority fee per gas can't be higher than the max fee per gas (gasFeeCap), i.e. 30_000_000_000)
-						return txParams{nil, big.NewInt(minGasPrices - 10_000_000_000), big.NewInt(30_000_000_000), &ethtypes.AccessList{}}
+						// Note that max priority fee per gas can't be higher than the max fee per gas (gasFeeCap),
+						// i.e. 30_000_000_000
+						return txParams{
+							gasPrice:  nil,
+							gasFeeCap: big.NewInt(minGasPrices - 10_000_000_000),
+							gasTipCap: big.NewInt(30_000_000_000),
+							accesses:  &ethtypes.AccessList{},
+						}
 					}),
 					Entry("dynamic tx with GasFeeCap > MinGasPrices, EffectivePrice < MinGasPrices", func() txParams {
-						return txParams{nil, big.NewInt(minGasPrices + 10_000_000_000), big.NewInt(0), &ethtypes.AccessList{}}
+						return txParams{
+							gasPrice:  nil,
+							gasFeeCap: big.NewInt(minGasPrices + 10_000_000_000),
+							gasTipCap: big.NewInt(0),
+							accesses:  &ethtypes.AccessList{},
+						}
 					}),
 				)
 
@@ -244,13 +255,22 @@ var _ = Describe("Feemarket", func() {
 						Expect(res.IsOK()).To(Equal(true), "transaction should have succeeded", res.GetLog())
 					},
 					Entry("legacy tx", func() txParams {
-						return txParams{big.NewInt(minGasPrices), nil, nil, nil}
+						return txParams{
+							gasPrice:  big.NewInt(minGasPrices),
+							gasFeeCap: nil,
+							gasTipCap: nil,
+							accesses:  nil,
+						}
 					}),
 					// Note that this tx is not rejected on CheckTx, but not on DeliverTx,
-					// as the baseFee is set to minGasPrices during DeliverTx when baseFee
-					// < minGasPrices
+					// as the baseFee is set to minGasPrices during DeliverTx when baseFee < minGasPrices
 					Entry("dynamic tx with GasFeeCap > MinGasPrices, EffectivePrice > MinGasPrices", func() txParams {
-						return txParams{nil, big.NewInt(minGasPrices), big.NewInt(30_000_000_000), &ethtypes.AccessList{}}
+						return txParams{
+							gasPrice:  nil,
+							gasFeeCap: big.NewInt(minGasPrices),
+							gasTipCap: big.NewInt(30_000_000_000),
+							accesses:  &ethtypes.AccessList{},
+						}
 					}),
 				)
 			})
@@ -264,19 +284,34 @@ var _ = Describe("Feemarket", func() {
 						_, _, err := testutil.DeliverEthTx(s.ctx, s.app, privKey, msgEthereumTx)
 						Expect(err).ToNot(BeNil(), "transaction should have failed")
 						Expect(
-							strings.Contains(err.Error(),
-								"provided fee < minimum global fee"),
+							strings.Contains(err.Error(), "provided fee < minimum global fee"),
 						).To(BeTrue(), err.Error())
 					},
 					Entry("legacy tx", func() txParams {
-						return txParams{big.NewInt(minGasPrices - 10_000_000_000), nil, nil, nil}
+						return txParams{
+							gasPrice:  big.NewInt(minGasPrices - 10_000_000_000),
+							gasFeeCap: nil,
+							gasTipCap: nil,
+							accesses:  nil,
+						}
 					}),
 					Entry("dynamic tx with GasFeeCap < MinGasPrices, no gasTipCap", func() txParams {
-						return txParams{nil, big.NewInt(minGasPrices - 10_000_000_000), big.NewInt(0), &ethtypes.AccessList{}}
+						return txParams{
+							gasPrice:  nil,
+							gasFeeCap: big.NewInt(minGasPrices - 10_000_000_000),
+							gasTipCap: big.NewInt(0),
+							accesses:  &ethtypes.AccessList{},
+						}
 					}),
 					Entry("dynamic tx with GasFeeCap < MinGasPrices, max gasTipCap", func() txParams {
-						// Note that max priority fee per gas can't be higher than the max fee per gas (gasFeeCap), i.e. 30_000_000_000)
-						return txParams{nil, big.NewInt(minGasPrices - 10_000_000_000), big.NewInt(30_000_000_000), &ethtypes.AccessList{}}
+						// Note that max priority fee per gas can't be higher than the max fee per gas (gasFeeCap),
+						// i.e. 30_000_000_000
+						return txParams{
+							gasPrice:  nil,
+							gasFeeCap: big.NewInt(minGasPrices - 10_000_000_000),
+							gasTipCap: big.NewInt(30_000_000_000),
+							accesses:  &ethtypes.AccessList{},
+						}
 					}),
 				)
 
@@ -291,10 +326,20 @@ var _ = Describe("Feemarket", func() {
 						Expect(res.IsOK()).To(Equal(true), "transaction should have succeeded", res.GetLog())
 					},
 					Entry("legacy tx", func() txParams {
-						return txParams{big.NewInt(minGasPrices + 1), nil, nil, nil}
+						return txParams{
+							gasPrice:  big.NewInt(minGasPrices + 1),
+							gasFeeCap: nil,
+							gasTipCap: nil,
+							accesses:  nil,
+						}
 					}),
 					Entry("dynamic tx, EffectivePrice > MinGasPrices", func() txParams {
-						return txParams{nil, big.NewInt(minGasPrices + 10_000_000_000), big.NewInt(30_000_000_000), &ethtypes.AccessList{}}
+						return txParams{
+							gasPrice:  nil,
+							gasFeeCap: big.NewInt(minGasPrices + 10_000_000_000),
+							gasTipCap: big.NewInt(30_000_000_000),
+							accesses:  &ethtypes.AccessList{},
+						}
 					}),
 				)
 			})
@@ -310,10 +355,9 @@ var _ = Describe("Feemarket", func() {
 				baseFee = 10_000_000_000
 				minGasPrices = baseFee - 5_000_000_000
 
-				// Note that the tests run the same transactions with `gasLimit =
-				// 100_000`. With the fee calculation `Fee = (baseFee + tip) * gasLimit`,
-				// a `minGasPrices = 5_000_000_000` results in `minGlobalFee =
-				// 500_000_000_000_000`
+				// Note that the tests run the same transactions with `gasLimit = 100_000`.
+				// With the fee calculation `Fee = (baseFee + tip) * gasLimit`,
+				// a `minGasPrices = 5_000_000_000` results in `minGlobalFee = 500_000_000_000_000`
 				privKey, _ = setupTestWithContext("1", sdkmath.LegacyNewDec(minGasPrices), sdkmath.NewInt(baseFee))
 			})
 
@@ -326,18 +370,32 @@ var _ = Describe("Feemarket", func() {
 						_, err := testutil.CheckEthTx(s.app, privKey, msgEthereumTx)
 						Expect(err).ToNot(BeNil(), "transaction should have failed")
 						Expect(
-							strings.Contains(err.Error(),
-								"provided fee < minimum global fee"),
+							strings.Contains(err.Error(), "provided fee < minimum global fee"),
 						).To(BeTrue(), err.Error())
 					},
 					Entry("legacy tx", func() txParams {
-						return txParams{big.NewInt(minGasPrices - 1_000_000_000), nil, nil, nil}
+						return txParams{
+							gasPrice:  big.NewInt(minGasPrices - 1_000_000_000),
+							gasFeeCap: nil,
+							gasTipCap: nil,
+							accesses:  nil,
+						}
 					}),
 					Entry("dynamic tx with GasFeeCap < MinGasPrices, no gasTipCap", func() txParams {
-						return txParams{nil, big.NewInt(minGasPrices - 1_000_000_000), big.NewInt(0), &ethtypes.AccessList{}}
+						return txParams{
+							gasPrice:  nil,
+							gasFeeCap: big.NewInt(minGasPrices - 1_000_000_000),
+							gasTipCap: big.NewInt(0),
+							accesses:  &ethtypes.AccessList{},
+						}
 					}),
 					Entry("dynamic tx with GasFeeCap < MinGasPrices, max gasTipCap", func() txParams {
-						return txParams{nil, big.NewInt(minGasPrices - 1_000_000_000), big.NewInt(minGasPrices - 1_000_000_000), &ethtypes.AccessList{}}
+						return txParams{
+							gasPrice:  nil,
+							gasFeeCap: big.NewInt(minGasPrices - 1_000_000_000),
+							gasTipCap: big.NewInt(minGasPrices - 1_000_000_000),
+							accesses:  &ethtypes.AccessList{},
+						}
 					}),
 				)
 
@@ -349,15 +407,24 @@ var _ = Describe("Feemarket", func() {
 						_, err := testutil.CheckEthTx(s.app, privKey, msgEthereumTx)
 						Expect(err).ToNot(BeNil(), "transaction should have failed")
 						Expect(
-							strings.Contains(err.Error(),
-								"insufficient fee"),
+							strings.Contains(err.Error(), "insufficient fee"),
 						).To(BeTrue(), err.Error())
 					},
 					Entry("legacy tx", func() txParams {
-						return txParams{big.NewInt(baseFee - 1_000_000_000), nil, nil, nil}
+						return txParams{
+							gasPrice:  big.NewInt(baseFee - 1_000_000_000),
+							gasFeeCap: nil,
+							gasTipCap: nil,
+							accesses:  nil,
+						}
 					}),
 					Entry("dynamic tx", func() txParams {
-						return txParams{nil, big.NewInt(baseFee - 1_000_000_000), big.NewInt(0), &ethtypes.AccessList{}}
+						return txParams{
+							gasPrice:  nil,
+							gasFeeCap: big.NewInt(baseFee - 1_000_000_000),
+							gasTipCap: big.NewInt(0),
+							accesses:  &ethtypes.AccessList{},
+						}
 					}),
 				)
 
@@ -371,10 +438,20 @@ var _ = Describe("Feemarket", func() {
 						Expect(res.IsOK()).To(Equal(true), "transaction should have succeeded", res.GetLog())
 					},
 					Entry("legacy tx", func() txParams {
-						return txParams{big.NewInt(baseFee), nil, nil, nil}
+						return txParams{
+							gasPrice:  big.NewInt(baseFee),
+							gasFeeCap: nil,
+							gasTipCap: nil,
+							accesses:  nil,
+						}
 					}),
 					Entry("dynamic tx", func() txParams {
-						return txParams{nil, big.NewInt(baseFee), big.NewInt(0), &ethtypes.AccessList{}}
+						return txParams{
+							gasPrice:  nil,
+							gasFeeCap: big.NewInt(baseFee),
+							gasTipCap: big.NewInt(0),
+							accesses:  &ethtypes.AccessList{},
+						}
 					}),
 				)
 			})
@@ -388,15 +465,24 @@ var _ = Describe("Feemarket", func() {
 						_, _, err := testutil.DeliverEthTx(s.ctx, s.app, privKey, msgEthereumTx)
 						Expect(err).ToNot(BeNil(), "transaction should have failed")
 						Expect(
-							strings.Contains(err.Error(),
-								"provided fee < minimum global fee"),
+							strings.Contains(err.Error(), "provided fee < minimum global fee"),
 						).To(BeTrue(), err.Error())
 					},
 					Entry("legacy tx", func() txParams {
-						return txParams{big.NewInt(minGasPrices - 1_000_000_000), nil, nil, nil}
+						return txParams{
+							gasPrice:  big.NewInt(minGasPrices - 1_000_000_000),
+							gasFeeCap: nil,
+							gasTipCap: nil,
+							accesses:  nil,
+						}
 					}),
 					Entry("dynamic tx", func() txParams {
-						return txParams{nil, big.NewInt(minGasPrices - 1_000_000_000), nil, &ethtypes.AccessList{}}
+						return txParams{
+							gasPrice:  nil,
+							gasFeeCap: big.NewInt(minGasPrices - 1_000_000_000),
+							gasTipCap: nil,
+							accesses:  &ethtypes.AccessList{},
+						}
 					}),
 				)
 
@@ -408,16 +494,26 @@ var _ = Describe("Feemarket", func() {
 						_, _, err := testutil.DeliverEthTx(s.ctx, s.app, privKey, msgEthereumTx)
 						Expect(err).NotTo(BeNil(), "transaction should have failed")
 						Expect(
-							strings.Contains(err.Error(),
-								"insufficient fee"),
+							strings.Contains(err.Error(), "insufficient fee"),
 						).To(BeTrue(), err.Error())
 					},
-					// Note that the baseFee is not 10_000_000_000 anymore but updates to 8_750_000_000 because of the s.Commit
+					// Note that the baseFee is not 10_000_000_000 anymore but updates to 8_750_000_000
+					// because of the s.Commit
 					Entry("legacy tx", func() txParams {
-						return txParams{big.NewInt(baseFee - 2_000_000_000), nil, nil, nil}
+						return txParams{
+							gasPrice:  big.NewInt(baseFee - 2_000_000_000),
+							gasFeeCap: nil,
+							gasTipCap: nil,
+							accesses:  nil,
+						}
 					}),
 					Entry("dynamic tx", func() txParams {
-						return txParams{nil, big.NewInt(baseFee - 2_000_000_000), big.NewInt(0), &ethtypes.AccessList{}}
+						return txParams{
+							gasPrice:  nil,
+							gasFeeCap: big.NewInt(baseFee - 2_000_000_000),
+							gasTipCap: big.NewInt(0),
+							accesses:  &ethtypes.AccessList{},
+						}
 					}),
 				)
 
@@ -432,10 +528,20 @@ var _ = Describe("Feemarket", func() {
 						Expect(res.IsOK()).To(Equal(true), "transaction should have succeeded", res.GetLog())
 					},
 					Entry("legacy tx", func() txParams {
-						return txParams{big.NewInt(baseFee), nil, nil, nil}
+						return txParams{
+							gasPrice:  big.NewInt(baseFee),
+							gasFeeCap: nil,
+							gasTipCap: nil,
+							accesses:  nil,
+						}
 					}),
 					Entry("dynamic tx", func() txParams {
-						return txParams{nil, big.NewInt(baseFee), big.NewInt(0), &ethtypes.AccessList{}}
+						return txParams{
+							gasPrice:  nil,
+							gasFeeCap: big.NewInt(baseFee),
+							gasTipCap: big.NewInt(0),
+							accesses:  &ethtypes.AccessList{},
+						}
 					}),
 				)
 			})

@@ -48,7 +48,7 @@ func (suite *KeeperTestSuite) SetupApp(checkTx bool) {
 		1, time.Now().UTC(), constants.TestnetFullChainId, suite.consAddress, nil, nil,
 	)
 
-	suite.ctx = suite.app.BaseApp.NewContext(checkTx).WithBlockHeader(header)
+	suite.ctx = suite.app.BaseApp.NewContext(checkTx).WithBlockHeader(header).WithChainID(header.ChainID)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	feemarkettypes.RegisterQueryServer(queryHelper, suite.app.FeeMarketKeeper)
@@ -74,7 +74,8 @@ func (suite *KeeperTestSuite) SetupApp(checkTx bool) {
 
 	stakingParams := stakingtypes.DefaultParams()
 	stakingParams.BondDenom = constants.BaseDenom
-	suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
+	err = suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
+	suite.Require().NoError(err)
 
 	encodingConfig := chainapp.RegisterEncodingConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
