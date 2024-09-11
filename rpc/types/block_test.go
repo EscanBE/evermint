@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -12,91 +11,92 @@ func TestUnmarshalBlockNumberOrHash(t *testing.T) {
 	bnh := new(BlockNumberOrHash)
 
 	testCases := []struct {
-		msg      string
+		name     string
 		input    []byte
 		malleate func()
 		expPass  bool
 	}{
 		{
-			"JSON input with block hash",
-			[]byte("{\"blockHash\": \"0x579917054e325746fda5c3ee431d73d26255bc4e10b51163862368629ae19739\"}"),
-			func() {
+			name:  "pass - JSON input with block hash",
+			input: []byte("{\"blockHash\": \"0x579917054e325746fda5c3ee431d73d26255bc4e10b51163862368629ae19739\"}"),
+			malleate: func() {
 				require.Equal(t, *bnh.BlockHash, common.HexToHash("0x579917054e325746fda5c3ee431d73d26255bc4e10b51163862368629ae19739"))
 				require.Nil(t, bnh.BlockNumber)
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"JSON input with block number",
-			[]byte("{\"blockNumber\": \"0x35\"}"),
-			func() {
+			name:  "pass - JSON input with block number",
+			input: []byte("{\"blockNumber\": \"0x35\"}"),
+			malleate: func() {
 				require.Equal(t, *bnh.BlockNumber, BlockNumber(0x35))
 				require.Nil(t, bnh.BlockHash)
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"JSON input with block number latest",
-			[]byte("{\"blockNumber\": \"latest\"}"),
-			func() {
+			name:  "pass - JSON input with block number latest",
+			input: []byte("{\"blockNumber\": \"latest\"}"),
+			malleate: func() {
 				require.Equal(t, *bnh.BlockNumber, EthLatestBlockNumber)
 				require.Nil(t, bnh.BlockHash)
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"JSON input with both block hash and block number",
-			[]byte("{\"blockHash\": \"0x579917054e325746fda5c3ee431d73d26255bc4e10b51163862368629ae19739\", \"blockNumber\": \"0x35\"}"),
-			func() {
+			name:  "fail - JSON input with both block hash and block number",
+			input: []byte("{\"blockHash\": \"0x579917054e325746fda5c3ee431d73d26255bc4e10b51163862368629ae19739\", \"blockNumber\": \"0x35\"}"),
+			malleate: func() {
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"String input with block hash",
-			[]byte("\"0x579917054e325746fda5c3ee431d73d26255bc4e10b51163862368629ae19739\""),
-			func() {
+			name:  "pass - String input with block hash",
+			input: []byte("\"0x579917054e325746fda5c3ee431d73d26255bc4e10b51163862368629ae19739\""),
+			malleate: func() {
 				require.Equal(t, *bnh.BlockHash, common.HexToHash("0x579917054e325746fda5c3ee431d73d26255bc4e10b51163862368629ae19739"))
 				require.Nil(t, bnh.BlockNumber)
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"String input with block number",
-			[]byte("\"0x35\""),
-			func() {
+			name:  "pass - String input with block number",
+			input: []byte("\"0x35\""),
+			malleate: func() {
 				require.Equal(t, *bnh.BlockNumber, BlockNumber(0x35))
 				require.Nil(t, bnh.BlockHash)
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"String input with block number latest",
-			[]byte("\"latest\""),
-			func() {
+			name:  "pass - String input with block number latest",
+			input: []byte("\"latest\""),
+			malleate: func() {
 				require.Equal(t, *bnh.BlockNumber, EthLatestBlockNumber)
 				require.Nil(t, bnh.BlockHash)
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"String input with block number overflow",
-			[]byte("\"0xffffffffffffffffffffffffffffffffffffff\""),
-			func() {
+			name:  "fail - String input with block number overflow",
+			input: []byte("\"0xffffffffffffffffffffffffffffffffffffff\""),
+			malleate: func() {
 			},
-			false,
+			expPass: false,
 		},
 	}
 
 	for _, tc := range testCases {
-		fmt.Printf("Case %s", tc.msg)
-		// reset input
-		bnh = new(BlockNumberOrHash)
-		err := bnh.UnmarshalJSON(tc.input)
-		tc.malleate()
-		if tc.expPass {
-			require.NoError(t, err)
-		} else {
-			require.Error(t, err)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			// reset input
+			bnh = new(BlockNumberOrHash)
+			err := bnh.UnmarshalJSON(tc.input)
+			tc.malleate()
+			if tc.expPass {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		})
 	}
 }

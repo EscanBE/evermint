@@ -17,14 +17,14 @@ func (suite *KeeperTestSuite) TestParams() {
 		expected  bool
 	}{
 		{
-			"pass - Checks if the default params are set correctly",
-			func() interface{} {
+			name: "pass - Checks if the default params are set correctly",
+			paramsFun: func() interface{} {
 				return erc20types.DefaultParams()
 			},
-			func() interface{} {
+			getFun: func() interface{} {
 				return suite.app.Erc20Keeper.GetParams(suite.ctx)
 			},
-			true,
+			expected: true,
 		},
 	}
 

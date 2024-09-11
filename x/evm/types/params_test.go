@@ -1,10 +1,11 @@
 package types
 
 import (
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"testing"
 
 	ethparams "github.com/ethereum/go-ethereum/params"
+
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/stretchr/testify/require"
 )
@@ -16,42 +17,48 @@ func TestParamsValidate(t *testing.T) {
 		params   Params
 		expError bool
 	}{
-		{"default", DefaultParams(), false},
 		{
-			"valid",
-			NewParams("ara", false, true, true, DefaultChainConfig(), extraEips),
-			false,
+			name:     "pass - default",
+			params:   DefaultParams(),
+			expError: false,
 		},
 		{
-			"empty",
-			Params{},
-			true,
+			name:     "pass - valid",
+			params:   NewParams("ara", false, true, true, DefaultChainConfig(), extraEips),
+			expError: false,
 		},
 		{
-			"invalid evm denom",
-			Params{
+			name:     "fail - empty",
+			params:   Params{},
+			expError: true,
+		},
+		{
+			name: "fail - invalid evm denom",
+			params: Params{
 				EvmDenom: "@!#!@$!@5^32",
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid eip",
-			Params{
+			name: "fail - invalid eip",
+			params: Params{
 				EvmDenom:  "stake",
 				ExtraEIPs: []int64{1},
 			},
-			true,
+			expError: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		err := tc.params.Validate()
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.params.Validate()
 
-		if tc.expError {
-			require.Error(t, err, tc.name)
-		} else {
-			require.NoError(t, err, tc.name)
-		}
+			if tc.expError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
 	}
 }
 
@@ -79,24 +86,26 @@ func TestValidateChainConfig(t *testing.T) {
 		expError bool
 	}{
 		{
-			"invalid chain config type",
-			"string",
-			true,
+			name:     "fail - invalid chain config type",
+			i:        "string",
+			expError: true,
 		},
 		{
-			"valid chain config type",
-			DefaultChainConfig(),
-			false,
+			name:     "pass - valid chain config type",
+			i:        DefaultChainConfig(),
+			expError: false,
 		},
 	}
 	for _, tc := range testCases {
-		err := validateChainConfig(tc.i)
+		t.Run(tc.name, func(t *testing.T) {
+			err := validateChainConfig(tc.i)
 
-		if tc.expError {
-			require.Error(t, err, tc.name)
-		} else {
-			require.NoError(t, err, tc.name)
-		}
+			if tc.expError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
 	}
 }
 
@@ -107,25 +116,27 @@ func TestIsLondon(t *testing.T) {
 		result bool
 	}{
 		{
-			"Before london block",
-			5,
-			false,
+			name:   "Before london block",
+			height: 5,
+			result: false,
 		},
 		{
-			"After london block",
-			12_965_001,
-			true,
+			name:   "After london block",
+			height: 12_965_001,
+			result: true,
 		},
 		{
-			"london block",
-			12_965_000,
-			true,
+			name:   "london block",
+			height: 12_965_000,
+			result: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		ethConfig := ethparams.MainnetChainConfig
-		require.Equal(t, IsLondon(ethConfig, tc.height), tc.result)
+		t.Run(tc.name, func(t *testing.T) {
+			ethConfig := ethparams.MainnetChainConfig
+			require.Equal(t, IsLondon(ethConfig, tc.height), tc.result)
+		})
 	}
 }
 

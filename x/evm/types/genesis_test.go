@@ -37,48 +37,49 @@ func (suite *GenesisTestSuite) TestValidateGenesisAccount() {
 		expPass        bool
 	}{
 		{
-			"valid genesis account",
-			GenesisAccount{
+			name: "pass - valid genesis account",
+			genesisAccount: GenesisAccount{
 				Address: suite.address,
 				Code:    suite.code,
 				Storage: Storage{
 					NewState(suite.hash, suite.hash),
 				},
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"empty account address bytes",
-			GenesisAccount{
+			name: "fail - empty account address bytes",
+			genesisAccount: GenesisAccount{
 				Address: "",
 				Code:    suite.code,
 				Storage: Storage{
 					NewState(suite.hash, suite.hash),
 				},
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"empty code bytes",
-			GenesisAccount{
+			name: "pass - empty code bytes",
+			genesisAccount: GenesisAccount{
 				Address: suite.address,
 				Code:    "",
 				Storage: Storage{
 					NewState(suite.hash, suite.hash),
 				},
 			},
-			true,
+			expPass: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		err := tc.genesisAccount.Validate()
-		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-		}
+		suite.Run(tc.name, func() {
+			err := tc.genesisAccount.Validate()
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
 
@@ -89,12 +90,12 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 		expPass  bool
 	}{
 		{
-			name:     "default",
+			name:     "pass - default",
 			genState: DefaultGenesisState(),
 			expPass:  true,
 		},
 		{
-			name: "valid genesis",
+			name: "pass - valid genesis",
 			genState: &GenesisState{
 				Accounts: []GenesisAccount{
 					{
@@ -111,17 +112,17 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 			expPass: true,
 		},
 		{
-			name:     "empty genesis",
+			name:     "fail - empty genesis",
 			genState: &GenesisState{},
 			expPass:  false,
 		},
 		{
-			name:     "copied genesis",
+			name:     "pass - copied genesis",
 			genState: NewGenesisState(DefaultGenesisState().Params, DefaultGenesisState().Accounts),
 			expPass:  true,
 		},
 		{
-			name: "invalid genesis",
+			name: "fail - invalid genesis",
 			genState: &GenesisState{
 				Accounts: []GenesisAccount{
 					{
@@ -132,7 +133,7 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 			expPass: false,
 		},
 		{
-			name: "invalid genesis account",
+			name: "fail - invalid genesis account",
 			genState: &GenesisState{
 				Accounts: []GenesisAccount{
 					{
@@ -149,7 +150,7 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 			expPass: false,
 		},
 		{
-			name: "duplicated genesis account",
+			name: "fail - duplicated genesis account",
 			genState: &GenesisState{
 				Accounts: []GenesisAccount{
 					{
@@ -173,7 +174,7 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 			expPass: false,
 		},
 		{
-			name: "duplicated tx log",
+			name: "fail - duplicated tx log",
 			genState: &GenesisState{
 				Accounts: []GenesisAccount{
 					{
@@ -189,7 +190,7 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 			expPass: false,
 		},
 		{
-			name: "invalid tx log",
+			name: "fail - invalid tx log",
 			genState: &GenesisState{
 				Accounts: []GenesisAccount{
 					{
@@ -205,7 +206,7 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 			expPass: false,
 		},
 		{
-			name: "invalid params",
+			name: "fail - invalid params",
 			genState: &GenesisState{
 				Params: Params{},
 			},
@@ -214,12 +215,13 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		err := tc.genState.Validate()
-		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-		}
+		suite.Run(tc.name, func() {
+			err := tc.genState.Validate()
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }

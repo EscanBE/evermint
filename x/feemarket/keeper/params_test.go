@@ -23,40 +23,40 @@ func (suite *KeeperTestSuite) TestSetGetParams() {
 		expected  bool
 	}{
 		{
-			"pass - Checks if the default params are set correctly",
-			func() interface{} {
+			name: "pass - Checks if the default params are set correctly",
+			paramsFun: func() interface{} {
 				return feemarkettypes.DefaultParams()
 			},
-			func() interface{} {
+			getFun: func() interface{} {
 				return suite.app.FeeMarketKeeper.GetParams(suite.ctx)
 			},
-			true,
+			expected: true,
 		},
 		{
-			"pass - Check BaseFeeEnabled is computed with its default params and can be retrieved correctly",
-			func() interface{} {
+			name: "pass - Check BaseFeeEnabled is computed with its default params and can be retrieved correctly",
+			paramsFun: func() interface{} {
 				params.NoBaseFee = false
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 				return true
 			},
-			func() interface{} {
+			getFun: func() interface{} {
 				return suite.app.FeeMarketKeeper.GetBaseFeeEnabled(suite.ctx)
 			},
-			true,
+			expected: true,
 		},
 		{
-			"pass - Check BaseFeeEnabled is computed with alternate params and can be retrieved correctly",
-			func() interface{} {
+			name: "pass - Check BaseFeeEnabled is computed with alternate params and can be retrieved correctly",
+			paramsFun: func() interface{} {
 				params.NoBaseFee = true
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 				return true
 			},
-			func() interface{} {
+			getFun: func() interface{} {
 				return suite.app.FeeMarketKeeper.GetBaseFeeEnabled(suite.ctx)
 			},
-			false,
+			expected: false,
 		},
 	}
 	for _, tc := range testCases {

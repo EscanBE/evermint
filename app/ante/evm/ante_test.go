@@ -1144,85 +1144,99 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		expPass        bool
 	}{
 		{
-			"pass - DeliverTx (contract)",
-			func() sdk.Tx {
+			name: "pass - DeliverTx (contract)",
+			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
 
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
-			true,
-			false, false, true,
+			enableLondonHF: true,
+			checkTx:        false,
+			reCheckTx:      false,
+			expPass:        true,
 		},
 		{
-			"pass - CheckTx (contract)",
-			func() sdk.Tx {
+			name: "pass - CheckTx (contract)",
+			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
 
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
-			true,
-			true, false, true,
+			enableLondonHF: true,
+			checkTx:        true,
+			reCheckTx:      false,
+			expPass:        true,
 		},
 		{
-			"pass - ReCheckTx (contract)",
-			func() sdk.Tx {
+			name: "pass - ReCheckTx (contract)",
+			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
 
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
-			true,
-			false, true, true,
+			enableLondonHF: true,
+			checkTx:        false,
+			reCheckTx:      true,
+			expPass:        true,
 		},
 		{
-			"pass - DeliverTx",
-			func() sdk.Tx {
+			name: "pass - DeliverTx",
+			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
-			true,
-			false, false, true,
+			enableLondonHF: true,
+			checkTx:        false,
+			reCheckTx:      false,
+			expPass:        true,
 		},
 		{
-			"pass - CheckTx",
-			func() sdk.Tx {
+			name: "pass - CheckTx",
+			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
-			true,
-			true, false, true,
+			enableLondonHF: true,
+			checkTx:        true,
+			reCheckTx:      false,
+			expPass:        true,
 		},
 		{
-			"pass - ReCheckTx",
-			func() sdk.Tx {
+			name: "pass - ReCheckTx",
+			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
-			true,
-			false, true, true,
+			enableLondonHF: true,
+			checkTx:        false,
+			reCheckTx:      true,
+			expPass:        true,
 		},
 		{
-			"pass - CheckTx (cosmos tx not signed)",
-			func() sdk.Tx {
+			name: "pass - CheckTx (cosmos tx not signed)",
+			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
-			true,
-			false, true, true,
+			enableLondonHF: true,
+			checkTx:        false,
+			reCheckTx:      true,
+			expPass:        true,
 		},
 		{
-			"fail - CheckTx (cosmos tx is not valid)",
-			func() sdk.Tx {
+			name: "fail - CheckTx (cosmos tx is not valid)",
+			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
@@ -1230,31 +1244,37 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				txBuilder.SetGasLimit(uint64(1 << 63))
 				return txBuilder.GetTx()
 			},
-			true,
-			true, false, false,
+			enableLondonHF: true,
+			checkTx:        true,
+			reCheckTx:      false,
+			expPass:        false,
 		},
 		{
-			"fail - CheckTx (memo too long)",
-			func() sdk.Tx {
+			name: "fail - CheckTx (memo too long)",
+			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
 				txBuilder.SetMemo(strings.Repeat("*", 257))
 				return txBuilder.GetTx()
 			},
-			true,
-			true, false, false,
+			enableLondonHF: true,
+			checkTx:        true,
+			reCheckTx:      false,
+			expPass:        false,
 		},
 		{
-			"fail - DynamicFeeTx without london hark fork",
-			func() sdk.Tx {
+			name: "fail - DynamicFeeTx without london hark fork",
+			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
 
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
-			false,
-			false, false, false,
+			enableLondonHF: false,
+			checkTx:        false,
+			reCheckTx:      false,
+			expPass:        false,
 		},
 	}
 
@@ -1319,48 +1339,52 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 		expErr       error
 	}{
 		{
-			"fail - Contract Creation Disabled",
-			func() sdk.Tx {
+			name: "fail - Contract Creation Disabled",
+			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
 
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
-			true, false,
-			evmtypes.ErrCreateDisabled,
+			enableCall:   true,
+			enableCreate: false,
+			expErr:       evmtypes.ErrCreateDisabled,
 		},
 		{
-			"pass - Contract Creation Enabled",
-			func() sdk.Tx {
+			name: "pass - Contract Creation Enabled",
+			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
 
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
-			true, true,
-			nil,
+			enableCall:   true,
+			enableCreate: true,
+			expErr:       nil,
 		},
 		{
-			"fail - EVM Call Disabled",
-			func() sdk.Tx {
+			name: "fail - EVM Call Disabled",
+			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
-			false, true,
-			evmtypes.ErrCallDisabled,
+			enableCall:   false,
+			enableCreate: true,
+			expErr:       evmtypes.ErrCallDisabled,
 		},
 		{
-			"pass - EVM Call Enabled",
-			func() sdk.Tx {
+			name: "pass - EVM Call Enabled",
+			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
-			true, true,
-			nil,
+			enableCall:   true,
+			enableCreate: true,
+			expErr:       nil,
 		},
 	}
 

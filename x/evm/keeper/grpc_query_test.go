@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/big"
 
 	storetypes "cosmossdk.io/store/types"
@@ -35,13 +34,13 @@ func (suite *KeeperTestSuite) TestQueryAccount() {
 	)
 
 	testCases := []struct {
-		msg      string
+		name     string
 		malleate func()
 		expPass  bool
 	}{
 		{
-			"invalid address",
-			func() {
+			name: "fail - invalid address",
+			malleate: func() {
 				expAccount = &evmtypes.QueryAccountResponse{
 					Balance:  "0",
 					CodeHash: common.BytesToHash(crypto.Keccak256(nil)).Hex(),
@@ -51,11 +50,11 @@ func (suite *KeeperTestSuite) TestQueryAccount() {
 					Address: invalidAddress,
 				}
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"success",
-			func() {
+			name: "pass",
+			malleate: func() {
 				amt := sdk.Coins{sdk.NewInt64Coin(evmtypes.DefaultEVMDenom, 100)}
 				err := suite.app.BankKeeper.MintCoins(suite.ctx, evmtypes.ModuleName, amt)
 				suite.Require().NoError(err)
@@ -71,12 +70,12 @@ func (suite *KeeperTestSuite) TestQueryAccount() {
 					Address: suite.address.String(),
 				}
 			},
-			true,
+			expPass: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
@@ -101,13 +100,13 @@ func (suite *KeeperTestSuite) TestQueryCosmosAccount() {
 	)
 
 	testCases := []struct {
-		msg      string
+		name     string
 		malleate func()
 		expPass  bool
 	}{
 		{
-			"invalid address",
-			func() {
+			name: "fail - invalid address",
+			malleate: func() {
 				expAccount = &evmtypes.QueryCosmosAccountResponse{
 					CosmosAddress: sdk.AccAddress(common.Address{}.Bytes()).String(),
 				}
@@ -115,11 +114,11 @@ func (suite *KeeperTestSuite) TestQueryCosmosAccount() {
 					Address: invalidAddress,
 				}
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"success",
-			func() {
+			name: "pass",
+			malleate: func() {
 				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, suite.address.Bytes())
 				suite.Require().NotNil(acc)
 
@@ -132,11 +131,11 @@ func (suite *KeeperTestSuite) TestQueryCosmosAccount() {
 					Address: suite.address.String(),
 				}
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"success with seq and account number",
-			func() {
+			name: "pass - success with seq and account number",
+			malleate: func() {
 				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, suite.address.Bytes())
 				suite.Require().NotNil(acc)
 
@@ -157,12 +156,12 @@ func (suite *KeeperTestSuite) TestQueryCosmosAccount() {
 					Address: suite.address.String(),
 				}
 			},
-			true,
+			expPass: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
@@ -187,23 +186,23 @@ func (suite *KeeperTestSuite) TestQueryBalance() {
 	)
 
 	testCases := []struct {
-		msg      string
+		name     string
 		malleate func()
 		expPass  bool
 	}{
 		{
-			"invalid address",
-			func() {
+			name: "fail - invalid address",
+			malleate: func() {
 				expBalance = "0"
 				req = &evmtypes.QueryBalanceRequest{
 					Address: invalidAddress,
 				}
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"success",
-			func() {
+			name: "pass",
+			malleate: func() {
 				amt := sdk.Coins{sdk.NewInt64Coin(evmtypes.DefaultEVMDenom, 100)}
 				err := suite.app.BankKeeper.MintCoins(suite.ctx, evmtypes.ModuleName, amt)
 				suite.Require().NoError(err)
@@ -215,12 +214,12 @@ func (suite *KeeperTestSuite) TestQueryBalance() {
 					Address: suite.address.String(),
 				}
 			},
-			true,
+			expPass: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
@@ -245,22 +244,22 @@ func (suite *KeeperTestSuite) TestQueryStorage() {
 	)
 
 	testCases := []struct {
-		msg      string
+		name     string
 		malleate func(vm.StateDB)
 		expPass  bool
 	}{
 		{
-			"invalid address",
-			func(vm.StateDB) {
+			name: "fail - invalid address",
+			malleate: func(vm.StateDB) {
 				req = &evmtypes.QueryStorageRequest{
 					Address: invalidAddress,
 				}
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"success",
-			func(vmdb vm.StateDB) {
+			name: "pass",
+			malleate: func(vmdb vm.StateDB) {
 				key := common.BytesToHash([]byte("key"))
 				value := common.BytesToHash([]byte("value"))
 				expValue = value.String()
@@ -270,12 +269,12 @@ func (suite *KeeperTestSuite) TestQueryStorage() {
 					Key:     key.String(),
 				}
 			},
-			true,
+			expPass: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			vmdb := suite.StateDB()
@@ -303,24 +302,24 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 	)
 
 	testCases := []struct {
-		msg      string
+		name     string
 		malleate func(vm.StateDB)
 		expPass  bool
 	}{
 		{
-			"invalid address",
-			func(vm.StateDB) {
+			name: "fail - invalid address",
+			malleate: func(vm.StateDB) {
 				req = &evmtypes.QueryCodeRequest{
 					Address: invalidAddress,
 				}
 				exp := &evmtypes.QueryCodeResponse{}
 				expCode = exp.Code
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"success",
-			func(vmdb vm.StateDB) {
+			name: "pass",
+			malleate: func(vmdb vm.StateDB) {
 				expCode = []byte("code")
 				vmdb.SetCode(suite.address, expCode)
 
@@ -328,12 +327,12 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 					Address: suite.address.String(),
 				}
 			},
-			true,
+			expPass: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			vmdb := suite.StateDB()
@@ -361,18 +360,18 @@ func (suite *KeeperTestSuite) TestQueryTxLogs() {
 	logIndex := uint(1)
 
 	testCases := []struct {
-		msg      string
+		name     string
 		malleate func(vm.StateDB)
 	}{
 		{
-			"empty logs",
-			func(vm.StateDB) {
+			name: "pass - empty logs",
+			malleate: func(vm.StateDB) {
 				expLogs = nil
 			},
 		},
 		{
-			"success",
-			func(vmdb vm.StateDB) {
+			name: "pass - correct log",
+			malleate: func(vmdb vm.StateDB) {
 				expLogs = []*ethtypes.Log{
 					{
 						Address:     suite.address,
@@ -395,7 +394,7 @@ func (suite *KeeperTestSuite) TestQueryTxLogs() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			vmdb := statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewTxConfig(common.BytesToHash(suite.ctx.HeaderHash()), txHash, txIndex, logIndex))
@@ -423,13 +422,13 @@ func (suite *KeeperTestSuite) TestQueryValidatorAccount() {
 	)
 
 	testCases := []struct {
-		msg      string
+		name     string
 		malleate func()
 		expPass  bool
 	}{
 		{
-			"invalid address",
-			func() {
+			name: "fail - invalid address",
+			malleate: func() {
 				expAccount = &evmtypes.QueryValidatorAccountResponse{
 					AccountAddress: sdk.AccAddress(common.Address{}.Bytes()).String(),
 				}
@@ -437,11 +436,11 @@ func (suite *KeeperTestSuite) TestQueryValidatorAccount() {
 					ConsAddress: "",
 				}
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"success",
-			func() {
+			name: "pass",
+			malleate: func() {
 				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, suite.address.Bytes())
 				suite.Require().NotNil(acc)
 				expAccount = &evmtypes.QueryValidatorAccountResponse{
@@ -453,11 +452,11 @@ func (suite *KeeperTestSuite) TestQueryValidatorAccount() {
 					ConsAddress: suite.consAddress.String(),
 				}
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"success with seq increased",
-			func() {
+			name: "pass - success with seq increased",
+			malleate: func() {
 				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, suite.address.Bytes())
 				suite.Require().NotNil(acc)
 				oldSeqNumber := acc.GetSequence()
@@ -473,12 +472,12 @@ func (suite *KeeperTestSuite) TestQueryValidatorAccount() {
 					ConsAddress: suite.consAddress.String(),
 				}
 			},
-			true,
+			expPass: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
@@ -506,7 +505,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 		gasCap uint64
 	)
 	testCases := []struct {
-		msg             string
+		name            string
 		malleate        func()
 		expPass         bool
 		expGas          uint64
@@ -514,66 +513,73 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 	}{
 		// should success, because transfer value is zero
 		{
-			"default args - special case for ErrIntrinsicGas on contract creation, raise gas limit",
-			func() {
+			name: "pass - default args - special case for ErrIntrinsicGas on contract creation, raise gas limit",
+			malleate: func() {
 				args = evmtypes.TransactionArgs{}
 			},
-			true,
-			ethparams.TxGasContractCreation,
-			false,
+			expPass:         true,
+			expGas:          ethparams.TxGasContractCreation,
+			enableFeemarket: false,
 		},
 		// should success, because transfer value is zero
 		{
-			"default args with 'to' address",
-			func() {
+			name: "pass - default args with 'to' address",
+			malleate: func() {
 				args = evmtypes.TransactionArgs{To: &common.Address{}}
 			},
-			true,
-			ethparams.TxGas,
-			false,
+			expPass:         true,
+			expGas:          ethparams.TxGas,
+			enableFeemarket: false,
 		},
 		// should fail, because the default From address(zero address) don't have fund
 		{
-			"not enough balance",
-			func() {
+			name: "fail - not enough balance",
+			malleate: func() {
 				args = evmtypes.TransactionArgs{To: &common.Address{}, Value: (*hexutil.Big)(big.NewInt(100))}
 			},
-			false,
-			0,
-			false,
+			expPass:         false,
+			expGas:          0,
+			enableFeemarket: false,
 		},
-		// should success, enough balance now
+		// should fail
 		{
-			"enough balance",
-			func() {
-				args = evmtypes.TransactionArgs{To: &common.Address{}, From: &suite.address, Value: (*hexutil.Big)(big.NewInt(100))}
-			}, false, 0, false,
+			name: "fail - insufficient balance",
+			malleate: func() {
+				args = evmtypes.TransactionArgs{
+					From:  &suite.address,
+					To:    &common.Address{},
+					Value: (*hexutil.Big)(big.NewInt(100)),
+				}
+			},
+			expPass:         false,
+			expGas:          0,
+			enableFeemarket: false,
 		},
 		// should success, because gas limit lower than 21000 is ignored
 		{
-			"gas exceed allowance",
-			func() {
+			name: "pass - gas exceed allowance",
+			malleate: func() {
 				args = evmtypes.TransactionArgs{To: &common.Address{}, Gas: &gasHelper}
 			},
-			true,
-			ethparams.TxGas,
-			false,
+			expPass:         true,
+			expGas:          ethparams.TxGas,
+			enableFeemarket: false,
 		},
 		// should fail, invalid gas cap
 		{
-			"gas exceed global allowance",
-			func() {
+			name: "fail - gas exceed global allowance",
+			malleate: func() {
 				args = evmtypes.TransactionArgs{To: &common.Address{}}
 				gasCap = 20000
 			},
-			false,
-			0,
-			false,
+			expPass:         false,
+			expGas:          0,
+			enableFeemarket: false,
 		},
 		// estimate gas of an erc20 contract deployment, the exact gas number is checked with geth
 		{
-			"contract deployment",
-			func() {
+			name: "pass - contract deployment",
+			malleate: func() {
 				ctorArgs, err := evmtypes.ERC20Contract.ABI.Pack("", &suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
 				suite.Require().NoError(err)
 
@@ -584,74 +590,74 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 					Data: (*hexutil.Bytes)(&data),
 				}
 			},
-			true,
-			1186778,
-			false,
+			expPass:         true,
+			expGas:          1186778,
+			enableFeemarket: false,
 		},
 		// estimate gas of an erc20 transfer, the exact gas number is checked with geth
 		{
-			"erc20 transfer",
-			func() {
+			name: "pass - erc20 transfer",
+			malleate: func() {
 				contractAddr := suite.DeployTestContract(suite.T(), suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
 				suite.Commit()
 				transferData, err := evmtypes.ERC20Contract.ABI.Pack("transfer", common.HexToAddress("0x378c50D9264C63F3F92B806d4ee56E9D86FfB3Ec"), big.NewInt(1000))
 				suite.Require().NoError(err)
 				args = evmtypes.TransactionArgs{To: &contractAddr, From: &suite.address, Data: (*hexutil.Bytes)(&transferData)}
 			},
-			true,
-			51880,
-			false,
+			expPass:         true,
+			expGas:          51880,
+			enableFeemarket: false,
 		},
 		// repeated tests with enableFeemarket
 		{
-			"default args w/ enableFeemarket",
-			func() {
+			name: "pass - default args w/ enableFeemarket",
+			malleate: func() {
 				args = evmtypes.TransactionArgs{To: &common.Address{}}
 			},
-			true,
-			ethparams.TxGas,
-			true,
+			expPass:         true,
+			expGas:          ethparams.TxGas,
+			enableFeemarket: true,
 		},
 		{
-			"not enough balance w/ enableFeemarket",
-			func() {
+			name: "fail - not enough balance w/ enableFeemarket",
+			malleate: func() {
 				args = evmtypes.TransactionArgs{To: &common.Address{}, Value: (*hexutil.Big)(big.NewInt(100))}
 			},
-			false,
-			0,
-			true,
+			expPass:         false,
+			expGas:          0,
+			enableFeemarket: true,
 		},
 		{
-			"enough balance w/ enableFeemarket",
-			func() {
+			name: "fail - enough balance w/ enableFeemarket",
+			malleate: func() {
 				args = evmtypes.TransactionArgs{To: &common.Address{}, From: &suite.address, Value: (*hexutil.Big)(big.NewInt(100))}
 			},
-			false,
-			0,
-			true,
+			expPass:         false,
+			expGas:          0,
+			enableFeemarket: true,
 		},
 		{
-			"gas exceed allowance w/ enableFeemarket",
-			func() {
+			name: "pass - gas exceed allowance w/ enableFeemarket",
+			malleate: func() {
 				args = evmtypes.TransactionArgs{To: &common.Address{}, Gas: &gasHelper}
 			},
-			true,
-			ethparams.TxGas,
-			true,
+			expPass:         true,
+			expGas:          ethparams.TxGas,
+			enableFeemarket: true,
 		},
 		{
-			"gas exceed global allowance w/ enableFeemarket",
-			func() {
+			name: "fail - gas exceed global allowance w/ enableFeemarket",
+			malleate: func() {
 				args = evmtypes.TransactionArgs{To: &common.Address{}}
 				gasCap = 20000
 			},
-			false,
-			0,
-			true,
+			expPass:         false,
+			expGas:          0,
+			enableFeemarket: true,
 		},
 		{
-			"contract deployment w/ enableFeemarket",
-			func() {
+			name: "pass - contract deployment w/ enableFeemarket",
+			malleate: func() {
 				ctorArgs, err := evmtypes.ERC20Contract.ABI.Pack("", &suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
 				suite.Require().NoError(err)
 				data := evmtypes.ERC20Contract.Bin
@@ -661,26 +667,26 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 					Data: (*hexutil.Bytes)(&data),
 				}
 			},
-			true,
-			1186778,
-			true,
+			expPass:         true,
+			expGas:          1186778,
+			enableFeemarket: true,
 		},
 		{
-			"erc20 transfer w/ enableFeemarket",
-			func() {
+			name: "pass - erc20 transfer w/ enableFeemarket",
+			malleate: func() {
 				contractAddr := suite.DeployTestContract(suite.T(), suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
 				suite.Commit()
 				transferData, err := evmtypes.ERC20Contract.ABI.Pack("transfer", common.HexToAddress("0x378c50D9264C63F3F92B806d4ee56E9D86FfB3Ec"), big.NewInt(1000))
 				suite.Require().NoError(err)
 				args = evmtypes.TransactionArgs{To: &contractAddr, From: &suite.address, Data: (*hexutil.Bytes)(&transferData)}
 			},
-			true,
-			51880,
-			true,
+			expPass:         true,
+			expGas:          51880,
+			enableFeemarket: true,
 		},
 		{
-			"contract creation but 'create' param disabled",
-			func() {
+			name: "fail - contract creation but 'create' param disabled",
+			malleate: func() {
 				ctorArgs, err := evmtypes.ERC20Contract.ABI.Pack("", &suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
 				suite.Require().NoError(err)
 				data := evmtypes.ERC20Contract.Bin
@@ -694,52 +700,52 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 				err = suite.app.EvmKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 			},
-			false,
-			0,
-			false,
+			expPass:         false,
+			expGas:          0,
+			enableFeemarket: false,
 		},
 		{
-			"specified gas in args higher than ethparams.TxGas (21,000)",
-			func() {
+			name: "pass - specified gas in args higher than ethparams.TxGas (21,000)",
+			malleate: func() {
 				args = evmtypes.TransactionArgs{
 					To:  &common.Address{},
 					Gas: &higherGas,
 				}
 			},
-			true,
-			ethparams.TxGas,
-			false,
+			expPass:         true,
+			expGas:          ethparams.TxGas,
+			enableFeemarket: false,
 		},
 		{
-			"specified gas in args higher than request gasCap",
-			func() {
+			name: "pass - specified gas in args higher than request gasCap",
+			malleate: func() {
 				gasCap = 22_000
 				args = evmtypes.TransactionArgs{
 					To:  &common.Address{},
 					Gas: &higherGas,
 				}
 			},
-			true,
-			ethparams.TxGas,
-			false,
+			expPass:         true,
+			expGas:          ethparams.TxGas,
+			enableFeemarket: false,
 		},
 		{
-			"invalid args - specified both gasPrice and maxFeePerGas",
-			func() {
+			name: "fail - invalid args - specified both gasPrice and maxFeePerGas",
+			malleate: func() {
 				args = evmtypes.TransactionArgs{
 					To:           &common.Address{},
 					GasPrice:     &hexBigInt,
 					MaxFeePerGas: &hexBigInt,
 				}
 			},
-			false,
-			0,
-			false,
+			expPass:         false,
+			expGas:          0,
+			enableFeemarket: false,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.name, func() {
 			suite.enableFeemarket = tc.enableFeemarket
 			suite.SetupTest()
 			gasCap = 25_000_000
@@ -775,23 +781,24 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 	)
 
 	testCases := []struct {
-		msg             string
+		name            string
 		malleate        func()
 		expPass         bool
 		traceResponse   string
 		enableFeemarket bool
 	}{
 		{
-			msg: "default trace",
+			name: "pass - default trace",
 			malleate: func() {
 				traceConfig = nil
 				predecessors = []*evmtypes.MsgEthereumTx{}
 			},
-			expPass:       true,
-			traceResponse: "{\"gas\":34828,\"failed\":false,\"returnValue\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"structLogs\":[{\"pc\":0,\"op\":\"PUSH1\",\"gas\":",
+			expPass:         true,
+			traceResponse:   "{\"gas\":34828,\"failed\":false,\"returnValue\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"structLogs\":[{\"pc\":0,\"op\":\"PUSH1\",\"gas\":",
+			enableFeemarket: false,
 		},
 		{
-			msg: "default trace with filtered response",
+			name: "pass - default trace with filtered response",
 			malleate: func() {
 				traceConfig = &evmtypes.TraceConfig{
 					DisableStack:   true,
@@ -805,18 +812,19 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 			enableFeemarket: false,
 		},
 		{
-			msg: "javascript tracer",
+			name: "pass - javascript tracer",
 			malleate: func() {
 				traceConfig = &evmtypes.TraceConfig{
 					Tracer: "{data: [], fault: function(log) {}, step: function(log) { if(log.op.toString() == \"CALL\") this.data.push(log.stack.peek(0)); }, result: function() { return this.data; }}",
 				}
 				predecessors = []*evmtypes.MsgEthereumTx{}
 			},
-			expPass:       true,
-			traceResponse: "[]",
+			expPass:         true,
+			traceResponse:   "[]",
+			enableFeemarket: false,
 		},
 		{
-			msg: "default trace with enableFeemarket",
+			name: "pass - default trace with enableFeemarket",
 			malleate: func() {
 				traceConfig = &evmtypes.TraceConfig{
 					DisableStack:   true,
@@ -830,7 +838,7 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 			enableFeemarket: true,
 		},
 		{
-			msg: "javascript tracer with enableFeemarket",
+			name: "pass - javascript tracer with enableFeemarket",
 			malleate: func() {
 				traceConfig = &evmtypes.TraceConfig{
 					Tracer: "{data: [], fault: function(log) {}, step: function(log) { if(log.op.toString() == \"CALL\") this.data.push(log.stack.peek(0)); }, result: function() { return this.data; }}",
@@ -842,7 +850,7 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 			enableFeemarket: true,
 		},
 		{
-			msg: "default tracer with predecessors",
+			name: "pass - default tracer with predecessors",
 			malleate: func() {
 				traceConfig = nil
 
@@ -865,7 +873,7 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 			enableFeemarket: false,
 		},
 		{
-			msg: "invalid trace config - Negative Limit",
+			name: "fail - invalid trace config - Negative Limit",
 			malleate: func() {
 				traceConfig = &evmtypes.TraceConfig{
 					DisableStack:   true,
@@ -874,10 +882,12 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 					Limit:          -1,
 				}
 			},
-			expPass: false,
+			expPass:         false,
+			traceResponse:   "",
+			enableFeemarket: false,
 		},
 		{
-			msg: "invalid trace config - Invalid Tracer",
+			name: "fail - invalid trace config - Invalid Tracer",
 			malleate: func() {
 				traceConfig = &evmtypes.TraceConfig{
 					DisableStack:   true,
@@ -886,10 +896,12 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 					Tracer:         "invalid_tracer",
 				}
 			},
-			expPass: false,
+			expPass:         false,
+			traceResponse:   "",
+			enableFeemarket: false,
 		},
 		{
-			msg: "invalid trace config - Invalid Timeout",
+			name: "fail - invalid trace config - Invalid Timeout",
 			malleate: func() {
 				traceConfig = &evmtypes.TraceConfig{
 					DisableStack:   true,
@@ -898,10 +910,12 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 					Timeout:        "wrong_time",
 				}
 			},
-			expPass: false,
+			expPass:         false,
+			traceResponse:   "",
+			enableFeemarket: false,
 		},
 		{
-			msg: "default tracer with contract creation tx as predecessor but 'create' param disabled",
+			name: "pass - default tracer with contract creation tx as predecessor but 'create' param disabled",
 			malleate: func() {
 				traceConfig = nil
 
@@ -930,23 +944,26 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 				err := suite.app.EvmKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 			},
-			expPass:       true,
-			traceResponse: "{\"gas\":34828,\"failed\":false,\"returnValue\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"structLogs\":[{\"pc\":0,\"op\":\"PUSH1\",\"gas\":",
+			expPass:         true,
+			traceResponse:   "{\"gas\":34828,\"failed\":false,\"returnValue\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"structLogs\":[{\"pc\":0,\"op\":\"PUSH1\",\"gas\":",
+			enableFeemarket: false,
 		},
 		{
-			msg: "invalid chain id",
+			name: "fail - invalid chain id",
 			malleate: func() {
 				traceConfig = nil
 				predecessors = []*evmtypes.MsgEthereumTx{}
 				tmp := sdkmath.NewInt(1)
 				chainID = &tmp
 			},
-			expPass: false,
+			expPass:         false,
+			traceResponse:   "",
+			enableFeemarket: false,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.msg, func() {
+		suite.Run(tc.name, func() {
 			suite.enableFeemarket = tc.enableFeemarket
 			suite.SetupTest()
 
@@ -1003,22 +1020,23 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 	)
 
 	testCases := []struct {
-		msg             string
+		name            string
 		malleate        func()
 		expPass         bool
 		traceResponse   string
 		enableFeemarket bool
 	}{
 		{
-			msg: "default trace",
+			name: "pass - default trace",
 			malleate: func() {
 				traceConfig = nil
 			},
-			expPass:       true,
-			traceResponse: "[{\"result\":{\"gas\":34828,\"failed\":false,\"returnValue\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"structLogs\":[{\"pc\":0,\"op\":\"PU",
+			expPass:         true,
+			traceResponse:   "[{\"result\":{\"gas\":34828,\"failed\":false,\"returnValue\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"structLogs\":[{\"pc\":0,\"op\":\"PU",
+			enableFeemarket: false,
 		},
 		{
-			msg: "filtered trace",
+			name: "pass - filtered trace",
 			malleate: func() {
 				traceConfig = &evmtypes.TraceConfig{
 					DisableStack:   true,
@@ -1026,21 +1044,23 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 					EnableMemory:   false,
 				}
 			},
-			expPass:       true,
-			traceResponse: "[{\"result\":{\"gas\":34828,\"failed\":false,\"returnValue\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"structLogs\":[{\"pc\":0,\"op\":\"PU",
+			expPass:         true,
+			traceResponse:   "[{\"result\":{\"gas\":34828,\"failed\":false,\"returnValue\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"structLogs\":[{\"pc\":0,\"op\":\"PU",
+			enableFeemarket: false,
 		},
 		{
-			msg: "javascript tracer",
+			name: "pass - javascript tracer",
 			malleate: func() {
 				traceConfig = &evmtypes.TraceConfig{
 					Tracer: "{data: [], fault: function(log) {}, step: function(log) { if(log.op.toString() == \"CALL\") this.data.push(log.stack.peek(0)); }, result: function() { return this.data; }}",
 				}
 			},
-			expPass:       true,
-			traceResponse: "[{\"result\":[]}]",
+			expPass:         true,
+			traceResponse:   "[{\"result\":[]}]",
+			enableFeemarket: false,
 		},
 		{
-			msg: "default trace with enableFeemarket and filtered return",
+			name: "pass - default trace with enableFeemarket and filtered return",
 			malleate: func() {
 				traceConfig = &evmtypes.TraceConfig{
 					DisableStack:   true,
@@ -1053,7 +1073,7 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 			enableFeemarket: true,
 		},
 		{
-			msg: "javascript tracer with enableFeemarket",
+			name: "pass - javascript tracer with enableFeemarket",
 			malleate: func() {
 				traceConfig = &evmtypes.TraceConfig{
 					Tracer: "{data: [], fault: function(log) {}, step: function(log) { if(log.op.toString() == \"CALL\") this.data.push(log.stack.peek(0)); }, result: function() { return this.data; }}",
@@ -1064,7 +1084,7 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 			enableFeemarket: true,
 		},
 		{
-			msg: "tracer with multiple transactions",
+			name: "pass - tracer with multiple transactions",
 			malleate: func() {
 				traceConfig = nil
 
@@ -1087,7 +1107,7 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 			enableFeemarket: false,
 		},
 		{
-			msg: "invalid trace config - Negative Limit",
+			name: "fail - invalid trace config - Negative Limit",
 			malleate: func() {
 				traceConfig = &evmtypes.TraceConfig{
 					DisableStack:   true,
@@ -1096,10 +1116,12 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 					Limit:          -1,
 				}
 			},
-			expPass: false,
+			expPass:         false,
+			traceResponse:   "",
+			enableFeemarket: false,
 		},
 		{
-			msg: "invalid trace config - Invalid Tracer",
+			name: "pass - invalid trace config - Invalid Tracer",
 			malleate: func() {
 				traceConfig = &evmtypes.TraceConfig{
 					DisableStack:   true,
@@ -1108,23 +1130,25 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 					Tracer:         "invalid_tracer",
 				}
 			},
-			expPass:       true,
-			traceResponse: "[{\"error\":\"rpc error: code = Internal desc = tracer not found\"}]",
+			expPass:         true,
+			traceResponse:   "[{\"error\":\"rpc error: code = Internal desc = tracer not found\"}]",
+			enableFeemarket: false,
 		},
 		{
-			msg: "invalid chain id",
+			name: "pass - invalid chain id",
 			malleate: func() {
 				traceConfig = nil
 				tmp := sdkmath.NewInt(1)
 				chainID = &tmp
 			},
-			expPass:       true,
-			traceResponse: "[{\"error\":\"rpc error: code = Internal desc = invalid chain id for signer\"}]",
+			expPass:         true,
+			traceResponse:   "[{\"error\":\"rpc error: code = Internal desc = invalid chain id for signer\"}]",
+			enableFeemarket: false,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.name, func() {
 			txs = []*evmtypes.MsgEthereumTx{}
 			suite.enableFeemarket = tc.enableFeemarket
 			suite.SetupTest()
@@ -1312,15 +1336,15 @@ func (suite *KeeperTestSuite) TestEthCall() {
 		expPass  bool
 	}{
 		{
-			"invalid args",
-			func() {
+			name: "fail - invalid args",
+			malleate: func() {
 				req = &evmtypes.EthCallRequest{Args: []byte("invalid args"), GasCap: config.DefaultGasCap}
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"invalid args - specified both gasPrice and maxFeePerGas",
-			func() {
+			name: "fail - invalid args - specified both gasPrice and maxFeePerGas",
+			malleate: func() {
 				args, err := json.Marshal(&evmtypes.TransactionArgs{
 					From:         &address,
 					Data:         (*hexutil.Bytes)(&data),
@@ -1331,11 +1355,11 @@ func (suite *KeeperTestSuite) TestEthCall() {
 				suite.Require().NoError(err)
 				req = &evmtypes.EthCallRequest{Args: args, GasCap: config.DefaultGasCap}
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"set param EnableCreate = false",
-			func() {
+			name: "fail - set param EnableCreate = false",
+			malleate: func() {
 				args, err := json.Marshal(&evmtypes.TransactionArgs{
 					From: &address,
 					Data: (*hexutil.Bytes)(&data),
@@ -1349,7 +1373,7 @@ func (suite *KeeperTestSuite) TestEthCall() {
 				err = suite.app.EvmKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 			},
-			false,
+			expPass: false,
 		},
 	}
 	for _, tc := range testCases {
@@ -1376,69 +1400,69 @@ func (suite *KeeperTestSuite) TestEmptyRequest() {
 		queryFunc func() (interface{}, error)
 	}{
 		{
-			"Account method",
-			func() (interface{}, error) {
+			name: "Account method",
+			queryFunc: func() (interface{}, error) {
 				return k.Account(suite.ctx, nil)
 			},
 		},
 		{
-			"CosmosAccount method",
-			func() (interface{}, error) {
+			name: "CosmosAccount method",
+			queryFunc: func() (interface{}, error) {
 				return k.CosmosAccount(suite.ctx, nil)
 			},
 		},
 		{
-			"ValidatorAccount method",
-			func() (interface{}, error) {
+			name: "ValidatorAccount method",
+			queryFunc: func() (interface{}, error) {
 				return k.ValidatorAccount(suite.ctx, nil)
 			},
 		},
 		{
-			"Balance method",
-			func() (interface{}, error) {
+			name: "Balance method",
+			queryFunc: func() (interface{}, error) {
 				return k.Balance(suite.ctx, nil)
 			},
 		},
 		{
-			"Storage method",
-			func() (interface{}, error) {
+			name: "Storage method",
+			queryFunc: func() (interface{}, error) {
 				return k.Storage(suite.ctx, nil)
 			},
 		},
 		{
-			"Code method",
-			func() (interface{}, error) {
+			name: "Code method",
+			queryFunc: func() (interface{}, error) {
 				return k.Code(suite.ctx, nil)
 			},
 		},
 		{
-			"EthCall method",
-			func() (interface{}, error) {
+			name: "EthCall method",
+			queryFunc: func() (interface{}, error) {
 				return k.EthCall(suite.ctx, nil)
 			},
 		},
 		{
-			"EstimateGas method",
-			func() (interface{}, error) {
+			name: "EstimateGas method",
+			queryFunc: func() (interface{}, error) {
 				return k.EstimateGas(suite.ctx, nil)
 			},
 		},
 		{
-			"TraceTx method",
-			func() (interface{}, error) {
+			name: "TraceTx method",
+			queryFunc: func() (interface{}, error) {
 				return k.TraceTx(suite.ctx, nil)
 			},
 		},
 		{
-			"TraceBlock method",
-			func() (interface{}, error) {
+			name: "TraceBlock method",
+			queryFunc: func() (interface{}, error) {
 				return k.TraceBlock(suite.ctx, nil)
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			_, err := tc.queryFunc()
 			suite.Require().Error(err)

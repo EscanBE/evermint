@@ -302,52 +302,54 @@ func (suite *TxDataTestSuite) TestLegacyTxValidate() {
 		expError bool
 	}{
 		{
-			"empty",
-			evmtypes.LegacyTx{},
-			true,
+			name:     "fail - empty",
+			tx:       evmtypes.LegacyTx{},
+			expError: true,
 		},
 		{
-			"gas price is nil",
-			evmtypes.LegacyTx{
+			name: "fail - gas price is nil",
+			tx: evmtypes.LegacyTx{
 				GasPrice: nil,
 			},
-			true,
+			expError: true,
 		},
 		{
-			"gas price is negative",
-			evmtypes.LegacyTx{
+			name: "fail - gas price is negative",
+			tx: evmtypes.LegacyTx{
 				GasPrice: &suite.sdkMinusOneInt,
 			},
-			true,
+			expError: true,
 		},
 		{
-			"amount is negative",
-			evmtypes.LegacyTx{
+			name: "fail - amount is negative",
+			tx: evmtypes.LegacyTx{
 				GasPrice: &suite.sdkInt,
 				Amount:   &suite.sdkMinusOneInt,
 			},
-			true,
+			expError: true,
 		},
 		{
-			"to address is invalid",
-			evmtypes.LegacyTx{
+			name: "fail - to address is invalid",
+			tx: evmtypes.LegacyTx{
 				GasPrice: &suite.sdkInt,
 				Amount:   &suite.sdkInt,
 				To:       suite.invalidAddr,
 			},
-			true,
+			expError: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		err := tc.tx.Validate()
+		suite.Run(tc.name, func() {
+			err := tc.tx.Validate()
 
-		if tc.expError {
-			suite.Require().Error(err, tc.name)
-			continue
-		}
+			if tc.expError {
+				suite.Require().Error(err)
+				return
+			}
 
-		suite.Require().NoError(err, tc.name)
+			suite.Require().NoError(err)
+		})
 	}
 }
 
@@ -359,19 +361,21 @@ func (suite *TxDataTestSuite) TestLegacyTxEffectiveGasPrice() {
 		exp     *big.Int
 	}{
 		{
-			"non-empty legacy tx",
-			evmtypes.LegacyTx{
+			name: "non-empty legacy tx",
+			tx: evmtypes.LegacyTx{
 				GasPrice: &suite.sdkInt,
 			},
-			(&suite.sdkInt).BigInt(),
-			(&suite.sdkInt).BigInt(),
+			baseFee: (&suite.sdkInt).BigInt(),
+			exp:     (&suite.sdkInt).BigInt(),
 		},
 	}
 
 	for _, tc := range testCases {
-		actual := tc.tx.EffectiveGasPrice(tc.baseFee)
+		suite.Run(tc.name, func() {
+			actual := tc.tx.EffectiveGasPrice(tc.baseFee)
 
-		suite.Require().Equal(tc.exp, actual, tc.name)
+			suite.Require().Equal(tc.exp, actual)
+		})
 	}
 }
 
@@ -383,20 +387,22 @@ func (suite *TxDataTestSuite) TestLegacyTxEffectiveFee() {
 		exp     *big.Int
 	}{
 		{
-			"non-empty legacy tx",
-			evmtypes.LegacyTx{
+			name: "non-empty legacy tx",
+			tx: evmtypes.LegacyTx{
 				GasPrice: &suite.sdkInt,
 				GasLimit: uint64(1),
 			},
-			(&suite.sdkInt).BigInt(),
-			(&suite.sdkInt).BigInt(),
+			baseFee: (&suite.sdkInt).BigInt(),
+			exp:     (&suite.sdkInt).BigInt(),
 		},
 	}
 
 	for _, tc := range testCases {
-		actual := tc.tx.EffectiveFee(tc.baseFee)
+		suite.Run(tc.name, func() {
+			actual := tc.tx.EffectiveFee(tc.baseFee)
 
-		suite.Require().Equal(tc.exp, actual, tc.name)
+			suite.Require().Equal(tc.exp, actual)
+		})
 	}
 }
 
@@ -408,21 +414,23 @@ func (suite *TxDataTestSuite) TestLegacyTxEffectiveCost() {
 		exp     *big.Int
 	}{
 		{
-			"non-empty legacy tx",
-			evmtypes.LegacyTx{
+			name: "non-empty legacy tx",
+			tx: evmtypes.LegacyTx{
 				GasPrice: &suite.sdkInt,
 				GasLimit: uint64(1),
 				Amount:   &suite.sdkZeroInt,
 			},
-			(&suite.sdkInt).BigInt(),
-			(&suite.sdkInt).BigInt(),
+			baseFee: (&suite.sdkInt).BigInt(),
+			exp:     (&suite.sdkInt).BigInt(),
 		},
 	}
 
 	for _, tc := range testCases {
-		actual := tc.tx.EffectiveCost(tc.baseFee)
+		suite.Run(tc.name, func() {
+			actual := tc.tx.EffectiveCost(tc.baseFee)
 
-		suite.Require().Equal(tc.exp, actual, tc.name)
+			suite.Require().Equal(tc.exp, actual)
+		})
 	}
 }
 

@@ -29,23 +29,23 @@ func (suite *KeeperTestSuite) TestCreateAccount() {
 		callback func(vm.StateDB, common.Address)
 	}{
 		{
-			"reset account (keep balance)",
-			suite.address,
-			func(vmdb vm.StateDB, addr common.Address) {
+			name: "reset account (keep balance)",
+			addr: suite.address,
+			malleate: func(vmdb vm.StateDB, addr common.Address) {
 				vmdb.AddBalance(addr, big.NewInt(100))
 				suite.Require().NotZero(vmdb.GetBalance(addr).Int64())
 			},
-			func(vmdb vm.StateDB, addr common.Address) {
+			callback: func(vmdb vm.StateDB, addr common.Address) {
 				suite.Require().Equal(vmdb.GetBalance(addr).Int64(), int64(100))
 			},
 		},
 		{
-			"create account",
-			utiltx.GenerateAddress(),
-			func(vmdb vm.StateDB, addr common.Address) {
+			name: "create account",
+			addr: utiltx.GenerateAddress(),
+			malleate: func(vmdb vm.StateDB, addr common.Address) {
 				suite.Require().False(vmdb.Exist(addr))
 			},
-			func(vmdb vm.StateDB, addr common.Address) {
+			callback: func(vmdb vm.StateDB, addr common.Address) {
 				suite.Require().True(vmdb.Exist(addr))
 			},
 		},
@@ -68,19 +68,19 @@ func (suite *KeeperTestSuite) TestAddBalance() {
 		isNoOp bool
 	}{
 		{
-			"positive amount",
-			big.NewInt(100),
-			false,
+			name:   "positive amount",
+			amount: big.NewInt(100),
+			isNoOp: false,
 		},
 		{
-			"zero amount",
-			big.NewInt(0),
-			true,
+			name:   "zero amount",
+			amount: big.NewInt(0),
+			isNoOp: true,
 		},
 		{
-			"negative amount",
-			big.NewInt(-1),
-			false, // seems to be consistent with go-ethereum's implementation
+			name:   "negative amount",
+			amount: big.NewInt(-1), // seems to be consistent with go-ethereum's implementation
+			isNoOp: false,
 		},
 	}
 
@@ -108,30 +108,30 @@ func (suite *KeeperTestSuite) TestSubBalance() {
 		isNoOp   bool
 	}{
 		{
-			"positive amount, below zero",
-			big.NewInt(100),
-			func(vm.StateDB) {},
-			false,
+			name:     "positive amount, below zero",
+			amount:   big.NewInt(100),
+			malleate: func(vm.StateDB) {},
+			isNoOp:   false,
 		},
 		{
-			"positive amount, above zero",
-			big.NewInt(50),
-			func(vmdb vm.StateDB) {
+			name:   "positive amount, above zero",
+			amount: big.NewInt(50),
+			malleate: func(vmdb vm.StateDB) {
 				vmdb.AddBalance(suite.address, big.NewInt(100))
 			},
-			false,
+			isNoOp: false,
 		},
 		{
-			"zero amount",
-			big.NewInt(0),
-			func(vm.StateDB) {},
-			true,
+			name:     "zero amount",
+			amount:   big.NewInt(0),
+			malleate: func(vm.StateDB) {},
+			isNoOp:   true,
 		},
 		{
-			"negative amount",
-			big.NewInt(-1),
-			func(vm.StateDB) {},
-			false,
+			name:     "negative amount",
+			amount:   big.NewInt(-1),
+			malleate: func(vm.StateDB) {},
+			isNoOp:   false,
 		},
 	}
 
@@ -161,16 +161,16 @@ func (suite *KeeperTestSuite) TestGetNonce() {
 		malleate      func(vm.StateDB)
 	}{
 		{
-			"account not found",
-			utiltx.GenerateAddress(),
-			0,
-			func(vm.StateDB) {},
+			name:          "account not found",
+			address:       utiltx.GenerateAddress(),
+			expectedNonce: 0,
+			malleate:      func(vm.StateDB) {},
 		},
 		{
-			"existing account",
-			suite.address,
-			1,
-			func(vmdb vm.StateDB) {
+			name:          "existing account",
+			address:       suite.address,
+			expectedNonce: 1,
+			malleate: func(vmdb vm.StateDB) {
 				vmdb.SetNonce(suite.address, 1)
 			},
 		},
@@ -195,16 +195,16 @@ func (suite *KeeperTestSuite) TestSetNonce() {
 		malleate func()
 	}{
 		{
-			"new account",
-			utiltx.GenerateAddress(),
-			10,
-			func() {},
+			name:     "new account",
+			address:  utiltx.GenerateAddress(),
+			nonce:    10,
+			malleate: func() {},
 		},
 		{
-			"existing account",
-			suite.address,
-			99,
-			func() {},
+			name:     "existing account",
+			address:  suite.address,
+			nonce:    99,
+			malleate: func() {},
 		},
 	}
 
@@ -322,14 +322,14 @@ func (suite *KeeperTestSuite) TestKeeperSetCode() {
 		code     []byte
 	}{
 		{
-			"set code",
-			[]byte("codeHash"),
-			[]byte("this is the code"),
+			name:     "set code",
+			codeHash: []byte("codeHash"),
+			code:     []byte("this is the code"),
 		},
 		{
-			"delete code",
-			[]byte("codeHash"),
-			nil,
+			name:     "delete code",
+			codeHash: []byte("codeHash"),
+			code:     nil,
 		},
 	}
 
@@ -353,19 +353,19 @@ func (suite *KeeperTestSuite) TestRefund() {
 		expPanic  bool
 	}{
 		{
-			"pass - add and subtract refund",
-			func(vmdb vm.StateDB) {
+			name: "pass - add and subtract refund",
+			malleate: func(vmdb vm.StateDB) {
 				vmdb.AddRefund(11)
 			},
-			1,
-			false,
+			expRefund: 1,
+			expPanic:  false,
 		},
 		{
-			"fail - subtract amount > current refund",
-			func(vm.StateDB) {
+			name: "fail - subtract amount > current refund",
+			malleate: func(vm.StateDB) {
 			},
-			0,
-			true,
+			expRefund: 0,
+			expPanic:  true,
 		},
 	}
 
@@ -390,14 +390,14 @@ func (suite *KeeperTestSuite) TestState() {
 		key, value common.Hash
 	}{
 		{
-			"set state - delete from store",
-			common.BytesToHash([]byte("key")),
-			common.Hash{},
+			name:  "set state - delete from store",
+			key:   common.BytesToHash([]byte("key")),
+			value: common.Hash{},
 		},
 		{
-			"set state - update value",
-			common.BytesToHash([]byte("key")),
-			common.BytesToHash([]byte("value")),
+			name:  "set state - update value",
+			key:   common.BytesToHash([]byte("key")),
+			value: common.BytesToHash([]byte("value")),
 		},
 	}
 
@@ -497,11 +497,26 @@ func (suite *KeeperTestSuite) TestExist() {
 		malleate func(vm.StateDB)
 		exists   bool
 	}{
-		{"success, account exists", suite.address, func(vm.StateDB) {}, true},
-		{"success, has suicided", suite.address, func(vmdb vm.StateDB) {
-			vmdb.Suicide(suite.address)
-		}, true},
-		{"success, account doesn't exist", utiltx.GenerateAddress(), func(vm.StateDB) {}, false},
+		{
+			name:     "success, account exists",
+			address:  suite.address,
+			malleate: func(vm.StateDB) {},
+			exists:   true,
+		},
+		{
+			name:    "success, has suicided",
+			address: suite.address,
+			malleate: func(vmdb vm.StateDB) {
+				vmdb.Suicide(suite.address)
+			},
+			exists: true,
+		},
+		{
+			name:     "success, account doesn't exist",
+			address:  utiltx.GenerateAddress(),
+			malleate: func(vm.StateDB) {},
+			exists:   false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -521,14 +536,26 @@ func (suite *KeeperTestSuite) TestEmpty() {
 		malleate func(vm.StateDB)
 		empty    bool
 	}{
-		{"empty, account exists", suite.address, func(vm.StateDB) {}, true},
 		{
-			"not empty, positive balance",
-			suite.address,
-			func(vmdb vm.StateDB) { vmdb.AddBalance(suite.address, big.NewInt(100)) },
-			false,
+			name:     "empty, account exists",
+			address:  suite.address,
+			malleate: func(vm.StateDB) {},
+			empty:    true,
 		},
-		{"empty, account doesn't exist", utiltx.GenerateAddress(), func(vm.StateDB) {}, true},
+		{
+			name:    "not empty, positive balance",
+			address: suite.address,
+			malleate: func(vmdb vm.StateDB) {
+				vmdb.AddBalance(suite.address, big.NewInt(100))
+			},
+			empty: false,
+		},
+		{
+			name:     "empty, account doesn't exist",
+			address:  utiltx.GenerateAddress(),
+			malleate: func(vm.StateDB) {},
+			empty:    true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -551,43 +578,52 @@ func (suite *KeeperTestSuite) TestSnapshot() {
 		name     string
 		malleate func(vm.StateDB)
 	}{
-		{"simple revert", func(vmdb vm.StateDB) {
-			revision := vmdb.Snapshot()
-			suite.Require().Zero(revision)
+		{
+			name: "simple revert",
+			malleate: func(vmdb vm.StateDB) {
+				revision := vmdb.Snapshot()
+				suite.Require().Zero(revision)
 
-			vmdb.SetState(suite.address, key, value1)
-			suite.Require().Equal(value1, vmdb.GetState(suite.address, key))
+				vmdb.SetState(suite.address, key, value1)
+				suite.Require().Equal(value1, vmdb.GetState(suite.address, key))
 
-			vmdb.RevertToSnapshot(revision)
+				vmdb.RevertToSnapshot(revision)
 
-			// reverted
-			suite.Require().Equal(common.Hash{}, vmdb.GetState(suite.address, key))
-		}},
-		{"nested snapshot/revert", func(vmdb vm.StateDB) {
-			revision1 := vmdb.Snapshot()
-			suite.Require().Zero(revision1)
+				// reverted
+				suite.Require().Equal(common.Hash{}, vmdb.GetState(suite.address, key))
+			},
+		},
+		{
+			name: "nested snapshot/revert",
+			malleate: func(vmdb vm.StateDB) {
+				revision1 := vmdb.Snapshot()
+				suite.Require().Zero(revision1)
 
-			vmdb.SetState(suite.address, key, value1)
+				vmdb.SetState(suite.address, key, value1)
 
-			revision2 := vmdb.Snapshot()
+				revision2 := vmdb.Snapshot()
 
-			vmdb.SetState(suite.address, key, value2)
-			suite.Require().Equal(value2, vmdb.GetState(suite.address, key))
+				vmdb.SetState(suite.address, key, value2)
+				suite.Require().Equal(value2, vmdb.GetState(suite.address, key))
 
-			vmdb.RevertToSnapshot(revision2)
-			suite.Require().Equal(value1, vmdb.GetState(suite.address, key))
+				vmdb.RevertToSnapshot(revision2)
+				suite.Require().Equal(value1, vmdb.GetState(suite.address, key))
 
-			vmdb.RevertToSnapshot(revision1)
-			suite.Require().Equal(common.Hash{}, vmdb.GetState(suite.address, key))
-		}},
-		{"jump revert", func(vmdb vm.StateDB) {
-			revision1 := vmdb.Snapshot()
-			vmdb.SetState(suite.address, key, value1)
-			vmdb.Snapshot()
-			vmdb.SetState(suite.address, key, value2)
-			vmdb.RevertToSnapshot(revision1)
-			suite.Require().Equal(common.Hash{}, vmdb.GetState(suite.address, key))
-		}},
+				vmdb.RevertToSnapshot(revision1)
+				suite.Require().Equal(common.Hash{}, vmdb.GetState(suite.address, key))
+			},
+		},
+		{
+			name: "jump revert",
+			malleate: func(vmdb vm.StateDB) {
+				revision1 := vmdb.Snapshot()
+				vmdb.SetState(suite.address, key, value1)
+				vmdb.Snapshot()
+				vmdb.SetState(suite.address, key, value2)
+				vmdb.RevertToSnapshot(revision1)
+				suite.Require().Equal(common.Hash{}, vmdb.GetState(suite.address, key))
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -796,8 +832,14 @@ func (suite *KeeperTestSuite) TestAddAddressToAccessList() {
 		name string
 		addr common.Address
 	}{
-		{"new address", suite.address},
-		{"existing address", suite.address},
+		{
+			name: "new address",
+			addr: suite.address,
+		},
+		{
+			name: "existing address",
+			addr: suite.address,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -816,10 +858,24 @@ func (suite *KeeperTestSuite) AddSlotToAccessList() {
 		addr common.Address
 		slot common.Hash
 	}{
-		{"new address and slot (1)", utiltx.GenerateAddress(), common.BytesToHash([]byte("hash"))},
-		{"new address and slot (2)", suite.address, common.Hash{}},
-		{"existing address and slot", suite.address, common.Hash{}},
-		{"existing address, new slot", suite.address, common.BytesToHash([]byte("hash"))},
+		{
+			name: "new address and slot (1)",
+			addr: utiltx.GenerateAddress(),
+			slot: common.BytesToHash([]byte("hash")),
+		},
+		{
+			name: "new address and slot (2)",
+			addr: suite.address,
+		},
+		{
+			name: "existing address and slot",
+			addr: suite.address,
+		},
+		{
+			name: "existing address, new slot",
+			addr: suite.address,
+			slot: common.BytesToHash([]byte("hash")),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -834,74 +890,76 @@ func (suite *KeeperTestSuite) AddSlotToAccessList() {
 }
 
 // FIXME skip for now
-// func (suite *KeeperTestSuite) _TestForEachStorage() {
-// 	var storage types.Storage
-//
-// 	testCase := []struct {
-// 		name      string
-// 		malleate  func(vm.StateDB)
-// 		callback  func(key, value common.Hash) (stop bool)
-// 		expValues []common.Hash
-// 	}{
-// 		{
-// 			"aggregate state",
-// 			func(vmdb vm.StateDB) {
-// 				for i := 0; i < 5; i++ {
-// 					vmdb.SetState(suite.address, common.BytesToHash([]byte(fmt.Sprintf("key%d", i))), common.BytesToHash([]byte(fmt.Sprintf("value%d", i))))
-// 				}
-// 			},
-// 			func(key, value common.Hash) bool {
-// 				storage = append(storage, types.NewState(key, value))
-// 				return true
-// 			},
-// 			[]common.Hash{
-// 				common.BytesToHash([]byte("value0")),
-// 				common.BytesToHash([]byte("value1")),
-// 				common.BytesToHash([]byte("value2")),
-// 				common.BytesToHash([]byte("value3")),
-// 				common.BytesToHash([]byte("value4")),
-// 			},
-// 		},
-// 		{
-// 			"filter state",
-// 			func(vmdb vm.StateDB) {
-// 				vmdb.SetState(suite.address, common.BytesToHash([]byte("key")), common.BytesToHash([]byte("value")))
-// 				vmdb.SetState(suite.address, common.BytesToHash([]byte("filterkey")), common.BytesToHash([]byte("filtervalue")))
-// 			},
-// 			func(key, value common.Hash) bool {
-// 				if value == common.BytesToHash([]byte("filtervalue")) {
-// 					storage = append(storage, types.NewState(key, value))
-// 					return false
-// 				}
-// 				return true
-// 			},
-// 			[]common.Hash{
-// 				common.BytesToHash([]byte("filtervalue")),
-// 			},
-// 		},
-// 	}
-//
-// 	for _, tc := range testCase {
-// 		suite.Run(tc.name, func() {
-// 			suite.SetupTest() // reset
-// 			vmdb := suite.StateDB()
-// 			tc.malleate(vmdb)
-//
-// 			err := vmdb.ForEachStorage(suite.address, tc.callback)
-// 			suite.Require().NoError(err)
-// 			suite.Require().Equal(len(tc.expValues), len(storage), fmt.Sprintf("Expected values:\n%v\nStorage Values\n%v", tc.expValues, storage))
-//
-// 			vals := make([]common.Hash, len(storage))
-// 			for i := range storage {
-// 				vals[i] = common.HexToHash(storage[i].Value)
-// 			}
-//
-// 			// TODO: not sure why Equals fails
-// 			suite.Require().ElementsMatch(tc.expValues, vals)
-// 		})
-// 		storage = types.Storage{}
-// 	}
-// }
+/*
+func (suite *KeeperTestSuite) _TestForEachStorage() {
+	var storage evmtypes.Storage
+
+	testCase := []struct {
+		name      string
+		malleate  func(vm.StateDB)
+		callback  func(key, value common.Hash) (stop bool)
+		expValues []common.Hash
+	}{
+		{
+			name: "aggregate state",
+			malleate: func(vmdb vm.StateDB) {
+				for i := 0; i < 5; i++ {
+					vmdb.SetState(suite.address, common.BytesToHash([]byte(fmt.Sprintf("key%d", i))), common.BytesToHash([]byte(fmt.Sprintf("value%d", i))))
+				}
+			},
+			callback: func(key, value common.Hash) bool {
+				storage = append(storage, evmtypes.NewState(key, value))
+				return true
+			},
+			expValues: []common.Hash{
+				common.BytesToHash([]byte("value0")),
+				common.BytesToHash([]byte("value1")),
+				common.BytesToHash([]byte("value2")),
+				common.BytesToHash([]byte("value3")),
+				common.BytesToHash([]byte("value4")),
+			},
+		},
+		{
+			name: "filter state",
+			malleate: func(vmdb vm.StateDB) {
+				vmdb.SetState(suite.address, common.BytesToHash([]byte("key")), common.BytesToHash([]byte("value")))
+				vmdb.SetState(suite.address, common.BytesToHash([]byte("filterkey")), common.BytesToHash([]byte("filtervalue")))
+			},
+			callback: func(key, value common.Hash) bool {
+				if value == common.BytesToHash([]byte("filtervalue")) {
+					storage = append(storage, evmtypes.NewState(key, value))
+					return false
+				}
+				return true
+			},
+			expValues: []common.Hash{
+				common.BytesToHash([]byte("filtervalue")),
+			},
+		},
+	}
+
+	for _, tc := range testCase {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			vmdb := suite.StateDB()
+			tc.malleate(vmdb)
+
+			err := vmdb.ForEachStorage(suite.address, tc.callback)
+			suite.Require().NoError(err)
+			suite.Require().Equal(len(tc.expValues), len(storage), fmt.Sprintf("Expected values:\n%v\nStorage Values\n%v", tc.expValues, storage))
+
+			vals := make([]common.Hash, len(storage))
+			for i := range storage {
+				vals[i] = common.HexToHash(storage[i].Value)
+			}
+
+			// TODO: not sure why Equals fails
+			suite.Require().ElementsMatch(tc.expValues, vals)
+		})
+		storage = evmtypes.Storage{}
+	}
+}
+*/
 
 func (suite *KeeperTestSuite) TestSetBalance() {
 	amount := big.NewInt(-10)
@@ -913,34 +971,34 @@ func (suite *KeeperTestSuite) TestSetBalance() {
 		expErr   bool
 	}{
 		{
-			"address without funds - invalid amount",
-			suite.address,
-			func() {},
-			true,
+			name:     "fail - address without funds - invalid amount",
+			addr:     suite.address,
+			malleate: func() {},
+			expErr:   true,
 		},
 		{
-			"mint to address",
-			suite.address,
-			func() {
+			name: "pass - mint to address",
+			addr: suite.address,
+			malleate: func() {
 				amount = big.NewInt(100)
 			},
-			false,
+			expErr: false,
 		},
 		{
-			"burn from address",
-			suite.address,
-			func() {
+			name: "pass - burn from address",
+			addr: suite.address,
+			malleate: func() {
 				amount = big.NewInt(60)
 			},
-			false,
+			expErr: false,
 		},
 		{
-			"address with funds - invalid amount",
-			suite.address,
-			func() {
+			name: "fail - address with funds - invalid amount",
+			addr: suite.address,
+			malleate: func() {
 				amount = big.NewInt(-10)
 			},
-			true,
+			expErr: true,
 		},
 	}
 

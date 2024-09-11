@@ -83,72 +83,124 @@ func (suite *ProposalTestSuite) TestValidateErc20Denom() {
 		expPass bool
 	}{
 		{
-			"- instead of /",
-			"erc20-0xdac17f958d2ee523a2206206994597c13d831ec7",
-			false,
+			name:    "fail - '-' instead of '/'",
+			denom:   "erc20-0xdac17f958d2ee523a2206206994597c13d831ec7",
+			expPass: false,
 		},
 		{
-			"without /",
-			"conversionCoin",
-			false,
+			name:    "fail - without '/'",
+			denom:   "conversionCoin",
+			expPass: false,
 		},
 		{
-			"// instead of /",
-			"erc20//0xdac17f958d2ee523a2206206994597c13d831ec7",
-			false,
+			name:    "fail - '//' instead of '/'",
+			denom:   "erc20//0xdac17f958d2ee523a2206206994597c13d831ec7",
+			expPass: false,
 		},
 		{
-			"multiple /",
-			"erc20/0xdac17f958d2ee523a2206206994597c13d831ec7/test",
-			false,
+			name:    "fail - multiple '/'",
+			denom:   "erc20/0xdac17f958d2ee523a2206206994597c13d831ec7/test",
+			expPass: false,
 		},
 		{
-			"pass",
-			"erc20/0xdac17f958d2ee523a2206206994597c13d831ec7",
-			true,
+			name:    "pass",
+			denom:   "erc20/0xdac17f958d2ee523a2206206994597c13d831ec7",
+			expPass: true,
 		},
 	}
 	for _, tc := range testCases {
-		err := erc20types.ValidateErc20Denom(tc.denom)
+		suite.Run(tc.name, func() {
+			err := erc20types.ValidateErc20Denom(tc.denom)
 
-		if tc.expPass {
-			suite.Require().Nil(err, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-		}
+			if tc.expPass {
+				suite.Require().Nil(err, tc.name)
+			} else {
+				suite.Require().Error(err, tc.name)
+			}
+		})
 	}
 }
 
 func (suite *ProposalTestSuite) TestRegisterERC20Proposal() {
 	testCases := []struct {
-		msg         string
+		name        string
 		title       string
 		description string
 		pair        erc20types.TokenPair
 		expectPass  bool
 	}{
 		// Valid tests
-		{msg: "Register token pair - valid pair enabled", title: "test", description: "test desc", pair: erc20types.TokenPair{utiltx.GenerateAddress().String(), "test", true, erc20types.OWNER_MODULE}, expectPass: true},
-		{msg: "Register token pair - valid pair dissabled", title: "test", description: "test desc", pair: erc20types.TokenPair{utiltx.GenerateAddress().String(), "test", false, erc20types.OWNER_MODULE}, expectPass: true},
+		{
+			name:        "pass - Register token pair - valid pair enabled",
+			title:       "test",
+			description: "test desc",
+			pair:        erc20types.TokenPair{utiltx.GenerateAddress().String(), "test", true, erc20types.OWNER_MODULE},
+			expectPass:  true,
+		},
+		{
+			name:        "pass - Register token pair - valid pair dissabled",
+			title:       "test",
+			description: "test desc",
+			pair:        erc20types.TokenPair{utiltx.GenerateAddress().String(), "test", false, erc20types.OWNER_MODULE},
+			expectPass:  true,
+		},
 		// Missing params valid
-		{msg: "Register token pair - invalid missing title ", title: "", description: "test desc", pair: erc20types.TokenPair{utiltx.GenerateAddress().String(), "test", false, erc20types.OWNER_MODULE}, expectPass: false},
-		{msg: "Register token pair - invalid missing description ", title: "test", description: "", pair: erc20types.TokenPair{utiltx.GenerateAddress().String(), "test", false, erc20types.OWNER_MODULE}, expectPass: false},
+		{
+			name:        "fail - Register token pair - invalid missing title ",
+			title:       "",
+			description: "test desc",
+			pair:        erc20types.TokenPair{utiltx.GenerateAddress().String(), "test", false, erc20types.OWNER_MODULE},
+			expectPass:  false,
+		},
+		{
+			name:        "fail - Register token pair - invalid missing description ",
+			title:       "test",
+			description: "",
+			pair:        erc20types.TokenPair{utiltx.GenerateAddress().String(), "test", false, erc20types.OWNER_MODULE},
+			expectPass:  false,
+		},
 		// Invalid address
-		{msg: "Register token pair - invalid address (no hex)", title: "test", description: "test desc", pair: erc20types.TokenPair{"0x5dCA2483280D9727c80b5518faC4556617fb19ZZ", "test", true, erc20types.OWNER_MODULE}, expectPass: false},
-		{msg: "Register token pair - invalid address (invalid length 1)", title: "test", description: "test desc", pair: erc20types.TokenPair{"0x5dCA2483280D9727c80b5518faC4556617fb19", "test", true, erc20types.OWNER_MODULE}, expectPass: false},
-		{msg: "Register token pair - invalid address (invalid length 2)", title: "test", description: "test desc", pair: erc20types.TokenPair{"0x5dCA2483280D9727c80b5518faC4556617fb194FFF", "test", true, erc20types.OWNER_MODULE}, expectPass: false},
-		{msg: "Register token pair - invalid address (invalid prefix)", title: "test", description: "test desc", pair: erc20types.TokenPair{"1x5dCA2483280D9727c80b5518faC4556617fb19F", "test", true, erc20types.OWNER_MODULE}, expectPass: false},
+		{
+			name:        "fail - Register token pair - invalid address (no hex)",
+			title:       "test",
+			description: "test desc",
+			pair:        erc20types.TokenPair{"0x5dCA2483280D9727c80b5518faC4556617fb19ZZ", "test", true, erc20types.OWNER_MODULE},
+			expectPass:  false,
+		},
+		{
+			name:        "fail - Register token pair - invalid address (invalid length 1)",
+			title:       "test",
+			description: "test desc",
+			pair:        erc20types.TokenPair{"0x5dCA2483280D9727c80b5518faC4556617fb19", "test", true, erc20types.OWNER_MODULE},
+			expectPass:  false,
+		},
+		{
+			name:        "fail - Register token pair - invalid address (invalid length 2)",
+			title:       "test",
+			description: "test desc",
+			pair:        erc20types.TokenPair{"0x5dCA2483280D9727c80b5518faC4556617fb194FFF", "test", true, erc20types.OWNER_MODULE},
+			expectPass:  false,
+		},
+		{
+			name:        "fail - Register token pair - invalid address (invalid prefix)",
+			title:       "test",
+			description: "test desc",
+			pair:        erc20types.TokenPair{"1x5dCA2483280D9727c80b5518faC4556617fb19F", "test", true, erc20types.OWNER_MODULE},
+			expectPass:  false,
+		},
 	}
 
-	for i, tc := range testCases {
-		tx := erc20types.NewRegisterERC20Proposal(tc.title, tc.description, tc.pair.Erc20Address)
-		err := tx.ValidateBasic()
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			tx := erc20types.NewRegisterERC20Proposal(tc.title, tc.description, tc.pair.Erc20Address)
+			err := tx.ValidateBasic()
 
-		if tc.expectPass {
-			suite.Require().NoError(err, "valid test %d failed: %s, %v", i, tc.msg)
-		} else {
-			suite.Require().Error(err, "invalid test %d passed: %s, %v", i, tc.msg)
-		}
+			if tc.expectPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
 
@@ -202,80 +254,227 @@ func (suite *ProposalTestSuite) TestRegisterCoinProposal() {
 	validIBCName := "Atom"
 
 	testCases := []struct {
-		msg         string
+		name        string
 		title       string
 		description string
 		metadata    banktypes.Metadata
 		expectPass  bool
 	}{
 		// Valid tests
-		{msg: "Register token pair - valid pair enabled", title: "test", description: "test desc", metadata: validMetadata, expectPass: true},
-		{msg: "Register token pair - valid pair dissabled", title: "test", description: "test desc", metadata: validMetadata, expectPass: true},
+		{
+			name:        "pass - Register token pair - valid pair enabled",
+			title:       "test",
+			description: "test desc",
+			metadata:    validMetadata,
+			expectPass:  true,
+		},
+		{
+			name:        "pass - Register token pair - valid pair dissabled",
+			title:       "test",
+			description: "test desc",
+			metadata:    validMetadata,
+			expectPass:  true,
+		},
 
 		// Invalid Regex (denom)
-		{msg: "Register token pair - invalid starts with number", title: "test", description: "test desc", metadata: createMetadata("1test", "test"), expectPass: false},
-		{msg: "Register token pair - invalid char '('", title: "test", description: "test desc", metadata: createMetadata("(test", "test"), expectPass: false},
-		{msg: "Register token pair - invalid char '^'", title: "test", description: "test desc", metadata: createMetadata("^test", "test"), expectPass: false},
+		{
+			name:        "fail - Register token pair - invalid starts with number",
+			title:       "test",
+			description: "test desc",
+			metadata:    createMetadata("1test", "test"),
+			expectPass:  false,
+		},
+		{
+			name:        "fail - Register token pair - invalid char '('",
+			title:       "test",
+			description: "test desc",
+			metadata:    createMetadata("(test", "test"),
+			expectPass:  false,
+		},
+		{
+			name:        "fail - Register token pair - invalid char '^'",
+			title:       "test",
+			description: "test desc",
+			metadata:    createMetadata("^test", "test"),
+			expectPass:  false,
+		},
 		// Invalid length
-		{msg: "Register token pair - invalid length token (0)", title: "test", description: "test desc", metadata: createMetadata("", "test"), expectPass: false},
-		{msg: "Register token pair - invalid length token (1)", title: "test", description: "test desc", metadata: createMetadata("a", "test"), expectPass: false},
-		{msg: "Register token pair - invalid length token (128)", title: "test", description: "test desc", metadata: createMetadata(strings.Repeat("a", 129), "test"), expectPass: false},
-		{msg: "Register token pair - invalid length title (140)", title: strings.Repeat("a", length.MaxTitleLength+1), description: "test desc", metadata: validMetadata, expectPass: false},
-		{msg: "Register token pair - invalid length description (5000)", title: "title", description: strings.Repeat("a", length.MaxDescriptionLength+1), metadata: validMetadata, expectPass: false},
+		{
+			name:        "fail - Register token pair - invalid length token (0)",
+			title:       "test",
+			description: "test desc",
+			metadata:    createMetadata("", "test"),
+			expectPass:  false,
+		},
+		{
+			name:        "fail - Register token pair - invalid length token (1)",
+			title:       "test",
+			description: "test desc",
+			metadata:    createMetadata("a", "test"),
+			expectPass:  false,
+		},
+		{
+			name:        "fail - Register token pair - invalid length token (128)",
+			title:       "test",
+			description: "test desc",
+			metadata:    createMetadata(strings.Repeat("a", 129), "test"),
+			expectPass:  false,
+		},
+		{
+			name:        "fail - Register token pair - invalid length title (140)",
+			title:       strings.Repeat("a", length.MaxTitleLength+1),
+			description: "test desc",
+			metadata:    validMetadata,
+			expectPass:  false,
+		},
+		{
+			name:        "fail - Register token pair - invalid length description (5000)",
+			title:       "title",
+			description: strings.Repeat("a", length.MaxDescriptionLength+1),
+			metadata:    validMetadata,
+			expectPass:  false,
+		},
 		// Invalid denom
-		{msg: "Register token pair - invalid EVM denom", title: "test", description: "test desc", metadata: createFullMetadata("evm", "EVM", "evm"), expectPass: false},
+		{
+			name:        "fail - Register token pair - invalid EVM denom",
+			title:       "test",
+			description: "test desc",
+			metadata:    createFullMetadata("evm", "EVM", "evm"),
+			expectPass:  false,
+		},
 		// IBC
-		{msg: "Register token pair - ibc", title: "test", description: "test desc", metadata: createFullMetadata(validIBCDenom, validIBCSymbol, validIBCName), expectPass: true},
-		{msg: "Register token pair - ibc invalid denom", title: "test", description: "test desc", metadata: createFullMetadata("ibc/", validIBCSymbol, validIBCName), expectPass: false},
+		{
+			name:        "pass - Register token pair - ibc",
+			title:       "test",
+			description: "test desc",
+			metadata:    createFullMetadata(validIBCDenom, validIBCSymbol, validIBCName),
+			expectPass:  true,
+		},
+		{
+			name:        "fail - Register token pair - ibc invalid denom",
+			title:       "test",
+			description: "test desc",
+			metadata:    createFullMetadata("ibc/", validIBCSymbol, validIBCName),
+			expectPass:  false,
+		},
 	}
 
-	for i, tc := range testCases {
-		tx := erc20types.NewRegisterCoinProposal(tc.title, tc.description, []banktypes.Metadata{tc.metadata}, false)
-		err := tx.ValidateBasic()
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			tx := erc20types.NewRegisterCoinProposal(tc.title, tc.description, []banktypes.Metadata{tc.metadata}, false)
+			err := tx.ValidateBasic()
 
-		if tc.expectPass {
-			suite.Require().NoError(err, "valid test %d failed: %s, %v", i, tc.msg)
-		} else {
-			suite.Require().Error(err, "invalid test %d passed: %s, %v", i, tc.msg)
-		}
+			if tc.expectPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
 
 func (suite *ProposalTestSuite) TestToggleTokenConversionProposal() {
 	testCases := []struct {
-		msg         string
+		name        string
 		title       string
 		description string
 		token       string
 		expectPass  bool
 	}{
-		{msg: "Enable token conversion proposal - valid denom", title: "test", description: "test desc", token: "test", expectPass: true},
-		{msg: "Enable token conversion proposal - valid address", title: "test", description: "test desc", token: "0x5dCA2483280D9727c80b5518faC4556617fb194F", expectPass: true}, //gitleaks:allow
-		{msg: "Enable token conversion proposal - invalid address", title: "test", description: "test desc", token: "0x123", expectPass: false},
+		{
+			name:        "pass - Enable token conversion proposal - valid denom",
+			title:       "test",
+			description: "test desc",
+			token:       "test",
+			expectPass:  true,
+		},
+		{
+			name:        "pass - Enable token conversion proposal - valid address",
+			title:       "test",
+			description: "test desc",
+			token:       "0x5dCA2483280D9727c80b5518faC4556617fb194F",
+			expectPass:  true,
+		}, //gitleaks:allow
+		{
+			name:        "fail - Enable token conversion proposal - invalid address",
+			title:       "test",
+			description: "test desc",
+			token:       "0x123",
+			expectPass:  false,
+		},
 
 		// Invalid missing params
-		{msg: "Enable token conversion proposal - valid missing title", title: "", description: "test desc", token: "test", expectPass: false},
-		{msg: "Enable token conversion proposal - valid missing description", title: "test", description: "", token: "test", expectPass: false},
-		{msg: "Enable token conversion proposal - invalid missing token", title: "test", description: "test desc", token: "", expectPass: false},
+		{
+			name:        "fail - Enable token conversion proposal - valid missing title",
+			title:       "",
+			description: "test desc",
+			token:       "test",
+			expectPass:  false,
+		},
+		{
+			name:        "fail - Enable token conversion proposal - valid missing description",
+			title:       "test",
+			description: "",
+			token:       "test",
+			expectPass:  false,
+		},
+		{
+			name:        "fail - Enable token conversion proposal - invalid missing token",
+			title:       "test",
+			description: "test desc",
+			token:       "",
+			expectPass:  false,
+		},
 
 		// Invalid regex
-		{msg: "Enable token conversion proposal - invalid denom", title: "test", description: "test desc", token: "^test", expectPass: false},
+		{
+			name:        "fail - Enable token conversion proposal - invalid denom",
+			title:       "test",
+			description: "test desc",
+			token:       "^test",
+			expectPass:  false,
+		},
 		// Invalid length
-		{msg: "Enable token conversion proposal - invalid length (1)", title: "test", description: "test desc", token: "a", expectPass: false},
-		{msg: "Enable token conversion proposal - invalid length (128)", title: "test", description: "test desc", token: strings.Repeat("a", 129), expectPass: false},
-
-		{msg: "Enable token conversion proposal - invalid length title (140)", title: strings.Repeat("a", length.MaxTitleLength+1), description: "test desc", token: "test", expectPass: false},
-		{msg: "Enable token conversion proposal - invalid length description (5000)", title: "title", description: strings.Repeat("a", length.MaxDescriptionLength+1), token: "test", expectPass: false},
+		{
+			name:        "fail - Enable token conversion proposal - invalid length (1)",
+			title:       "test",
+			description: "test desc",
+			token:       "a",
+			expectPass:  false,
+		},
+		{
+			name:        "fail - Enable token conversion proposal - invalid length (128)",
+			title:       "test",
+			description: "test desc",
+			token:       strings.Repeat("a", 129),
+			expectPass:  false,
+		},
+		{
+			name:        "fail - Enable token conversion proposal - invalid length title (140)",
+			title:       strings.Repeat("a", length.MaxTitleLength+1),
+			description: "test desc",
+			token:       "test",
+			expectPass:  false,
+		},
+		{
+			name:        "fail - Enable token conversion proposal - invalid length description (5000)",
+			title:       "title",
+			description: strings.Repeat("a", length.MaxDescriptionLength+1),
+			token:       "test",
+			expectPass:  false,
+		},
 	}
 
-	for i, tc := range testCases {
-		tx := erc20types.NewToggleTokenConversionProposal(tc.title, tc.description, tc.token)
-		err := tx.ValidateBasic()
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			tx := erc20types.NewToggleTokenConversionProposal(tc.title, tc.description, tc.token)
+			err := tx.ValidateBasic()
 
-		if tc.expectPass {
-			suite.Require().NoError(err, "valid test %d failed: %s, %v", i, tc.msg)
-		} else {
-			suite.Require().Error(err, "invalid test %d passed: %s, %v", i, tc.msg)
-		}
+			if tc.expectPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }

@@ -191,12 +191,12 @@ func (suite *EvmTestSuite) TestHandleMsgEthereumTx() {
 	}
 
 	testCases := []struct {
-		msg      string
+		name     string
 		malleate func()
 		expPass  bool
 	}{
 		{
-			msg: "pass",
+			name: "pass",
 			malleate: func() {
 				to := common.BytesToAddress(suite.to)
 				ethTxParams := &evmtypes.EvmTxArgs{
@@ -214,7 +214,7 @@ func (suite *EvmTestSuite) TestHandleMsgEthereumTx() {
 			expPass: true,
 		},
 		{
-			msg: "fail - insufficient balance",
+			name: "fail - insufficient balance",
 			malleate: func() {
 				tx = evmtypes.NewTx(defaultEthTxParams())
 				suite.SignTx(tx)
@@ -222,21 +222,21 @@ func (suite *EvmTestSuite) TestHandleMsgEthereumTx() {
 			expPass: false,
 		},
 		{
-			msg: "fail - tx encoding failed",
+			name: "fail - tx encoding failed",
 			malleate: func() {
 				tx = evmtypes.NewTx(defaultEthTxParams())
 			},
 			expPass: false,
 		},
 		{
-			msg: "fail - invalid chain ID",
+			name: "fail - invalid chain ID",
 			malleate: func() {
 				suite.ctx = suite.ctx.WithChainID("chainID")
 			},
 			expPass: false,
 		},
 		{
-			msg: "fail - VerifySig failed",
+			name: "fail - VerifySig failed",
 			malleate: func() {
 				tx = evmtypes.NewTx(defaultEthTxParams())
 			},
@@ -245,7 +245,7 @@ func (suite *EvmTestSuite) TestHandleMsgEthereumTx() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.msg, func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
@@ -600,19 +600,19 @@ func (suite *EvmTestSuite) deployERC20Contract() common.Address {
 func (suite *EvmTestSuite) TestERC20TransferReverted() {
 	intrinsicGas := uint64(21572)
 	testCases := []struct {
-		msg      string
+		name     string
 		gasLimit uint64
 		expErr   string
 	}{
 		{
-			msg:      "default",
+			name:     "default",
 			gasLimit: intrinsicGas, // enough for intrinsicGas, but not enough for execution
 			expErr:   "out of gas",
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.msg, func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			k := suite.app.EvmKeeper
 
@@ -687,17 +687,17 @@ func (suite *EvmTestSuite) TestERC20TransferReverted() {
 func (suite *EvmTestSuite) TestContractDeploymentRevert() {
 	intrinsicGas := uint64(134180)
 	testCases := []struct {
-		msg      string
+		name     string
 		gasLimit uint64
 	}{
 		{
-			msg:      "success",
+			name:     "success",
 			gasLimit: intrinsicGas,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.msg, func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			k := suite.app.EvmKeeper
 

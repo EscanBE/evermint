@@ -39,17 +39,17 @@ func (suite *AnteTestSuite) TestMinGasPriceDecorator() {
 		allowPassOnSimulate bool
 	}{
 		{
-			"invalid cosmos tx type",
-			func() sdk.Tx {
+			name: "fail - invalid cosmos tx type",
+			malleate: func() sdk.Tx {
 				return &testutiltx.InvalidTx{}
 			},
-			false,
-			"invalid transaction type",
-			false,
+			expPass:             false,
+			errMsg:              "invalid transaction type",
+			allowPassOnSimulate: false,
 		},
 		{
-			"valid cosmos tx with MinGasPrices = 0, gasPrice = 0",
-			func() sdk.Tx {
+			name: "pass - valid cosmos tx with MinGasPrices = 0, gasPrice = 0",
+			malleate: func() sdk.Tx {
 				params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
 				params.MinGasPrice = sdkmath.LegacyZeroDec()
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
@@ -58,13 +58,13 @@ func (suite *AnteTestSuite) TestMinGasPriceDecorator() {
 				txBuilder := suite.CreateTestCosmosTxBuilder(sdkmath.NewInt(0), denom, &testMsg)
 				return txBuilder.GetTx()
 			},
-			true,
-			"",
-			false,
+			expPass:             true,
+			errMsg:              "",
+			allowPassOnSimulate: false,
 		},
 		{
-			"valid cosmos tx with MinGasPrices = 0, gasPrice > 0",
-			func() sdk.Tx {
+			name: "pass - valid cosmos tx with MinGasPrices = 0, gasPrice > 0",
+			malleate: func() sdk.Tx {
 				params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
 				params.MinGasPrice = sdkmath.LegacyZeroDec()
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
@@ -73,13 +73,13 @@ func (suite *AnteTestSuite) TestMinGasPriceDecorator() {
 				txBuilder := suite.CreateTestCosmosTxBuilder(sdkmath.NewInt(10), denom, &testMsg)
 				return txBuilder.GetTx()
 			},
-			true,
-			"",
-			false,
+			expPass:             true,
+			errMsg:              "",
+			allowPassOnSimulate: false,
 		},
 		{
-			"valid cosmos tx with MinGasPrices = 10, gasPrice = 10",
-			func() sdk.Tx {
+			name: "pass - valid cosmos tx with MinGasPrices = 10, gasPrice = 10",
+			malleate: func() sdk.Tx {
 				params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
 				params.MinGasPrice = sdkmath.LegacyNewDec(10)
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
@@ -88,13 +88,13 @@ func (suite *AnteTestSuite) TestMinGasPriceDecorator() {
 				txBuilder := suite.CreateTestCosmosTxBuilder(sdkmath.NewInt(10), denom, &testMsg)
 				return txBuilder.GetTx()
 			},
-			true,
-			"",
-			false,
+			expPass:             true,
+			errMsg:              "",
+			allowPassOnSimulate: false,
 		},
 		{
-			"invalid cosmos tx with MinGasPrices = 10, gasPrice = 0",
-			func() sdk.Tx {
+			name: "fail - invalid cosmos tx with MinGasPrices = 10, gasPrice = 0",
+			malleate: func() sdk.Tx {
 				params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
 				params.MinGasPrice = sdkmath.LegacyNewDec(10)
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
@@ -103,9 +103,9 @@ func (suite *AnteTestSuite) TestMinGasPriceDecorator() {
 				txBuilder := suite.CreateTestCosmosTxBuilder(sdkmath.NewInt(0), denom, &testMsg)
 				return txBuilder.GetTx()
 			},
-			false,
-			"provided fee < minimum global fee",
-			true,
+			expPass:             false,
+			errMsg:              "provided fee < minimum global fee",
+			allowPassOnSimulate: true,
 		},
 		{
 			name: "invalid cosmos tx with wrong denom",

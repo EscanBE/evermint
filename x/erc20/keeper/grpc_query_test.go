@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
@@ -21,16 +19,16 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 		expPass  bool
 	}{
 		{
-			"no pairs registered",
-			func() {
+			name: "pass - no pairs registered",
+			malleate: func() {
 				req = &erc20types.QueryTokenPairsRequest{}
 				expRes = &erc20types.QueryTokenPairsResponse{Pagination: &query.PageResponse{}}
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"1 pair registered w/pagination",
-			func() {
+			name: "pass - 1 pair registered w/pagination",
+			malleate: func() {
 				req = &erc20types.QueryTokenPairsRequest{
 					Pagination: &query.PageRequest{Limit: 10, CountTotal: true},
 				}
@@ -42,11 +40,11 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 					TokenPairs: []erc20types.TokenPair{pair},
 				}
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"2 pairs registered wo/pagination",
-			func() {
+			name: "pass - 2 pairs registered wo/pagination",
+			malleate: func() {
 				req = &erc20types.QueryTokenPairsRequest{}
 				pair := erc20types.NewTokenPair(utiltx.GenerateAddress(), "coin", erc20types.OWNER_MODULE)
 				pair2 := erc20types.NewTokenPair(utiltx.GenerateAddress(), "coin2", erc20types.OWNER_MODULE)
@@ -58,11 +56,11 @@ func (suite *KeeperTestSuite) TestTokenPairs() {
 					TokenPairs: []erc20types.TokenPair{pair, pair2},
 				}
 			},
-			true,
+			expPass: true,
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
@@ -91,26 +89,26 @@ func (suite *KeeperTestSuite) TestTokenPair() {
 		expPass  bool
 	}{
 		{
-			"invalid token address",
-			func() {
+			name: "fail - invalid token address",
+			malleate: func() {
 				req = &erc20types.QueryTokenPairRequest{}
 				expRes = &erc20types.QueryTokenPairResponse{}
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"token pair not found",
-			func() {
+			name: "fail - token pair not found",
+			malleate: func() {
 				req = &erc20types.QueryTokenPairRequest{
 					Token: utiltx.GenerateAddress().Hex(),
 				}
 				expRes = &erc20types.QueryTokenPairResponse{}
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"token pair found",
-			func() {
+			name: "pass - token pair found",
+			malleate: func() {
 				addr := utiltx.GenerateAddress()
 				pair := erc20types.NewTokenPair(addr, "coin", erc20types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetTokenPair(suite.ctx, pair)
@@ -122,11 +120,11 @@ func (suite *KeeperTestSuite) TestTokenPair() {
 				}
 				expRes = &erc20types.QueryTokenPairResponse{TokenPair: pair}
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"token pair not found - with erc20 existent",
-			func() {
+			name: "fail - token pair not found - with erc20 existent",
+			malleate: func() {
 				addr := utiltx.GenerateAddress()
 				pair := erc20types.NewTokenPair(addr, "coin", erc20types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetERC20Map(suite.ctx, addr, pair.GetID())
@@ -137,11 +135,11 @@ func (suite *KeeperTestSuite) TestTokenPair() {
 				}
 				expRes = &erc20types.QueryTokenPairResponse{TokenPair: pair}
 			},
-			false,
+			expPass: false,
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()

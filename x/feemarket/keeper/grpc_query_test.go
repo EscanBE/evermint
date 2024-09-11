@@ -12,21 +12,23 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 		expPass bool
 	}{
 		{
-			"pass",
-			true,
+			name:    "pass",
+			expPass: true,
 		},
 	}
 	for _, tc := range testCases {
-		params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
-		exp := &feemarkettypes.QueryParamsResponse{Params: params}
+		suite.Run(tc.name, func() {
+			params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
+			exp := &feemarkettypes.QueryParamsResponse{Params: params}
 
-		res, err := suite.queryClient.Params(suite.ctx.Context(), &feemarkettypes.QueryParamsRequest{})
-		if tc.expPass {
-			suite.Require().Equal(exp, res, tc.name)
-			suite.Require().NoError(err)
-		} else {
-			suite.Require().Error(err)
-		}
+			res, err := suite.queryClient.Params(suite.ctx.Context(), &feemarkettypes.QueryParamsRequest{})
+			if tc.expPass {
+				suite.Require().Equal(exp, res)
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
 
@@ -42,35 +44,37 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 		expPass  bool
 	}{
 		{
-			"pass - default Base Fee",
-			func() {
+			name: "pass - default Base Fee",
+			malleate: func() {
 				initialBaseFee := sdkmath.NewInt(ethparams.InitialBaseFee)
 				expRes = &feemarkettypes.QueryBaseFeeResponse{BaseFee: &initialBaseFee}
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"pass - non-nil Base Fee",
-			func() {
+			name: "pass - non-nil Base Fee",
+			malleate: func() {
 				baseFee := sdkmath.OneInt().BigInt()
 				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, baseFee)
 
 				aux = sdkmath.NewIntFromBigInt(baseFee)
 				expRes = &feemarkettypes.QueryBaseFeeResponse{BaseFee: &aux}
 			},
-			true,
+			expPass: true,
 		},
 	}
 	for _, tc := range testCases {
-		tc.malleate()
+		suite.Run(tc.name, func() {
+			tc.malleate()
 
-		res, err := suite.queryClient.BaseFee(suite.ctx.Context(), &feemarkettypes.QueryBaseFeeRequest{})
-		if tc.expPass {
-			suite.Require().NotNil(res)
-			suite.Require().Equal(expRes, res, tc.name)
-			suite.Require().NoError(err)
-		} else {
-			suite.Require().Error(err)
-		}
+			res, err := suite.queryClient.BaseFee(suite.ctx.Context(), &feemarkettypes.QueryBaseFeeRequest{})
+			if tc.expPass {
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expRes, res)
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }

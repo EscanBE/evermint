@@ -107,15 +107,15 @@ func (suite *TxDataTestSuite) TestToMessageEVM() {
 		expError     bool
 	}{
 		{
-			"empty tx args",
-			evmtypes.TransactionArgs{},
-			uint64(0),
-			nil,
-			false,
+			name:         "pass - empty tx args",
+			txArgs:       evmtypes.TransactionArgs{},
+			globalGasCap: uint64(0),
+			baseFee:      nil,
+			expError:     false,
 		},
 		{
-			"specify gasPrice and (maxFeePerGas or maxPriorityFeePerGas)",
-			evmtypes.TransactionArgs{
+			name: "fail - specify gasPrice and (maxFeePerGas or maxPriorityFeePerGas)",
+			txArgs: evmtypes.TransactionArgs{
 				From:                 &suite.addr,
 				To:                   &suite.addr,
 				Gas:                  &suite.hexUint64,
@@ -129,13 +129,13 @@ func (suite *TxDataTestSuite) TestToMessageEVM() {
 				AccessList:           &ethtypes.AccessList{{Address: suite.addr, StorageKeys: []common.Hash{{0}}}},
 				ChainID:              &suite.hexBigInt,
 			},
-			uint64(0),
-			nil,
-			true,
+			globalGasCap: uint64(0),
+			baseFee:      nil,
+			expError:     true,
 		},
 		{
-			"non-1559 execution, zero gas cap",
-			evmtypes.TransactionArgs{
+			name: "pass - non-1559 execution, zero gas cap",
+			txArgs: evmtypes.TransactionArgs{
 				From:                 &suite.addr,
 				To:                   &suite.addr,
 				Gas:                  &suite.hexUint64,
@@ -149,13 +149,13 @@ func (suite *TxDataTestSuite) TestToMessageEVM() {
 				AccessList:           &ethtypes.AccessList{{Address: suite.addr, StorageKeys: []common.Hash{{0}}}},
 				ChainID:              &suite.hexBigInt,
 			},
-			uint64(0),
-			nil,
-			false,
+			globalGasCap: uint64(0),
+			baseFee:      nil,
+			expError:     false,
 		},
 		{
-			"non-1559 execution, nonzero gas cap",
-			evmtypes.TransactionArgs{
+			name: "pass - non-1559 execution, nonzero gas cap",
+			txArgs: evmtypes.TransactionArgs{
 				From:                 &suite.addr,
 				To:                   &suite.addr,
 				Gas:                  &suite.hexUint64,
@@ -169,13 +169,13 @@ func (suite *TxDataTestSuite) TestToMessageEVM() {
 				AccessList:           &ethtypes.AccessList{{Address: suite.addr, StorageKeys: []common.Hash{{0}}}},
 				ChainID:              &suite.hexBigInt,
 			},
-			uint64(1),
-			nil,
-			false,
+			globalGasCap: uint64(1),
+			baseFee:      nil,
+			expError:     false,
 		},
 		{
-			"1559-type execution, nil gas price",
-			evmtypes.TransactionArgs{
+			name: "pass - 1559-type execution, nil gas price",
+			txArgs: evmtypes.TransactionArgs{
 				From:                 &suite.addr,
 				To:                   &suite.addr,
 				Gas:                  &suite.hexUint64,
@@ -189,13 +189,13 @@ func (suite *TxDataTestSuite) TestToMessageEVM() {
 				AccessList:           &ethtypes.AccessList{{Address: suite.addr, StorageKeys: []common.Hash{{0}}}},
 				ChainID:              &suite.hexBigInt,
 			},
-			uint64(1),
-			suite.bigInt,
-			false,
+			globalGasCap: uint64(1),
+			baseFee:      suite.bigInt,
+			expError:     false,
 		},
 		{
-			"1559-type execution, non-nil gas price",
-			evmtypes.TransactionArgs{
+			name: "pass - 1559-type execution, non-nil gas price",
+			txArgs: evmtypes.TransactionArgs{
 				From:                 &suite.addr,
 				To:                   &suite.addr,
 				Gas:                  &suite.hexUint64,
@@ -209,20 +209,22 @@ func (suite *TxDataTestSuite) TestToMessageEVM() {
 				AccessList:           &ethtypes.AccessList{{Address: suite.addr, StorageKeys: []common.Hash{{0}}}},
 				ChainID:              &suite.hexBigInt,
 			},
-			uint64(1),
-			suite.bigInt,
-			false,
+			globalGasCap: uint64(1),
+			baseFee:      suite.bigInt,
+			expError:     false,
 		},
 	}
 	for _, tc := range testCases {
-		res, err := tc.txArgs.ToMessage(tc.globalGasCap, tc.baseFee)
+		suite.Run(tc.name, func() {
+			res, err := tc.txArgs.ToMessage(tc.globalGasCap, tc.baseFee)
 
-		if tc.expError {
-			suite.Require().NotNil(err)
-		} else {
-			suite.Require().Nil(err)
-			suite.Require().NotNil(res)
-		}
+			if tc.expError {
+				suite.Require().NotNil(err)
+			} else {
+				suite.Require().Nil(err)
+				suite.Require().NotNil(res)
+			}
+		})
 	}
 }
 
@@ -233,21 +235,23 @@ func (suite *TxDataTestSuite) TestGetFrom() {
 		expAddress common.Address
 	}{
 		{
-			"empty from field",
-			evmtypes.TransactionArgs{},
-			common.Address{},
+			name:       "empty from field",
+			txArgs:     evmtypes.TransactionArgs{},
+			expAddress: common.Address{},
 		},
 		{
-			"non-empty from field",
-			evmtypes.TransactionArgs{
+			name: "non-empty from field",
+			txArgs: evmtypes.TransactionArgs{
 				From: &suite.addr,
 			},
-			suite.addr,
+			expAddress: suite.addr,
 		},
 	}
 	for _, tc := range testCases {
-		retrievedAddress := tc.txArgs.GetFrom()
-		suite.Require().Equal(retrievedAddress, tc.expAddress)
+		suite.Run(tc.name, func() {
+			retrievedAddress := tc.txArgs.GetFrom()
+			suite.Require().Equal(retrievedAddress, tc.expAddress)
+		})
 	}
 }
 
@@ -258,32 +262,34 @@ func (suite *TxDataTestSuite) TestGetData() {
 		expectedOutput []byte
 	}{
 		{
-			"empty input and data fields",
-			evmtypes.TransactionArgs{
+			name: "empty input and data fields",
+			txArgs: evmtypes.TransactionArgs{
 				Data:  nil,
 				Input: nil,
 			},
-			nil,
+			expectedOutput: nil,
 		},
 		{
-			"empty input field, non-empty data field",
-			evmtypes.TransactionArgs{
+			name: "empty input field, non-empty data field",
+			txArgs: evmtypes.TransactionArgs{
 				Data:  &suite.hexDataBytes,
 				Input: nil,
 			},
-			[]byte("data"),
+			expectedOutput: []byte("data"),
 		},
 		{
-			"non-empty input and data fields",
-			evmtypes.TransactionArgs{
+			name: "non-empty input and data fields",
+			txArgs: evmtypes.TransactionArgs{
 				Data:  &suite.hexDataBytes,
 				Input: &suite.hexInputBytes,
 			},
-			[]byte("input"),
+			expectedOutput: []byte("input"),
 		},
 	}
 	for _, tc := range testCases {
-		retrievedData := tc.txArgs.GetData()
-		suite.Require().Equal(retrievedData, tc.expectedOutput)
+		suite.Run(tc.name, func() {
+			retrievedData := tc.txArgs.GetData()
+			suite.Require().Equal(retrievedData, tc.expectedOutput)
+		})
 	}
 }

@@ -549,12 +549,12 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasicAdvanced() {
 	}
 
 	testCases := []struct {
-		msg        string
+		name       string
 		msgBuilder func() *evmtypes.MsgEthereumTx
 		expectPass bool
 	}{
 		{
-			msg: "fails - invalid tx hash",
+			name: "fail - invalid tx hash",
 			msgBuilder: func() *evmtypes.MsgEthereumTx {
 				msg := evmtypes.NewTx(evmTx)
 				msg.Hash = "0x00"
@@ -563,7 +563,7 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasicAdvanced() {
 			expectPass: false,
 		},
 		{
-			msg: "fails - invalid size",
+			name: "fail - invalid size",
 			msgBuilder: func() *evmtypes.MsgEthereumTx {
 				msg := evmtypes.NewTx(evmTx)
 				msg.Size_ = 1
@@ -574,7 +574,7 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasicAdvanced() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.msg, func() {
+		suite.Run(tc.name, func() {
 			err := tc.msgBuilder().ValidateBasic()
 			if tc.expectPass {
 				suite.Require().NoError(err)

@@ -1,8 +1,6 @@
 package backend
 
 import (
-	"fmt"
-
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 
 	sdkmath "cosmossdk.io/math"
@@ -47,15 +45,15 @@ func (suite *BackendTestSuite) TestSendTransaction() {
 		expPass      bool
 	}{
 		{
-			"fail - Can't find account in Keyring",
-			func() {},
-			evmtypes.TransactionArgs{},
-			hash,
-			false,
+			name:         "fail - Can't find account in Keyring",
+			registerMock: func() {},
+			args:         evmtypes.TransactionArgs{},
+			expHash:      hash,
+			expPass:      false,
 		},
 		{
-			"fail - Block error can't set Tx defaults",
-			func() {
+			name: "fail - Block error can't set Tx defaults",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				armor := crypto.EncryptArmorPrivKey(priv, "", "eth_secp256k1")
 				err := suite.backend.clientCtx.Keyring.ImportPrivKey("test_key", armor, "")
@@ -65,13 +63,13 @@ func (suite *BackendTestSuite) TestSendTransaction() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
-			callArgsDefault,
-			hash,
-			false,
+			args:    callArgsDefault,
+			expHash: hash,
+			expPass: false,
 		},
 		{
-			"fail - Cannot validate transaction gas set to 0",
-			func() {
+			name: "fail - Cannot validate transaction gas set to 0",
+			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				armor := crypto.EncryptArmorPrivKey(priv, "", "eth_secp256k1")
@@ -87,19 +85,19 @@ func (suite *BackendTestSuite) TestSendTransaction() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
-			evmtypes.TransactionArgs{
+			args: evmtypes.TransactionArgs{
 				From:     &from,
 				To:       &toAddr,
 				GasPrice: gasPrice,
 				Gas:      &zeroGas,
 				Nonce:    &nonce,
 			},
-			hash,
-			false,
+			expHash: hash,
+			expPass: false,
 		},
 		{
-			"fail - Cannot broadcast transaction",
-			func() {
+			name: "fail - Cannot broadcast transaction",
+			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				armor := crypto.EncryptArmorPrivKey(priv, "", "eth_secp256k1")
@@ -117,13 +115,13 @@ func (suite *BackendTestSuite) TestSendTransaction() {
 				txBytes := broadcastTx(suite, callArgsDefault)
 				RegisterBroadcastTxError(client, txBytes)
 			},
-			callArgsDefault,
-			common.Hash{},
-			false,
+			args:    callArgsDefault,
+			expHash: common.Hash{},
+			expPass: false,
 		},
 		{
-			"pass - Return the transaction hash",
-			func() {
+			name: "pass - Return the transaction hash",
+			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				armor := crypto.EncryptArmorPrivKey(priv, "", "eth_secp256k1")
@@ -141,9 +139,9 @@ func (suite *BackendTestSuite) TestSendTransaction() {
 				txBytes := broadcastTx(suite, callArgsDefault)
 				RegisterBroadcastTx(client, txBytes)
 			},
-			callArgsDefault,
-			hash,
-			true,
+			args:    callArgsDefault,
+			expHash: hash,
+			expPass: true,
 		},
 		{
 			name: "fail - when indexer returns error",
@@ -165,7 +163,7 @@ func (suite *BackendTestSuite) TestSendTransaction() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset test and queries
 			tc.registerMock()
 
@@ -200,27 +198,27 @@ func (suite *BackendTestSuite) TestSign() {
 		expPass      bool
 	}{
 		{
-			"fail - can't find key in Keyring",
-			func() {},
-			from,
-			nil,
-			false,
+			name:         "fail - can't find key in Keyring",
+			registerMock: func() {},
+			fromAddr:     from,
+			inputBz:      nil,
+			expPass:      false,
 		},
 		{
-			"pass - sign nil data",
-			func() {
+			name: "pass - sign nil data",
+			registerMock: func() {
 				armor := crypto.EncryptArmorPrivKey(priv, "", "eth_secp256k1")
 				err := suite.backend.clientCtx.Keyring.ImportPrivKey("test_key", armor, "")
 				suite.Require().NoError(err)
 			},
-			from,
-			nil,
-			true,
+			fromAddr: from,
+			inputBz:  nil,
+			expPass:  true,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset test and queries
 			tc.registerMock()
 
@@ -247,28 +245,28 @@ func (suite *BackendTestSuite) TestSignTypedData() {
 		expPass        bool
 	}{
 		{
-			"fail - can't find key in Keyring",
-			func() {},
-			from,
-			apitypes.TypedData{},
-			false,
+			name:           "fail - can't find key in Keyring",
+			registerMock:   func() {},
+			fromAddr:       from,
+			inputTypedData: apitypes.TypedData{},
+			expPass:        false,
 		},
 		{
-			"fail - empty TypeData",
-			func() {
+			name: "fail - empty TypeData",
+			registerMock: func() {
 				armor := crypto.EncryptArmorPrivKey(priv, "", "eth_secp256k1")
 				err := suite.backend.clientCtx.Keyring.ImportPrivKey("test_key", armor, "")
 				suite.Require().NoError(err)
 			},
-			from,
-			apitypes.TypedData{},
-			false,
+			fromAddr:       from,
+			inputTypedData: apitypes.TypedData{},
+			expPass:        false,
 		},
 		// TODO: Generate a TypedData msg
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset test and queries
 			tc.registerMock()
 

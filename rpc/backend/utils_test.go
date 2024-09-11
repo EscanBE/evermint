@@ -1,8 +1,6 @@
 package backend
 
 import (
-	"fmt"
-
 	sdkmath "cosmossdk.io/math"
 
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
@@ -36,23 +34,23 @@ func (suite *BackendTestSuite) TestGetHexProofs() {
 		exp   []string
 	}{
 		{
-			"no proof provided",
-			mookProofs(0, false),
-			defaultRes,
+			name:  "no proof provided",
+			proof: mookProofs(0, false),
+			exp:   defaultRes,
 		},
 		{
-			"no proof data provided",
-			mookProofs(1, false),
-			defaultRes,
+			name:  "no proof data provided",
+			proof: mookProofs(1, false),
+			exp:   defaultRes,
 		},
 		{
-			"valid proof provided",
-			mookProofs(1, true),
-			[]string{"0x0a190a034b4559120556414c55451a0b0801180120012a03000202"},
+			name:  "valid proof provided",
+			proof: mookProofs(1, true),
+			exp:   []string{"0x0a190a034b4559120556414c55451a0b0801180120012a03000202"},
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.Require().Equal(tc.exp, GetHexProofs(tc.proof))
 		})
 	}

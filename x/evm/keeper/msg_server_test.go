@@ -27,8 +27,8 @@ func (suite *KeeperTestSuite) TestEthereumTx() {
 		expErr   bool
 	}{
 		{
-			"Deploy contract tx - insufficient gas",
-			func() {
+			name: "fail - Deploy contract tx - insufficient gas",
+			malleate: func() {
 				msg, err = suite.createContractMsgTx(
 					vmdb.GetNonce(suite.address),
 					signer,
@@ -36,11 +36,11 @@ func (suite *KeeperTestSuite) TestEthereumTx() {
 				)
 				suite.Require().NoError(err)
 			},
-			true,
+			expErr: true,
 		},
 		{
-			"Transfer funds tx",
-			func() {
+			name: "pass - Transfer funds tx",
+			malleate: func() {
 				msg, _, err = newEthMsgTx(
 					vmdb.GetNonce(suite.address),
 					suite.address,
@@ -53,7 +53,7 @@ func (suite *KeeperTestSuite) TestEthereumTx() {
 				suite.Require().NoError(err)
 				expectedGasUsed = ethparams.TxGas
 			},
-			false,
+			expErr: false,
 		},
 	}
 
@@ -98,8 +98,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		suite.Run("MsgUpdateParams", func() {
+		suite.Run(tc.name, func() {
 			_, err := suite.app.EvmKeeper.UpdateParams(suite.ctx, tc.request)
 			if tc.expectErr {
 				suite.Require().Error(err)

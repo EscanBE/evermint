@@ -1,8 +1,6 @@
 package backend
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"cosmossdk.io/log"
@@ -60,10 +58,10 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 		expPass       bool
 	}{
 		{
-			"fail - tx not found",
-			func() {},
-			&cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{}}},
-			[]*abci.ExecTxResult{
+			name:         "fail - tx not found",
+			registerMock: func() {},
+			block:        &cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{}}},
+			responseBlock: []*abci.ExecTxResult{
 				{
 					Code: 0,
 					Events: []abci.Event{
@@ -85,18 +83,18 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 					},
 				},
 			},
-			nil,
-			false,
+			expResult: nil,
+			expPass:   false,
 		},
 		{
-			"fail - block not found",
-			func() {
+			name: "fail - block not found",
+			registerMock: func() {
 				// var header metadata.MD
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterBlockError(client, 1)
 			},
-			&cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
-			[]*abci.ExecTxResult{
+			block: &cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
+			responseBlock: []*abci.ExecTxResult{
 				{
 					Code: 0,
 					Events: []abci.Event{
@@ -118,12 +116,12 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 					},
 				},
 			},
-			map[string]interface{}{"test": "hello"},
-			false,
+			expResult: map[string]interface{}{"test": "hello"},
+			expPass:   false,
 		},
 		{
-			"pass - transaction found in a block with multiple transactions",
-			func() {
+			name: "pass - transaction found in a block with multiple transactions",
+			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				var height int64 = 1
@@ -132,8 +130,8 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 				RegisterTraceTransactionWithPredecessors(queryClient, msgEthereumTx, []*evmtypes.MsgEthereumTx{msgEthereumTx})
 				RegisterConsensusParams(client, height)
 			},
-			&cmttypes.Block{Header: cmttypes.Header{Height: 1, ChainID: ChainID}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz, txBz2}}},
-			[]*abci.ExecTxResult{
+			block: &cmttypes.Block{Header: cmttypes.Header{Height: 1, ChainID: ChainID}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz, txBz2}}},
+			responseBlock: []*abci.ExecTxResult{
 				{
 					Code: 0,
 					Events: []abci.Event{
@@ -175,12 +173,12 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 					},
 				},
 			},
-			map[string]interface{}{"test": "hello"},
-			true,
+			expResult: map[string]interface{}{"test": "hello"},
+			expPass:   true,
 		},
 		{
-			"pass - transaction found",
-			func() {
+			name: "pass - transaction found",
+			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				var height int64 = 1
@@ -189,8 +187,8 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 				RegisterTraceTransaction(queryClient, msgEthereumTx)
 				RegisterConsensusParams(client, height)
 			},
-			&cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
-			[]*abci.ExecTxResult{
+			block: &cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
+			responseBlock: []*abci.ExecTxResult{
 				{
 					Code: 0,
 					Events: []abci.Event{
@@ -212,13 +210,13 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 					},
 				},
 			},
-			map[string]interface{}{"test": "hello"},
-			true,
+			expResult: map[string]interface{}{"test": "hello"},
+			expPass:   true,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset test and queries
 			tc.registerMock()
 
@@ -259,31 +257,31 @@ func (suite *BackendTestSuite) TestTraceBlock() {
 		expPass         bool
 	}{
 		{
-			"pass - no transaction returning empty array",
-			func() {},
-			[]*evmtypes.TxTraceResult{},
-			&resBlockEmpty,
-			&evmtypes.TraceConfig{},
-			true,
+			name:            "pass - no transaction returning empty array",
+			registerMock:    func() {},
+			expTraceResults: []*evmtypes.TxTraceResult{},
+			resBlock:        &resBlockEmpty,
+			config:          &evmtypes.TraceConfig{},
+			expPass:         true,
 		},
 		{
-			"fail - cannot unmarshal data",
-			func() {
+			name: "fail - cannot unmarshal data",
+			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				var height int64 = 1
 				RegisterTraceBlock(queryClient, []*evmtypes.MsgEthereumTx{msgEthTx})
 				RegisterConsensusParams(client, height)
 			},
-			[]*evmtypes.TxTraceResult{},
-			&resBlockFilled,
-			&evmtypes.TraceConfig{},
-			false,
+			expTraceResults: []*evmtypes.TxTraceResult{},
+			resBlock:        &resBlockFilled,
+			config:          &evmtypes.TraceConfig{},
+			expPass:         false,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset test and queries
 			tc.registerMock()
 

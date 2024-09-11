@@ -4,10 +4,11 @@ import (
 	"strings"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/EscanBE/evermint/v12/constants"
 
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/require"
 )
@@ -19,36 +20,133 @@ func TestSanitizeERC20Name(t *testing.T) {
 		expErc20Name string
 		expectPass   bool
 	}{
-		{"name contains 'Special Characters'", "*Special _ []{}||*¼^%  &Token", "SpecialToken", true},
-		{"name contains 'Special Numbers'", "*20", "20", false},
-		{"name contains 'Spaces'", "   Spaces   Token", "SpacesToken", true},
-		{"name contains 'Leading Numbers'", "12313213  Number     Coin", "NumberCoin", true},
-		{"name contains 'Numbers in the middle'", "  Other    Erc20 Coin ", "OtherErc20Coin", true},
-		{"name contains '/'", "USD/Coin", "USD/Coin", true},
-		{"name contains '/'", "/SlashCoin", "SlashCoin", true},
-		{"name contains '/'", "O/letter", "O/letter", true},
-		{"name contains '/'", "Ot/2letters", "Ot/2letters", true},
-		{"name contains '/'", "ibc/valid", "valid", true},
-		{"name contains '/'", "erc20/valid", "valid", true},
-		{"name contains '/'", "ibc/erc20/valid", "valid", true},
-		{"name contains '/'", "ibc/erc20/ibc/valid", "valid", true},
-		{"name contains '/'", "ibc/erc20/ibc/20invalid", "20invalid", false},
-		{"name contains '/'", "123/leadingslash", "leadingslash", true},
-		{"name contains '-'", "Dash-Coin", "Dash-Coin", true},
-		{"really long word", strings.Repeat("a", 150), strings.Repeat("a", 128), true},
-		{"single word name: Token", "Token", "Token", true},
-		{"single word name: Coin", "Coin", "Coin", true},
+		{
+			name:         "pass - name contains 'Special Characters'",
+			erc20Name:    "*Special _ []{}||*¼^%  &Token",
+			expErc20Name: "SpecialToken",
+			expectPass:   true,
+		},
+		{
+			name:         "fail - name contains 'Special Numbers'",
+			erc20Name:    "*20",
+			expErc20Name: "20",
+			expectPass:   false,
+		},
+		{
+			name:         "pass - name contains 'Spaces'",
+			erc20Name:    "   Spaces   Token",
+			expErc20Name: "SpacesToken",
+			expectPass:   true,
+		},
+		{
+			name:         "pass - name contains 'Leading Numbers'",
+			erc20Name:    "12313213  Number     Coin",
+			expErc20Name: "NumberCoin",
+			expectPass:   true,
+		},
+		{
+			name:         "pass - name contains 'Numbers in the middle'",
+			erc20Name:    "  Other    Erc20 Coin ",
+			expErc20Name: "OtherErc20Coin",
+			expectPass:   true,
+		},
+		{
+			name:         "pass - name contains '/'",
+			erc20Name:    "USD/Coin",
+			expErc20Name: "USD/Coin",
+			expectPass:   true,
+		},
+		{
+			name:         "pass - name contains '/'",
+			erc20Name:    "/SlashCoin",
+			expErc20Name: "SlashCoin",
+			expectPass:   true,
+		},
+		{
+			name:         "pass - name contains '/'",
+			erc20Name:    "O/letter",
+			expErc20Name: "O/letter",
+			expectPass:   true,
+		},
+		{
+			name:         "pass - name contains '/'",
+			erc20Name:    "Ot/2letters",
+			expErc20Name: "Ot/2letters",
+			expectPass:   true,
+		},
+		{
+			name:         "pass - name contains '/'",
+			erc20Name:    "ibc/valid",
+			expErc20Name: "valid",
+			expectPass:   true,
+		},
+		{
+			name:         "pass - name contains '/'",
+			erc20Name:    "erc20/valid",
+			expErc20Name: "valid",
+			expectPass:   true,
+		},
+		{
+			name:         "pass - name contains '/'",
+			erc20Name:    "ibc/erc20/valid",
+			expErc20Name: "valid",
+			expectPass:   true,
+		},
+		{
+			name:         "pass - name contains '/'",
+			erc20Name:    "ibc/erc20/ibc/valid",
+			expErc20Name: "valid",
+			expectPass:   true,
+		},
+		{
+			name:         "fail - name contains '/'",
+			erc20Name:    "ibc/erc20/ibc/20invalid",
+			expErc20Name: "20invalid",
+			expectPass:   false,
+		},
+		{
+			name:         "pass - name contains '/'",
+			erc20Name:    "123/leadingslash",
+			expErc20Name: "leadingslash",
+			expectPass:   true,
+		},
+		{
+			name:         "pass - name contains '-'",
+			erc20Name:    "Dash-Coin",
+			expErc20Name: "Dash-Coin",
+			expectPass:   true,
+		},
+		{
+			name:         "pass - really long word",
+			erc20Name:    strings.Repeat("a", 150),
+			expErc20Name: strings.Repeat("a", 128),
+			expectPass:   true,
+		},
+		{
+			name:         "pass - single word name: Token",
+			erc20Name:    "Token",
+			expErc20Name: "Token",
+			expectPass:   true,
+		},
+		{
+			name:         "pass - single word name: Coin",
+			erc20Name:    "Coin",
+			expErc20Name: "Coin",
+			expectPass:   true,
+		},
 	}
 
 	for _, tc := range testCases {
-		name := erc20types.SanitizeERC20Name(tc.erc20Name)
-		require.Equal(t, tc.expErc20Name, name, tc.name)
-		err := sdk.ValidateDenom(name)
-		if tc.expectPass {
-			require.NoError(t, err)
-		} else {
-			require.Error(t, err)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			name := erc20types.SanitizeERC20Name(tc.erc20Name)
+			require.Equal(t, tc.expErc20Name, name, tc.name)
+			err := sdk.ValidateDenom(name)
+			if tc.expectPass {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		})
 	}
 }
 
@@ -79,25 +177,25 @@ func TestEqualMetadata(t *testing.T) {
 		expError  bool
 	}{
 		{
-			"equal metadata",
-			validMetadata,
-			validMetadata,
-			false,
+			name:      "pass - equal metadata",
+			metadataA: validMetadata,
+			metadataB: validMetadata,
+			expError:  false,
 		},
 		{
-			"different base field",
-			banktypes.Metadata{
+			name: "fail - different base field",
+			metadataA: banktypes.Metadata{
 				Base: constants.BaseDenom,
 			},
-			banktypes.Metadata{
+			metadataB: banktypes.Metadata{
 				Base: "t" + constants.BaseDenom,
 			},
-			true,
+			expError: true,
 		},
 		{
-			"different denom units length",
-			validMetadata,
-			banktypes.Metadata{
+			name:      "fail - different denom units length",
+			metadataA: validMetadata,
+			metadataB: banktypes.Metadata{
 				Base:        constants.BaseDenom,
 				Display:     constants.DisplayDenom,
 				Name:        "Ether",
@@ -111,11 +209,11 @@ func TestEqualMetadata(t *testing.T) {
 					},
 				},
 			},
-			true,
+			expError: true,
 		},
 		{
-			"different denom units",
-			banktypes.Metadata{
+			name: "fail - different denom units",
+			metadataA: banktypes.Metadata{
 				Base:        constants.BaseDenom,
 				Display:     constants.DisplayDenom,
 				Name:        "Ether",
@@ -138,7 +236,7 @@ func TestEqualMetadata(t *testing.T) {
 					},
 				},
 			},
-			banktypes.Metadata{
+			metadataB: banktypes.Metadata{
 				Base:        constants.BaseDenom,
 				Display:     constants.DisplayDenom,
 				Name:        "Ether",
@@ -161,17 +259,19 @@ func TestEqualMetadata(t *testing.T) {
 					},
 				},
 			},
-			true,
+			expError: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		err := erc20types.EqualMetadata(tc.metadataA, tc.metadataB)
-		if tc.expError {
-			require.Error(t, err)
-		} else {
-			require.NoError(t, err)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			err := erc20types.EqualMetadata(tc.metadataA, tc.metadataB)
+			if tc.expError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
 	}
 }
 
@@ -183,38 +283,41 @@ func TestEqualAliases(t *testing.T) {
 		expEqual bool
 	}{
 		{
-			"empty",
-			[]string{},
-			[]string{},
-			true,
+			name:     "empty",
+			aliasesA: []string{},
+			aliasesB: []string{},
+			expEqual: true,
 		},
 		{
-			"different lengths",
-			[]string{},
-			[]string{"micro wei"},
-			false,
+			name:     "different lengths",
+			aliasesA: []string{},
+			aliasesB: []string{"micro wei"},
+			expEqual: false,
 		},
 		{
-			"different values",
-			[]string{"microwei"},
-			[]string{"micro wei"},
-			false,
+			name:     "different values",
+			aliasesA: []string{"microwei"},
+			aliasesB: []string{"micro wei"},
+			expEqual: false,
 		},
 		{
-			"same values, unsorted",
-			[]string{"micro wei", constants.BaseDenom},
-			[]string{constants.BaseDenom, "micro wei"},
-			false,
+			name:     "same values, unsorted",
+			aliasesA: []string{"micro wei", constants.BaseDenom},
+			aliasesB: []string{constants.BaseDenom, "micro wei"},
+			expEqual: false,
 		},
 		{
-			"same values, sorted",
-			[]string{constants.BaseDenom, "micro wei"},
-			[]string{constants.BaseDenom, "micro wei"},
-			true,
+			name:     "same values, sorted",
+			aliasesA: []string{constants.BaseDenom, "micro wei"},
+			aliasesB: []string{constants.BaseDenom, "micro wei"},
+			expEqual: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expEqual, erc20types.EqualStringSlice(tc.aliasesA, tc.aliasesB), tc.name)
+		t.Run(tc.name, func(t *testing.T) {
+			gotEqual := erc20types.EqualStringSlice(tc.aliasesA, tc.aliasesB)
+			require.Equal(t, tc.expEqual, gotEqual)
+		})
 	}
 }

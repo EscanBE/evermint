@@ -357,135 +357,145 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 		postCheck   func(ctx sdk.Context)
 	}{
 		{
-			"fail - invalid transaction type",
-			&testutiltx.InvalidTx{},
-			math.MaxUint64,
-			func(ctx sdk.Context) sdk.Context { return ctx },
-			false,
-			true,
-			0,
-			func(ctx sdk.Context) {},
+			name:        "fail - invalid transaction type",
+			tx:          &testutiltx.InvalidTx{},
+			gasLimit:    math.MaxUint64,
+			malleate:    func(ctx sdk.Context) sdk.Context { return ctx },
+			expPass:     false,
+			expPanic:    true,
+			expPriority: 0,
+			postCheck:   func(ctx sdk.Context) {},
 		},
 		{
-			"fail - sender not found",
-			evmtypes.NewTx(&evmtypes.EvmTxArgs{
+			name: "fail - sender not found",
+			tx: evmtypes.NewTx(&evmtypes.EvmTxArgs{
 				ChainID:  chainID,
 				Nonce:    1,
 				Amount:   big.NewInt(10),
 				GasLimit: 1000,
 				GasPrice: big.NewInt(1),
 			}),
-			math.MaxUint64,
-			func(ctx sdk.Context) sdk.Context { return ctx },
-			false, false,
-			0,
-			func(ctx sdk.Context) {},
+			gasLimit:    math.MaxUint64,
+			malleate:    func(ctx sdk.Context) sdk.Context { return ctx },
+			expPass:     false,
+			expPanic:    false,
+			expPriority: 0,
+			postCheck:   func(ctx sdk.Context) {},
 		},
 		{
-			"fail - gas limit too low",
-			tx,
-			math.MaxUint64,
-			func(ctx sdk.Context) sdk.Context { return ctx },
-			false, false,
-			0,
-			func(ctx sdk.Context) {},
+			name:        "fail - gas limit too low",
+			tx:          tx,
+			gasLimit:    math.MaxUint64,
+			malleate:    func(ctx sdk.Context) sdk.Context { return ctx },
+			expPass:     false,
+			expPanic:    false,
+			expPriority: 0,
+			postCheck:   func(ctx sdk.Context) {},
 		},
 		{
-			"fail - gas limit above block gas limit",
-			tx3,
-			math.MaxUint64,
-			func(ctx sdk.Context) sdk.Context { return ctx },
-			false, false,
-			0,
-			func(ctx sdk.Context) {},
+			name:        "fail - gas limit above block gas limit",
+			tx:          tx3,
+			gasLimit:    math.MaxUint64,
+			malleate:    func(ctx sdk.Context) sdk.Context { return ctx },
+			expPass:     false,
+			expPanic:    false,
+			expPriority: 0,
+			postCheck:   func(ctx sdk.Context) {},
 		},
 		{
-			"fail - not enough balance for fees",
-			tx2,
-			math.MaxUint64,
-			func(ctx sdk.Context) sdk.Context { return ctx },
-			false, false,
-			0,
-			func(ctx sdk.Context) {},
+			name:        "fail - not enough balance for fees",
+			tx:          tx2,
+			gasLimit:    math.MaxUint64,
+			malleate:    func(ctx sdk.Context) sdk.Context { return ctx },
+			expPass:     false,
+			expPanic:    false,
+			expPriority: 0,
+			postCheck:   func(ctx sdk.Context) {},
 		},
 		{
-			"fail - not enough tx gas",
-			tx2,
-			0,
-			func(ctx sdk.Context) sdk.Context {
+			name:     "fail - not enough tx gas",
+			tx:       tx2,
+			gasLimit: 0,
+			malleate: func(ctx sdk.Context) sdk.Context {
 				vmdb.AddBalance(addr, big.NewInt(1e6))
 				return ctx
 			},
-			false, true,
-			0,
-			func(ctx sdk.Context) {},
+			expPass:     false,
+			expPanic:    true,
+			expPriority: 0,
+			postCheck:   func(ctx sdk.Context) {},
 		},
 		{
-			"fail - not enough block gas",
-			tx2,
-			0,
-			func(ctx sdk.Context) sdk.Context {
+			name:     "fail - not enough block gas",
+			tx:       tx2,
+			gasLimit: 0,
+			malleate: func(ctx sdk.Context) sdk.Context {
 				vmdb.AddBalance(addr, big.NewInt(1e6))
 				return ctx.WithBlockGasMeter(storetypes.NewGasMeter(1))
 			},
-			false, true,
-			0,
-			func(ctx sdk.Context) {},
+			expPass:     false,
+			expPanic:    true,
+			expPriority: 0,
+			postCheck:   func(ctx sdk.Context) {},
 		},
 		{
-			"pass - legacy tx",
-			tx2,
-			tx2GasLimit, // it's capped
-			func(ctx sdk.Context) sdk.Context {
+			name:     "pass - legacy tx",
+			tx:       tx2,
+			gasLimit: tx2GasLimit, // it's capped
+			malleate: func(ctx sdk.Context) sdk.Context {
 				vmdb.AddBalance(addr, big.NewInt(1e16))
 				return ctx.WithBlockGasMeter(storetypes.NewGasMeter(1e19))
 			},
-			true, false,
-			tx2Priority,
-			func(ctx sdk.Context) {},
+			expPass:     true,
+			expPanic:    false,
+			expPriority: tx2Priority,
+			postCheck:   func(ctx sdk.Context) {},
 		},
 		{
-			"pass - dynamic fee tx",
-			dynamicFeeTx,
-			tx2GasLimit, // it's capped
-			func(ctx sdk.Context) sdk.Context {
+			name:     "pass - dynamic fee tx",
+			tx:       dynamicFeeTx,
+			gasLimit: tx2GasLimit, // it's capped
+			malleate: func(ctx sdk.Context) sdk.Context {
 				vmdb.AddBalance(addr, big.NewInt(1e16))
 				return ctx.WithBlockGasMeter(storetypes.NewGasMeter(1e19))
 			},
-			true, false,
-			dynamicFeeTxPriority,
-			func(ctx sdk.Context) {},
+			expPass:     true,
+			expPanic:    false,
+			expPriority: dynamicFeeTxPriority,
+			postCheck:   func(ctx sdk.Context) {},
 		},
 		{
-			"pass - gas limit on gasMeter is set on ReCheckTx mode",
-			dynamicFeeTx,
-			0, // for reCheckTX mode, gas limit should be set to 0
-			func(ctx sdk.Context) sdk.Context {
+			name:     "pass - gas limit on gasMeter is set on ReCheckTx mode",
+			tx:       dynamicFeeTx, // for reCheckTX mode, gas limit should be set to 0
+			gasLimit: 0,
+			malleate: func(ctx sdk.Context) sdk.Context {
 				vmdb.AddBalance(addr, big.NewInt(1e15))
 				return ctx.WithIsReCheckTx(true)
 			},
-			true, false,
-			0,
-			func(ctx sdk.Context) {},
+			expPass:     true,
+			expPanic:    false,
+			expPriority: 0,
+			postCheck:   func(ctx sdk.Context) {},
 		},
 		{
-			"fail - legacy tx - insufficient funds",
-			tx2,
-			math.MaxUint64,
-			func(ctx sdk.Context) sdk.Context {
+			name:     "fail - legacy tx - insufficient funds",
+			tx:       tx2,
+			gasLimit: math.MaxUint64,
+			malleate: func(ctx sdk.Context) sdk.Context {
 				return ctx.
 					WithBlockGasMeter(storetypes.NewGasMeter(1e19)).
 					WithBlockHeight(ctx.BlockHeight() + 1)
 			},
-			false, false,
-			tx2Priority,
-			func(ctx sdk.Context) {},
+			expPass:     false,
+			expPanic:    false,
+			expPriority: tx2Priority,
+			postCheck:   func(ctx sdk.Context) {},
 		},
 		{
-			"pass - legacy tx - enough funds",
-			tx2,
-			tx2GasLimit, // it's capped
-			func(ctx sdk.Context) sdk.Context {
+			name:     "pass - legacy tx - enough funds",
+			tx:       tx2,
+			gasLimit: tx2GasLimit, // it's capped
+			malleate: func(ctx sdk.Context) sdk.Context {
 				err := testutil.FundAccountWithBaseDenom(
 					ctx, suite.app.BankKeeper, addr.Bytes(), 1e16,
 				)
@@ -494,9 +504,10 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 					WithBlockGasMeter(storetypes.NewGasMeter(1e19)).
 					WithBlockHeight(ctx.BlockHeight() + 1)
 			},
-			true, false,
-			tx2Priority,
-			func(ctx sdk.Context) {
+			expPass:     true,
+			expPanic:    false,
+			expPriority: tx2Priority,
+			postCheck: func(ctx sdk.Context) {
 				balance := suite.app.BankKeeper.GetBalance(ctx, sdk.AccAddress(addr.Bytes()), constants.BaseDenom)
 				suite.Require().True(
 					balance.Amount.LT(sdkmath.NewInt(1e16)),

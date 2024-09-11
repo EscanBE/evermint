@@ -14,24 +14,30 @@ func TestTxData_chainID(t *testing.T) {
 	chainID := sdkmath.NewInt(1)
 
 	testCases := []struct {
-		msg        string
+		name       string
 		data       TxData
 		expChainID *big.Int
 	}{
 		{
-			"access list tx", &AccessListTx{Accesses: AccessList{}, ChainID: &chainID}, big.NewInt(1),
+			name:       "access list tx",
+			data:       &AccessListTx{Accesses: AccessList{}, ChainID: &chainID},
+			expChainID: big.NewInt(1),
 		},
 		{
-			"access list tx, nil chain ID", &AccessListTx{Accesses: AccessList{}}, nil,
+			name: "access list tx, nil chain ID",
+			data: &AccessListTx{Accesses: AccessList{}},
 		},
 		{
-			"legacy tx, derived", &LegacyTx{}, nil,
+			name: "legacy tx, derived",
+			data: &LegacyTx{},
 		},
 	}
 
 	for _, tc := range testCases {
-		chainID := tc.data.GetChainID()
-		require.Equal(t, chainID, tc.expChainID, tc.msg)
+		t.Run(tc.name, func(t *testing.T) {
+			chainID := tc.data.GetChainID()
+			require.Equal(t, chainID, tc.expChainID)
+		})
 	}
 }
 
@@ -46,52 +52,78 @@ func TestTxData_DeriveChainID(t *testing.T) {
 	require.True(t, ok)
 
 	testCases := []struct {
-		msg        string
+		name       string
 		data       TxData
 		expChainID *big.Int
 	}{
 		{
-			"v = -1", &LegacyTx{V: big.NewInt(-1).Bytes()}, nil,
+			name:       "v = -1",
+			data:       &LegacyTx{V: big.NewInt(-1).Bytes()},
+			expChainID: nil,
 		},
 		{
-			"v = 0", &LegacyTx{V: big.NewInt(0).Bytes()}, nil,
+			name:       "v = 0",
+			data:       &LegacyTx{V: big.NewInt(0).Bytes()},
+			expChainID: nil,
 		},
 		{
-			"v = 1", &LegacyTx{V: big.NewInt(1).Bytes()}, nil,
+			name:       "v = 1",
+			data:       &LegacyTx{V: big.NewInt(1).Bytes()},
+			expChainID: nil,
 		},
 		{
-			"v = 27", &LegacyTx{V: big.NewInt(27).Bytes()}, new(big.Int),
+			name:       "v = 27",
+			data:       &LegacyTx{V: big.NewInt(27).Bytes()},
+			expChainID: new(big.Int),
 		},
 		{
-			"v = 28", &LegacyTx{V: big.NewInt(28).Bytes()}, new(big.Int),
+			name:       "v = 28",
+			data:       &LegacyTx{V: big.NewInt(28).Bytes()},
+			expChainID: new(big.Int),
 		},
 		{
-			"Ethereum mainnet", &LegacyTx{V: big.NewInt(37).Bytes()}, big.NewInt(1),
+			name:       "Ethereum mainnet",
+			data:       &LegacyTx{V: big.NewInt(37).Bytes()},
+			expChainID: big.NewInt(1),
 		},
 		{
-			"Mainnet chain ID", &LegacyTx{V: big.NewInt(constants.MainnetEIP155ChainId*2 + 35).Bytes()}, big.NewInt(constants.MainnetEIP155ChainId),
+			name:       "Mainnet chain ID",
+			data:       &LegacyTx{V: big.NewInt(constants.MainnetEIP155ChainId*2 + 35).Bytes()},
+			expChainID: big.NewInt(constants.MainnetEIP155ChainId),
 		},
 		{
-			"Testnet chain ID", &LegacyTx{V: big.NewInt(constants.TestnetEIP155ChainId*2 + 35).Bytes()}, big.NewInt(constants.TestnetEIP155ChainId),
+			name:       "Testnet chain ID",
+			data:       &LegacyTx{V: big.NewInt(constants.TestnetEIP155ChainId*2 + 35).Bytes()},
+			expChainID: big.NewInt(constants.TestnetEIP155ChainId),
 		},
 		{
-			"Devnet chain ID", &LegacyTx{V: big.NewInt(constants.DevnetEIP155ChainId*2 + 35).Bytes()}, big.NewInt(constants.DevnetEIP155ChainId),
+			name:       "Devnet chain ID",
+			data:       &LegacyTx{V: big.NewInt(constants.DevnetEIP155ChainId*2 + 35).Bytes()},
+			expChainID: big.NewInt(constants.DevnetEIP155ChainId),
 		},
 		{
-			"bit len 64", &LegacyTx{V: bitLen64.Bytes()}, big.NewInt(4611686018427387886),
+			name:       "bit len 64",
+			data:       &LegacyTx{V: bitLen64.Bytes()},
+			expChainID: big.NewInt(4611686018427387886),
 		},
 		{
-			"bit len 80", &LegacyTx{V: bitLen80.Bytes()}, expBitLen80,
+			name:       "bit len 80",
+			data:       &LegacyTx{V: bitLen80.Bytes()},
+			expChainID: expBitLen80,
 		},
 		{
-			"v = nil ", &LegacyTx{V: nil}, nil,
+			name:       "v = nil",
+			data:       &LegacyTx{V: nil},
+			expChainID: nil,
 		},
 	}
 
 	for _, tc := range testCases {
-		v, _, _ := tc.data.GetRawSignatureValues()
+		t.Run(tc.name, func(t *testing.T) {
+			v, _, _ := tc.data.GetRawSignatureValues()
 
-		chainID := DeriveChainID(v)
-		require.Equal(t, tc.expChainID, chainID, tc.msg)
+			chainID := DeriveChainID(v)
+			require.Equal(t, tc.expChainID, chainID)
+		})
 	}
 }

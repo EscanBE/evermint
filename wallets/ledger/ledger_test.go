@@ -34,9 +34,9 @@ func (suite *LedgerTestSuite) TestEvermintLedgerDerivation() {
 		expPass  bool
 	}{
 		{
-			"fail - no hardware wallets detected",
-			func() {},
-			false,
+			name:     "fail - no hardware wallets detected",
+			mockFunc: func() {},
+			expPass:  false,
 		},
 	}
 
@@ -61,18 +61,18 @@ func (suite *LedgerTestSuite) TestClose() {
 		expPass  bool
 	}{
 		{
-			"fail - can't find Ledger device",
-			func() {
+			name: "fail - can't find Ledger device",
+			mockFunc: func() {
 				suite.ledger.PrimaryWallet = nil
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"pass - wallet closed successfully",
-			func() {
+			name: "pass - wallet closed successfully",
+			mockFunc: func() {
 				RegisterClose(suite.mockWallet)
 			},
-			true,
+			expPass: true,
 		},
 	}
 
@@ -106,51 +106,51 @@ func (suite *LedgerTestSuite) TestSignatures() {
 		expPass  bool
 	}{
 		{
-			"fail - can't find Ledger device",
-			suite.txAmino,
-			func() {
+			name: "fail - can't find Ledger device",
+			tx:   suite.txAmino,
+			mockFunc: func() {
 				suite.ledger.PrimaryWallet = nil
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"fail - unable to derive Ledger address",
-			suite.txAmino,
-			func() {
+			name: "fail - unable to derive Ledger address",
+			tx:   suite.txAmino,
+			mockFunc: func() {
 				RegisterOpen(suite.mockWallet)
 				RegisterDeriveError(suite.mockWallet)
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"fail - error generating signature",
-			suite.txAmino,
-			func() {
+			name: "fail - error generating signature",
+			tx:   suite.txAmino,
+			mockFunc: func() {
 				RegisterOpen(suite.mockWallet)
 				RegisterDerive(suite.mockWallet, addr, &privKey.PublicKey)
 				RegisterSignTypedDataError(suite.mockWallet, account, suite.txAmino)
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"pass - test ledger amino signature",
-			suite.txAmino,
-			func() {
+			name: "pass - test ledger amino signature",
+			tx:   suite.txAmino,
+			mockFunc: func() {
 				RegisterOpen(suite.mockWallet)
 				RegisterDerive(suite.mockWallet, addr, &privKey.PublicKey)
 				RegisterSignTypedData(suite.mockWallet, account, suite.txAmino)
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"pass - test ledger protobuf signature",
-			suite.txProtobuf,
-			func() {
+			name: "pass - test ledger protobuf signature",
+			tx:   suite.txProtobuf,
+			mockFunc: func() {
 				RegisterOpen(suite.mockWallet)
 				RegisterDerive(suite.mockWallet, addr, &privKey.PublicKey)
 				RegisterSignTypedData(suite.mockWallet, account, suite.txProtobuf)
 			},
-			true,
+			expPass: true,
 		},
 	}
 
@@ -185,16 +185,16 @@ func (suite *LedgerTestSuite) TestSignatureEquivalence() {
 		expPass    bool
 	}{
 		{
-			"pass - signatures are equivalent",
-			suite.txProtobuf,
-			suite.txAmino,
-			func() {
+			name:       "pass - signatures are equivalent",
+			txProtobuf: suite.txProtobuf,
+			txAmino:    suite.txAmino,
+			mockFunc: func() {
 				RegisterOpen(suite.mockWallet)
 				RegisterDerive(suite.mockWallet, addr, &privKey.PublicKey)
 				RegisterSignTypedData(suite.mockWallet, account, suite.txProtobuf)
 				RegisterSignTypedData(suite.mockWallet, account, suite.txAmino)
 			},
-			true,
+			expPass: true,
 		},
 	}
 
@@ -229,33 +229,33 @@ func (suite *LedgerTestSuite) TestGetAddressPubKeySECP256K1() {
 		mockFunc func()
 	}{
 		{
-			"fail - can't find Ledger device",
-			false,
-			func() {
+			name:    "fail - can't find Ledger device",
+			expPass: false,
+			mockFunc: func() {
 				suite.ledger.PrimaryWallet = nil
 			},
 		},
 		{
-			"fail - unable to derive Ledger address",
-			false,
-			func() {
+			name:    "fail - unable to derive Ledger address",
+			expPass: false,
+			mockFunc: func() {
 				RegisterOpen(suite.mockWallet)
 				RegisterDeriveError(suite.mockWallet)
 			},
 		},
 		{
-			"fail - bech32 prefix empty",
-			false,
-			func() {
+			name:    "fail - bech32 prefix empty",
+			expPass: false,
+			mockFunc: func() {
 				suite.hrp = ""
 				RegisterOpen(suite.mockWallet)
 				RegisterDerive(suite.mockWallet, addr, &privKey.PublicKey)
 			},
 		},
 		{
-			"pass - get ledger address",
-			true,
-			func() {
+			name:    "pass - get ledger address",
+			expPass: true,
+			mockFunc: func() {
 				RegisterOpen(suite.mockWallet)
 				RegisterDerive(suite.mockWallet, addr, &privKey.PublicKey)
 			},
@@ -288,24 +288,24 @@ func (suite *LedgerTestSuite) TestGetPublicKeySECP256K1() {
 		mockFunc func()
 	}{
 		{
-			"fail - can't find Ledger device",
-			false,
-			func() {
+			name:    "fail - can't find Ledger device",
+			expPass: false,
+			mockFunc: func() {
 				suite.ledger.PrimaryWallet = nil
 			},
 		},
 		{
-			"fail - unable to derive Ledger address",
-			false,
-			func() {
+			name:    "fail - unable to derive Ledger address",
+			expPass: false,
+			mockFunc: func() {
 				RegisterOpen(suite.mockWallet)
 				RegisterDeriveError(suite.mockWallet)
 			},
 		},
 		{
-			"pass - get ledger public key",
-			true,
-			func() {
+			name:    "pass - get ledger public key",
+			expPass: true,
+			mockFunc: func() {
 				RegisterOpen(suite.mockWallet)
 				RegisterDerive(suite.mockWallet, addr, &privKey.PublicKey)
 			},

@@ -37,6 +37,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Cosmos-SDK v0.50
 
+### Improvement
+
+- (test) [#150](https://github.com/EscanBE/evermint/pull/150) Improve readability for test
+
 ### API Breaking
 
 - (evm) [#149](https://github.com/EscanBE/evermint/pull/149) Improve how block bloom emitted and include bloom to block returned by subscription to filter system

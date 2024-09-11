@@ -22,10 +22,14 @@ func TestChainConfigValidate(t *testing.T) {
 		config   ChainConfig
 		expError bool
 	}{
-		{"default", DefaultChainConfig(), false},
 		{
-			"valid",
-			ChainConfig{
+			name:     "pass - default",
+			config:   DefaultChainConfig(),
+			expError: false,
+		},
+		{
+			name: "pass - valid",
+			config: ChainConfig{
 				HomesteadBlock:      newIntPtr(0),
 				DAOForkBlock:        newIntPtr(0),
 				EIP150Block:         newIntPtr(0),
@@ -42,11 +46,11 @@ func TestChainConfigValidate(t *testing.T) {
 				CancunBlock:         newIntPtr(0),
 				ShanghaiBlock:       newIntPtr(0),
 			},
-			false,
+			expError: false,
 		},
 		{
-			"valid with nil values",
-			ChainConfig{
+			name: "pass - valid with nil values",
+			config: ChainConfig{
 				HomesteadBlock:      nil,
 				DAOForkBlock:        nil,
 				EIP150Block:         nil,
@@ -63,61 +67,61 @@ func TestChainConfigValidate(t *testing.T) {
 				CancunBlock:         nil,
 				ShanghaiBlock:       nil,
 			},
-			false,
+			expError: false,
 		},
 		{
-			"empty",
-			ChainConfig{},
-			false,
+			name:     "pass - empty",
+			config:   ChainConfig{},
+			expError: false,
 		},
 		{
-			"invalid HomesteadBlock",
-			ChainConfig{
+			name: "fail - invalid HomesteadBlock",
+			config: ChainConfig{
 				HomesteadBlock: newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid DAOForkBlock",
-			ChainConfig{
+			name: "fail - invalid DAOForkBlock",
+			config: ChainConfig{
 				HomesteadBlock: newIntPtr(0),
 				DAOForkBlock:   newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid EIP150Block",
-			ChainConfig{
+			name: "fail - invalid EIP150Block",
+			config: ChainConfig{
 				HomesteadBlock: newIntPtr(0),
 				DAOForkBlock:   newIntPtr(0),
 				EIP150Block:    newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid EIP150Hash",
-			ChainConfig{
+			name: "fail - invalid EIP150Hash",
+			config: ChainConfig{
 				HomesteadBlock: newIntPtr(0),
 				DAOForkBlock:   newIntPtr(0),
 				EIP150Block:    newIntPtr(0),
 				EIP150Hash:     "  ",
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid EIP155Block",
-			ChainConfig{
+			name: "fail - invalid EIP155Block",
+			config: ChainConfig{
 				HomesteadBlock: newIntPtr(0),
 				DAOForkBlock:   newIntPtr(0),
 				EIP150Block:    newIntPtr(0),
 				EIP150Hash:     defaultEIP150Hash,
 				EIP155Block:    newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid EIP158Block",
-			ChainConfig{
+			name: "fail - invalid EIP158Block",
+			config: ChainConfig{
 				HomesteadBlock: newIntPtr(0),
 				DAOForkBlock:   newIntPtr(0),
 				EIP150Block:    newIntPtr(0),
@@ -125,11 +129,11 @@ func TestChainConfigValidate(t *testing.T) {
 				EIP155Block:    newIntPtr(0),
 				EIP158Block:    newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid ByzantiumBlock",
-			ChainConfig{
+			name: "fail - invalid ByzantiumBlock",
+			config: ChainConfig{
 				HomesteadBlock: newIntPtr(0),
 				DAOForkBlock:   newIntPtr(0),
 				EIP150Block:    newIntPtr(0),
@@ -138,11 +142,11 @@ func TestChainConfigValidate(t *testing.T) {
 				EIP158Block:    newIntPtr(0),
 				ByzantiumBlock: newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid ConstantinopleBlock",
-			ChainConfig{
+			name: "fail - invalid ConstantinopleBlock",
+			config: ChainConfig{
 				HomesteadBlock:      newIntPtr(0),
 				DAOForkBlock:        newIntPtr(0),
 				EIP150Block:         newIntPtr(0),
@@ -152,11 +156,11 @@ func TestChainConfigValidate(t *testing.T) {
 				ByzantiumBlock:      newIntPtr(0),
 				ConstantinopleBlock: newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid PetersburgBlock",
-			ChainConfig{
+			name: "fail - invalid PetersburgBlock",
+			config: ChainConfig{
 				HomesteadBlock:      newIntPtr(0),
 				DAOForkBlock:        newIntPtr(0),
 				EIP150Block:         newIntPtr(0),
@@ -167,11 +171,11 @@ func TestChainConfigValidate(t *testing.T) {
 				ConstantinopleBlock: newIntPtr(0),
 				PetersburgBlock:     newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid IstanbulBlock",
-			ChainConfig{
+			name: "fail - invalid IstanbulBlock",
+			config: ChainConfig{
 				HomesteadBlock:      newIntPtr(0),
 				DAOForkBlock:        newIntPtr(0),
 				EIP150Block:         newIntPtr(0),
@@ -183,11 +187,11 @@ func TestChainConfigValidate(t *testing.T) {
 				PetersburgBlock:     newIntPtr(0),
 				IstanbulBlock:       newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid MuirGlacierBlock",
-			ChainConfig{
+			name: "fail - invalid MuirGlacierBlock",
+			config: ChainConfig{
 				HomesteadBlock:      newIntPtr(0),
 				DAOForkBlock:        newIntPtr(0),
 				EIP150Block:         newIntPtr(0),
@@ -200,11 +204,11 @@ func TestChainConfigValidate(t *testing.T) {
 				IstanbulBlock:       newIntPtr(0),
 				MuirGlacierBlock:    newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid BerlinBlock",
-			ChainConfig{
+			name: "fail - invalid BerlinBlock",
+			config: ChainConfig{
 				HomesteadBlock:      newIntPtr(0),
 				DAOForkBlock:        newIntPtr(0),
 				EIP150Block:         newIntPtr(0),
@@ -218,11 +222,11 @@ func TestChainConfigValidate(t *testing.T) {
 				MuirGlacierBlock:    newIntPtr(0),
 				BerlinBlock:         newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid LondonBlock",
-			ChainConfig{
+			name: "fail - invalid LondonBlock",
+			config: ChainConfig{
 				HomesteadBlock:      newIntPtr(0),
 				DAOForkBlock:        newIntPtr(0),
 				EIP150Block:         newIntPtr(0),
@@ -237,11 +241,11 @@ func TestChainConfigValidate(t *testing.T) {
 				BerlinBlock:         newIntPtr(0),
 				LondonBlock:         newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid ArrowGlacierBlock",
-			ChainConfig{
+			name: "fail - invalid ArrowGlacierBlock",
+			config: ChainConfig{
 				HomesteadBlock:      newIntPtr(0),
 				DAOForkBlock:        newIntPtr(0),
 				EIP150Block:         newIntPtr(0),
@@ -257,11 +261,11 @@ func TestChainConfigValidate(t *testing.T) {
 				LondonBlock:         newIntPtr(0),
 				ArrowGlacierBlock:   newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid GrayGlacierBlock",
-			ChainConfig{
+			name: "fail - invalid GrayGlacierBlock",
+			config: ChainConfig{
 				HomesteadBlock:      newIntPtr(0),
 				DAOForkBlock:        newIntPtr(0),
 				EIP150Block:         newIntPtr(0),
@@ -278,11 +282,11 @@ func TestChainConfigValidate(t *testing.T) {
 				ArrowGlacierBlock:   newIntPtr(0),
 				GrayGlacierBlock:    newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid MergeNetsplitBlock",
-			ChainConfig{
+			name: "fail - invalid MergeNetsplitBlock",
+			config: ChainConfig{
 				HomesteadBlock:      newIntPtr(0),
 				DAOForkBlock:        newIntPtr(0),
 				EIP150Block:         newIntPtr(0),
@@ -300,11 +304,11 @@ func TestChainConfigValidate(t *testing.T) {
 				GrayGlacierBlock:    newIntPtr(0),
 				MergeNetsplitBlock:  newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid fork order - skip HomesteadBlock",
-			ChainConfig{
+			name: "fail - invalid fork order - skip HomesteadBlock",
+			config: ChainConfig{
 				DAOForkBlock:        newIntPtr(0),
 				EIP150Block:         newIntPtr(0),
 				EIP150Hash:          defaultEIP150Hash,
@@ -318,11 +322,11 @@ func TestChainConfigValidate(t *testing.T) {
 				BerlinBlock:         newIntPtr(0),
 				LondonBlock:         newIntPtr(0),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid ShanghaiBlock",
-			ChainConfig{
+			name: "fail - invalid ShanghaiBlock",
+			config: ChainConfig{
 				HomesteadBlock:      newIntPtr(0),
 				DAOForkBlock:        newIntPtr(0),
 				EIP150Block:         newIntPtr(0),
@@ -341,11 +345,11 @@ func TestChainConfigValidate(t *testing.T) {
 				MergeNetsplitBlock:  newIntPtr(0),
 				ShanghaiBlock:       newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 		{
-			"invalid CancunBlock",
-			ChainConfig{
+			name: "fail - invalid CancunBlock",
+			config: ChainConfig{
 				HomesteadBlock:      newIntPtr(0),
 				DAOForkBlock:        newIntPtr(0),
 				EIP150Block:         newIntPtr(0),
@@ -365,17 +369,19 @@ func TestChainConfigValidate(t *testing.T) {
 				ShanghaiBlock:       newIntPtr(0),
 				CancunBlock:         newIntPtr(-1),
 			},
-			true,
+			expError: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		err := tc.config.Validate()
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.config.Validate()
 
-		if tc.expError {
-			require.Error(t, err, tc.name)
-		} else {
-			require.NoError(t, err, tc.name)
-		}
+			if tc.expError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
 	}
 }

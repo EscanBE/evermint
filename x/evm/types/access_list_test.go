@@ -13,20 +13,22 @@ func (suite *TxDataTestSuite) TestTestNewAccessList() {
 		expAl         evmtypes.AccessList
 	}{
 		{
-			"ethAccessList is nil",
-			nil,
-			nil,
+			name:          "ethAccessList is nil",
+			ethAccessList: nil,
+			expAl:         nil,
 		},
 		{
-			"non-empty ethAccessList",
-			&ethtypes.AccessList{{Address: suite.addr, StorageKeys: []common.Hash{{0}}}},
-			evmtypes.AccessList{{Address: suite.hexAddr, StorageKeys: []string{common.Hash{}.Hex()}}},
+			name:          "non-empty ethAccessList",
+			ethAccessList: &ethtypes.AccessList{{Address: suite.addr, StorageKeys: []common.Hash{{0}}}},
+			expAl:         evmtypes.AccessList{{Address: suite.hexAddr, StorageKeys: []string{common.Hash{}.Hex()}}},
 		},
 	}
 	for _, tc := range testCases {
-		al := evmtypes.NewAccessList(tc.ethAccessList)
+		suite.Run(tc.name, func() {
+			al := evmtypes.NewAccessList(tc.ethAccessList)
 
-		suite.Require().Equal(tc.expAl, al)
+			suite.Require().Equal(tc.expAl, al)
+		})
 	}
 }
 

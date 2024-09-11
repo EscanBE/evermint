@@ -17,84 +17,84 @@ func (suite *KeeperTestSuite) TestParams() {
 		expected  bool
 	}{
 		{
-			"pass - Checks if the default params are set correctly",
-			func() interface{} {
+			name: "pass - Checks if the default params are set correctly",
+			paramsFun: func() interface{} {
 				return evmtypes.DefaultParams()
 			},
-			func() interface{} {
+			getFun: func() interface{} {
 				return suite.app.EvmKeeper.GetParams(suite.ctx)
 			},
-			true,
+			expected: true,
 		},
 		{
-			"pass - EvmDenom param is set to \"inj\" and can be retrieved correctly",
-			func() interface{} {
+			name: "pass - EvmDenom param is set to \"inj\" and can be retrieved correctly",
+			paramsFun: func() interface{} {
 				params.EvmDenom = "inj"
 				err := suite.app.EvmKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 				return params.EvmDenom
 			},
-			func() interface{} {
+			getFun: func() interface{} {
 				evmParams := suite.app.EvmKeeper.GetParams(suite.ctx)
 				return evmParams.GetEvmDenom()
 			},
-			true,
+			expected: true,
 		},
 		{
-			"pass - Check EnableCreate param is set to false and can be retrieved correctly",
-			func() interface{} {
+			name: "pass - Check EnableCreate param is set to false and can be retrieved correctly",
+			paramsFun: func() interface{} {
 				params.EnableCreate = false
 				err := suite.app.EvmKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 				return params.EnableCreate
 			},
-			func() interface{} {
+			getFun: func() interface{} {
 				evmParams := suite.app.EvmKeeper.GetParams(suite.ctx)
 				return evmParams.GetEnableCreate()
 			},
-			true,
+			expected: true,
 		},
 		{
-			"pass - Check EnableCall param is set to false and can be retrieved correctly",
-			func() interface{} {
+			name: "pass - Check EnableCall param is set to false and can be retrieved correctly",
+			paramsFun: func() interface{} {
 				params.EnableCall = false
 				err := suite.app.EvmKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 				return params.EnableCall
 			},
-			func() interface{} {
+			getFun: func() interface{} {
 				evmParams := suite.app.EvmKeeper.GetParams(suite.ctx)
 				return evmParams.GetEnableCall()
 			},
-			true,
+			expected: true,
 		},
 		{
-			"pass - Check AllowUnprotectedTxs param is set to false and can be retrieved correctly",
-			func() interface{} {
+			name: "pass - Check AllowUnprotectedTxs param is set to false and can be retrieved correctly",
+			paramsFun: func() interface{} {
 				params.AllowUnprotectedTxs = false
 				err := suite.app.EvmKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 				return params.AllowUnprotectedTxs
 			},
-			func() interface{} {
+			getFun: func() interface{} {
 				evmParams := suite.app.EvmKeeper.GetParams(suite.ctx)
 				return evmParams.GetAllowUnprotectedTxs()
 			},
-			true,
+			expected: true,
 		},
 		{
-			"pass - Check ChainConfig param is set to the default value and can be retrieved correctly",
-			func() interface{} {
+			name: "pass - Check ChainConfig param is set to the default value and can be retrieved correctly",
+			paramsFun: func() interface{} {
 				params.ChainConfig = evmtypes.DefaultChainConfig()
 				err := suite.app.EvmKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 				return params.ChainConfig
 			},
-			func() interface{} {
+			getFun: func() interface{} {
 				evmParams := suite.app.EvmKeeper.GetParams(suite.ctx)
 				return evmParams.GetChainConfig()
 			},
-			true,
+			expected: true,
 		},
 	}
 	for _, tc := range testCases {

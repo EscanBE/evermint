@@ -21,27 +21,33 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		params   erc20types.Params
 		expError bool
 	}{
-		{"default", erc20types.DefaultParams(), false},
 		{
-			"valid",
-			erc20types.NewParams(true),
-			false,
+			name:     "pass - default",
+			params:   erc20types.DefaultParams(),
+			expError: false,
 		},
 		{
-			"empty",
-			erc20types.Params{},
-			false,
+			name:     "pass - valid",
+			params:   erc20types.NewParams(true),
+			expError: false,
+		},
+		{
+			name:     "pass - empty",
+			params:   erc20types.Params{},
+			expError: false,
 		},
 	}
 
 	for _, tc := range testCases {
-		err := tc.params.Validate()
+		suite.Run(tc.name, func() {
+			err := tc.params.Validate()
 
-		if tc.expError {
-			suite.Require().Error(err, tc.name)
-		} else {
-			suite.Require().NoError(err, tc.name)
-		}
+			if tc.expError {
+				suite.Require().Error(err, tc.name)
+			} else {
+				suite.Require().NoError(err, tc.name)
+			}
+		})
 	}
 }
 

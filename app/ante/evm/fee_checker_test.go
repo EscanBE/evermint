@@ -71,106 +71,106 @@ func TestSDKTxFeeChecker(t *testing.T) {
 		expSuccess  bool
 	}{
 		{
-			"success, genesis tx",
-			genesisCtx,
-			MockEVMKeeper{},
-			func() sdk.FeeTx {
+			name:   "pass - genesis tx",
+			ctx:    genesisCtx,
+			keeper: MockEVMKeeper{},
+			buildTx: func() sdk.FeeTx {
 				return encodingConfig.TxConfig.NewTxBuilder().GetTx()
 			},
-			"",
-			0,
-			true,
+			expFees:     "",
+			expPriority: 0,
+			expSuccess:  true,
 		},
 		{
-			"fail, min-gas-prices",
-			checkTxCtx,
-			MockEVMKeeper{},
-			func() sdk.FeeTx {
+			name:   "fail - min-gas-prices",
+			ctx:    checkTxCtx,
+			keeper: MockEVMKeeper{},
+			buildTx: func() sdk.FeeTx {
 				return encodingConfig.TxConfig.NewTxBuilder().GetTx()
 			},
-			"",
-			0,
-			false,
+			expFees:     "",
+			expPriority: 0,
+			expSuccess:  false,
 		},
 		{
-			"success, min-gas-prices",
-			checkTxCtx,
-			MockEVMKeeper{},
-			func() sdk.FeeTx {
+			name:   "pass - min-gas-prices",
+			ctx:    checkTxCtx,
+			keeper: MockEVMKeeper{},
+			buildTx: func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder()
 				txBuilder.SetGasLimit(1)
 				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(10))))
 				return txBuilder.GetTx()
 			},
-			"10" + constants.BaseDenom,
-			0,
-			true,
+			expFees:     "10" + constants.BaseDenom,
+			expPriority: 0,
+			expSuccess:  true,
 		},
 		{
-			"success, min-gas-prices deliverTx",
-			deliverTxCtx,
-			MockEVMKeeper{},
-			func() sdk.FeeTx {
+			name:   "pass - min-gas-prices deliverTx",
+			ctx:    deliverTxCtx,
+			keeper: MockEVMKeeper{},
+			buildTx: func() sdk.FeeTx {
 				return encodingConfig.TxConfig.NewTxBuilder().GetTx()
 			},
-			"",
-			0,
-			true,
+			expFees:     "",
+			expPriority: 0,
+			expSuccess:  true,
 		},
 		{
-			"fail, dynamic fee",
-			deliverTxCtx,
-			MockEVMKeeper{
+			name: "fail - dynamic fee",
+			ctx:  deliverTxCtx,
+			keeper: MockEVMKeeper{
 				EnableLondonHF: true, BaseFee: big.NewInt(1),
 			},
-			func() sdk.FeeTx {
+			buildTx: func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder()
 				txBuilder.SetGasLimit(1)
 				return txBuilder.GetTx()
 			},
-			"",
-			0,
-			false,
+			expFees:     "",
+			expPriority: 0,
+			expSuccess:  false,
 		},
 		{
-			"success, dynamic fee",
-			deliverTxCtx,
-			MockEVMKeeper{
+			name: "pass - dynamic fee",
+			ctx:  deliverTxCtx,
+			keeper: MockEVMKeeper{
 				EnableLondonHF: true, BaseFee: big.NewInt(10),
 			},
-			func() sdk.FeeTx {
+			buildTx: func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder()
 				txBuilder.SetGasLimit(1)
 				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(10))))
 				return txBuilder.GetTx()
 			},
-			"10" + constants.BaseDenom,
-			0,
-			true,
+			expFees:     "10" + constants.BaseDenom,
+			expPriority: 0,
+			expSuccess:  true,
 		},
 		{
-			"success, dynamic fee priority",
-			deliverTxCtx,
-			MockEVMKeeper{
+			name: "pass - dynamic fee priority",
+			ctx:  deliverTxCtx,
+			keeper: MockEVMKeeper{
 				EnableLondonHF: true, BaseFee: big.NewInt(10),
 			},
-			func() sdk.FeeTx {
+			buildTx: func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder()
 				txBuilder.SetGasLimit(1)
 				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(10).Mul(evmtypes.DefaultPriorityReduction).Add(sdkmath.NewInt(10)))))
 				return txBuilder.GetTx()
 			},
-			"10000010" + constants.BaseDenom,
-			10,
-			true,
+			expFees:     "10000010" + constants.BaseDenom,
+			expPriority: 10,
+			expSuccess:  true,
 		},
 		{
-			"success, dynamic fee empty tipFeeCap",
-			deliverTxCtx,
-			MockEVMKeeper{
+			name: "pass - dynamic fee empty tipFeeCap",
+			ctx:  deliverTxCtx,
+			keeper: MockEVMKeeper{
 				EnableLondonHF: true, BaseFee: big.NewInt(10),
 			},
-			func() sdk.FeeTx {
+			buildTx: func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder().(authtx.ExtensionOptionsTxBuilder)
 				txBuilder.SetGasLimit(1)
 				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(10).Mul(evmtypes.DefaultPriorityReduction))))
@@ -180,17 +180,17 @@ func TestSDKTxFeeChecker(t *testing.T) {
 				txBuilder.SetExtensionOptions(option)
 				return txBuilder.GetTx()
 			},
-			"10" + constants.BaseDenom,
-			0,
-			true,
+			expFees:     "10" + constants.BaseDenom,
+			expPriority: 0,
+			expSuccess:  true,
 		},
 		{
-			"success, dynamic fee tipFeeCap",
-			deliverTxCtx,
-			MockEVMKeeper{
+			name: "pass - dynamic fee tipFeeCap",
+			ctx:  deliverTxCtx,
+			keeper: MockEVMKeeper{
 				EnableLondonHF: true, BaseFee: big.NewInt(10),
 			},
-			func() sdk.FeeTx {
+			buildTx: func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder().(authtx.ExtensionOptionsTxBuilder)
 				txBuilder.SetGasLimit(1)
 				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(10).Mul(evmtypes.DefaultPriorityReduction).Add(sdkmath.NewInt(10)))))
@@ -202,17 +202,17 @@ func TestSDKTxFeeChecker(t *testing.T) {
 				txBuilder.SetExtensionOptions(option)
 				return txBuilder.GetTx()
 			},
-			"5000010" + constants.BaseDenom,
-			5,
-			true,
+			expFees:     "5000010" + constants.BaseDenom,
+			expPriority: 5,
+			expSuccess:  true,
 		},
 		{
-			"fail, negative dynamic fee tipFeeCap",
-			deliverTxCtx,
-			MockEVMKeeper{
+			name: "fail - negative dynamic fee tipFeeCap",
+			ctx:  deliverTxCtx,
+			keeper: MockEVMKeeper{
 				EnableLondonHF: true, BaseFee: big.NewInt(10),
 			},
-			func() sdk.FeeTx {
+			buildTx: func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder().(authtx.ExtensionOptionsTxBuilder)
 				txBuilder.SetGasLimit(1)
 				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(10).Mul(evmtypes.DefaultPriorityReduction).Add(sdkmath.NewInt(10)))))
@@ -225,9 +225,9 @@ func TestSDKTxFeeChecker(t *testing.T) {
 				txBuilder.SetExtensionOptions(option)
 				return txBuilder.GetTx()
 			},
-			"",
-			0,
-			false,
+			expFees:     "",
+			expPriority: 0,
+			expSuccess:  false,
 		},
 	}
 

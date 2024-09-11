@@ -21,56 +21,144 @@ func TestTokenPairSuite(t *testing.T) {
 
 func (suite *TokenPairTestSuite) TestTokenPairNew() {
 	testCases := []struct {
-		msg          string
+		name         string
 		erc20Address common.Address
 		denom        string
 		owner        erc20types.Owner
 		expectPass   bool
 	}{
-		{msg: "Register token pair - invalid starts with number", erc20Address: utiltx.GenerateAddress(), denom: "1test", owner: erc20types.OWNER_MODULE, expectPass: false},
-		{msg: "Register token pair - invalid char '('", erc20Address: utiltx.GenerateAddress(), denom: "(test", owner: erc20types.OWNER_MODULE, expectPass: false},
-		{msg: "Register token pair - invalid char '^'", erc20Address: utiltx.GenerateAddress(), denom: "^test", owner: erc20types.OWNER_MODULE, expectPass: false},
+		{
+			name:         "fail - Register token pair - invalid starts with number",
+			erc20Address: utiltx.GenerateAddress(),
+			denom:        "1test",
+			owner:        erc20types.OWNER_MODULE,
+			expectPass:   false,
+		},
+		{
+			name:         "fail - Register token pair - invalid char '('",
+			erc20Address: utiltx.GenerateAddress(),
+			denom:        "(test",
+			owner:        erc20types.OWNER_MODULE,
+			expectPass:   false,
+		},
+		{
+			name:         "fail - Register token pair - invalid char '^'",
+			erc20Address: utiltx.GenerateAddress(),
+			denom:        "^test",
+			owner:        erc20types.OWNER_MODULE,
+			expectPass:   false,
+		},
 		// TODO: (guille) should the "\" be allowed to support unicode names?
-		{msg: "Register token pair - invalid char '\\'", erc20Address: utiltx.GenerateAddress(), denom: "-test", owner: erc20types.OWNER_MODULE, expectPass: false},
+		{
+			name:         "fail - Register token pair - invalid char '\\'",
+			erc20Address: utiltx.GenerateAddress(),
+			denom:        "-test",
+			owner:        erc20types.OWNER_MODULE,
+			expectPass:   false,
+		},
 		// Invalid length
-		{msg: "Register token pair - invalid length token (0)", erc20Address: utiltx.GenerateAddress(), denom: "", owner: erc20types.OWNER_MODULE, expectPass: false},
-		{msg: "Register token pair - invalid length token (1)", erc20Address: utiltx.GenerateAddress(), denom: "a", owner: erc20types.OWNER_MODULE, expectPass: false},
-		{msg: "Register token pair - invalid length token (128)", erc20Address: utiltx.GenerateAddress(), denom: strings.Repeat("a", 129), owner: erc20types.OWNER_MODULE, expectPass: false},
-		{msg: "Register token pair - pass", erc20Address: utiltx.GenerateAddress(), denom: "test", owner: erc20types.OWNER_MODULE, expectPass: true},
+		{
+			name:         "fail - Register token pair - invalid length token (0)",
+			erc20Address: utiltx.GenerateAddress(),
+			denom:        "",
+			owner:        erc20types.OWNER_MODULE,
+			expectPass:   false,
+		},
+		{
+			name:         "fail - Register token pair - invalid length token (1)",
+			erc20Address: utiltx.GenerateAddress(),
+			denom:        "a",
+			owner:        erc20types.OWNER_MODULE,
+			expectPass:   false,
+		},
+		{
+			name:         "fail - Register token pair - invalid length token (128)",
+			erc20Address: utiltx.GenerateAddress(),
+			denom:        strings.Repeat("a", 129),
+			owner:        erc20types.OWNER_MODULE,
+			expectPass:   false,
+		},
+		{
+			name:         "pass - Register token pair - pass",
+			erc20Address: utiltx.GenerateAddress(),
+			denom:        "test",
+			owner:        erc20types.OWNER_MODULE,
+			expectPass:   true,
+		},
 	}
 
 	for i, tc := range testCases {
-		tp := erc20types.NewTokenPair(tc.erc20Address, tc.denom, tc.owner)
-		err := tp.Validate()
+		suite.Run(tc.name, func() {
+			tp := erc20types.NewTokenPair(tc.erc20Address, tc.denom, tc.owner)
+			err := tp.Validate()
 
-		if tc.expectPass {
-			suite.Require().NoError(err, "valid test %d failed: %s, %v", i, tc.msg)
-		} else {
-			suite.Require().Error(err, "invalid test %d passed: %s, %v", i, tc.msg)
-		}
+			if tc.expectPass {
+				suite.Require().NoError(err, "valid test %d failed: %s, %v", i, tc.name)
+			} else {
+				suite.Require().Error(err, "invalid test %d passed: %s, %v", i, tc.name)
+			}
+		})
 	}
 }
 
 func (suite *TokenPairTestSuite) TestTokenPair() {
 	testCases := []struct {
-		msg        string
+		name       string
 		pair       erc20types.TokenPair
 		expectPass bool
 	}{
-		{msg: "Register token pair - invalid address (no hex)", pair: erc20types.TokenPair{"0x5dCA2483280D9727c80b5518faC4556617fb19ZZ", "test", true, erc20types.OWNER_MODULE}, expectPass: false},
-		{msg: "Register token pair - invalid address (invalid length 1)", pair: erc20types.TokenPair{"0x5dCA2483280D9727c80b5518faC4556617fb19", "test", true, erc20types.OWNER_MODULE}, expectPass: false},
-		{msg: "Register token pair - invalid address (invalid length 2)", pair: erc20types.TokenPair{"0x5dCA2483280D9727c80b5518faC4556617fb194FFF", "test", true, erc20types.OWNER_MODULE}, expectPass: false},
-		{msg: "pass", pair: erc20types.TokenPair{utiltx.GenerateAddress().String(), "test", true, erc20types.OWNER_MODULE}, expectPass: true},
+		{
+			name: "fail - Register token pair - invalid address (no hex)",
+			pair: erc20types.TokenPair{
+				Erc20Address:  "0x5dCA2483280D9727c80b5518faC4556617fb19ZZ",
+				Denom:         "test",
+				Enabled:       true,
+				ContractOwner: erc20types.OWNER_MODULE,
+			},
+			expectPass: false,
+		},
+		{
+			name: "fail - Register token pair - invalid address (invalid length 1)",
+			pair: erc20types.TokenPair{
+				Erc20Address:  "0x5dCA2483280D9727c80b5518faC4556617fb19",
+				Denom:         "test",
+				Enabled:       true,
+				ContractOwner: erc20types.OWNER_MODULE,
+			},
+			expectPass: false,
+		},
+		{
+			name: "fail - Register token pair - invalid address (invalid length 2)",
+			pair: erc20types.TokenPair{
+				Erc20Address:  "0x5dCA2483280D9727c80b5518faC4556617fb194FFF",
+				Denom:         "test",
+				Enabled:       true,
+				ContractOwner: erc20types.OWNER_MODULE,
+			},
+			expectPass: false,
+		},
+		{
+			name: "pass",
+			pair: erc20types.TokenPair{
+				Erc20Address:  utiltx.GenerateAddress().String(),
+				Denom:         "test",
+				Enabled:       true,
+				ContractOwner: erc20types.OWNER_MODULE,
+			},
+			expectPass: true,
+		},
 	}
 
-	for i, tc := range testCases {
-		err := tc.pair.Validate()
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			err := tc.pair.Validate()
 
-		if tc.expectPass {
-			suite.Require().NoError(err, "valid test %d failed: %s, %v", i, tc.msg)
-		} else {
-			suite.Require().Error(err, "invalid test %d passed: %s, %v", i, tc.msg)
-		}
+			if tc.expectPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
 
@@ -98,29 +186,46 @@ func (suite *TokenPairTestSuite) TestIsNativeCoin() {
 		expectPass bool
 	}{
 		{
-			"no owner",
-			erc20types.TokenPair{utiltx.GenerateAddress().String(), "test", true, erc20types.OWNER_UNSPECIFIED},
-			false,
+			name: "fail - no owner",
+			pair: erc20types.TokenPair{
+				Erc20Address:  utiltx.GenerateAddress().String(),
+				Denom:         "test",
+				Enabled:       true,
+				ContractOwner: erc20types.OWNER_UNSPECIFIED,
+			},
+			expectPass: false,
 		},
 		{
-			"external ERC20 owner",
-			erc20types.TokenPair{utiltx.GenerateAddress().String(), "test", true, erc20types.OWNER_EXTERNAL},
-			false,
+			name: "fail - external ERC20 owner",
+			pair: erc20types.TokenPair{
+				Erc20Address:  utiltx.GenerateAddress().String(),
+				Denom:         "test",
+				Enabled:       true,
+				ContractOwner: erc20types.OWNER_EXTERNAL,
+			},
+			expectPass: false,
 		},
 		{
-			"pass",
-			erc20types.TokenPair{utiltx.GenerateAddress().String(), "test", true, erc20types.OWNER_MODULE},
-			true,
+			name: "pass",
+			pair: erc20types.TokenPair{
+				Erc20Address:  utiltx.GenerateAddress().String(),
+				Denom:         "test",
+				Enabled:       true,
+				ContractOwner: erc20types.OWNER_MODULE,
+			},
+			expectPass: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		res := tc.pair.IsNativeCoin()
-		if tc.expectPass {
-			suite.Require().True(res, tc.name)
-		} else {
-			suite.Require().False(res, tc.name)
-		}
+		suite.Run(tc.name, func() {
+			res := tc.pair.IsNativeCoin()
+			if tc.expectPass {
+				suite.Require().True(res)
+			} else {
+				suite.Require().False(res)
+			}
+		})
 	}
 }
 
@@ -131,28 +236,45 @@ func (suite *TokenPairTestSuite) TestIsNativeERC20() {
 		expectPass bool
 	}{
 		{
-			"no owner",
-			erc20types.TokenPair{utiltx.GenerateAddress().String(), "test", true, erc20types.OWNER_UNSPECIFIED},
-			false,
+			name: "fail - no owner",
+			pair: erc20types.TokenPair{
+				Erc20Address:  utiltx.GenerateAddress().String(),
+				Denom:         "test",
+				Enabled:       true,
+				ContractOwner: erc20types.OWNER_UNSPECIFIED,
+			},
+			expectPass: false,
 		},
 		{
-			"module owner",
-			erc20types.TokenPair{utiltx.GenerateAddress().String(), "test", true, erc20types.OWNER_MODULE},
-			false,
+			name: "fail - module owner",
+			pair: erc20types.TokenPair{
+				Erc20Address:  utiltx.GenerateAddress().String(),
+				Denom:         "test",
+				Enabled:       true,
+				ContractOwner: erc20types.OWNER_MODULE,
+			},
+			expectPass: false,
 		},
 		{
-			"pass",
-			erc20types.TokenPair{utiltx.GenerateAddress().String(), "test", true, erc20types.OWNER_EXTERNAL},
-			true,
+			name: "pass",
+			pair: erc20types.TokenPair{
+				Erc20Address:  utiltx.GenerateAddress().String(),
+				Denom:         "test",
+				Enabled:       true,
+				ContractOwner: erc20types.OWNER_EXTERNAL,
+			},
+			expectPass: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		res := tc.pair.IsNativeERC20()
-		if tc.expectPass {
-			suite.Require().True(res, tc.name)
-		} else {
-			suite.Require().False(res, tc.name)
-		}
+		suite.Run(tc.name, func() {
+			res := tc.pair.IsNativeERC20()
+			if tc.expectPass {
+				suite.Require().True(res, tc.name)
+			} else {
+				suite.Require().False(res, tc.name)
+			}
+		})
 	}
 }

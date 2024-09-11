@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"testing"
 
 	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
@@ -33,49 +32,51 @@ func TestIsSupportedKeys(t *testing.T) {
 		isSupported bool
 	}{
 		{
-			"nil key",
-			nil,
-			false,
+			name:        "nil key",
+			pk:          nil,
+			isSupported: false,
 		},
 		{
-			"ethsecp256k1 key",
-			&ethsecp256k1.PubKey{},
-			true,
+			name:        "ethics256k1 key",
+			pk:          &ethsecp256k1.PubKey{},
+			isSupported: true,
 		},
 		{
-			"ed25519 key",
-			&ed25519.PubKey{},
-			true,
+			name:        "ed25519 key",
+			pk:          &ed25519.PubKey{},
+			isSupported: true,
 		},
 		{
-			"multisig key - no pubkeys",
-			&multisig.LegacyAminoPubKey{},
-			false,
+			name:        "multisig key - no pubkeys",
+			pk:          &multisig.LegacyAminoPubKey{},
+			isSupported: false,
 		},
 		{
-			"multisig key - valid pubkeys",
-			multisig.NewLegacyAminoPubKey(2, []cryptotypes.PubKey{&ed25519.PubKey{}, &ed25519.PubKey{}, &ed25519.PubKey{}}),
-			true,
+			name:        "multisig key - valid pubkeys",
+			pk:          multisig.NewLegacyAminoPubKey(2, []cryptotypes.PubKey{&ed25519.PubKey{}, &ed25519.PubKey{}, &ed25519.PubKey{}}),
+			isSupported: true,
 		},
 		{
-			"multisig key - nested multisig",
-			multisig.NewLegacyAminoPubKey(2, []cryptotypes.PubKey{&ed25519.PubKey{}, &ed25519.PubKey{}, &multisig.LegacyAminoPubKey{}}),
-			false,
+			name:        "multisig key - nested multisig",
+			pk:          multisig.NewLegacyAminoPubKey(2, []cryptotypes.PubKey{&ed25519.PubKey{}, &ed25519.PubKey{}, &multisig.LegacyAminoPubKey{}}),
+			isSupported: false,
 		},
 		{
-			"multisig key - invalid pubkey",
-			multisig.NewLegacyAminoPubKey(2, []cryptotypes.PubKey{&ed25519.PubKey{}, &ed25519.PubKey{}, &secp256k1.PubKey{}}),
-			false,
+			name:        "multisig key - invalid pubkey",
+			pk:          multisig.NewLegacyAminoPubKey(2, []cryptotypes.PubKey{&ed25519.PubKey{}, &ed25519.PubKey{}, &secp256k1.PubKey{}}),
+			isSupported: false,
 		},
 		{
-			"cosmos secp256k1",
-			&secp256k1.PubKey{},
-			false,
+			name:        "cosmos secp256k1",
+			pk:          &secp256k1.PubKey{},
+			isSupported: false,
 		},
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.isSupported, IsSupportedKey(tc.pk), tc.name)
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.isSupported, IsSupportedKey(tc.pk))
+		})
 	}
 }
 
@@ -87,51 +88,53 @@ func TestGetNativeAddressFromBech32(t *testing.T) {
 		expError   bool
 	}{
 		{
-			"blank bech32 address",
-			" ",
-			"",
-			true,
+			name:       "fail - blank bech32 address",
+			address:    " ",
+			expAddress: "",
+			expError:   true,
 		},
 		{
-			"invalid bech32 address",
-			constants.Bech32Prefix,
-			"",
-			true,
+			name:       "fail - invalid bech32 address",
+			address:    constants.Bech32Prefix,
+			expAddress: "",
+			expError:   true,
 		},
 		{
-			"invalid address bytes",
-			constants.Bech32Prefix + "1123",
-			"",
-			true,
+			name:       "fail - invalid address bytes",
+			address:    constants.Bech32Prefix + "1123",
+			expAddress: "",
+			expError:   true,
 		},
 		{
-			"native address",
-			marker.ReplaceAbleAddress("evm1qql8ag4cluz6r4dz28p3w00dnc9w8ueuhjd72z"),
-			marker.ReplaceAbleAddress("evm1qql8ag4cluz6r4dz28p3w00dnc9w8ueuhjd72z"),
-			false,
+			name:       "pass - native address",
+			address:    marker.ReplaceAbleAddress("evm1qql8ag4cluz6r4dz28p3w00dnc9w8ueuhjd72z"),
+			expAddress: marker.ReplaceAbleAddress("evm1qql8ag4cluz6r4dz28p3w00dnc9w8ueuhjd72z"),
+			expError:   false,
 		},
 		{
-			"cosmos address",
-			"cosmos1qql8ag4cluz6r4dz28p3w00dnc9w8ueulg2gmc",
-			marker.ReplaceAbleAddress("evm1qql8ag4cluz6r4dz28p3w00dnc9w8ueuhjd72z"),
-			false,
+			name:       "pass - cosmos address",
+			address:    "cosmos1qql8ag4cluz6r4dz28p3w00dnc9w8ueulg2gmc",
+			expAddress: marker.ReplaceAbleAddress("evm1qql8ag4cluz6r4dz28p3w00dnc9w8ueuhjd72z"),
+			expError:   false,
 		},
 		{
-			"osmosis address",
-			"osmo1qql8ag4cluz6r4dz28p3w00dnc9w8ueuhnecd2",
-			marker.ReplaceAbleAddress("evm1qql8ag4cluz6r4dz28p3w00dnc9w8ueuhjd72z"),
-			false,
+			name:       "pass - osmosis address",
+			address:    "osmo1qql8ag4cluz6r4dz28p3w00dnc9w8ueuhnecd2",
+			expAddress: marker.ReplaceAbleAddress("evm1qql8ag4cluz6r4dz28p3w00dnc9w8ueuhjd72z"),
+			expError:   false,
 		},
 	}
 
 	for _, tc := range testCases {
-		addr, err := GetEvermintAddressFromBech32(tc.address)
-		if tc.expError {
-			require.Error(t, err, tc.name)
-		} else {
-			require.NoError(t, err, tc.name)
-			require.Equal(t, tc.expAddress, addr.String(), tc.name)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			addr, err := GetEvermintAddressFromBech32(tc.address)
+			if tc.expError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tc.expAddress, addr.String())
+			}
+		})
 	}
 }
 
@@ -142,49 +145,49 @@ func TestNativeCoinDenom(t *testing.T) {
 		expError bool
 	}{
 		{
-			"valid denom - native coin",
-			constants.BaseDenom,
-			false,
+			name:     "pass - valid denom - native coin",
+			denom:    constants.BaseDenom,
+			expError: false,
 		},
 		{
-			"valid denom - ibc coin",
-			"ibc/7B2A4F6E798182988D77B6B884919AF617A73503FDAC27C916CD7A69A69013CF",
-			false,
+			name:     "pass - valid denom - ibc coin",
+			denom:    "ibc/7B2A4F6E798182988D77B6B884919AF617A73503FDAC27C916CD7A69A69013CF",
+			expError: false,
 		},
 		{
-			"valid denom - ethereum address (ERC-20 contract)",
-			"erc20/0x52908400098527886e0f7030069857D2E4169EE7",
-			false,
+			name:     "pass - valid denom - ethereum address (ERC-20 contract)",
+			denom:    "erc20/0x52908400098527886e0f7030069857D2E4169EE7",
+			expError: false,
 		},
 		{
-			"invalid denom - only one character",
-			"a",
-			true,
+			name:     "fail - invalid denom - only one character",
+			denom:    "a",
+			expError: true,
 		},
 		{
-			"invalid denom - too large (> 127 chars)",
-			"ibc/7B2A4F6E798182988D77B6B884919AF617A73503FDAC27C916CD7A69A69013CF7B2A4F6E798182988D77B6B884919AF617A73503FDAC27C916CD7A69A69013CF",
-			true,
+			name:     "fail - invalid denom - too large (> 127 chars)",
+			denom:    "ibc/7B2A4F6E798182988D77B6B884919AF617A73503FDAC27C916CD7A69A69013CF7B2A4F6E798182988D77B6B884919AF617A73503FDAC27C916CD7A69A69013CF",
+			expError: true,
 		},
 		{
-			"invalid denom - starts with 0 but not followed by 'x'",
-			"0a52908400098527886E0F7030069857D2E4169EE7",
-			true,
+			name:     "fail - invalid denom - starts with 0 but not followed by 'x'",
+			denom:    "0a52908400098527886E0F7030069857D2E4169EE7",
+			expError: true,
 		},
 		{
-			"invalid denom - hex address but 19 bytes long",
-			"0x52908400098527886E0F7030069857D2E4169E",
-			true,
+			name:     "fail - invalid denom - hex address but 19 bytes long",
+			denom:    "0x52908400098527886E0F7030069857D2E4169E",
+			expError: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("Case %s", tc.name), func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			err := sdk.ValidateDenom(tc.denom)
 			if tc.expError {
-				require.Error(t, err, tc.name)
+				require.Error(t, err)
 			} else {
-				require.NoError(t, err, tc.name)
+				require.NoError(t, err)
 			}
 		})
 	}

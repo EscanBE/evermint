@@ -15,28 +15,28 @@ func TestParseMetadata(t *testing.T) {
 		expPass      bool
 	}{
 		{
-			"fail - invalid file name",
-			"",
-			0,
-			false,
+			name:         "fail - invalid file name",
+			metadataFile: "",
+			expAmtCoins:  0,
+			expPass:      false,
 		},
 		{
-			"fail - invalid metadata",
-			"metadata/invalid_metadata_test.json",
-			0,
-			false,
+			name:         "fail - invalid metadata",
+			metadataFile: "metadata/invalid_metadata_test.json",
+			expAmtCoins:  0,
+			expPass:      false,
 		},
 		{
-			"single coin metadata",
-			"metadata/coin_metadata_test.json",
-			1,
-			true,
+			name:         "pass - single coin metadata",
+			metadataFile: "metadata/coin_metadata_test.json",
+			expAmtCoins:  1,
+			expPass:      true,
 		},
 		{
-			"multiple coins metadata",
-			"metadata/coins_metadata_test.json",
-			2,
-			true,
+			name:         "pass - multiple coins metadata",
+			metadataFile: "metadata/coins_metadata_test.json",
+			expAmtCoins:  2,
+			expPass:      true,
 		},
 	}
 	for _, tc := range testCases {
