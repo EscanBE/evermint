@@ -50,7 +50,7 @@ func NewGenProofTxCmd() *cobra.Command {
 			fmt.Println("EVM address:    ", common.BytesToAddress(accAddr))
 
 			hash := crypto.Keccak256([]byte(vauthtypes.MessageToSign))
-			signature, _, err := clientCtx.Keyring.SignByAddress(accAddr, hash, signingtypes.SignMode_SIGN_MODE_TEXTUAL)
+			signature, _, err := clientCtx.Keyring.SignByAddress(accAddr, hash, signingtypes.SignMode_SIGN_MODE_DIRECT)
 			if err != nil {
 				return errorsmod.Wrap(err, "failed to sign")
 			}

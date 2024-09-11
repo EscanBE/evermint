@@ -161,7 +161,7 @@ func (kr *itKeyring) SignByAddress(address sdk.Address, msg []byte, _ signing.Si
 }
 
 func (kr *itKeyring) sign(record *itKeyringRecord, msg []byte) ([]byte, cryptotypes.PubKey, error) {
-	return record.testAccount.Signer.SignByAddress(record.testAccount.GetCosmosAddress(), msg, signing.SignMode_SIGN_MODE_TEXTUAL)
+	return record.testAccount.Signer.SignByAddress(record.testAccount.GetCosmosAddress(), msg, signing.SignMode_SIGN_MODE_DIRECT)
 }
 
 //goland:noinspection GoUnusedParameter

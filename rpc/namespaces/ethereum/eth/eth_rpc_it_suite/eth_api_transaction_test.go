@@ -810,7 +810,7 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 		msgEvmTx := createMsgEthTx(sender)
 
 		ethTx := msgEvmTx.AsTransaction()
-		sig, _, err := sender.Signer.SignByAddress(msgEvmTx.GetFrom(), suite.CITS.EthSigner.Hash(ethTx).Bytes(), signingtypes.SignMode_SIGN_MODE_TEXTUAL)
+		sig, _, err := sender.Signer.SignByAddress(msgEvmTx.GetFrom(), suite.CITS.EthSigner.Hash(ethTx).Bytes(), signingtypes.SignMode_SIGN_MODE_DIRECT)
 		suite.Require().NoError(err)
 
 		signedEthTx, err := ethTx.WithSignature(suite.CITS.EthSigner, sig)
