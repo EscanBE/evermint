@@ -28,7 +28,7 @@ const (
 
 	AttributeKeyReceiptMarshalled        = "marshalled"
 	AttributeKeyReceiptEvmTxHash         = "evmTxHash"
-	AttributeKeyReceiptTendermintTxHash  = "tmTxHash"
+	AttributeKeyReceiptCometBFTTxHash    = "tmTxHash"
 	AttributeKeyReceiptContractAddress   = "contractAddr"
 	AttributeKeyReceiptGasUsed           = "gasUsed"
 	AttributeKeyReceiptEffectiveGasPrice = "effectiveGasPrice"
@@ -80,7 +80,7 @@ func GetSdkEventForReceipt(
 		attrs = append(attrs, sdk.NewAttribute(AttributeKeyReceiptVmError, vmErr.Error()))
 	}
 	if tendermintTxHash != nil {
-		attrs = append(attrs, sdk.NewAttribute(AttributeKeyReceiptTendermintTxHash, tendermintTxHash.String()))
+		attrs = append(attrs, sdk.NewAttribute(AttributeKeyReceiptCometBFTTxHash, tendermintTxHash.String()))
 	}
 
 	return sdk.NewEvent(

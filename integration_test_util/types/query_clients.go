@@ -20,19 +20,19 @@ import (
 )
 
 type QueryClients struct {
-	GrpcConnection          grpc1.ClientConn
-	ClientQueryCtx          client.Context
-	TendermintRpcHttpClient *httpclient.HTTP
-	Auth                    authtypes.QueryClient
-	Bank                    banktypes.QueryClient
-	Distribution            disttypes.QueryClient
-	Erc20                   erc20types.QueryClient
-	EVM                     evmtypes.QueryClient
-	GovV1                   govtypesv1.QueryClient
-	GovLegacy               govtypeslegacy.QueryClient
-	IbcTransfer             ibctransfertypes.QueryClient
-	Slashing                slashingtypes.QueryClient
-	Staking                 stakingtypes.QueryClient
-	ServiceClient           sdktxtypes.ServiceClient
-	Rpc                     *rpctypes.QueryClient
+	GrpcConnection        grpc1.ClientConn
+	ClientQueryCtx        client.Context
+	CometBFTRpcHttpClient *httpclient.HTTP
+	Auth                  authtypes.QueryClient
+	Bank                  banktypes.QueryClient
+	Distribution          disttypes.QueryClient
+	Erc20                 erc20types.QueryClient
+	EVM                   evmtypes.QueryClient
+	GovV1                 govtypesv1.QueryClient
+	GovLegacy             govtypeslegacy.QueryClient
+	IbcTransfer           ibctransfertypes.QueryClient
+	Slashing              slashingtypes.QueryClient
+	Staking               stakingtypes.QueryClient
+	ServiceClient         sdktxtypes.ServiceClient
+	Rpc                   *rpctypes.QueryClient
 }

@@ -9,8 +9,8 @@ import (
 )
 
 type TemporaryHolder struct {
-	files                []string
-	tendermintGenesisDoc *cmttypes.GenesisDoc
+	files              []string
+	cometBFTGenesisDoc *cmttypes.GenesisDoc
 }
 
 func NewTemporaryHolder() *TemporaryHolder {
@@ -33,7 +33,7 @@ func (h *TemporaryHolder) AddTempFile(file string) {
 }
 
 func (h *TemporaryHolder) CacheGenesisDoc(doc *cmttypes.GenesisDoc) {
-	h.tendermintGenesisDoc = doc
+	h.cometBFTGenesisDoc = doc
 }
 
 func (h *TemporaryHolder) GetTempFiles() ([]string, bool) {
@@ -41,5 +41,5 @@ func (h *TemporaryHolder) GetTempFiles() ([]string, bool) {
 }
 
 func (h *TemporaryHolder) GetCachedGenesisDoc() (*cmttypes.GenesisDoc, bool) {
-	return h.tendermintGenesisDoc, h.tendermintGenesisDoc != nil
+	return h.cometBFTGenesisDoc, h.cometBFTGenesisDoc != nil
 }

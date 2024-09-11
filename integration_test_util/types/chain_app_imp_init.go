@@ -59,9 +59,9 @@ var defaultConsensusParams = &cmttypes.ConsensusParams{
 	},
 }
 
-const TendermintGovVotingPeriod = 5 * time.Second
+const CometBFTGovVotingPeriod = 5 * time.Second
 
-func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestConfig, encCfg params.EncodingConfig, db cmtdb.DB, validatorAccounts TestAccounts, walletAccounts TestAccounts, genesisAccountBalance sdk.Coins, tempHolder *TemporaryHolder, logger log.Logger) (chainApp ChainApp, tendermintApp TendermintApp, validatorSet *cmttypes.ValidatorSet) {
+func NewChainApp(chainCfg ChainConfig, disableCometBFT bool, testConfig TestConfig, encCfg params.EncodingConfig, db cmtdb.DB, validatorAccounts TestAccounts, walletAccounts TestAccounts, genesisAccountBalance sdk.Coins, tempHolder *TemporaryHolder, logger log.Logger) (chainApp ChainApp, cometBFTApp CometBFTApp, validatorSet *cmttypes.ValidatorSet) {
 	defaultNodeHome := chainapp.DefaultNodeHome
 	moduleBasics := chainapp.ModuleBasics
 
@@ -137,7 +137,7 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 	// init chain must be called to stop deliverState from being nil
 	genesisState := moduleBasics.DefaultGenesis(encCfg.Codec)
 
-	genesisState = genesisStateWithValSet(chainCfg, disableTendermint, testConfig, encCfg.Codec, genesisState, valSet, genesisValidatorAccounts, genesisWalletAccounts, genesisBalances, signingInfos)
+	genesisState = genesisStateWithValSet(chainCfg, disableCometBFT, testConfig, encCfg.Codec, genesisState, valSet, genesisValidatorAccounts, genesisWalletAccounts, genesisBalances, signingInfos)
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
 	if err != nil {
@@ -168,7 +168,7 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 	}
 	tempHolder.CacheGenesisDoc(&genesisDoc)
 
-	if disableTendermint {
+	if disableCometBFT {
 		consensusParams := defaultConsensusParams.ToProto()
 		_, err := app.InitChain(&abci.RequestInitChain{
 			ChainId:         chainCfg.CosmosChainId,
@@ -180,23 +180,23 @@ func NewChainApp(chainCfg ChainConfig, disableTendermint bool, testConfig TestCo
 		if err != nil {
 			panic(err)
 		}
-		tendermintApp = nil
+		cometBFTApp = nil
 	} else {
 		validator := validatorAccounts.Number(1)
 		if validator.GetValidatorAddress().String() != sdk.ValAddress(validator.GetPubKey().Address()).String() {
 			panic("validator address does not match")
 		}
-		node, rpcPort, tempFiles := itutilutils.StartTendermintNode(sdkserver.NewCometABCIWrapper(app), &genesisDoc, db, validator.GetTmPrivKey(), logger)
+		node, rpcPort, tempFiles := itutilutils.StartCometBFTNode(sdkserver.NewCometABCIWrapper(app), &genesisDoc, db, validator.GetTmPrivKey(), logger)
 		for _, tempFile := range tempFiles {
 			tempHolder.AddTempFile(tempFile)
 		}
-		tendermintApp = NewTendermintApp(node, rpcPort)
+		cometBFTApp = NewCometBFTApp(node, rpcPort)
 	}
 
-	return cai, tendermintApp, valSet
+	return cai, cometBFTApp, valSet
 }
 
-func genesisStateWithValSet(chainCfg ChainConfig, disableTendermint bool, testConfig TestConfig, codec codec.Codec, genesisState chainapp.GenesisState, valSet *cmttypes.ValidatorSet, genesisValidatorAccounts []authtypes.GenesisAccount, genesisWalletAccounts []authtypes.GenesisAccount, balances []banktypes.Balance, signingInfos []slashingtypes.SigningInfo) chainapp.GenesisState {
+func genesisStateWithValSet(chainCfg ChainConfig, disableCometBFT bool, testConfig TestConfig, codec codec.Codec, genesisState chainapp.GenesisState, valSet *cmttypes.ValidatorSet, genesisValidatorAccounts []authtypes.GenesisAccount, genesisWalletAccounts []authtypes.GenesisAccount, balances []banktypes.Balance, signingInfos []slashingtypes.SigningInfo) chainapp.GenesisState {
 	genesisAccounts := append(genesisValidatorAccounts, genesisWalletAccounts...)
 
 	// set genesis accounts
@@ -328,11 +328,11 @@ func genesisStateWithValSet(chainCfg ChainConfig, disableTendermint bool, testCo
 			govGenesis.Params.MinDeposit[0].Denom = chainCfg.BaseDenom
 			govGenesis.Params.MinDeposit[0].Amount = sdkmath.NewIntFromUint64(2)
 			var votingPeriod time.Duration
-			if disableTendermint {
+			if disableCometBFT {
 				votingPeriod = 30 * time.Minute
 			} else {
-				// due to tendermint block time not configurable time jumping, we need to set a low voting period
-				votingPeriod = TendermintGovVotingPeriod
+				// due to CometBFT block time not configurable time jumping, we need to set a low voting period
+				votingPeriod = CometBFTGovVotingPeriod
 			}
 			govGenesis.Params.VotingPeriod = &votingPeriod
 			genesisState[govtypes.ModuleName] = codec.MustMarshalJSON(govGenesis)

@@ -43,12 +43,12 @@ func (suite *ChainIntegrationTestSuite) TxPrepareContextWithdrawDelegatorAndVali
 }
 
 // GetValidatorAddress returns the validator address of the validator with the given number.
-// Due to there is a bug that the validator address is delivered from tendermint pubkey instead of cosmos pubkey in tendermint mode.
-// So this function is used to correct the validator address in tendermint mode.
+// Due to there is a bug that the validator address is delivered from CometBFT pubkey instead of cosmos pubkey in CometBFT mode.
+// So this function is used to correct the validator address in CometBFT mode.
 func (suite *ChainIntegrationTestSuite) GetValidatorAddress(number int) sdk.ValAddress {
 	validator := suite.ValidatorAccounts.Number(number)
 
-	if suite.HasTendermint() {
+	if suite.HasCometBFT() {
 		return sdk.ValAddress(validator.GetTmPubKey().Address())
 	}
 

@@ -26,8 +26,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// StartTendermintNode starts a Tendermint node for the given ABCI Application, used for testing purposes.
-func StartTendermintNode(app abci.Application, genesis *cmttypes.GenesisDoc, db cmtdb.DB, validatorPrivKey tmcrypto.PrivKey, logger log.Logger) (tendermintNode *cmtnode.Node, rpcPort int, tempFiles []string) {
+// StartCometBFTNode starts a CometBFT node for the given ABCI Application, used for testing purposes.
+func StartCometBFTNode(app abci.Application, genesis *cmttypes.GenesisDoc, db cmtdb.DB, validatorPrivKey tmcrypto.PrivKey, logger log.Logger) (cometBFTNode *cmtnode.Node, rpcPort int, tempFiles []string) {
 	if app == nil {
 		panic("missing app")
 	}
@@ -70,7 +70,7 @@ func StartTendermintNode(app abci.Application, genesis *cmttypes.GenesisDoc, db 
 
 	config.P2P.ListenAddress = fmt.Sprintf("tcp://localhost:%d", GetNextPortAvailable())
 
-	randomStateFilePath := fmt.Sprintf("/tmp/%s-tendermint-state-file-%s.tmp.json", constants.ApplicationBinaryName, uuid.New().String())
+	randomStateFilePath := fmt.Sprintf("/tmp/%s-cometbft-state-file-%s.tmp.json", constants.ApplicationBinaryName, uuid.New().String())
 	tempFiles = append(tempFiles, randomStateFilePath)
 	pv := cmtprivval.NewFilePV(validatorPrivKey, "", randomStateFilePath)
 	pApp := cmtproxy.NewLocalClientCreator(app)

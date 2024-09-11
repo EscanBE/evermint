@@ -79,7 +79,7 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 							Attributes: []abci.EventAttribute{
 								{Key: evmtypes.AttributeKeyReceiptEvmTxHash, Value: txHash.Hex()},
 								{Key: evmtypes.AttributeKeyReceiptTxIndex, Value: "0"},
-								{Key: evmtypes.AttributeKeyReceiptTendermintTxHash, Value: ""},
+								{Key: evmtypes.AttributeKeyReceiptCometBFTTxHash, Value: ""},
 							},
 						},
 					},
@@ -112,7 +112,7 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 							Attributes: []abci.EventAttribute{
 								{Key: evmtypes.AttributeKeyReceiptEvmTxHash, Value: txHash.Hex()},
 								{Key: evmtypes.AttributeKeyReceiptTxIndex, Value: "0"},
-								{Key: evmtypes.AttributeKeyReceiptTendermintTxHash, Value: ""},
+								{Key: evmtypes.AttributeKeyReceiptCometBFTTxHash, Value: ""},
 							},
 						},
 					},
@@ -149,7 +149,7 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 							Attributes: []abci.EventAttribute{
 								{Key: evmtypes.AttributeKeyReceiptEvmTxHash, Value: txHash.Hex()},
 								{Key: evmtypes.AttributeKeyReceiptTxIndex, Value: "0"},
-								{Key: evmtypes.AttributeKeyReceiptTendermintTxHash, Value: ""},
+								{Key: evmtypes.AttributeKeyReceiptCometBFTTxHash, Value: ""},
 							},
 						},
 					},
@@ -169,7 +169,7 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 							Attributes: []abci.EventAttribute{
 								{Key: evmtypes.AttributeKeyReceiptEvmTxHash, Value: txHash2.Hex()},
 								{Key: evmtypes.AttributeKeyReceiptTxIndex, Value: "1"},
-								{Key: evmtypes.AttributeKeyReceiptTendermintTxHash, Value: ""},
+								{Key: evmtypes.AttributeKeyReceiptCometBFTTxHash, Value: ""},
 							},
 						},
 					},
@@ -206,7 +206,7 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 							Attributes: []abci.EventAttribute{
 								{Key: evmtypes.AttributeKeyReceiptEvmTxHash, Value: txHash.Hex()},
 								{Key: evmtypes.AttributeKeyReceiptTxIndex, Value: "0"},
-								{Key: evmtypes.AttributeKeyReceiptTendermintTxHash, Value: ""},
+								{Key: evmtypes.AttributeKeyReceiptCometBFTTxHash, Value: ""},
 							},
 						},
 					},

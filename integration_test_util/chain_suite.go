@@ -87,10 +87,10 @@ type ChainIntegrationTestSuite struct {
 	EncodingConfig       params.EncodingConfig
 	ChainConstantsConfig itutiltypes.ChainConstantConfig
 	DB                   *cmtdb.MemDB
-	TendermintApp        itutiltypes.TendermintApp
+	CometBFTApp          itutiltypes.CometBFTApp
 	ChainApp             itutiltypes.ChainApp
 	ValidatorSet         *cmttypes.ValidatorSet
-	CurrentContext       sdk.Context // might be out-dated if Tendermint is used
+	CurrentContext       sdk.Context // might be out-dated if CometBFT is used
 	ValidatorAccounts    itutiltypes.TestAccounts
 	WalletAccounts       itutiltypes.TestAccounts
 	ModuleAccounts       map[string]sdk.ModuleAccountI
@@ -123,7 +123,7 @@ var IntegrationTestChain2 = itutiltypes.ChainConfig{
 }
 
 // CreateChainIntegrationTestSuiteFromChainConfig initialize an integration test suite from a given chain config.
-func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Assertions, chainCfg itutiltypes.ChainConfig, disableTendermint bool) *ChainIntegrationTestSuite {
+func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Assertions, chainCfg itutiltypes.ChainConfig, disableCometBFT bool) *ChainIntegrationTestSuite {
 	if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
 		t.Skip("Integration test suite only works on Linux and MacOS")
 	}
@@ -149,7 +149,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 		},
 		InitBalanceAmount: sdkmath.NewInt(int64(balancePerAccount * math.Pow10(18))),
 		DefaultFeeAmount:  sdkmath.NewInt(int64(math.Pow10(16))),
-		DisableTendermint: disableTendermint,
+		DisableCometBFT:   disableCometBFT,
 	}
 
 	clientCtx := client.Context{}.
@@ -170,10 +170,10 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 	// Setup Test accounts
 
 	validatorAccounts := newValidatorAccounts(t)
-	if disableTendermint {
+	if disableCometBFT {
 		// no-op
 	} else {
-		// test tendermint use only one validator
+		// test CometBFT use only one validator
 		validatorAccounts = []*itutiltypes.TestAccount{validatorAccounts.Number(1)}
 	}
 
@@ -194,7 +194,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 	}
 
 	logger := log.NewNopLogger()
-	app, tmApp, valSet := itutiltypes.NewChainApp(chainCfg, disableTendermint, testConfig, encodingConfig, cmtDB, validatorAccounts, walletAccounts, genesisAccountBalance, tempHolder, logger)
+	app, tmApp, valSet := itutiltypes.NewChainApp(chainCfg, disableCometBFT, testConfig, encodingConfig, cmtDB, validatorAccounts, walletAccounts, genesisAccountBalance, tempHolder, logger)
 	baseApp := app.BaseApp()
 
 	header := createFirstBlockHeader(
@@ -244,7 +244,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 		),
 		DB:                cmtDB,
 		ChainApp:          app,
-		TendermintApp:     tmApp,
+		CometBFTApp:       tmApp,
 		ValidatorSet:      valSet,
 		CurrentContext:    ctx.WithMultiStore(baseApp.CommitMultiStore().CacheMultiStore()),
 		ValidatorAccounts: validatorAccounts,
@@ -255,7 +255,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 		TestConfig:        testConfig,
 	}
 
-	if disableTendermint {
+	if disableCometBFT {
 		result.Commit() // Commit the initial block
 	} else {
 		time.Sleep(300 * time.Millisecond)
@@ -302,8 +302,8 @@ func (suite *ChainIntegrationTestSuite) Cleanup() {
 		return
 	}
 
-	if suite.HasTendermint() {
-		suite.TendermintApp.Shutdown()
+	if suite.HasCometBFT() {
+		suite.CometBFTApp.Shutdown()
 	}
 
 	if suite.tempHolder != nil {
@@ -357,7 +357,7 @@ func (suite *ChainIntegrationTestSuite) createAppQueryContext(height int64, prov
 // QueryClientsAt returns the list of query client instance that connects to store data at a given context block height.
 func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltypes.QueryClients {
 	var sdkContext sdk.Context
-	if suite.HasTendermint() {
+	if suite.HasCometBFT() {
 		if height == 0 {
 			height = suite.GetLatestBlockHeight()
 		}
@@ -419,18 +419,18 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 		FeeMarket:     feeMarketQueryClient,
 	}
 
-	var tendermintRpcHttpClient *httpclient.HTTP
-	if suite.HasTendermint() {
-		rpcAddr26657, supported := suite.TendermintApp.GetRpcAddr()
+	var cometBFTRpcHttpClient *httpclient.HTTP
+	if suite.HasCometBFT() {
+		rpcAddr26657, supported := suite.CometBFTApp.GetRpcAddr()
 		suite.Require().True(supported)
 
 		httpClient26657, err := cmtjrpcclient.DefaultHTTPClient(rpcAddr26657)
 		suite.Require().NoError(err)
 
-		tendermintRpcHttpClient, err = httpclient.NewWithClient(rpcAddr26657, "/websocket", httpClient26657)
+		cometBFTRpcHttpClient, err = httpclient.NewWithClient(rpcAddr26657, "/websocket", httpClient26657)
 		suite.Require().NoError(err)
 
-		err = tendermintRpcHttpClient.Start()
+		err = cometBFTRpcHttpClient.Start()
 		suite.Require().NoError(err)
 	}
 
@@ -453,8 +453,8 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 		clientQueryCtx = clientQueryCtx.WithHeight(height)
 	}
 
-	if suite.HasTendermint() {
-		clientQueryCtx = clientQueryCtx.WithClient(tendermintRpcHttpClient)
+	if suite.HasCometBFT() {
+		clientQueryCtx = clientQueryCtx.WithClient(cometBFTRpcHttpClient)
 	}
 
 	sdktxtypes.RegisterServiceServer(
@@ -463,21 +463,21 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 	)
 
 	return &itutiltypes.QueryClients{
-		GrpcConnection:          queryHelper,
-		ClientQueryCtx:          clientQueryCtx,
-		TendermintRpcHttpClient: tendermintRpcHttpClient,
-		Auth:                    authQueryClient,
-		Bank:                    bankQueryClient,
-		Distribution:            distributionQueryClient,
-		Erc20:                   erc20QueryClient,
-		EVM:                     evmQueryClient,
-		GovV1:                   govV1QueryClient,
-		GovLegacy:               govLegacyQueryClient,
-		IbcTransfer:             ibcTransferQueryClient,
-		Slashing:                slashingQueryClient,
-		Staking:                 stakingQueryClient,
-		ServiceClient:           serviceClient,
-		Rpc:                     &rpcQueryClient,
+		GrpcConnection:        queryHelper,
+		ClientQueryCtx:        clientQueryCtx,
+		CometBFTRpcHttpClient: cometBFTRpcHttpClient,
+		Auth:                  authQueryClient,
+		Bank:                  bankQueryClient,
+		Distribution:          distributionQueryClient,
+		Erc20:                 erc20QueryClient,
+		EVM:                   evmQueryClient,
+		GovV1:                 govV1QueryClient,
+		GovLegacy:             govLegacyQueryClient,
+		IbcTransfer:           ibcTransferQueryClient,
+		Slashing:              slashingQueryClient,
+		Staking:               stakingQueryClient,
+		ServiceClient:         serviceClient,
+		Rpc:                   &rpcQueryClient,
 	}
 }
 
@@ -504,8 +504,8 @@ func (suite *ChainIntegrationTestSuite) RpcBackendAt(height int64) *rpcbackend.B
 
 // GetLatestBlockHeight returns the most recent block height.
 func (suite *ChainIntegrationTestSuite) GetLatestBlockHeight() int64 {
-	if suite.HasTendermint() {
-		// because Tendermint auto-commit blocks so the CurrentContext property might out-dated
+	if suite.HasCometBFT() {
+		// because CometBFT auto-commit blocks so the CurrentContext property might out-dated
 		return suite.BaseApp().LastBlockHeight()
 	}
 
@@ -514,14 +514,14 @@ func (suite *ChainIntegrationTestSuite) GetLatestBlockHeight() int64 {
 
 // WaitNextBlockOrCommit returns the most recent block height beside the following logic:
 //
-// - When Tendermint is Enabled, it waits for the next block to be committed before returning result.
+// - When CometBFT is Enabled, it waits for the next block to be committed before returning result.
 //
-// - When Tendermint is Disabled, it triggers commit block and starts a new block with an updated context.
+// - When CometBFT is Disabled, it triggers commit block and starts a new block with an updated context.
 //
 // USE-CASE for this: you want to submit one or multiple txs and have sometime to know the executed block,
-// while Tendermint auto commit blocks.
+// while CometBFT auto commit blocks.
 func (suite *ChainIntegrationTestSuite) WaitNextBlockOrCommit() int64 {
-	if !suite.HasTendermint() {
+	if !suite.HasCometBFT() {
 		suite.Commit()
 		return suite.GetLatestBlockHeight()
 	}
@@ -564,8 +564,8 @@ func (suite *ChainIntegrationTestSuite) commitAndBeginBlockAfter(t time.Duration
 	var newCtx sdk.Context
 	var newValSet *cmttypes.ValidatorSet
 
-	if suite.HasTendermint() {
-		// awaiting next block generated by tendermint
+	if suite.HasCometBFT() {
+		// awaiting next block generated by CometBFT
 		originalHeight := suite.GetLatestBlockHeight()
 		var latestHeight int64
 		for {
@@ -646,11 +646,11 @@ func (suite *ChainIntegrationTestSuite) triggerEvmIndexer(latestHeight int64, bl
 	suite.EvmTxIndexer.Ready()
 }
 
-// GetBlockStoreAndStateStore returns blockStore and stateStore if Tendermint is Enabled.
+// GetBlockStoreAndStateStore returns blockStore and stateStore if CometBFT is Enabled.
 //
-// WARN: if Tendermint is Disabled, the call will panic.
+// WARN: if CometBFT is Disabled, the call will panic.
 func (suite *ChainIntegrationTestSuite) GetBlockStoreAndStateStore() (*store.BlockStore, tmstate.Store) {
-	suite.EnsureTendermint()
+	suite.EnsureCometBFT()
 	blockStore := store.NewBlockStore(suite.DB)
 	stateStore := tmstate.NewStore(suite.DB, tmstate.StoreOptions{
 		DiscardABCIResponses: false,
@@ -658,7 +658,7 @@ func (suite *ChainIntegrationTestSuite) GetBlockStoreAndStateStore() (*store.Blo
 	return blockStore, stateStore
 }
 
-// createFirstBlockHeader creates a new Tendermint header, with context 1, for testing purposes.
+// createFirstBlockHeader creates a new CometBFT header, with context 1, for testing purposes.
 func createFirstBlockHeader(
 	chainID string,
 	proposer sdk.ConsAddress,

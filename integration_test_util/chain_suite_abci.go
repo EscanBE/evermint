@@ -42,7 +42,7 @@ func (suite *ChainIntegrationTestSuite) createNewContext(oldCtx sdk.Context, hea
 	// GasMeter is set as InfiniteGasMeter
 
 	var newCtx sdk.Context
-	if suite.HasTendermint() {
+	if suite.HasCometBFT() {
 		newCtx = sdk.NewContext(suite.BaseApp().CommitMultiStore(), header, false, suite.BaseApp().Logger())
 
 		newCtx = newCtx.WithChainID(oldCtx.ChainID())
@@ -159,8 +159,8 @@ func (suite *ChainIntegrationTestSuite) BroadcastTx(tx sdk.Tx) (responseDeliverT
 	bz, err = suite.EncodingConfig.TxConfig.TxEncoder()(tx)
 
 	if err == nil {
-		if suite.HasTendermint() {
-			res, err := suite.QueryClients.TendermintRpcHttpClient.BroadcastTxCommit(context.Background(), bz)
+		if suite.HasCometBFT() {
+			res, err := suite.QueryClients.CometBFTRpcHttpClient.BroadcastTxCommit(context.Background(), bz)
 			suite.Require().NoError(err)
 			responseDeliverTx = res.TxResult
 		} else {
@@ -197,13 +197,13 @@ func (suite *ChainIntegrationTestSuite) BroadcastTx(tx sdk.Tx) (responseDeliverT
 
 // BroadcastTxAsync is the same as BroadcastTx but with Async delivery mode.
 func (suite *ChainIntegrationTestSuite) BroadcastTxAsync(tx sdk.Tx) (resultBroadcastTx *cmtrpctypes.ResultBroadcastTx, err error) {
-	suite.EnsureTendermint()
+	suite.EnsureCometBFT()
 	// bz are bytes to be broadcast over the network
 	var bz []byte
 	bz, err = suite.EncodingConfig.TxConfig.TxEncoder()(tx)
 
 	if err == nil {
-		res, err := suite.QueryClients.TendermintRpcHttpClient.BroadcastTxAsync(context.Background(), bz)
+		res, err := suite.QueryClients.CometBFTRpcHttpClient.BroadcastTxAsync(context.Background(), bz)
 		suite.Require().NoError(err)
 		resultBroadcastTx = res
 	}

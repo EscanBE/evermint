@@ -43,7 +43,7 @@ func (suite *BackendTestSuite) TestGetTransactionByHash() {
 					Attributes: []abci.EventAttribute{
 						{Key: evmtypes.AttributeKeyReceiptEvmTxHash, Value: txHash.Hex()},
 						{Key: evmtypes.AttributeKeyReceiptTxIndex, Value: "0"},
-						{Key: evmtypes.AttributeKeyReceiptTendermintTxHash, Value: ""},
+						{Key: evmtypes.AttributeKeyReceiptCometBFTTxHash, Value: ""},
 					},
 				},
 			},
@@ -308,7 +308,7 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 					Attributes: []abci.EventAttribute{
 						{Key: evmtypes.AttributeKeyReceiptEvmTxHash, Value: common.HexToHash(msgEthTx.Hash).Hex()},
 						{Key: evmtypes.AttributeKeyReceiptTxIndex, Value: "0"},
-						{Key: evmtypes.AttributeKeyReceiptTendermintTxHash, Value: ""},
+						{Key: evmtypes.AttributeKeyReceiptCometBFTTxHash, Value: ""},
 					},
 				},
 			},
