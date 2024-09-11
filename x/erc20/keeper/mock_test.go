@@ -59,218 +59,6 @@ type MockBankKeeper struct {
 	mock.Mock
 }
 
-func (b *MockBankKeeper) ValidateBalance(ctx context.Context, addr sdk.AccAddress) error {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) HasBalance(ctx context.Context, addr sdk.AccAddress, amt sdk.Coin) bool {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) GetAccountsBalances(ctx context.Context) []banktypes.Balance {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) LockedCoins(ctx context.Context, addr sdk.AccAddress) sdk.Coins {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) SpendableCoins(ctx context.Context, addr sdk.AccAddress) sdk.Coins {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) SpendableCoin(ctx context.Context, addr sdk.AccAddress, denom string) sdk.Coin {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) IterateAccountBalances(ctx context.Context, addr sdk.AccAddress, cb func(coin sdk.Coin) (stop bool)) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) IterateAllBalances(ctx context.Context, cb func(address sdk.AccAddress, coin sdk.Coin) (stop bool)) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) AppendSendRestriction(restriction banktypes.SendRestrictionFn) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) PrependSendRestriction(restriction banktypes.SendRestrictionFn) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) ClearSendRestriction() {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) InputOutputCoins(ctx context.Context, input banktypes.Input, outputs []banktypes.Output) error {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) SendCoins(ctx context.Context, fromAddr, toAddr sdk.AccAddress, amt sdk.Coins) error {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) GetParams(ctx context.Context) banktypes.Params {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) SetParams(ctx context.Context, params banktypes.Params) error {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) IsSendEnabledDenom(ctx context.Context, denom string) bool {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) GetSendEnabledEntry(ctx context.Context, denom string) (banktypes.SendEnabled, bool) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) SetSendEnabled(ctx context.Context, denom string, value bool) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) SetAllSendEnabled(ctx context.Context, sendEnableds []*banktypes.SendEnabled) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) DeleteSendEnabled(ctx context.Context, denoms ...string) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) IterateSendEnabledEntries(ctx context.Context, cb func(denom string, sendEnabled bool) (stop bool)) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) GetAllSendEnabledEntries(ctx context.Context) []banktypes.SendEnabled {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) IsSendEnabledCoins(ctx context.Context, coins ...sdk.Coin) error {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) GetBlockedAddresses() map[string]bool {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) GetAuthority() string {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) WithMintCoinsRestriction(fn banktypes.MintingRestrictionFn) bankkeeper.BaseKeeper {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) InitGenesis(ctx context.Context, state *banktypes.GenesisState) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) ExportGenesis(ctx context.Context) *banktypes.GenesisState {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) GetSupply(ctx context.Context, denom string) sdk.Coin {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) GetPaginatedTotalSupply(ctx context.Context, pagination *query.PageRequest) (sdk.Coins, *query.PageResponse, error) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) IterateTotalSupply(ctx context.Context, cb func(sdk.Coin) bool) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) HasDenomMetaData(ctx context.Context, denom string) bool {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) GetAllDenomMetaData(ctx context.Context) []banktypes.Metadata {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) IterateAllDenomMetaData(ctx context.Context, cb func(banktypes.Metadata) bool) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) SendCoinsFromModuleToModule(ctx context.Context, senderModule, recipientModule string, amt sdk.Coins) error {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) DelegateCoinsFromAccountToModule(ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) UndelegateCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) DelegateCoins(ctx context.Context, delegatorAddr, moduleAccAddr sdk.AccAddress, amt sdk.Coins) error {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) UndelegateCoins(ctx context.Context, moduleAccAddr, delegatorAddr sdk.AccAddress, amt sdk.Coins) error {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) Balance(ctx context.Context, request *banktypes.QueryBalanceRequest) (*banktypes.QueryBalanceResponse, error) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) AllBalances(ctx context.Context, request *banktypes.QueryAllBalancesRequest) (*banktypes.QueryAllBalancesResponse, error) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) SpendableBalances(ctx context.Context, request *banktypes.QuerySpendableBalancesRequest) (*banktypes.QuerySpendableBalancesResponse, error) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) SpendableBalanceByDenom(ctx context.Context, request *banktypes.QuerySpendableBalanceByDenomRequest) (*banktypes.QuerySpendableBalanceByDenomResponse, error) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) TotalSupply(ctx context.Context, request *banktypes.QueryTotalSupplyRequest) (*banktypes.QueryTotalSupplyResponse, error) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) SupplyOf(ctx context.Context, request *banktypes.QuerySupplyOfRequest) (*banktypes.QuerySupplyOfResponse, error) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) Params(ctx context.Context, request *banktypes.QueryParamsRequest) (*banktypes.QueryParamsResponse, error) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) DenomMetadata(ctx context.Context, request *banktypes.QueryDenomMetadataRequest) (*banktypes.QueryDenomMetadataResponse, error) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) DenomMetadataByQueryString(ctx context.Context, request *banktypes.QueryDenomMetadataByQueryStringRequest) (*banktypes.QueryDenomMetadataByQueryStringResponse, error) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) DenomsMetadata(ctx context.Context, request *banktypes.QueryDenomsMetadataRequest) (*banktypes.QueryDenomsMetadataResponse, error) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) DenomOwners(ctx context.Context, request *banktypes.QueryDenomOwnersRequest) (*banktypes.QueryDenomOwnersResponse, error) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) DenomOwnersByQuery(ctx context.Context, request *banktypes.QueryDenomOwnersByQueryRequest) (*banktypes.QueryDenomOwnersByQueryResponse, error) {
-	panic("implement me")
-}
-
-func (b *MockBankKeeper) SendEnabled(_ context.Context, _ *banktypes.QuerySendEnabledRequest) (*banktypes.QuerySendEnabledResponse, error) {
-	panic("implement me")
-}
-
 func (b *MockBankKeeper) SendCoinsFromModuleToAccount(_ context.Context, _ string, _ sdk.AccAddress, _ sdk.Coins) error {
 	args := b.Called(mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	return args.Error(0)
@@ -318,4 +106,216 @@ func (b *MockBankKeeper) HasSupply(_ context.Context, _ string) bool {
 func (b *MockBankKeeper) GetBalance(_ context.Context, _ sdk.AccAddress, _ string) sdk.Coin {
 	args := b.Called(mock.Anything, mock.Anything)
 	return args.Get(0).(sdk.Coin)
+}
+
+func (b *MockBankKeeper) ValidateBalance(_ context.Context, _ sdk.AccAddress) error {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) HasBalance(_ context.Context, _ sdk.AccAddress, _ sdk.Coin) bool {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) GetAllBalances(_ context.Context, _ sdk.AccAddress) sdk.Coins {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) GetAccountsBalances(_ context.Context) []banktypes.Balance {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) LockedCoins(_ context.Context, _ sdk.AccAddress) sdk.Coins {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) SpendableCoins(_ context.Context, _ sdk.AccAddress) sdk.Coins {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) SpendableCoin(_ context.Context, _ sdk.AccAddress, _ string) sdk.Coin {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) IterateAccountBalances(_ context.Context, _ sdk.AccAddress, _ func(coin sdk.Coin) (stop bool)) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) IterateAllBalances(_ context.Context, _ func(address sdk.AccAddress, coin sdk.Coin) (stop bool)) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) AppendSendRestriction(_ banktypes.SendRestrictionFn) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) PrependSendRestriction(_ banktypes.SendRestrictionFn) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) ClearSendRestriction() {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) InputOutputCoins(_ context.Context, _ banktypes.Input, _ []banktypes.Output) error {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) SendCoins(_ context.Context, _, _ sdk.AccAddress, _ sdk.Coins) error {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) GetParams(_ context.Context) banktypes.Params {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) SetParams(_ context.Context, _ banktypes.Params) error {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) IsSendEnabledDenom(_ context.Context, _ string) bool {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) GetSendEnabledEntry(_ context.Context, _ string) (banktypes.SendEnabled, bool) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) SetSendEnabled(_ context.Context, _ string, _ bool) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) SetAllSendEnabled(_ context.Context, _ []*banktypes.SendEnabled) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) DeleteSendEnabled(_ context.Context, _ ...string) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) IterateSendEnabledEntries(_ context.Context, _ func(denom string, sendEnabled bool) (stop bool)) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) GetAllSendEnabledEntries(_ context.Context) []banktypes.SendEnabled {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) IsSendEnabledCoins(_ context.Context, _ ...sdk.Coin) error {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) GetBlockedAddresses() map[string]bool {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) GetAuthority() string {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) WithMintCoinsRestriction(_ banktypes.MintingRestrictionFn) bankkeeper.BaseKeeper {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) InitGenesis(_ context.Context, _ *banktypes.GenesisState) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) ExportGenesis(_ context.Context) *banktypes.GenesisState {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) GetSupply(_ context.Context, _ string) sdk.Coin {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) GetPaginatedTotalSupply(_ context.Context, _ *query.PageRequest) (sdk.Coins, *query.PageResponse, error) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) IterateTotalSupply(_ context.Context, _ func(sdk.Coin) bool) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) HasDenomMetaData(_ context.Context, _ string) bool {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) GetAllDenomMetaData(_ context.Context) []banktypes.Metadata {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) IterateAllDenomMetaData(_ context.Context, _ func(banktypes.Metadata) bool) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) SendCoinsFromModuleToModule(_ context.Context, _, _ string, _ sdk.Coins) error {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) DelegateCoinsFromAccountToModule(_ context.Context, _ sdk.AccAddress, _ string, _ sdk.Coins) error {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) UndelegateCoinsFromModuleToAccount(_ context.Context, _ string, _ sdk.AccAddress, _ sdk.Coins) error {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) DelegateCoins(_ context.Context, _, _ sdk.AccAddress, _ sdk.Coins) error {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) UndelegateCoins(_ context.Context, _, _ sdk.AccAddress, _ sdk.Coins) error {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) Balance(_ context.Context, _ *banktypes.QueryBalanceRequest) (*banktypes.QueryBalanceResponse, error) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) AllBalances(_ context.Context, _ *banktypes.QueryAllBalancesRequest) (*banktypes.QueryAllBalancesResponse, error) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) SpendableBalances(_ context.Context, _ *banktypes.QuerySpendableBalancesRequest) (*banktypes.QuerySpendableBalancesResponse, error) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) SpendableBalanceByDenom(_ context.Context, _ *banktypes.QuerySpendableBalanceByDenomRequest) (*banktypes.QuerySpendableBalanceByDenomResponse, error) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) TotalSupply(_ context.Context, _ *banktypes.QueryTotalSupplyRequest) (*banktypes.QueryTotalSupplyResponse, error) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) SupplyOf(_ context.Context, _ *banktypes.QuerySupplyOfRequest) (*banktypes.QuerySupplyOfResponse, error) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) Params(_ context.Context, _ *banktypes.QueryParamsRequest) (*banktypes.QueryParamsResponse, error) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) DenomMetadata(_ context.Context, _ *banktypes.QueryDenomMetadataRequest) (*banktypes.QueryDenomMetadataResponse, error) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) DenomMetadataByQueryString(_ context.Context, _ *banktypes.QueryDenomMetadataByQueryStringRequest) (*banktypes.QueryDenomMetadataByQueryStringResponse, error) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) DenomsMetadata(_ context.Context, _ *banktypes.QueryDenomsMetadataRequest) (*banktypes.QueryDenomsMetadataResponse, error) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) DenomOwners(_ context.Context, _ *banktypes.QueryDenomOwnersRequest) (*banktypes.QueryDenomOwnersResponse, error) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) DenomOwnersByQuery(_ context.Context, _ *banktypes.QueryDenomOwnersByQueryRequest) (*banktypes.QueryDenomOwnersByQueryResponse, error) {
+	panic("implement me")
+}
+
+func (b *MockBankKeeper) SendEnabled(_ context.Context, _ *banktypes.QuerySendEnabledRequest) (*banktypes.QuerySendEnabledResponse, error) {
+	panic("implement me")
 }
