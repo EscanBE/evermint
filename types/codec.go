@@ -2,14 +2,14 @@ package types
 
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/types/tx"
+	sdktxtypes "github.com/cosmos/cosmos-sdk/types/tx"
 )
 
-// RegisterInterfaces registers the tendermint concrete client-related
+// RegisterInterfaces registers the CometBFT concrete client-related
 // implementations and interfaces.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
-		(*tx.TxExtensionOptionI)(nil),
+		(*sdktxtypes.TxExtensionOptionI)(nil),
 		&ExtensionOptionsWeb3Tx{},
 		&ExtensionOptionDynamicFeeTx{},
 	)

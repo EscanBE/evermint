@@ -10,7 +10,6 @@ import (
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 )
@@ -124,7 +123,7 @@ func (suite *ChainIntegrationTestSuite) MintCoinToCosmosAddress(receiver sdk.Acc
 }
 
 // MintCoinToModuleAccount mints a new amount of coin into given module account.
-func (suite *ChainIntegrationTestSuite) MintCoinToModuleAccount(receiver authtypes.ModuleAccountI, coin sdk.Coin) {
+func (suite *ChainIntegrationTestSuite) MintCoinToModuleAccount(receiver sdk.ModuleAccountI, coin sdk.Coin) {
 	suite.Require().NotNil(receiver)
 
 	coins := sdk.NewCoins(coin)

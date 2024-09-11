@@ -1,26 +1,33 @@
 package network
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"time"
 
+	"cosmossdk.io/log"
+
+	servercfg "github.com/EscanBE/evermint/v12/server/config"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	sdkserver "github.com/cosmos/cosmos-sdk/server"
+	servercmtlog "github.com/cosmos/cosmos-sdk/server/log"
+
 	"github.com/EscanBE/evermint/v12/constants"
 
-	tmos "github.com/cometbft/cometbft/libs/os"
-	"github.com/cometbft/cometbft/node"
-	"github.com/cometbft/cometbft/p2p"
-	pvm "github.com/cometbft/cometbft/privval"
-	"github.com/cometbft/cometbft/proxy"
+	cmtos "github.com/cometbft/cometbft/libs/os"
+	cmtnode "github.com/cometbft/cometbft/node"
+	cmtp2p "github.com/cometbft/cometbft/p2p"
+	cmtprivval "github.com/cometbft/cometbft/privval"
+	cmtproxy "github.com/cometbft/cometbft/proxy"
 	"github.com/cometbft/cometbft/rpc/client/local"
-	"github.com/cometbft/cometbft/types"
-	tmtime "github.com/cometbft/cometbft/types/time"
+	cmttypes "github.com/cometbft/cometbft/types"
+	cmttime "github.com/cometbft/cometbft/types/time"
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/cosmos/cosmos-sdk/server/api"
 	servergrpc "github.com/cosmos/cosmos-sdk/server/grpc"
-	srvtypes "github.com/cosmos/cosmos-sdk/server/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
@@ -37,43 +44,44 @@ import (
 
 func startInProcess(cfg Config, val *Validator) error {
 	logger := val.Ctx.Logger
-	tmCfg := val.Ctx.Config
-	tmCfg.Instrumentation.Prometheus = false
+	cometCfg := val.Ctx.Config
+	cometCfg.Instrumentation.Prometheus = false
 
 	if err := val.AppConfig.ValidateBasic(); err != nil {
 		return err
 	}
 
-	nodeKey, err := p2p.LoadOrGenNodeKey(tmCfg.NodeKeyFile())
+	nodeKey, err := cmtp2p.LoadOrGenNodeKey(cometCfg.NodeKeyFile())
 	if err != nil {
 		return err
 	}
 
 	app := cfg.AppConstructor(*val)
 
-	genDocProvider := node.DefaultGenesisDocProviderFunc(tmCfg)
-	tmNode, err := node.NewNode(
-		tmCfg,
-		pvm.LoadOrGenFilePV(tmCfg.PrivValidatorKeyFile(), tmCfg.PrivValidatorStateFile()),
+	genDocProvider := cmtnode.DefaultGenesisDocProviderFunc(cometCfg)
+	cmtApp := sdkserver.NewCometABCIWrapper(app)
+	cometNode, err := cmtnode.NewNode(
+		cometCfg,
+		cmtprivval.LoadOrGenFilePV(cometCfg.PrivValidatorKeyFile(), cometCfg.PrivValidatorStateFile()),
 		nodeKey,
-		proxy.NewLocalClientCreator(app),
+		cmtproxy.NewLocalClientCreator(cmtApp),
 		genDocProvider,
-		node.DefaultDBProvider,
-		node.DefaultMetricsProvider(tmCfg.Instrumentation),
-		logger.With("module", val.Moniker),
+		cmtcfg.DefaultDBProvider,
+		cmtnode.DefaultMetricsProvider(cometCfg.Instrumentation),
+		servercmtlog.CometLoggerWrapper{Logger: logger.With("module", val.Moniker)},
 	)
 	if err != nil {
 		return err
 	}
 
-	if err := tmNode.Start(); err != nil {
+	if err := cometNode.Start(); err != nil {
 		return err
 	}
 
-	val.tmNode = tmNode
+	val.cometNode = cometNode
 
 	if val.RPCAddress != "" {
-		val.RPCClient = local.New(tmNode)
+		val.RPCClient = local.New(cometNode)
 	}
 
 	// We'll need a RPC client if the validator exposes a gRPC or REST endpoint.
@@ -84,18 +92,18 @@ func startInProcess(cfg Config, val *Validator) error {
 		// Add the tx service in the gRPC router.
 		app.RegisterTxService(val.ClientCtx)
 
-		// Add the tendermint queries service in the gRPC router.
+		// Add the CometBFT queries service in the gRPC router.
 		app.RegisterTendermintService(val.ClientCtx)
 	}
 
 	if val.AppConfig.API.Enable && val.APIAddress != "" {
-		apiSrv := api.New(val.ClientCtx, logger.With("module", "api-server"))
+		apiSrv := api.New(val.ClientCtx, logger.With("module", "api-server"), val.grpc)
 		app.RegisterAPIRoutes(apiSrv, val.AppConfig.API)
 
 		errCh := make(chan error)
 
 		go func() {
-			if err := apiSrv.Start(val.AppConfig.Config); err != nil {
+			if err := apiSrv.Start(context.Background(), val.AppConfig.Config); err != nil {
 				errCh <- err
 			}
 		}()
@@ -103,25 +111,21 @@ func startInProcess(cfg Config, val *Validator) error {
 		select {
 		case err := <-errCh:
 			return err
-		case <-time.After(srvtypes.ServerStartTime): // assume server started successfully
+		case <-time.After(servercfg.ServerStartTime): // assume server started successfully
 		}
 
 		val.api = apiSrv
 	}
 
 	if val.AppConfig.GRPC.Enable {
-		grpcSrv, err := servergrpc.StartGRPCServer(val.ClientCtx, app, val.AppConfig.GRPC)
+		err := servergrpc.StartGRPCServer(
+			context.Background(),
+			logger.With(log.ModuleKey, "grpc-server"),
+			val.AppConfig.GRPC,
+			val.grpc,
+		)
 		if err != nil {
 			return err
-		}
-
-		val.grpc = grpcSrv
-
-		if val.AppConfig.GRPCWeb.Enable {
-			val.grpcWeb, err = servergrpc.StartGRPCWeb(grpcSrv, val.AppConfig.Config)
-			if err != nil {
-				return err
-			}
 		}
 	}
 
@@ -130,10 +134,10 @@ func startInProcess(cfg Config, val *Validator) error {
 			return fmt.Errorf("validator %s context is nil", val.Moniker)
 		}
 
-		tmEndpoint := "/websocket"
-		tmRPCAddr := fmt.Sprintf("tcp://%s", val.AppConfig.GRPC.Address)
+		cometEndpoint := "/websocket"
+		cometRPCAddr := fmt.Sprintf("tcp://%s", val.AppConfig.GRPC.Address)
 
-		val.jsonrpc, val.jsonrpcDone, err = server.StartJSONRPC(val.Ctx, val.ClientCtx, tmRPCAddr, tmEndpoint, val.AppConfig, nil)
+		val.jsonrpc, val.jsonrpcDone, err = server.StartJSONRPC(val.Ctx, val.ClientCtx, cometRPCAddr, cometEndpoint, val.AppConfig, nil)
 		if err != nil {
 			return err
 		}
@@ -150,27 +154,29 @@ func startInProcess(cfg Config, val *Validator) error {
 }
 
 func collectGenFiles(cfg Config, vals []*Validator, outputDir string) error {
-	genTime := tmtime.Now()
+	genTime := cmttime.Now()
 
 	for i := 0; i < cfg.NumValidators; i++ {
-		tmCfg := vals[i].Ctx.Config
+		cmtCfg := vals[i].Ctx.Config
 
 		nodeDir := filepath.Join(outputDir, vals[i].Moniker, constants.ApplicationHome)
 		gentxsDir := filepath.Join(outputDir, "gentxs")
 
-		tmCfg.Moniker = vals[i].Moniker
-		tmCfg.SetRoot(nodeDir)
+		cmtCfg.Moniker = vals[i].Moniker
+		cmtCfg.SetRoot(nodeDir)
 
 		initCfg := genutiltypes.NewInitConfig(cfg.ChainID, gentxsDir, vals[i].NodeID, vals[i].PubKey)
 
-		genFile := tmCfg.GenesisFile()
-		genDoc, err := types.GenesisDocFromFile(genFile)
+		genFile := cmtCfg.GenesisFile()
+		appGenesis, err := genutiltypes.AppGenesisFromFile(genFile)
 		if err != nil {
 			return err
 		}
 
-		appState, err := genutil.GenAppStateFromConfig(cfg.Codec, cfg.TxConfig,
-			tmCfg, initCfg, *genDoc, banktypes.GenesisBalancesIterator{}, genutiltypes.DefaultMessageValidator,
+		appState, err := genutil.GenAppStateFromConfig(
+			cfg.Codec, cfg.TxConfig,
+			cmtCfg, initCfg, appGenesis, banktypes.GenesisBalancesIterator{}, genutiltypes.DefaultMessageValidator,
+			cfg.TxConfig.SigningContext().ValidatorAddressCodec(),
 		)
 		if err != nil {
 			return err
@@ -238,7 +244,7 @@ func initGenFiles(cfg Config, genAccounts []authtypes.GenesisAccount, genBalance
 		return err
 	}
 
-	genDoc := types.GenesisDoc{
+	genDoc := cmttypes.GenesisDoc{
 		ChainID:    cfg.ChainID,
 		AppState:   appGenStateJSON,
 		Validators: nil,
@@ -257,10 +263,10 @@ func initGenFiles(cfg Config, genAccounts []authtypes.GenesisAccount, genBalance
 func WriteFile(name string, dir string, contents []byte) error {
 	file := filepath.Join(dir, name)
 
-	err := tmos.EnsureDir(dir, 0o755)
+	err := cmtos.EnsureDir(dir, 0o755)
 	if err != nil {
 		return err
 	}
 
-	return tmos.WriteFile(file, contents, 0o644)
+	return cmtos.WriteFile(file, contents, 0o644)
 }

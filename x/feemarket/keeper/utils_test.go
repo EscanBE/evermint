@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"math/big"
 	"time"
@@ -13,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -27,54 +27,55 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/stretchr/testify/require"
-
-	dbm "github.com/cometbft/cometbft-db"
+	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
+	sdkdb "github.com/cosmos/cosmos-db"
 )
 
 func (suite *KeeperTestSuite) SetupApp(checkTx bool) {
-	t := suite.T()
 	// account key
 	priv, err := ethsecp256k1.GenerateKey()
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 	suite.address = common.BytesToAddress(priv.PubKey().Address().Bytes())
 	suite.signer = utiltx.NewSigner(priv)
 
 	// consensus key
 	priv, err = ethsecp256k1.GenerateKey()
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
 
 	header := testutil.NewHeader(
 		1, time.Now().UTC(), constants.TestnetFullChainId, suite.consAddress, nil, nil,
 	)
 
-	suite.ctx = suite.app.BaseApp.NewContext(checkTx, header)
+	suite.ctx = suite.app.BaseApp.NewContext(checkTx).WithBlockHeader(header).WithChainID(header.ChainID)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	feemarkettypes.RegisterQueryServer(queryHelper, suite.app.FeeMarketKeeper)
 	suite.queryClient = feemarkettypes.NewQueryClient(queryHelper)
 
-	acc := authtypes.NewBaseAccount(suite.address.Bytes(), nil, 0, 0)
-
+	acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, suite.address.Bytes())
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 	valAddr := sdk.ValAddress(suite.address.Bytes())
-	validator, err := stakingtypes.NewValidator(valAddr, priv.PubKey(), stakingtypes.Description{})
-	require.NoError(t, err)
+	validator, err := stakingtypes.NewValidator(valAddr.String(), priv.PubKey(), stakingtypes.Description{})
+	suite.Require().NoError(err)
 	validator = stakingkeeper.TestingUpdateValidator(suite.app.StakingKeeper, suite.ctx, validator, true)
-	err = suite.app.StakingKeeper.Hooks().AfterValidatorCreated(suite.ctx, validator.GetOperator())
-	require.NoError(t, err)
+	valAddrBz, err := suite.app.StakingKeeper.ValidatorAddressCodec().StringToBytes(validator.GetOperator())
+	suite.Require().NoError(err)
+	suite.Require().True(bytes.Equal(valAddr.Bytes(), valAddrBz))
+	err = suite.app.StakingKeeper.Hooks().AfterValidatorCreated(suite.ctx, valAddr)
+	suite.Require().NoError(err)
 
 	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
-	require.NoError(t, err)
-	suite.app.StakingKeeper.SetValidator(suite.ctx, validator)
+	suite.Require().NoError(err)
+	err = suite.app.StakingKeeper.SetValidator(suite.ctx, validator)
+	suite.Require().NoError(err)
 
 	stakingParams := stakingtypes.DefaultParams()
 	stakingParams.BondDenom = constants.BaseDenom
-	suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
+	err = suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
+	suite.Require().NoError(err)
 
 	encodingConfig := chainapp.RegisterEncodingConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
@@ -100,14 +101,18 @@ func (suite *KeeperTestSuite) CommitAfter(t time.Duration) {
 
 // setupTestWithContext sets up a test chain with an example Cosmos send msg,
 // given a local (validator config) and a global (feemarket param) minGasPrice
-func setupTestWithContext(valMinGasPrice string, minGasPrice sdk.Dec, baseFee sdkmath.Int) (*ethsecp256k1.PrivKey, banktypes.MsgSend) {
+func setupTestWithContext(valMinGasPrice string, minGasPrice sdkmath.LegacyDec, baseFee sdkmath.Int) (*ethsecp256k1.PrivKey, banktypes.MsgSend) {
 	privKey, msg := setupTest(valMinGasPrice + s.denom)
 	params := feemarkettypes.DefaultParams()
 	params.MinGasPrice = minGasPrice
+	params.BaseFee = &baseFee
 	err := s.app.FeeMarketKeeper.SetParams(s.ctx, params)
 	s.Require().NoError(err)
-	s.app.FeeMarketKeeper.SetBaseFee(s.ctx, baseFee.BigInt())
-	s.Commit()
+
+	// Don't call Commit because that will trigger fee market updates,
+	// and that will trigger re-computation or autocorrect,
+	// which fails testcases with base fee < min gas price.
+	s.ctx = testutil.ReflectChangesToCommitMultiStore(s.ctx, s.app.BaseApp)
 
 	return privKey, msg
 }
@@ -141,7 +146,7 @@ func setupChain(localMinGasPricesStr string) {
 	chainID := constants.TestnetFullChainId
 	// Initialize the app, so we can use SetMinGasPrices to set the
 	// validator-specific min-gas-prices setting
-	db := dbm.NewMemDB()
+	db := sdkdb.NewMemDB()
 	chainApp := chainapp.NewEvermint(
 		log.NewNopLogger(),
 		db,
@@ -163,14 +168,17 @@ func setupChain(localMinGasPricesStr string) {
 	s.Require().NoError(err)
 
 	// Initialize the chain
-	chainApp.InitChain(
-		abci.RequestInitChain{
+	_, err = chainApp.InitChain(
+		&abci.RequestInitChain{
 			ChainId:         chainID,
 			Validators:      []abci.ValidatorUpdate{},
 			AppStateBytes:   stateBytes,
 			ConsensusParams: helpers.DefaultConsensusParams,
 		},
 	)
+	if err != nil {
+		panic(err)
+	}
 
 	s.app = chainApp
 	s.SetupApp(false)
@@ -197,6 +205,7 @@ func buildEthTx(
 	data := make([]byte, 0)
 	gasLimit := uint64(100000)
 	ethTxParams := &evmtypes.EvmTxArgs{
+		From:      from,
 		ChainID:   chainID,
 		Nonce:     nonce,
 		To:        to,
@@ -207,7 +216,5 @@ func buildEthTx(
 		Input:     data,
 		Accesses:  accesses,
 	}
-	msgEthereumTx := evmtypes.NewTx(ethTxParams)
-	msgEthereumTx.From = from.String()
-	return msgEthereumTx
+	return evmtypes.NewTx(ethTxParams)
 }

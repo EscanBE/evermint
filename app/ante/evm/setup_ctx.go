@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strconv"
 
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/EscanBE/evermint/v12/utils"
 
 	errorsmod "cosmossdk.io/errors"
@@ -35,7 +37,7 @@ func (esc EthSetupContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 	}
 
 	// We need to setup an empty gas config so that the gas is consistent with Ethereum.
-	newCtx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+	newCtx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 	newCtx = utils.UseZeroGasConfig(newCtx)
 
 	return next(newCtx, tx, simulate)
@@ -75,13 +77,13 @@ func NewEthEmitEventDecorator(evmKeeper EVMKeeper) EthEmitEventDecorator {
 // AnteHandle emits some basic events for the eth messages
 func (eeed EthEmitEventDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	// After eth tx passed ante handler, the fee is deducted and nonce increased, it shouldn't be ignored by json-rpc,
-	// we need to emit some basic events at the very end of ante handler to be indexed by tendermint.
+	// we need to emit some basic events at the very end of ante handler to be indexed by CometBFT.
 	txIndex := eeed.evmKeeper.GetTxCountTransient(ctx) - 1
 
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
-		// emit ethereum tx hash as an event so that it can be indexed by Tendermint for query purposes
+		// emit ethereum tx hash as an event so that it can be indexed by CometBFT for query purposes
 		// it's emitted in ante handler, so we can query failed transaction (out of block gas limit).
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			evmtypes.EventTypeEthereumTx,
@@ -124,12 +126,12 @@ func NewEthValidateBasicDecorator(ek EVMKeeper) EthValidateBasicDecorator {
 
 // AnteHandle handles basic validation of tx
 func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
-	// no need to validate basic on recheck tx, call next antehandler
+	// no need to validate basic on recheck tx, call next AnteHandler
 	if ctx.IsReCheckTx() {
 		return next(ctx, tx, simulate)
 	}
 
-	err := tx.ValidateBasic()
+	err := tx.(sdk.HasValidateBasic).ValidateBasic()
 	// ErrNoSignatures is fine with eth tx
 	if err != nil && !errors.Is(err, errortypes.ErrNoSignatures) {
 		return ctx, errorsmod.Wrap(err, "tx basic validation failed")
@@ -182,9 +184,8 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
-		// Validate `From` field
-		if msgEthTx.From != "" {
-			return ctx, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "invalid From %s, expect empty string", msgEthTx.From)
+		if _, err := sdk.AccAddressFromBech32(msgEthTx.From); err != nil {
+			return ctx, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "invalid From %s, expect bech32 address", msgEthTx.From)
 		}
 
 		txGasLimit += msgEthTx.GetGas()
@@ -208,7 +209,7 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 		txFee = txFee.Add(sdk.Coin{Denom: evmDenom, Amount: sdkmath.NewIntFromBigInt(txData.Fee())})
 	}
 
-	if !authInfo.Fee.Amount.IsEqual(txFee) {
+	if !authInfo.Fee.Amount.Equal(txFee) {
 		return ctx, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "invalid AuthInfo Fee Amount (%s != %s)", authInfo.Fee.Amount, txFee)
 	}
 

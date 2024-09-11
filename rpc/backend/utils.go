@@ -17,13 +17,13 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
-	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 
 	"github.com/EscanBE/evermint/v12/rpc/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	"github.com/cometbft/cometbft/proto/tendermint/crypto"
+	tmcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 )
 
 type txGasAndReward struct {
@@ -48,9 +48,9 @@ func (s sortGasAndReward) Less(i, j int) bool {
 // Todo: include the ability to specify a blockNumber
 func (b *Backend) getAccountNonce(accAddr common.Address, pending bool, height int64, logger log.Logger) (uint64, error) {
 	queryClient := authtypes.NewQueryClient(b.clientCtx)
-	adr := sdk.AccAddress(accAddr.Bytes()).String()
+	bech32AccAddr := sdk.AccAddress(accAddr.Bytes()).String()
 	ctx := types.ContextWithHeight(height)
-	res, err := queryClient.Account(ctx, &authtypes.QueryAccountRequest{Address: adr})
+	res, err := queryClient.Account(ctx, &authtypes.QueryAccountRequest{Address: bech32AccAddr})
 	if err != nil {
 		st, ok := status.FromError(err)
 		// treat as account doesn't exist yet
@@ -59,7 +59,7 @@ func (b *Backend) getAccountNonce(accAddr common.Address, pending bool, height i
 		}
 		return 0, err
 	}
-	var acc authtypes.AccountI
+	var acc sdk.AccountI
 	if err := b.clientCtx.InterfaceRegistry.UnpackAny(res.Account, &acc); err != nil {
 		return 0, err
 	}
@@ -88,11 +88,7 @@ func (b *Backend) getAccountNonce(accAddr common.Address, pending bool, height i
 				break
 			}
 
-			sender, err := ethMsg.GetSender(b.chainID)
-			if err != nil {
-				continue
-			}
-			if sender == accAddr {
+			if bech32AccAddr == ethMsg.From {
 				nonce++
 			}
 		}
@@ -103,14 +99,14 @@ func (b *Backend) getAccountNonce(accAddr common.Address, pending bool, height i
 
 // output: targetOneFeeHistory
 func (b *Backend) processBlock(
-	tendermintBlock *tmrpctypes.ResultBlock,
+	cometBlock *cmtrpctypes.ResultBlock,
 	ethBlock *map[string]interface{},
 	rewardPercentiles []float64,
-	tendermintBlockResult *tmrpctypes.ResultBlockResults,
+	cometBlockResult *cmtrpctypes.ResultBlockResults,
 	targetOneFeeHistory *types.OneFeeHistory,
 ) error {
-	blockHeight := tendermintBlock.Block.Height
-	blockBaseFee, err := b.BaseFee(tendermintBlockResult)
+	blockHeight := cometBlock.Block.Height
+	blockBaseFee, err := b.BaseFee(cometBlockResult)
 	if err != nil {
 		return err
 	}
@@ -150,23 +146,23 @@ func (b *Backend) processBlock(
 		targetOneFeeHistory.Reward[i] = big.NewInt(0)
 	}
 
-	// check tendermintTxs
-	tendermintTxs := tendermintBlock.Block.Txs
-	tendermintTxResults := tendermintBlockResult.TxsResults
-	tendermintTxCount := len(tendermintTxs)
+	// check CometBFT Txs
+	cometTxs := cometBlock.Block.Txs
+	cometTxResults := cometBlockResult.TxsResults
+	cometTxCount := len(cometTxs)
 
 	var sorter sortGasAndReward
 
-	for i := 0; i < tendermintTxCount; i++ {
-		eachTendermintTx := tendermintTxs[i]
-		eachTendermintTxResult := tendermintTxResults[i]
+	for i := 0; i < cometTxCount; i++ {
+		eachCometTx := cometTxs[i]
+		eachCometTxResult := cometTxResults[i]
 
-		tx, err := b.clientCtx.TxConfig.TxDecoder()(eachTendermintTx)
+		tx, err := b.clientCtx.TxConfig.TxDecoder()(eachCometTx)
 		if err != nil {
 			b.logger.Debug("failed to decode transaction in block", "height", blockHeight, "error", err.Error())
 			continue
 		}
-		txGasUsed := uint64(eachTendermintTxResult.GasUsed) // #nosec G701
+		txGasUsed := uint64(eachCometTxResult.GasUsed) // #nosec G701
 		for _, msg := range tx.GetMsgs() {
 			ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
 			if !ok {
@@ -369,8 +365,8 @@ func findAttribute(attrs []abci.EventAttribute, key string) (value string, found
 	return
 }
 
-// GetLogsFromBlockResults returns the list of event logs from the tendermint block result response
-func GetLogsFromBlockResults(blockRes *tmrpctypes.ResultBlockResults) ([][]*ethtypes.Log, error) {
+// GetLogsFromBlockResults returns the list of event logs from the CometBFT block result response
+func GetLogsFromBlockResults(blockRes *cmtrpctypes.ResultBlockResults) ([][]*ethtypes.Log, error) {
 	blockLogs := [][]*ethtypes.Log{}
 	for _, txResult := range blockRes.TxsResults {
 		logs, err := AllTxLogsFromEvents(txResult.Events)
@@ -384,7 +380,7 @@ func GetLogsFromBlockResults(blockRes *tmrpctypes.ResultBlockResults) ([][]*etht
 }
 
 // GetHexProofs returns list of hex data of proof op
-func GetHexProofs(proof *crypto.ProofOps) []string {
+func GetHexProofs(proof *tmcrypto.ProofOps) []string {
 	if proof == nil {
 		return []string{""}
 	}

@@ -1,6 +1,12 @@
 package app
 
 import (
+	"cosmossdk.io/x/evidence"
+	evidencetypes "cosmossdk.io/x/evidence/types"
+	"cosmossdk.io/x/feegrant"
+	feegrantmodule "cosmossdk.io/x/feegrant/module"
+	"cosmossdk.io/x/upgrade"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/EscanBE/evermint/v12/app/params"
 	"github.com/EscanBE/evermint/v12/x/erc20"
 	erc20client "github.com/EscanBE/evermint/v12/x/erc20/client"
@@ -21,18 +27,12 @@ import (
 	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/cosmos-sdk/x/capability"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/cosmos-sdk/x/consensus"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	"github.com/cosmos/cosmos-sdk/x/evidence"
-	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
-	"github.com/cosmos/cosmos-sdk/x/feegrant"
-	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -47,17 +47,15 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/cosmos/cosmos-sdk/x/upgrade"
-	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v7/modules/core"
-	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/modules/capability"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ica "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v8/modules/core"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 // module account permissions
@@ -88,10 +86,11 @@ var ModuleBasics = module.NewBasicManager(
 	distr.AppModuleBasic{},
 	gov.NewAppModuleBasic(
 		[]govclient.ProposalHandler{
-			sdkparamsclient.ProposalHandler, upgradeclient.LegacyProposalHandler, upgradeclient.LegacyCancelProposalHandler,
-			ibcclientclient.UpdateClientProposalHandler, ibcclientclient.UpgradeProposalHandler,
+			sdkparamsclient.ProposalHandler,
 			// Evermint proposal types
-			erc20client.RegisterCoinProposalHandler, erc20client.RegisterERC20ProposalHandler, erc20client.ToggleTokenConversionProposalHandler,
+			erc20client.RegisterCoinProposalHandler,
+			erc20client.RegisterERC20ProposalHandler,
+			erc20client.ToggleTokenConversionProposalHandler,
 		},
 	),
 	sdkparams.AppModuleBasic{},
@@ -123,7 +122,7 @@ func appModules(
 	return []module.AppModule{
 		// SDK & IBC app modules
 		genutil.NewAppModule(
-			chainApp.AccountKeeper, chainApp.StakingKeeper, chainApp.BaseApp.DeliverTx,
+			chainApp.AccountKeeper, chainApp.StakingKeeper, chainApp,
 			encodingConfig.TxConfig,
 		),
 		auth.NewAppModule(appCodec, chainApp.AccountKeeper, authsims.RandomGenesisAccounts, chainApp.GetSubspace(authtypes.ModuleName)),
@@ -133,10 +132,10 @@ func appModules(
 		crisis.NewAppModule(chainApp.CrisisKeeper, skipGenesisInvariants, chainApp.GetSubspace(crisistypes.ModuleName)),
 		gov.NewAppModule(appCodec, chainApp.GovKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.GetSubspace(govtypes.ModuleName)),
 		mint.NewAppModule(appCodec, chainApp.MintKeeper, chainApp.AccountKeeper, nil, chainApp.GetSubspace(minttypes.ModuleName)),
-		slashing.NewAppModule(appCodec, chainApp.SlashingKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.StakingKeeper, chainApp.GetSubspace(slashingtypes.ModuleName)),
+		slashing.NewAppModule(appCodec, chainApp.SlashingKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.StakingKeeper, chainApp.GetSubspace(slashingtypes.ModuleName), chainApp.interfaceRegistry),
 		distr.NewAppModule(appCodec, chainApp.DistrKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.StakingKeeper, chainApp.GetSubspace(distrtypes.ModuleName)),
 		staking.NewAppModule(appCodec, chainApp.StakingKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.GetSubspace(stakingtypes.ModuleName)),
-		upgrade.NewAppModule(&chainApp.UpgradeKeeper),
+		upgrade.NewAppModule(&chainApp.UpgradeKeeper, chainApp.AccountKeeper.AddressCodec()),
 		evidence.NewAppModule(chainApp.EvidenceKeeper),
 		feegrantmodule.NewAppModule(appCodec, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.FeeGrantKeeper, chainApp.interfaceRegistry),
 		authzmodule.NewAppModule(appCodec, chainApp.AuthzKeeper, chainApp.AccountKeeper, chainApp.BankKeeper, chainApp.interfaceRegistry),
@@ -152,6 +151,19 @@ func appModules(
 		erc20.NewAppModule(chainApp.Erc20Keeper, chainApp.AccountKeeper, chainApp.GetSubspace(erc20types.ModuleName)),
 		vauth.NewAppModule(appCodec, chainApp.VAuthKeeper),
 	}
+}
+
+// ModuleBasics defines the module BasicManager that is in charge of setting up basic,
+// non-dependant module elements, such as codec registration
+// and genesis verification.
+func newBasicManagerFromManager(app *Evermint) module.BasicManager {
+	basicManager := module.NewBasicManagerFromManager(
+		app.mm,
+		map[string]module.AppModuleBasic{
+			genutiltypes.ModuleName: ModuleBasics[genutiltypes.ModuleName],
+			govtypes.ModuleName:     ModuleBasics[govtypes.ModuleName],
+		})
+	return basicManager
 }
 
 /*

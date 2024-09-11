@@ -1,12 +1,18 @@
 package testutil
 
 import (
+	"fmt"
 	"time"
+
+	"cosmossdk.io/store/rootmulti"
+	storetypes "cosmossdk.io/store/types"
+
+	"github.com/cosmos/cosmos-sdk/baseapp"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -15,39 +21,49 @@ import (
 	"github.com/EscanBE/evermint/v12/testutil/tx"
 )
 
-// Commit commits a block at a given time. Reminder: At the end of each
-// Tendermint Consensus round the following methods are run
-//  1. BeginBlock
-//  2. DeliverTx
-//  3. EndBlock
-//  4. Commit
-func Commit(ctx sdk.Context, app *chainapp.Evermint, t time.Duration, vs *tmtypes.ValidatorSet) (sdk.Context, error) {
+// Commit commits a block at a given time.
+// Reminder: At the end of each CometBFT Consensus round the following methods are run
+//  1. FinalizeBlock, which contains:
+//     1.1. preBlock
+//     1.1. beginBlock
+//     1.2. deliverTx
+//     1.3. endBlock
+//  2. Commit
+func Commit(ctx sdk.Context, chainApp *chainapp.Evermint, t time.Duration, vs *cmttypes.ValidatorSet) (sdk.Context, error) {
+	ctx = ReflectChangesToCommitMultiStore(ctx, chainApp.BaseApp)
+
 	header := ctx.BlockHeader()
 
-	if vs != nil {
-		res := app.EndBlock(abci.RequestEndBlock{Height: header.Height})
+	req := abci.RequestFinalizeBlock{
+		Height:             header.Height,
+		Hash:               header.AppHash,
+		Time:               header.Time,
+		ProposerAddress:    header.ProposerAddress,
+		NextValidatorsHash: header.NextValidatorsHash,
+	}
+	res, err := chainApp.FinalizeBlock(&req)
+	if err != nil {
+		return ctx, err
+	}
 
+	if vs != nil {
 		nextVals, err := applyValSetChanges(vs, res.ValidatorUpdates)
 		if err != nil {
 			return ctx, err
 		}
 		header.ValidatorsHash = vs.Hash()
 		header.NextValidatorsHash = nextVals.Hash()
-	} else {
-		app.EndBlocker(ctx, abci.RequestEndBlock{Height: header.Height})
 	}
 
-	_ = app.Commit()
+	if _, err := chainApp.Commit(); err != nil {
+		return ctx, err
+	}
 
 	header.Height++
 	header.Time = header.Time.Add(t)
-	header.AppHash = app.LastCommitID().Hash
+	header.AppHash = chainApp.LastCommitID().Hash
 
-	app.BeginBlock(abci.RequestBeginBlock{
-		Header: header,
-	})
-
-	return app.BaseApp.NewContext(false, header), nil
+	return ctx.WithBlockHeader(header).WithMultiStore(chainApp.CommitMultiStore().CacheMultiStore()), nil
 }
 
 // DeliverTx delivers a cosmos tx for a given set of msgs
@@ -57,9 +73,9 @@ func DeliverTx(
 	priv cryptotypes.PrivKey,
 	gasPrice *sdkmath.Int,
 	msgs ...sdk.Msg,
-) (abci.ResponseDeliverTx, error) {
+) (sdk.Context, abci.ExecTxResult, error) {
 	txConfig := chainApp.GetTxConfig()
-	tx, err := tx.PrepareCosmosTx(
+	cosmosTx, err := tx.PrepareCosmosTx(
 		ctx,
 		chainApp,
 		tx.CosmosTxArgs{
@@ -72,26 +88,27 @@ func DeliverTx(
 		},
 	)
 	if err != nil {
-		return abci.ResponseDeliverTx{}, err
+		return ctx, abci.ExecTxResult{}, err
 	}
-	return BroadcastTxBytes(chainApp, txConfig.TxEncoder(), tx)
+	return BroadcastTxBytes(ctx, chainApp, txConfig.TxEncoder(), cosmosTx)
 }
 
 // DeliverEthTx generates and broadcasts a Cosmos Tx populated with MsgEthereumTx messages.
 // If a private key is provided, it will attempt to sign all messages with the given private key,
 // otherwise, it will assume the messages have already been signed.
 func DeliverEthTx(
+	ctx sdk.Context,
 	chainApp *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	msg sdk.Msg,
-) (abci.ResponseDeliverTx, error) {
+) (sdk.Context, abci.ExecTxResult, error) {
 	txConfig := chainApp.GetTxConfig()
 
-	tx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msg)
+	ethTx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msg)
 	if err != nil {
-		return abci.ResponseDeliverTx{}, err
+		return ctx, abci.ExecTxResult{}, err
 	}
-	return BroadcastTxBytes(chainApp, txConfig.TxEncoder(), tx)
+	return BroadcastTxBytes(ctx, chainApp, txConfig.TxEncoder(), ethTx)
 }
 
 // CheckTx checks a cosmos tx for a given set of msgs
@@ -104,7 +121,7 @@ func CheckTx(
 ) (abci.ResponseCheckTx, error) {
 	txConfig := chainApp.GetTxConfig()
 
-	tx, err := tx.PrepareCosmosTx(
+	cosmosTx, err := tx.PrepareCosmosTx(
 		ctx,
 		chainApp,
 		tx.CosmosTxArgs{
@@ -119,7 +136,7 @@ func CheckTx(
 	if err != nil {
 		return abci.ResponseCheckTx{}, err
 	}
-	return checkTxBytes(chainApp, txConfig.TxEncoder(), tx)
+	return checkTxBytes(chainApp, txConfig.TxEncoder(), cosmosTx)
 }
 
 // CheckEthTx checks a Ethereum tx for a given set of msgs
@@ -130,50 +147,99 @@ func CheckEthTx(
 ) (abci.ResponseCheckTx, error) {
 	txConfig := chainApp.GetTxConfig()
 
-	tx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msg)
+	ethTx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msg)
 	if err != nil {
 		return abci.ResponseCheckTx{}, err
 	}
-	return checkTxBytes(chainApp, txConfig.TxEncoder(), tx)
+	return checkTxBytes(chainApp, txConfig.TxEncoder(), ethTx)
 }
 
 // BroadcastTxBytes encodes a transaction and calls DeliverTx on the app.
-func BroadcastTxBytes(app *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ResponseDeliverTx, error) {
+// This function returns sdk.Context because it called Finalize block, so changes to Commit Multistore must be reflected to the new context.
+func BroadcastTxBytes(ctx sdk.Context, chainApp *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (sdk.Context, abci.ExecTxResult, error) {
+	oldCtx := ctx
+
+	ctx = ReflectChangesToCommitMultiStore(ctx, chainApp.BaseApp)
+
 	// bz are bytes to be broadcasted over the network
 	bz, err := txEncoder(tx)
 	if err != nil {
-		return abci.ResponseDeliverTx{}, err
+		return oldCtx, abci.ExecTxResult{}, err
 	}
 
-	req := abci.RequestDeliverTx{Tx: bz}
-	res := app.BaseApp.DeliverTx(req)
-	if res.Code != 0 {
-		return abci.ResponseDeliverTx{}, errorsmod.Wrapf(errortypes.ErrInvalidRequest, res.Log)
+	header := ctx.BlockHeader()
+
+	req := abci.RequestFinalizeBlock{
+		Height:             header.Height,
+		Txs:                [][]byte{bz},
+		Hash:               header.AppHash,
+		Time:               header.Time,
+		ProposerAddress:    header.ProposerAddress,
+		NextValidatorsHash: header.NextValidatorsHash,
 	}
 
-	return res, nil
+	res, err := chainApp.BaseApp.FinalizeBlock(&req)
+	if err != nil {
+		return oldCtx, abci.ExecTxResult{}, errorsmod.Wrap(err, "failed to finalize block")
+	}
+	if len(res.TxResults) != 1 {
+		return ctx, abci.ExecTxResult{}, fmt.Errorf("unexpected transaction results. Expected 1, got: %d", len(res.TxResults))
+	}
+
+	txRes := res.TxResults[0]
+	if txRes.Code != 0 {
+		return ctx, abci.ExecTxResult{}, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "tx log: %s", txRes.Log)
+	}
+
+	return ctx, *txRes, nil
+}
+
+// ReflectChangesToCommitMultiStore commit the current state directly into the base app's commit multistore.
+// Since Cosmos-SDK v0.50, the block execution context is maintained internally,
+// that make Commit can not pass context to finalize.
+func ReflectChangesToCommitMultiStore(ctx sdk.Context, baseApp *baseapp.BaseApp) sdk.Context {
+	ms := ctx.MultiStore()
+	if rms, ok := ms.(*rootmulti.Store); ok {
+		ctx = ctx.WithMultiStore(rms.CacheMultiStore())
+	} else if cms, ok := ms.(storetypes.CommitMultiStore); ok {
+		ctx = ctx.WithMultiStore(cms.CacheMultiStore())
+	} else if _, ok := ctx.MultiStore().(storetypes.CacheMultiStore); ok {
+		// ok
+	} else {
+		panic(fmt.Sprintf("not supported multistore type %T", ms))
+	}
+
+	// write to commit multi store
+	ctx.MultiStore().(storetypes.CacheMultiStore).Write()
+
+	// reflect new change to current context
+	return ctx.WithMultiStore(baseApp.CommitMultiStore())
 }
 
 // checkTxBytes encodes a transaction and calls checkTx on the app.
-func checkTxBytes(app *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ResponseCheckTx, error) {
+func checkTxBytes(chainApp *chainapp.Evermint, txEncoder sdk.TxEncoder, tx sdk.Tx) (abci.ResponseCheckTx, error) {
 	bz, err := txEncoder(tx)
 	if err != nil {
 		return abci.ResponseCheckTx{}, err
 	}
 
 	req := abci.RequestCheckTx{Tx: bz}
-	res := app.BaseApp.CheckTx(req)
+	res, err := chainApp.BaseApp.CheckTx(&req)
+	if err != nil {
+		return abci.ResponseCheckTx{}, err
+	}
+
 	if res.Code != 0 {
 		return abci.ResponseCheckTx{}, errorsmod.Wrapf(errortypes.ErrInvalidRequest, res.Log)
 	}
 
-	return res, nil
+	return *res, nil
 }
 
 // applyValSetChanges takes in tmtypes.ValidatorSet and []abci.ValidatorUpdate and will return a new tmtypes.ValidatorSet which has the
 // provided validator updates applied to the provided validator set.
-func applyValSetChanges(valSet *tmtypes.ValidatorSet, valUpdates []abci.ValidatorUpdate) (*tmtypes.ValidatorSet, error) {
-	updates, err := tmtypes.PB2TM.ValidatorUpdates(valUpdates)
+func applyValSetChanges(valSet *cmttypes.ValidatorSet, valUpdates []abci.ValidatorUpdate) (*cmttypes.ValidatorSet, error) {
+	updates, err := cmttypes.PB2TM.ValidatorUpdates(valUpdates)
 	if err != nil {
 		return nil, err
 	}

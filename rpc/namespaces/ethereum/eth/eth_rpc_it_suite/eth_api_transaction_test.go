@@ -1,12 +1,13 @@
 package eth_rpc_it_suite
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
 	"math/rand"
 	"reflect"
+
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 
 	"github.com/EscanBE/evermint/v12/integration_test_util"
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
@@ -764,6 +765,7 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 		gasTipCap := big.NewInt(10000)
 		gasFeeCap := new(big.Int).Mul(baseFee, gasTipCap)
 		evmTxArgs := &evmtypes.EvmTxArgs{
+			From:      sender.GetEthAddress(),
 			Nonce:     suite.App().EvmKeeper().GetNonce(suite.Ctx(), sender.GetEthAddress()),
 			GasLimit:  21000,
 			Input:     nil,
@@ -777,7 +779,6 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 		}
 
 		msgEvmTx := evmtypes.NewTx(evmTxArgs)
-		msgEvmTx.From = sender.GetEthAddress().String()
 
 		return msgEvmTx
 	}
@@ -787,6 +788,7 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 
 		baseFee := suite.App().FeeMarketKeeper().GetBaseFee(suite.Ctx())
 		evmTxArgs := &evmtypes.EvmTxArgs{
+			From:      sender.GetEthAddress(),
 			Nonce:     suite.App().EvmKeeper().GetNonce(suite.Ctx(), sender.GetEthAddress()),
 			GasLimit:  21000,
 			Input:     nil,
@@ -800,7 +802,6 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 		}
 
 		msgEvmTx := evmtypes.NewTx(evmTxArgs)
-		msgEvmTx.From = sender.GetEthAddress().String()
 
 		return msgEvmTx
 	}
@@ -809,7 +810,7 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 		msgEvmTx := createMsgEthTx(sender)
 
 		ethTx := msgEvmTx.AsTransaction()
-		sig, _, err := sender.Signer.SignByAddress(msgEvmTx.GetFrom(), suite.CITS.EthSigner.Hash(ethTx).Bytes())
+		sig, _, err := sender.Signer.SignByAddress(msgEvmTx.GetFrom(), suite.CITS.EthSigner.Hash(ethTx).Bytes(), signingtypes.SignMode_SIGN_MODE_DIRECT)
 		suite.Require().NoError(err)
 
 		signedEthTx, err := ethTx.WithSignature(suite.CITS.EthSigner, sig)
@@ -866,37 +867,37 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 		expErrContains string
 	}{
 		{
-			name:         "send signed dynamic tx",
+			name:         "pass - send signed dynamic tx",
 			rawTx:        bzSignedEthTx1,
 			sourceTxHash: signedEthTxDynamic1.Hash(),
 			expPass:      true,
 		},
 		{
-			name:           "send signed dynamic tx but dynamic can not be RLP encoded",
+			name:           "fail - send signed dynamic tx but dynamic can not be RLP encoded",
 			rawTx:          rlpSignedEthTxDynamic2,
 			sourceTxHash:   signedEthTxDynamic2.Hash(),
 			expPass:        false,
 			expErrContains: "rlp: expected input list for types.LegacyTx",
 		},
 		{
-			name:         "send signed legacy tx, RLP encoded",
+			name:         "pass - send signed legacy tx, RLP encoded",
 			rawTx:        rlpSignedEthTxLegacy,
 			sourceTxHash: signedEthTxLegacy.Hash(),
 			expPass:      true,
 		},
 		{
-			name:           "not accept Cosmos tx, even tho signed",
+			name:           "fail - not accept Cosmos tx, even tho signed",
 			rawTx:          bzSignedCosmosMsgEthTx,
 			sourceTxHash:   signedEthTxDynamic1.Hash(),
 			expPass:        false,
 			expErrContains: "transaction type not supported",
 		},
 		{
-			name:           "send non-signed tx",
+			name:           "fail - send non-signed tx",
 			rawTx:          bzNotSignedEthTxDynamic,
 			sourceTxHash:   nonSignedEthTxDynamic.Hash(),
 			expPass:        false,
-			expErrContains: "couldn't retrieve sender address from the ethereum transaction: invalid transaction v, r, s values",
+			expErrContains: "invalid transaction v, r, s values",
 		},
 		{
 			name:           "fail - empty bytes",
@@ -915,7 +916,6 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			fmt.Println(hex.EncodeToString(tc.rawTx))
 			hash, err := suite.GetEthPublicAPI().SendRawTransaction(tc.rawTx)
 
 			if tc.expPass {
@@ -924,9 +924,7 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 					return
 				}
 			} else {
-				suite.Require().Error(err)
-				suite.Require().NotEmptyf(tc.expErrContains, "missing expected error to check against: %s", err.Error())
-				suite.Require().Contains(err.Error(), tc.expErrContains)
+				suite.Require().ErrorContains(err, tc.expErrContains)
 
 				if tc.sourceTxHash == ([32]byte{}) { // empty
 					// ignore later tests

@@ -13,7 +13,6 @@ import (
 	kmultisig "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -25,7 +24,7 @@ import (
 )
 
 func (suite *AnteTestSuite) TestAnteHandler() {
-	var acc authtypes.AccountI
+	var acc sdk.AccountI
 	addr, privKey := utiltx.NewAddrKey()
 	to := utiltx.GenerateAddress()
 
@@ -44,6 +43,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 	}
 
 	ethContractCreationTxParams := &evmtypes.EvmTxArgs{
+		From:      addr,
 		ChainID:   suite.app.EvmKeeper.ChainID(),
 		Nonce:     1,
 		Amount:    big.NewInt(10),
@@ -53,6 +53,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 	}
 
 	ethTxParams := &evmtypes.EvmTxArgs{
+		From:      addr,
 		ChainID:   suite.app.EvmKeeper.ChainID(),
 		To:        &to,
 		Nonce:     1,
@@ -70,121 +71,137 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		expPass   bool
 	}{
 		{
-			"success - DeliverTx (contract)",
-			func() sdk.Tx {
+			name: "pass - DeliverTx (contract)",
+			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
-				signedContractTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
-			false, false, true,
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success - CheckTx (contract)",
-			func() sdk.Tx {
+			name: "pass - CheckTx (contract)",
+			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
-				signedContractTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
-			true, false, true,
+			checkTx:   true,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success - ReCheckTx (contract)",
-			func() sdk.Tx {
+			name: "pass - ReCheckTx (contract)",
+			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
-				signedContractTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
-			false, true, true,
+			checkTx:   false,
+			reCheckTx: true,
+			expPass:   true,
 		},
 		{
-			"success - DeliverTx",
-			func() sdk.Tx {
+			name: "pass - DeliverTx",
+			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
-			false, false, true,
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success - CheckTx",
-			func() sdk.Tx {
+			name: "pass - CheckTx",
+			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
-			true, false, true,
+			checkTx:   true,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success - ReCheckTx",
-			func() sdk.Tx {
+			name: "pass - ReCheckTx",
+			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
-			}, false, true, true,
+			},
+			checkTx:   false,
+			reCheckTx: true,
+			expPass:   true,
 		},
 		{
-			"success - CheckTx (cosmos tx not signed)",
-			func() sdk.Tx {
+			name: "pass - CheckTx (cosmos tx not signed)",
+			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
-			}, false, true, true,
+			},
+			checkTx:   false,
+			reCheckTx: true,
+			expPass:   true,
 		},
 		{
-			"fail - CheckTx (cosmos tx is not valid)",
-			func() sdk.Tx {
+			name: "fail - CheckTx (cosmos tx is not valid)",
+			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
 				// bigger than MaxGasWanted
 				txBuilder.SetGasLimit(uint64(1 << 63))
 				return txBuilder.GetTx()
-			}, true, false, false,
+			},
+			checkTx:   true,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"fail - CheckTx (memo too long)",
-			func() sdk.Tx {
+			name: "fail - CheckTx (memo too long)",
+			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
 				txBuilder.SetMemo(strings.Repeat("*", 257))
 				return txBuilder.GetTx()
-			}, true, false, false,
+			},
+			checkTx:   true,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"fail - CheckTx (ExtensionOptionsEthereumTx not set)",
-			func() sdk.Tx {
+			name: "fail - CheckTx (ExtensionOptionsEthereumTx not set)",
+			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, true)
 				return txBuilder.GetTx()
-			}, true, false, false,
+			},
+			checkTx:   true,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		// Based on EVMBackend.SendTransaction, for cosmos tx, forcing null for some fields except ExtensionOptions, Fee, MsgEthereumTx
 		// should be part of consensus
 		{
-			"fail - DeliverTx (cosmos tx signed)",
-			func() sdk.Tx {
+			name: "fail - DeliverTx (cosmos tx signed)",
+			txFn: func() sdk.Tx {
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, acc.GetAddress())
 				suite.Require().NoError(err)
 				ethTxParams := &evmtypes.EvmTxArgs{
+					From:     addr,
 					ChainID:  suite.app.EvmKeeper.ChainID(),
 					To:       &to,
 					Nonce:    nonce,
@@ -193,18 +210,21 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 					GasPrice: big.NewInt(1),
 				}
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, true)
 				return tx
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"fail - DeliverTx (cosmos tx with memo)",
-			func() sdk.Tx {
+			name: "fail - DeliverTx (cosmos tx with memo)",
+			txFn: func() sdk.Tx {
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, acc.GetAddress())
 				suite.Require().NoError(err)
 				ethTxParams := &evmtypes.EvmTxArgs{
+					From:     addr,
 					ChainID:  suite.app.EvmKeeper.ChainID(),
 					To:       &to,
 					Nonce:    nonce,
@@ -213,19 +233,22 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 					GasPrice: big.NewInt(1),
 				}
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
 				txBuilder.SetMemo("memo for cosmos tx not allowed")
 				return txBuilder.GetTx()
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"fail - DeliverTx (cosmos tx with timeoutheight)",
-			func() sdk.Tx {
+			name: "fail - DeliverTx (cosmos tx with timeoutheight)",
+			txFn: func() sdk.Tx {
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, acc.GetAddress())
 				suite.Require().NoError(err)
 				ethTxParams := &evmtypes.EvmTxArgs{
+					From:     addr,
 					ChainID:  suite.app.EvmKeeper.ChainID(),
 					To:       &to,
 					Nonce:    nonce,
@@ -234,19 +257,22 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 					GasPrice: big.NewInt(1),
 				}
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
 				txBuilder.SetTimeoutHeight(10)
 				return txBuilder.GetTx()
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"fail - DeliverTx (invalid fee amount)",
-			func() sdk.Tx {
+			name: "fail - DeliverTx (invalid fee amount)",
+			txFn: func() sdk.Tx {
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, acc.GetAddress())
 				suite.Require().NoError(err)
 				ethTxParams := &evmtypes.EvmTxArgs{
+					From:     addr,
 					ChainID:  suite.app.EvmKeeper.ChainID(),
 					To:       &to,
 					Nonce:    nonce,
@@ -255,7 +281,6 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 					GasPrice: big.NewInt(1),
 				}
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
 
@@ -267,14 +292,18 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				invalidFeeAmount := sdk.Coins{sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewIntFromBigInt(invalidFee))}
 				txBuilder.SetFeeAmount(invalidFeeAmount)
 				return txBuilder.GetTx()
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"fail - DeliverTx (invalid fee gaslimit)",
-			func() sdk.Tx {
+			name: "fail - DeliverTx (invalid fee gaslimit)",
+			txFn: func() sdk.Tx {
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, acc.GetAddress())
 				suite.Require().NoError(err)
 				ethTxParams := &evmtypes.EvmTxArgs{
+					From:     addr,
 					ChainID:  suite.app.EvmKeeper.ChainID(),
 					To:       &to,
 					Nonce:    nonce,
@@ -283,7 +312,6 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 					GasPrice: big.NewInt(1),
 				}
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
 
@@ -291,22 +319,28 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				invalidGasLimit := expGasLimit + 1
 				txBuilder.SetGasLimit(invalidGasLimit)
 				return txBuilder.GetTx()
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"success - DeliverTx EIP712 signed Cosmos Tx with MsgSend",
-			func() sdk.Tx {
+			name: "pass - DeliverTx EIP712 signed Cosmos Tx with MsgSend",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				gas := uint64(200000)
 				amount := sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(100*int64(gas))))
 				txBuilder, err := suite.CreateTestEIP712TxBuilderMsgSend(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success - DeliverTx EIP712 signed Cosmos Tx with DelegateMsg",
-			func() sdk.Tx {
+			name: "pass - DeliverTx EIP712 signed Cosmos Tx with DelegateMsg",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				gas := uint64(200000)
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(100*int64(gas)))
@@ -314,11 +348,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712TxBuilderMsgDelegate(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success- DeliverTx EIP712 create validator",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 create validator",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
@@ -326,11 +363,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712MsgCreateValidator(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success- DeliverTx EIP712 create validator (with blank fields)",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 create validator (with blank fields)",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
@@ -338,11 +378,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712MsgCreateValidator2(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success- DeliverTx EIP712 MsgSubmitProposal",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 MsgSubmitProposal",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				gasAmount := sdk.NewCoins(coinAmount)
@@ -352,11 +395,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712SubmitProposal(from, privKey, suite.ctx.ChainID(), gas, gasAmount, deposit)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success- DeliverTx EIP712 MsgGrant",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 MsgGrant",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				grantee := sdk.AccAddress("_______grantee______")
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
@@ -372,12 +418,15 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				suite.Require().NoError(err)
 
 				return builder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 
 		{
-			"success- DeliverTx EIP712 MsgGrantAllowance",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 MsgGrantAllowance",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				gasAmount := sdk.NewCoins(coinAmount)
@@ -386,11 +435,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				suite.Require().NoError(err)
 
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success- DeliverTx EIP712 edit validator",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 edit validator",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
@@ -398,11 +450,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712MsgEditValidator(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success- DeliverTx EIP712 submit evidence",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 submit evidence",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
@@ -410,11 +465,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712MsgSubmitEvidence(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success- DeliverTx EIP712 submit proposal v1",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 submit proposal v1",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
@@ -422,11 +480,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712SubmitProposalV1(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success- DeliverTx EIP712 MsgExec",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 MsgExec",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
@@ -434,11 +495,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712MsgExec(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success- DeliverTx EIP712 MsgVoteV1",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 MsgVoteV1",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
@@ -446,11 +510,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712MsgVoteV1(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success- DeliverTx EIP712 Multiple MsgSend",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 Multiple MsgSend",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
@@ -458,11 +525,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712MultipleMsgSend(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success- DeliverTx EIP712 Multiple Different Msgs",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 Multiple Different Msgs",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
@@ -470,11 +540,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712MultipleDifferentMsgs(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.RequireErrorForLegacyTypedData(err)
 				return suite.TxForLegacyTypedData(txBuilder)
-			}, false, false, !suite.useLegacyEIP712TypedData,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   !suite.useLegacyEIP712TypedData,
 		},
 		{
-			"success- DeliverTx EIP712 Same Msgs, Different Schemas",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 Same Msgs, Different Schemas",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
@@ -482,11 +555,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712SameMsgDifferentSchemas(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.RequireErrorForLegacyTypedData(err)
 				return suite.TxForLegacyTypedData(txBuilder)
-			}, false, false, !suite.useLegacyEIP712TypedData,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   !suite.useLegacyEIP712TypedData,
 		},
 		{
-			"success- DeliverTx EIP712 Zero Value Array (Should Not Omit Field)",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 Zero Value Array (Should Not Omit Field)",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
@@ -494,11 +570,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712ZeroValueArray(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.RequireErrorForLegacyTypedData(err)
 				return suite.TxForLegacyTypedData(txBuilder)
-			}, false, false, !suite.useLegacyEIP712TypedData,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   !suite.useLegacyEIP712TypedData,
 		},
 		{
-			"success- DeliverTx EIP712 Zero Value Number (Should Not Omit Field)",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 Zero Value Number (Should Not Omit Field)",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
@@ -506,11 +585,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712ZeroValueNumber(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.RequireErrorForLegacyTypedData(err)
 				return suite.TxForLegacyTypedData(txBuilder)
-			}, false, false, !suite.useLegacyEIP712TypedData,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   !suite.useLegacyEIP712TypedData,
 		},
 		{
-			"success- DeliverTx EIP712 MsgTransfer",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 MsgTransfer",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
@@ -518,11 +600,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712MsgTransfer(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"success- DeliverTx EIP712 MsgTransfer Without Memo",
-			func() sdk.Tx {
+			name: "success- DeliverTx EIP712 MsgTransfer Without Memo",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
@@ -530,11 +615,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712MsgTransferWithoutMemo(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"fails - DeliverTx EIP712 Multiple Signers",
-			func() sdk.Tx {
+			name: "fail - DeliverTx EIP712 Multiple Signers",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
@@ -542,22 +630,28 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder, err := suite.CreateTestEIP712MultipleSignerMsgs(from, privKey, suite.ctx.ChainID(), gas, amount)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"fails - DeliverTx EIP712 signed Cosmos Tx with wrong Chain ID",
-			func() sdk.Tx {
+			name: "fail - DeliverTx EIP712 signed Cosmos Tx with wrong Chain ID",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				gas := uint64(200000)
 				amount := sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(100*int64(gas))))
 				txBuilder, err := suite.CreateTestEIP712TxBuilderMsgSend(from, privKey, fmt.Sprintf("%s_%d-1", constants.ChainIdPrefix, constants.TestnetEIP155ChainId*2 /*modify EIP155 chain id*/), gas, amount)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"fails - DeliverTx EIP712 signed Cosmos Tx with different gas fees",
-			func() sdk.Tx {
+			name: "fail - DeliverTx EIP712 signed Cosmos Tx with different gas fees",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				gas := uint64(200000)
 				amount := sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(100*int64(gas))))
@@ -566,11 +660,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder.SetGasLimit(uint64(300000))
 				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(30))))
 				return txBuilder.GetTx()
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"fails - DeliverTx EIP712 signed Cosmos Tx with empty signature",
-			func() sdk.Tx {
+			name: "fail - DeliverTx EIP712 signed Cosmos Tx with empty signature",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				gas := uint64(200000)
 				amount := sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(100*int64(gas))))
@@ -586,11 +683,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				}
 				err = txBuilder.SetSignatures(sigV2)
 				return tx
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"fails - DeliverTx EIP712 signed Cosmos Tx with invalid sequence",
-			func() sdk.Tx {
+			name: "fail - DeliverTx EIP712 signed Cosmos Tx with invalid sequence",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				gas := uint64(200000)
 				amount := sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(100*int64(gas))))
@@ -609,11 +709,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				err = txBuilder.SetSignatures(sigsV2)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"fails - DeliverTx EIP712 signed Cosmos Tx with invalid signMode",
-			func() sdk.Tx {
+			name: "fail - DeliverTx EIP712 signed Cosmos Tx with invalid signMode",
+			txFn: func() sdk.Tx {
 				from := acc.GetAddress()
 				gas := uint64(200000)
 				amount := sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(100*int64(gas))))
@@ -631,22 +734,32 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				err = txBuilder.SetSignatures(sigsV2)
 				suite.Require().NoError(err)
 				return txBuilder.GetTx()
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"fails - invalid from",
-			func() sdk.Tx {
+			name: "fail - invalid from",
+			txFn: func() sdk.Tx {
 				msg := evmtypes.NewTx(ethContractCreationTxParams)
-				msg.From = addr.Hex()
 				tx := suite.CreateTestTx(msg, privKey, 1, false)
 				msg = tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
-				msg.From = addr.Hex()
+
+				msg.From = sdk.AccAddress(func() []byte {
+					alteredAddr := addr.Bytes()[:]
+					alteredAddr[0] = (alteredAddr[0] + 1) % 255
+					return alteredAddr
+				}()).String()
 				return tx
-			}, true, false, false,
+			},
+			checkTx:   true,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"passes - Single-signer EIP-712",
-			func() sdk.Tx {
+			name: "pass - Single-signer EIP-712",
+			txFn: func() sdk.Tx {
 				msg := banktypes.NewMsgSend(
 					sdk.AccAddress(privKey.PubKey().Address()),
 					addr[:],
@@ -668,11 +781,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				)
 
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"passes - EIP-712 multi-key",
-			func() sdk.Tx {
+			name: "pass - EIP-712 multi-key",
+			txFn: func() sdk.Tx {
 				numKeys := 5
 				privKeys, pubKeys := suite.GenerateMultipleKeys(numKeys)
 				pk := kmultisig.NewLegacyAminoPubKey(numKeys, pubKeys)
@@ -698,11 +814,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				)
 
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"passes - Mixed multi-key",
-			func() sdk.Tx {
+			name: "pass - Mixed multi-key",
+			txFn: func() sdk.Tx {
 				numKeys := 5
 				privKeys, pubKeys := suite.GenerateMultipleKeys(numKeys)
 				pk := kmultisig.NewLegacyAminoPubKey(numKeys, pubKeys)
@@ -728,11 +847,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				)
 
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"passes - Mixed multi-key with MsgVote",
-			func() sdk.Tx {
+			name: "pass - Mixed multi-key with MsgVote",
+			txFn: func() sdk.Tx {
 				numKeys := 5
 				privKeys, pubKeys := suite.GenerateMultipleKeys(numKeys)
 				pk := kmultisig.NewLegacyAminoPubKey(numKeys, pubKeys)
@@ -753,11 +875,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				)
 
 				return txBuilder.GetTx()
-			}, false, false, true,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			"Fails - Multi-Key with incorrect Chain ID",
-			func() sdk.Tx {
+			name: "fail - Multi-Key with incorrect Chain ID",
+			txFn: func() sdk.Tx {
 				numKeys := 5
 				privKeys, pubKeys := suite.GenerateMultipleKeys(numKeys)
 				pk := kmultisig.NewLegacyAminoPubKey(numKeys, pubKeys)
@@ -783,11 +908,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				)
 
 				return txBuilder.GetTx()
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"Fails - Multi-Key with incorrect sign mode",
-			func() sdk.Tx {
+			name: "fail - Multi-Key with incorrect sign mode",
+			txFn: func() sdk.Tx {
 				numKeys := 5
 				privKeys, pubKeys := suite.GenerateMultipleKeys(numKeys)
 				pk := kmultisig.NewLegacyAminoPubKey(numKeys, pubKeys)
@@ -813,11 +941,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				)
 
 				return txBuilder.GetTx()
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"Fails - Multi-Key with too little gas",
-			func() sdk.Tx {
+			name: "fail - Multi-Key with too little gas",
+			txFn: func() sdk.Tx {
 				numKeys := 5
 				privKeys, pubKeys := suite.GenerateMultipleKeys(numKeys)
 				pk := kmultisig.NewLegacyAminoPubKey(numKeys, pubKeys)
@@ -843,11 +974,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				)
 
 				return txBuilder.GetTx()
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"Fails - Multi-Key with different payload than one signed",
-			func() sdk.Tx {
+			name: "fail - Multi-Key with different payload than one signed",
+			txFn: func() sdk.Tx {
 				numKeys := 1
 				privKeys, pubKeys := suite.GenerateMultipleKeys(numKeys)
 				pk := kmultisig.NewLegacyAminoPubKey(numKeys, pubKeys)
@@ -877,11 +1011,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				suite.Require().NoError(err)
 
 				return txBuilder.GetTx()
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"Fails - Multi-Key with messages added after signing",
-			func() sdk.Tx {
+			name: "fail - Multi-Key with messages added after signing",
+			txFn: func() sdk.Tx {
 				numKeys := 1
 				privKeys, pubKeys := suite.GenerateMultipleKeys(numKeys)
 				pk := kmultisig.NewLegacyAminoPubKey(numKeys, pubKeys)
@@ -911,11 +1048,14 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				suite.Require().NoError(err)
 
 				return txBuilder.GetTx()
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			"Fails - Single-Signer EIP-712 with messages added after signing",
-			func() sdk.Tx {
+			name: "fail - Single-Signer EIP-712 with messages added after signing",
+			txFn: func() sdk.Tx {
 				msg := banktypes.NewMsgSend(
 					sdk.AccAddress(privKey.PubKey().Address()),
 					addr[:],
@@ -940,7 +1080,10 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				suite.Require().NoError(err)
 
 				return txBuilder.GetTx()
-			}, false, false, false,
+			},
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 	}
 
@@ -970,6 +1113,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 	to := utiltx.GenerateAddress()
 
 	ethContractCreationTxParams := &evmtypes.EvmTxArgs{
+		From:      addr,
 		ChainID:   suite.app.EvmKeeper.ChainID(),
 		Nonce:     1,
 		Amount:    big.NewInt(10),
@@ -980,6 +1124,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 	}
 
 	ethTxParams := &evmtypes.EvmTxArgs{
+		From:      addr,
 		ChainID:   suite.app.EvmKeeper.ChainID(),
 		Nonce:     1,
 		Amount:    big.NewInt(10),
@@ -999,10 +1144,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		expPass        bool
 	}{
 		{
-			"success - DeliverTx (contract)",
+			"pass - DeliverTx (contract)",
 			func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
-				signedContractTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
@@ -1011,10 +1155,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			false, false, true,
 		},
 		{
-			"success - CheckTx (contract)",
+			"pass - CheckTx (contract)",
 			func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
-				signedContractTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
@@ -1023,10 +1166,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			true, false, true,
 		},
 		{
-			"success - ReCheckTx (contract)",
+			"pass - ReCheckTx (contract)",
 			func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
-				signedContractTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
@@ -1035,10 +1177,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			false, true, true,
 		},
 		{
-			"success - DeliverTx",
+			"pass - DeliverTx",
 			func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
@@ -1047,10 +1188,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			false, false, true,
 		},
 		{
-			"success - CheckTx",
+			"pass - CheckTx",
 			func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
@@ -1059,10 +1199,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			true, false, true,
 		},
 		{
-			"success - ReCheckTx",
+			"pass - ReCheckTx",
 			func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
@@ -1071,10 +1210,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			false, true, true,
 		},
 		{
-			"success - CheckTx (cosmos tx not signed)",
+			"pass - CheckTx (cosmos tx not signed)",
 			func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
@@ -1086,7 +1224,6 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			"fail - CheckTx (cosmos tx is not valid)",
 			func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
 				// bigger than MaxGasWanted
@@ -1100,7 +1237,6 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			"fail - CheckTx (memo too long)",
 			func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
 				txBuilder.SetMemo(strings.Repeat("*", 257))
@@ -1113,7 +1249,6 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			"fail - DynamicFeeTx without london hark fork",
 			func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
-				signedContractTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
@@ -1154,6 +1289,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 	to := utiltx.GenerateAddress()
 
 	ethContractCreationTxParams := &evmtypes.EvmTxArgs{
+		From:      addr,
 		ChainID:   suite.app.EvmKeeper.ChainID(),
 		Nonce:     1,
 		Amount:    big.NewInt(10),
@@ -1164,6 +1300,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 	}
 
 	ethTxParams := &evmtypes.EvmTxArgs{
+		From:      addr,
 		ChainID:   suite.app.EvmKeeper.ChainID(),
 		Nonce:     1,
 		Amount:    big.NewInt(10),
@@ -1185,7 +1322,6 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 			"fail - Contract Creation Disabled",
 			func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
-				signedContractTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
@@ -1194,10 +1330,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 			evmtypes.ErrCreateDisabled,
 		},
 		{
-			"success - Contract Creation Enabled",
+			"pass - Contract Creation Enabled",
 			func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
-				signedContractTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
@@ -1209,7 +1344,6 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 			"fail - EVM Call Disabled",
 			func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
@@ -1218,10 +1352,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 			evmtypes.ErrCallDisabled,
 		},
 		{
-			"success - EVM Call Enabled",
+			"pass - EVM Call Enabled",
 			func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
-				signedTx.From = addr.Hex()
 
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx

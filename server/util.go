@@ -2,13 +2,10 @@ package server
 
 import (
 	"net"
-	"net/http"
 	"time"
 
 	// TODO update import to local pkg when rpc pkg is migrated
 	"github.com/EscanBE/evermint/v12/server/config"
-	"github.com/gorilla/mux"
-	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/netutil"
 
@@ -16,9 +13,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
+	"cosmossdk.io/log"
 	tmcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
-	"github.com/cometbft/cometbft/libs/log"
-	rpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
+	cmtjrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 )
 
 // AddCommands adds server commands
@@ -28,13 +25,13 @@ func AddCommands(
 	appExport types.AppExporter,
 	addStartFlags types.ModuleInitFlags,
 ) {
-	tendermintCmd := &cobra.Command{
+	cometBftCmd := &cobra.Command{
 		Use:     "cometbft",
 		Aliases: []string{"tendermint", "comet"},
 		Short:   "Tendermint subcommands",
 	}
 
-	tendermintCmd.AddCommand(
+	cometBftCmd.AddCommand(
 		sdkserver.ShowNodeIDCmd(),
 		sdkserver.ShowValidatorCmd(),
 		sdkserver.ShowAddressCmd(),
@@ -49,7 +46,7 @@ func AddCommands(
 
 	rootCmd.AddCommand(
 		startCmd,
-		tendermintCmd,
+		cometBftCmd,
 		sdkserver.ExportCmd(appExport, opts.DefaultNodeHome),
 		version.NewVersionCommand(),
 		sdkserver.NewRollbackCmd(opts.AppCreator, opts.DefaultNodeHome),
@@ -59,56 +56,32 @@ func AddCommands(
 	)
 }
 
-func ConnectTmWS(tmRPCAddr, tmEndpoint string, logger log.Logger) *rpcclient.WSClient {
-	tmWsClient, err := rpcclient.NewWS(tmRPCAddr, tmEndpoint,
-		rpcclient.MaxReconnectAttempts(256),
-		rpcclient.ReadWait(120*time.Second),
-		rpcclient.WriteWait(120*time.Second),
-		rpcclient.PingPeriod(50*time.Second),
-		rpcclient.OnReconnect(func() {
-			logger.Debug("EVM RPC reconnects to Tendermint WS", "address", tmRPCAddr+tmEndpoint)
+func ConnectCometBftWS(cometRPCAddr, cometEndpoint string, logger log.Logger) *cmtjrpcclient.WSClient {
+	cometWsClient, err := cmtjrpcclient.NewWS(cometRPCAddr, cometEndpoint,
+		cmtjrpcclient.MaxReconnectAttempts(256),
+		cmtjrpcclient.ReadWait(120*time.Second),
+		cmtjrpcclient.WriteWait(120*time.Second),
+		cmtjrpcclient.PingPeriod(50*time.Second),
+		cmtjrpcclient.OnReconnect(func() {
+			logger.Debug("EVM RPC reconnects to CometBFT WS", "address", cometRPCAddr+cometEndpoint)
 		}),
 	)
 
 	if err != nil {
 		logger.Error(
-			"Tendermint WS client could not be created",
-			"address", tmRPCAddr+tmEndpoint,
+			"CometBFT WS client could not be created",
+			"address", cometRPCAddr+cometEndpoint,
 			"error", err,
 		)
-	} else if err := tmWsClient.OnStart(); err != nil {
+	} else if err := cometWsClient.OnStart(); err != nil {
 		logger.Error(
-			"Tendermint WS client could not start",
-			"address", tmRPCAddr+tmEndpoint,
+			"CometBFT WS client could not start",
+			"address", cometRPCAddr+cometEndpoint,
 			"error", err,
 		)
 	}
 
-	return tmWsClient
-}
-
-func MountGRPCWebServices(
-	router *mux.Router,
-	grpcWeb *grpcweb.WrappedGrpcServer,
-	grpcResources []string,
-	logger log.Logger,
-) {
-	for _, res := range grpcResources {
-		logger.Info("[GRPC Web] HTTP POST mounted", "resource", res)
-
-		s := router.Methods("POST").Subrouter()
-		s.HandleFunc(res, func(resp http.ResponseWriter, req *http.Request) {
-			if grpcWeb.IsGrpcWebSocketRequest(req) {
-				grpcWeb.HandleGrpcWebsocketRequest(resp, req)
-				return
-			}
-
-			if grpcWeb.IsGrpcWebRequest(req) {
-				grpcWeb.HandleGrpcWebRequest(resp, req)
-				return
-			}
-		})
-	}
+	return cometWsClient
 }
 
 // Listen starts a net.Listener on the tcp network on the given address.

@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/core/appmodule"
+
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -26,6 +28,9 @@ import (
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+
+	_ appmodule.HasBeginBlocker = AppModule{}
+	_ appmodule.HasEndBlocker   = AppModule{}
 )
 
 // AppModuleBasic defines the basic application module used by the evm module.
@@ -133,14 +138,16 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 }
 
 // BeginBlock returns the begin block for the evm module.
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	am.keeper.BeginBlock(ctx, req)
+func (am AppModule) BeginBlock(goCtx context.Context) error {
+	am.keeper.BeginBlock(sdk.UnwrapSDKContext(goCtx))
+	return nil
 }
 
 // EndBlock returns the end blocker for the evm module. It returns no validator
 // updates.
-func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return am.keeper.EndBlock(ctx, req)
+func (am AppModule) EndBlock(goCtx context.Context) error {
+	am.keeper.EndBlock(sdk.UnwrapSDKContext(goCtx))
+	return nil
 }
 
 // InitGenesis performs genesis initialization for the evm module. It returns
@@ -160,7 +167,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // RegisterStoreDecoder registers a decoder for evm module's types
-func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {
+func (am AppModule) RegisterStoreDecoder(_ simtypes.StoreDecoderRegistry) {
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
@@ -175,4 +182,10 @@ func (AppModule) GenerateGenesisState(_ *module.SimulationState) {
 // WeightedOperations returns the all the evm module operations with their respective weights.
 func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return nil
+}
+
+func (am AppModule) IsOnePerModuleType() {
+}
+
+func (am AppModule) IsAppModule() {
 }

@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestSetGetParams() {
 		expected  bool
 	}{
 		{
-			"success - Checks if the default params are set correctly",
+			"pass - Checks if the default params are set correctly",
 			func() interface{} {
 				return feemarkettypes.DefaultParams()
 			},
@@ -33,7 +33,7 @@ func (suite *KeeperTestSuite) TestSetGetParams() {
 			true,
 		},
 		{
-			"success - Check BaseFeeEnabled is computed with its default params and can be retrieved correctly",
+			"pass - Check BaseFeeEnabled is computed with its default params and can be retrieved correctly",
 			func() interface{} {
 				params.NoBaseFee = false
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
@@ -46,7 +46,7 @@ func (suite *KeeperTestSuite) TestSetGetParams() {
 			true,
 		},
 		{
-			"success - Check BaseFeeEnabled is computed with alternate params and can be retrieved correctly",
+			"pass - Check BaseFeeEnabled is computed with alternate params and can be retrieved correctly",
 			func() interface{} {
 				params.NoBaseFee = true
 				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)

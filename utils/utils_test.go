@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/rename_chain/marker"
 
@@ -20,7 +22,8 @@ import (
 
 func init() {
 	cfg := sdk.GetConfig()
-	cfg.SetBech32PrefixForAccount(constants.Bech32Prefix, constants.Bech32PrefixAccPub)
+	cmdcfg.SetBech32Prefixes(cfg)
+	cmdcfg.SetBip44CoinType(cfg)
 }
 
 func TestIsSupportedKeys(t *testing.T) {

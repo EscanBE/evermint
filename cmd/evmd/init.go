@@ -9,16 +9,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/version"
+
 	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	cfg "github.com/cometbft/cometbft/config"
-	"github.com/cometbft/cometbft/libs/cli"
-	tmos "github.com/cometbft/cometbft/libs/os"
-	tmrand "github.com/cometbft/cometbft/libs/rand"
-	"github.com/cometbft/cometbft/types"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	cmtcli "github.com/cometbft/cometbft/libs/cli"
+	cmtos "github.com/cometbft/cometbft/libs/os"
+	cmtrand "github.com/cometbft/cometbft/libs/rand"
 
 	"github.com/cosmos/go-bip39"
 
@@ -30,6 +31,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
 type printInfo struct {
@@ -63,7 +65,7 @@ func displayInfo(info printInfo) error {
 	return nil
 }
 
-// InitCmd returns a command that initializes all files needed for Tendermint
+// InitCmd returns a command that initializes all files needed for CometBFT
 // and the respective application.
 func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
@@ -99,7 +101,7 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 
 			chainID, _ := cmd.Flags().GetString(flags.FlagChainID)
 			if chainID == "" {
-				chainID = fmt.Sprintf("%s-%v", constants.TestnetChainID, tmrand.Str(6))
+				chainID = fmt.Sprintf("%s-%v", constants.TestnetChainID, cmtrand.Str(6))
 			}
 
 			// Get bip39 mnemonic
@@ -129,7 +131,7 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 			genFile := config.GenesisFile()
 			overwrite, _ := cmd.Flags().GetBool(genutilcli.FlagOverwrite)
 
-			if !overwrite && tmos.FileExists(genFile) {
+			if !overwrite && cmtos.FileExists(genFile) {
 				return fmt.Errorf("genesis.json file already exists: %v", genFile)
 			}
 
@@ -138,37 +140,47 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 				return errors.Wrap(err, "Failed to marshall default genesis state")
 			}
 
-			genDoc := &types.GenesisDoc{}
+			appGenesis := &genutiltypes.AppGenesis{}
 			if _, err := os.Stat(genFile); err != nil {
 				if !os.IsNotExist(err) {
 					return err
 				}
 			} else {
-				genDoc, err = types.GenesisDocFromFile(genFile)
+				appGenesis, err = genutiltypes.AppGenesisFromFile(genFile)
 				if err != nil {
 					return errors.Wrap(err, "Failed to read genesis doc from file")
 				}
 			}
 
-			genDoc.ChainID = chainID
-			genDoc.Validators = nil
-			genDoc.AppState = appState
+			appGenesis.AppName = version.AppName
+			appGenesis.AppVersion = version.Version
+			appGenesis.ChainID = chainID
+			appGenesis.Consensus = &genutiltypes.ConsensusGenesis{
+				Validators: nil,
+				Params:     nil,
+			}
+			appGenesis.AppState = appState
+			appGenesis.InitialHeight = func() int64 {
+				initHeight, _ := cmd.Flags().GetInt64(flags.FlagInitHeight)
+				return initHeight
+			}()
 
-			if err := genutil.ExportGenesisFile(genDoc, genFile); err != nil {
+			if err := genutil.ExportGenesisFile(appGenesis, genFile); err != nil {
 				return errors.Wrap(err, "Failed to export gensis file")
 			}
 
 			toPrint := newPrintInfo(config.Moniker, chainID, nodeID, "", appState)
 
-			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
+			cmtcfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 			return displayInfo(toPrint)
 		},
 	}
 
-	cmd.Flags().String(cli.HomeFlag, defaultNodeHome, "node's home directory")
+	cmd.Flags().String(cmtcli.HomeFlag, defaultNodeHome, "node's home directory")
 	cmd.Flags().BoolP(genutilcli.FlagOverwrite, "o", false, "overwrite the genesis.json file")
 	cmd.Flags().Bool(genutilcli.FlagRecover, false, "provide seed phrase to recover existing key instead of creating")
 	cmd.Flags().String(flags.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")
+	cmd.Flags().Int64(flags.FlagInitHeight, 0, "initial height")
 
 	return cmd
 }

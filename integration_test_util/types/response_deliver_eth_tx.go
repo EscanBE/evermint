@@ -9,10 +9,10 @@ type ResponseDeliverEthTx struct {
 	CosmosTxHash         string
 	EthTxHash            string
 	EvmError             string
-	ResponseDeliverEthTx *abci.ResponseDeliverTx
+	ResponseDeliverEthTx *abci.ExecTxResult
 }
 
-func NewResponseDeliverEthTx(responseDeliverTx *abci.ResponseDeliverTx) *ResponseDeliverEthTx {
+func NewResponseDeliverEthTx(responseDeliverTx *abci.ExecTxResult) *ResponseDeliverEthTx {
 	if responseDeliverTx == nil {
 		return nil
 	}
@@ -24,7 +24,7 @@ func NewResponseDeliverEthTx(responseDeliverTx *abci.ResponseDeliverTx) *Respons
 	for _, event := range responseDeliverTx.Events {
 		if event.Type == evmtypes.EventTypeTxReceipt {
 			for _, attribute := range event.Attributes {
-				if attribute.Key == evmtypes.AttributeKeyReceiptTendermintTxHash {
+				if attribute.Key == evmtypes.AttributeKeyReceiptCometBFTTxHash {
 					if len(attribute.Value) > 0 && response.CosmosTxHash == "" {
 						response.CosmosTxHash = attribute.Value
 					}

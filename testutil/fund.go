@@ -11,7 +11,7 @@ import (
 // FundAccount is a utility function that funds an account by minting and
 // sending the coins to the address.
 func FundAccount(ctx sdk.Context, bankKeeper bankkeeper.Keeper, addr sdk.AccAddress, amounts sdk.Coins) error {
-	return sdktestutil.FundAccount(bankKeeper, ctx, addr, amounts)
+	return sdktestutil.FundAccount(ctx, bankKeeper, addr, amounts)
 }
 
 // FundAccountWithBaseDenom is a utility function that uses the FundAccount function
@@ -26,5 +26,5 @@ func FundAccountWithBaseDenom(ctx sdk.Context, bankKeeper bankkeeper.Keeper, add
 // FundModuleAccount is a utility function that funds a module account by
 // minting and sending the coins to the address.
 func FundModuleAccount(ctx sdk.Context, bankKeeper bankkeeper.Keeper, recipientMod string, amounts sdk.Coins) error {
-	return sdktestutil.FundModuleAccount(bankKeeper, ctx, recipientMod, amounts)
+	return sdktestutil.FundModuleAccount(ctx, bankKeeper, recipientMod, amounts)
 }

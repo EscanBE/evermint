@@ -1,16 +1,13 @@
 package evm_test
 
 import (
-	"encoding/json"
-	"fmt"
+	"context"
 	"math/big"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -25,20 +22,19 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	sdkante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
-	ibctypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibctypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 
+	evtypes "cosmossdk.io/x/evidence/types"
+	"cosmossdk.io/x/feegrant"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	evtypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
-	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
@@ -60,6 +56,7 @@ func (suite *AnteTestSuite) BuildTestEthTx(
 	)
 
 	ethTxParams := &evmtypes.EvmTxArgs{
+		From:      from,
 		ChainID:   chainID,
 		Nonce:     nonce,
 		To:        &to,
@@ -73,7 +70,6 @@ func (suite *AnteTestSuite) BuildTestEthTx(
 	}
 
 	msgEthereumTx := evmtypes.NewTx(ethTxParams)
-	msgEthereumTx.From = from.String()
 	return msgEthereumTx
 }
 
@@ -103,6 +99,9 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 	builder, ok := txBuilder.(authtx.ExtensionOptionsTxBuilder)
 	suite.Require().True(ok)
 
+	signMode, err := authsigning.APISignModeToInternal(suite.clientCtx.TxConfig.SignModeHandler().DefaultMode())
+	suite.Require().NoError(err)
+
 	if len(unsetExtensionOptions) == 0 {
 		builder.SetExtensionOptions(option)
 	}
@@ -110,7 +109,6 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 	err = msg.Sign(suite.ethSigner, utiltx.NewSigner(priv))
 	suite.Require().NoError(err)
 
-	msg.From = ""
 	err = builder.SetMsgs(msg)
 	suite.Require().NoError(err)
 
@@ -127,7 +125,7 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 		sigV2 := signing.SignatureV2{
 			PubKey: priv.PubKey(),
 			Data: &signing.SingleSignatureData{
-				SignMode:  suite.clientCtx.TxConfig.SignModeHandler().DefaultMode(),
+				SignMode:  signMode,
 				Signature: nil,
 			},
 			Sequence: txData.GetNonce(),
@@ -146,7 +144,8 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 			Sequence:      txData.GetNonce(),
 		}
 		sigV2, err = clienttx.SignWithPrivKey(
-			suite.clientCtx.TxConfig.SignModeHandler().DefaultMode(), signerData,
+			suite.ctx,
+			signMode, signerData,
 			txBuilder, priv, suite.clientCtx.TxConfig, txData.GetNonce(),
 		)
 		suite.Require().NoError(err)
@@ -201,7 +200,7 @@ func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgDelegate(from sdk.AccAdd
 	// Build MsgSend
 	valEthAddr := utiltx.GenerateAddress()
 	valAddr := sdk.ValAddress(valEthAddr.Bytes())
-	msgSend := stakingtypes.NewMsgDelegate(from, valAddr, sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20)))
+	msgSend := stakingtypes.NewMsgDelegate(from.String(), valAddr.String(), sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20)))
 	return suite.CreateTestEIP712SingleMessageTxBuilder(priv, chainID, gas, gasAmount, msgSend)
 }
 
@@ -210,7 +209,7 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgCreateValidator(from sdk.AccAddre
 	valAddr := sdk.ValAddress(from.Bytes())
 	privEd := ed25519.GenPrivKey()
 	msgCreate, err := stakingtypes.NewMsgCreateValidator(
-		valAddr,
+		valAddr.String(),
 		privEd.PubKey(),
 		sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20)),
 		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
@@ -226,7 +225,7 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgCreateValidator2(from sdk.AccAddr
 	valAddr := sdk.ValAddress(from.Bytes())
 	privEd := ed25519.GenPrivKey()
 	msgCreate, err := stakingtypes.NewMsgCreateValidator(
-		valAddr,
+		valAddr.String(),
 		privEd.PubKey(),
 		sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20)),
 		// Ensure optional fields can be left blank
@@ -263,7 +262,7 @@ func (suite *AnteTestSuite) CreateTestEIP712GrantAllowance(from sdk.AccAddress, 
 func (suite *AnteTestSuite) CreateTestEIP712MsgEditValidator(from sdk.AccAddress, priv cryptotypes.PrivKey, chainID string, gas uint64, gasAmount sdk.Coins) (client.TxBuilder, error) {
 	valAddr := sdk.ValAddress(from.Bytes())
 	msgEdit := stakingtypes.NewMsgEditValidator(
-		valAddr,
+		valAddr.String(),
 		stakingtypes.NewDescription("moniker", "identity", "website", "security_contract", "details"),
 		nil,
 		nil,
@@ -321,6 +320,7 @@ func (suite *AnteTestSuite) CreateTestEIP712SubmitProposalV1(from sdk.AccAddress
 		sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(100))),
 		sdk.MustBech32ifyAddressBytes(sdk.GetConfig().GetBech32AccountAddrPrefix(), from.Bytes()),
 		"Metadata", "title", "summary",
+		false,
 	)
 
 	suite.Require().NoError(err)
@@ -349,7 +349,7 @@ func (suite *AnteTestSuite) CreateTestEIP712MultipleDifferentMsgs(from sdk.AccAd
 
 	valEthAddr := utiltx.GenerateAddress()
 	valAddr := sdk.ValAddress(valEthAddr.Bytes())
-	msgDelegate := stakingtypes.NewMsgDelegate(from, valAddr, sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20)))
+	msgDelegate := stakingtypes.NewMsgDelegate(from.String(), valAddr.String(), sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(20)))
 
 	return suite.CreateTestEIP712CosmosTxBuilder(priv, chainID, gas, gasAmount, []sdk.Msg{msgSend, msgVote, msgDelegate})
 }
@@ -394,44 +394,6 @@ func (suite *AnteTestSuite) CreateTestEIP712MultipleSignerMsgs(from sdk.AccAddre
 	msgSend1 := banktypes.NewMsgSend(from, recipient, sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(1))))
 	msgSend2 := banktypes.NewMsgSend(recipient, from, sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(1))))
 	return suite.CreateTestEIP712CosmosTxBuilder(priv, chainID, gas, gasAmount, []sdk.Msg{msgSend1, msgSend2})
-}
-
-// StdSignBytes returns the bytes to sign for a transaction.
-func StdSignBytes(cdc *codec.LegacyAmino, chainID string, accnum uint64, sequence uint64, timeout uint64, fee legacytx.StdFee, msgs []sdk.Msg, memo string, tip *txtypes.Tip) []byte {
-	msgsBytes := make([]json.RawMessage, 0, len(msgs))
-	for _, msg := range msgs {
-		legacyMsg, ok := msg.(legacytx.LegacyMsg)
-		if !ok {
-			panic(fmt.Errorf("expected %T when using amino JSON", (*legacytx.LegacyMsg)(nil)))
-		}
-
-		msgsBytes = append(msgsBytes, json.RawMessage(legacyMsg.GetSignBytes()))
-	}
-
-	var stdTip *legacytx.StdTip
-	if tip != nil {
-		if tip.Tipper == "" {
-			panic(fmt.Errorf("tipper cannot be empty"))
-		}
-
-		stdTip = &legacytx.StdTip{Amount: tip.Amount, Tipper: tip.Tipper}
-	}
-
-	bz, err := cdc.MarshalJSON(legacytx.StdSignDoc{
-		AccountNumber: accnum,
-		ChainID:       chainID,
-		Fee:           json.RawMessage(fee.Bytes()),
-		Memo:          memo,
-		Msgs:          msgsBytes,
-		Sequence:      sequence,
-		TimeoutHeight: timeout,
-		Tip:           stdTip,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	return sdk.MustSortJSON(bz)
 }
 
 func (suite *AnteTestSuite) CreateTestEIP712SingleMessageTxBuilder(
@@ -560,7 +522,9 @@ func (suite *AnteTestSuite) createSignerBytes(chainID string, signMode signing.S
 		PubKey:        pubKey,
 	}
 
-	signerBytes, err := suite.clientCtx.TxConfig.SignModeHandler().GetSignBytes(
+	signerBytes, err := authsigning.GetSignBytesAdapter(
+		context.Background(),
+		suite.clientCtx.TxConfig.SignModeHandler(),
 		signMode,
 		signerInfo,
 		txBuilder.GetTx(),

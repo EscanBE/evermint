@@ -6,6 +6,13 @@ import (
 	"testing"
 	"time"
 
+	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+
+	storemetrics "cosmossdk.io/store/metrics"
+
+	"github.com/cosmos/cosmos-sdk/codec/address"
+	"github.com/cosmos/cosmos-sdk/runtime"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/rename_chain/marker"
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
@@ -15,13 +22,13 @@ import (
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	dbm "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
+	"cosmossdk.io/store"
+	storetypes "cosmossdk.io/store/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/store"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -74,13 +81,13 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	{
 		// initialization
-		authStoreKey := sdk.NewKVStoreKey(authtypes.StoreKey)
-		bankStoreKey := sdk.NewKVStoreKey(banktypes.StoreKey)
-		evmStoreKey := sdk.NewKVStoreKey(evmtypes.StoreKey)
-		vAuthStoreKey := sdk.NewKVStoreKey(vauthtypes.StoreKey)
+		authStoreKey := storetypes.NewKVStoreKey(authtypes.StoreKey)
+		bankStoreKey := storetypes.NewKVStoreKey(banktypes.StoreKey)
+		evmStoreKey := storetypes.NewKVStoreKey(evmtypes.StoreKey)
+		vAuthStoreKey := storetypes.NewKVStoreKey(vauthtypes.StoreKey)
 
-		db := dbm.NewMemDB()
-		stateStore := store.NewCommitMultiStore(db)
+		db := sdkdb.NewMemDB()
+		stateStore := store.NewCommitMultiStore(db, log.NewNopLogger(), storemetrics.NewNoOpMetrics())
 		stateStore.MountStoreWithDB(authStoreKey, storetypes.StoreTypeIAVL, db)
 		stateStore.MountStoreWithDB(bankStoreKey, storetypes.StoreTypeIAVL, db)
 		stateStore.MountStoreWithDB(evmStoreKey, storetypes.StoreTypeIAVL, db)
@@ -100,13 +107,14 @@ func (s *KeeperTestSuite) SetupTest() {
 
 		ak = authkeeper.NewAccountKeeper(
 			cdc,
-			authStoreKey,
+			runtime.NewKVStoreService(authStoreKey),
 			authtypes.ProtoBaseAccount,
 			map[string][]string{
 				banktypes.ModuleName:  {authtypes.Minter, authtypes.Burner},
 				evmtypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
 				vauthtypes.ModuleName: {authtypes.Burner},
 			},
+			address.NewBech32Codec(constants.Bech32PrefixAccAddr),
 			constants.Bech32PrefixAccAddr,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		)
@@ -114,10 +122,11 @@ func (s *KeeperTestSuite) SetupTest() {
 
 		bk = bankkeeper.NewBaseKeeper(
 			cdc,
-			bankStoreKey,
+			runtime.NewKVStoreService(bankStoreKey),
 			ak,
 			map[string]bool{},
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			log.NewNopLogger(),
 		)
 		banktypes.RegisterInterfaces(registry)
 
@@ -230,5 +239,7 @@ func (s *KeeperTestSuite) mintToAccount(accAddr sdk.AccAddress, coins sdk.Coins)
 }
 
 func init() {
-	sdk.GetConfig().SetBech32PrefixForAccount(constants.Bech32PrefixAccAddr, "")
+	cfg := sdk.GetConfig()
+	cmdcfg.SetBech32Prefixes(cfg)
+	cmdcfg.SetBip44CoinType(cfg)
 }

@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"testing"
 
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
+
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -62,7 +64,7 @@ func newSignedEthTx(
 		return nil, errors.New("unknown transaction type")
 	}
 
-	sig, _, err := krSigner.SignByAddress(addr, ethTx.Hash().Bytes())
+	sig, _, err := krSigner.SignByAddress(addr, ethTx.Hash().Bytes(), signingtypes.SignMode_SIGN_MODE_DIRECT)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +128,7 @@ func newEthMsgTx(
 		return nil, nil, err
 	}
 
-	msg.From = address.Hex()
+	msg.From = sdk.AccAddress(address.Bytes()).String()
 
 	return msg, baseFee, msg.Sign(ethSigner, krSigner)
 }

@@ -7,19 +7,19 @@ import (
 	"testing"
 	"time"
 
-	coretypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAddTopic(t *testing.T) {
 	q := NewEventBus()
-	err := q.AddTopic("kek", make(<-chan coretypes.ResultEvent))
+	err := q.AddTopic("kek", make(<-chan cmtrpctypes.ResultEvent))
 	require.NoError(t, err)
 
-	err = q.AddTopic("lol", make(<-chan coretypes.ResultEvent))
+	err = q.AddTopic("lol", make(<-chan cmtrpctypes.ResultEvent))
 	require.NoError(t, err)
 
-	err = q.AddTopic("lol", make(<-chan coretypes.ResultEvent))
+	err = q.AddTopic("lol", make(<-chan cmtrpctypes.ResultEvent))
 	require.Error(t, err)
 
 	topics := q.Topics()
@@ -29,12 +29,12 @@ func TestAddTopic(t *testing.T) {
 
 func TestSubscribe(t *testing.T) {
 	q := NewEventBus()
-	kekSrc := make(chan coretypes.ResultEvent)
+	kekSrc := make(chan cmtrpctypes.ResultEvent)
 
 	err := q.AddTopic("kek", kekSrc)
 	require.NoError(t, err)
 
-	lolSrc := make(chan coretypes.ResultEvent)
+	lolSrc := make(chan cmtrpctypes.ResultEvent)
 
 	err = q.AddTopic("lol", lolSrc)
 	require.NoError(t, err)
@@ -51,7 +51,7 @@ func TestSubscribe(t *testing.T) {
 	wg := new(sync.WaitGroup)
 	wg.Add(4)
 
-	emptyMsg := coretypes.ResultEvent{}
+	emptyMsg := cmtrpctypes.ResultEvent{}
 	go func() {
 		defer wg.Done()
 		msg := <-kekSubC
@@ -89,14 +89,14 @@ func TestSubscribe(t *testing.T) {
 func TestConcurrencyPubSub(t *testing.T) {
 	q := NewEventBus()
 
-	lolSrc := make(chan coretypes.ResultEvent)
+	lolSrc := make(chan cmtrpctypes.ResultEvent)
 	topicName := "lol"
 
 	err := q.AddTopic(topicName, lolSrc)
 	require.NoError(t, err)
 
 	var wg sync.WaitGroup
-	emptyMsg := coretypes.ResultEvent{}
+	emptyMsg := cmtrpctypes.ResultEvent{}
 	for s := 1; s <= 100; s++ {
 		// subscribe
 		wg.Add(1)

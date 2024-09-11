@@ -23,9 +23,9 @@ import (
 	ethparams "github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 
-	"github.com/cometbft/cometbft/libs/log"
-	rpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
-	tmtypes "github.com/cometbft/cometbft/types"
+	"cosmossdk.io/log"
+	cmtjrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	"github.com/EscanBE/evermint/v12/rpc/ethereum/pubsub"
 	rpcfilters "github.com/EscanBE/evermint/v12/rpc/namespaces/ethereum/eth/filters"
@@ -75,7 +75,7 @@ type websocketsServer struct {
 	logger   log.Logger
 }
 
-func NewWebsocketsServer(clientCtx client.Context, logger log.Logger, tmWSClient *rpcclient.WSClient, cfg *config.Config) WebsocketsServer {
+func NewWebsocketsServer(clientCtx client.Context, logger log.Logger, cometWSClient *cmtjrpcclient.WSClient, cfg *config.Config) WebsocketsServer {
 	logger = logger.With("api", "websocket-server")
 	_, port, _ := net.SplitHostPort(cfg.JSONRPC.Address) // #nosec G703
 
@@ -84,7 +84,7 @@ func NewWebsocketsServer(clientCtx client.Context, logger log.Logger, tmWSClient
 		wsAddr:   cfg.JSONRPC.WsAddress,
 		certFile: cfg.TLS.CertificatePath,
 		keyFile:  cfg.TLS.KeyPath,
-		api:      newPubSubAPI(clientCtx, logger, tmWSClient),
+		api:      newPubSubAPI(clientCtx, logger, cometWSClient),
 		logger:   logger,
 	}
 }
@@ -345,10 +345,10 @@ type pubSubAPI struct {
 }
 
 // newPubSubAPI creates an instance of the ethereum PubSub API.
-func newPubSubAPI(clientCtx client.Context, logger log.Logger, tmWSClient *rpcclient.WSClient) *pubSubAPI {
+func newPubSubAPI(clientCtx client.Context, logger log.Logger, cometWSClient *cmtjrpcclient.WSClient) *pubSubAPI {
 	logger = logger.With("module", "websocket-client")
 	return &pubSubAPI{
-		events:    rpcfilters.NewEventSystem(logger, tmWSClient),
+		events:    rpcfilters.NewEventSystem(logger, cometWSClient),
 		logger:    logger,
 		clientCtx: clientCtx,
 	}
@@ -397,13 +397,13 @@ func (api *pubSubAPI) subscribeNewHeads(wsConn *wsConn, subID rpc.ID) (pubsub.Un
 					return
 				}
 
-				data, ok := event.Data.(tmtypes.EventDataNewBlockHeader)
+				data, ok := event.Data.(cmttypes.EventDataNewBlockHeader)
 				if !ok {
 					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", event.Data))
 					continue
 				}
 
-				header := types.EthHeaderFromTendermint(data.Header, ethtypes.Bloom{}, baseFee)
+				header := types.EthHeaderFromCometBFT(data.Header, ethtypes.Bloom{}, baseFee)
 
 				// write to ws conn
 				res := &SubscriptionNotification{
@@ -570,7 +570,7 @@ func (api *pubSubAPI) subscribeLogs(wsConn *wsConn, subID rpc.ID, extra interfac
 					return
 				}
 
-				dataTx, ok := event.Data.(tmtypes.EventDataTx)
+				dataTx, ok := event.Data.(cmttypes.EventDataTx)
 				if !ok {
 					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", event.Data))
 					continue
@@ -636,7 +636,7 @@ func (api *pubSubAPI) subscribePendingTransactions(wsConn *wsConn, subID rpc.ID)
 		for {
 			select {
 			case ev := <-txsCh:
-				data, ok := ev.Data.(tmtypes.EventDataTx)
+				data, ok := ev.Data.(cmttypes.EventDataTx)
 				if !ok {
 					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", ev.Data))
 					continue

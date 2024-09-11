@@ -15,6 +15,7 @@ import (
 func (k Keeper) RegisterCoin(
 	ctx sdk.Context,
 	coinMetadata banktypes.Metadata,
+	overrideExistingBankMetadata bool,
 ) (*erc20types.TokenPair, error) {
 	// Check if denomination is already registered
 	if k.IsDenomRegistered(ctx, coinMetadata.Name) {
@@ -28,6 +29,14 @@ func (k Keeper) RegisterCoin(
 		return nil, errorsmod.Wrapf(
 			errortypes.ErrInvalidCoins, "base denomination '%s' cannot have a supply of 0", coinMetadata.Base,
 		)
+	}
+
+	if overrideExistingBankMetadata {
+		existingCoinMetadata, found := k.bankKeeper.GetDenomMetaData(ctx, coinMetadata.Base)
+		if found {
+			k.bankKeeper.SetDenomMetaData(ctx, coinMetadata)
+			k.Logger(ctx).Info("replaced existing coin metadata", "denom", coinMetadata.Base, "old", existingCoinMetadata, "new", coinMetadata)
+		}
 	}
 
 	if err := k.verifyMetadata(ctx, coinMetadata); err != nil {

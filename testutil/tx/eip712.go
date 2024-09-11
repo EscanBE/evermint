@@ -8,6 +8,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -69,7 +70,7 @@ func PrepareEIP712CosmosTx(
 	chainApp *chainapp.Evermint,
 	args EIP712TxArgs,
 ) (client.TxBuilder, error) {
-	txArgs := args.CosmosTxArgs
+	txArgs := &args.CosmosTxArgs
 
 	pc, err := evertypes.ParseChainID(txArgs.ChainID)
 	if err != nil {
@@ -78,17 +79,25 @@ func PrepareEIP712CosmosTx(
 	chainIDNum := pc.Uint64()
 
 	from := sdk.AccAddress(txArgs.Priv.PubKey().Address().Bytes())
-	accNumber := chainApp.AccountKeeper.GetAccount(ctx, from).GetAccountNumber()
+	acc := chainApp.AccountKeeper.GetAccount(ctx, from)
+	accNumber := acc.GetAccountNumber()
+	nonce := acc.GetSequence()
 
-	nonce, err := chainApp.AccountKeeper.GetSequence(ctx, from)
-	if err != nil {
-		return nil, err
-	}
-
-	fee := legacytx.NewStdFee(txArgs.Gas, txArgs.Fees) //nolint: staticcheck
+	txArgs.Nonce = &nonce
 
 	msgs := txArgs.Msgs
-	data := legacytx.StdSignBytes(ctx.ChainID(), accNumber, nonce, 0, fee, msgs, "", nil)
+	data := legacytx.StdSignBytes(
+		ctx.ChainID(),
+		accNumber,
+		nonce,
+		0,
+		legacytx.StdFee{
+			Amount: txArgs.Fees,
+			Gas:    txArgs.Gas,
+		},
+		msgs,
+		"",
+	)
 
 	typedDataArgs := typedDataArgs{
 		chainID:        chainIDNum,
@@ -107,7 +116,7 @@ func PrepareEIP712CosmosTx(
 		return nil, errors.New("txBuilder could not be casted to authtx.ExtensionOptionsTxBuilder type")
 	}
 
-	builder.SetFeeAmount(fee.Amount)
+	builder.SetFeeAmount(txArgs.Fees)
 	builder.SetGasLimit(txArgs.Gas)
 
 	err = builder.SetMsgs(txArgs.Msgs...)
@@ -136,11 +145,14 @@ func signCosmosEIP712Tx(
 	data apitypes.TypedData,
 ) (client.TxBuilder, error) {
 	priv := args.CosmosTxArgs.Priv
-
 	from := sdk.AccAddress(priv.PubKey().Address().Bytes())
-	nonce, err := chainApp.AccountKeeper.GetSequence(ctx, from)
-	if err != nil {
-		return nil, err
+
+	var nonce uint64
+	if args.CosmosTxArgs.Nonce == nil {
+		acc := chainApp.AccountKeeper.GetAccount(ctx, from)
+		nonce = acc.GetSequence()
+	} else {
+		nonce = *args.CosmosTxArgs.Nonce
 	}
 
 	sigHash, _, err := apitypes.TypedDataAndHash(data)
@@ -149,7 +161,7 @@ func signCosmosEIP712Tx(
 	}
 
 	keyringSigner := NewSigner(priv)
-	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash)
+	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash, signingtypes.SignMode_SIGN_MODE_DIRECT)
 	if err != nil {
 		return nil, err
 	}

@@ -2,7 +2,7 @@ package tests
 
 import (
 	"github.com/EscanBE/evermint/v12/constants"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 var (

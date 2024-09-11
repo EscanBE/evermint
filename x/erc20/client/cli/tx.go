@@ -2,6 +2,9 @@ package cli
 
 import (
 	"fmt"
+	"strings"
+
+	"cosmossdk.io/errors"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -22,6 +25,8 @@ import (
 
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 )
+
+var flagOverrideExistingBankMetadata = "override-existing-bank-metadata"
 
 // NewTxCmd returns a root CLI command handler for erc20 transaction commands
 func NewTxCmd() *cobra.Command {
@@ -57,21 +62,29 @@ func NewConvertCoinCmd() *cobra.Command {
 				return err
 			}
 
-			var receiver string
+			var receiver sdk.AccAddress
 			sender := cliCtx.GetFromAddress()
 
 			if len(args) == 2 {
-				receiver = args[1]
-				if err := evertypes.ValidateAddress(receiver); err != nil {
-					return fmt.Errorf("invalid receiver hex address %w", err)
+				receiverStr := strings.ToLower(args[1])
+				if strings.HasPrefix(receiverStr, "0x") {
+					if err := evertypes.ValidateAddress(receiverStr); err != nil {
+						return fmt.Errorf("invalid receiver hex address %w", err)
+					}
+					receiver = common.HexToAddress(receiverStr).Bytes()
+				} else {
+					receiver, err = sdk.AccAddressFromBech32(receiverStr)
+					if err != nil {
+						return errors.Wrap(err, "invalid receiver bech32 address")
+					}
 				}
 			} else {
-				receiver = common.BytesToAddress(sender).Hex()
+				receiver = sender
 			}
 
 			msg := &erc20types.MsgConvertCoin{
 				Coin:     coin,
-				Receiver: receiver,
+				Receiver: receiver.String(),
 				Sender:   sender.String(),
 			}
 
@@ -109,7 +122,7 @@ func NewConvertERC20Cmd() *cobra.Command {
 				return fmt.Errorf("invalid amount %s", args[1])
 			}
 
-			from := common.BytesToAddress(cliCtx.GetFromAddress().Bytes())
+			from := cliCtx.GetFromAddress()
 
 			receiver := cliCtx.GetFromAddress()
 			if len(args) == 3 {
@@ -123,7 +136,7 @@ func NewConvertERC20Cmd() *cobra.Command {
 				ContractAddress: contract,
 				Amount:          amount,
 				Receiver:        receiver.String(),
-				Sender:          from.Hex(),
+				Sender:          from.String(),
 			}
 
 			if err := msg.ValidateBasic(); err != nil {
@@ -205,16 +218,17 @@ Where metadata.json contains (example):
 				return err
 			}
 
-			from := clientCtx.GetFromAddress()
-
-			content := erc20types.NewRegisterCoinProposal(title, description, metadata...)
-
-			msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, from)
+			overrideExistingBankMetadata, err := cmd.Flags().GetBool(flagOverrideExistingBankMetadata)
 			if err != nil {
 				return err
 			}
 
-			if err := msg.ValidateBasic(); err != nil {
+			from := clientCtx.GetFromAddress()
+
+			content := erc20types.NewRegisterCoinProposal(title, description, metadata, overrideExistingBankMetadata)
+
+			msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
 				return err
 			}
 
@@ -225,6 +239,7 @@ Where metadata.json contains (example):
 	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
 	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
 	cmd.Flags().String(cli.FlagDeposit, "1"+constants.BaseDenom, "deposit of proposal")
+	cmd.Flags().Bool(flagOverrideExistingBankMetadata, false, "force override existing bank metadata if any. Introduced since IBC v8 integrated as it automatically creates the bank denom metadata upon receive packet")
 	if err := cmd.MarkFlagRequired(cli.FlagTitle); err != nil {
 		panic(err)
 	}
@@ -279,10 +294,6 @@ func NewRegisterERC20ProposalCmd() *cobra.Command {
 
 			msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
-				return err
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
@@ -347,10 +358,6 @@ func NewToggleTokenConversionProposalCmd() *cobra.Command {
 
 			msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
-				return err
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 

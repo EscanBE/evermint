@@ -102,7 +102,7 @@ func (suite *KeeperTestSuite) setupRegisterCoin(metadata banktypes.Metadata) *er
 	suite.Require().NoError(err)
 
 	// pair := types.NewTokenPair(contractAddr, cosmosTokenBase, true, types.OWNER_MODULE)
-	pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata)
+	pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata, false)
 	suite.Require().NoError(err)
 	suite.Commit()
 	return pair
@@ -207,7 +207,8 @@ func (suite KeeperTestSuite) TestRegisterCoin() { //nolint:govet // we can copy 
 				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
 					suite.app.GetKey("erc20"), suite.app.AppCodec(),
 					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper, suite.app.StakingKeeper)
+					suite.app.BankKeeper, mockEVMKeeper,
+				)
 
 				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
 				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("forced ApplyMessage error"))
@@ -233,7 +234,7 @@ func (suite KeeperTestSuite) TestRegisterCoin() { //nolint:govet // we can copy 
 
 			tc.malleate()
 
-			pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata)
+			pair, err := suite.app.Erc20Keeper.RegisterCoin(suite.ctx, metadata, false)
 			suite.Commit()
 
 			expPair := &erc20types.TokenPair{
@@ -297,7 +298,8 @@ func (suite KeeperTestSuite) TestRegisterERC20() { //nolint:govet // we can copy
 				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
 					suite.app.GetKey("erc20"), suite.app.AppCodec(),
 					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper, suite.app.StakingKeeper)
+					suite.app.BankKeeper, mockEVMKeeper,
+				)
 
 				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
 				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("forced ApplyMessage error"))

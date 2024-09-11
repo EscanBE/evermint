@@ -33,20 +33,21 @@ _Important Note: Evermint was born for development and research purpose so maint
 Evmos is a scalable, high-throughput Proof-of-Stake blockchain
 that is fully compatible and interoperable with Ethereum.
 It's built using the [Cosmos SDK](https://github.com/cosmos/cosmos-sdk/)
-which runs on top of the [Tendermint Core](https://github.com/cometbft/cometbft) consensus engine.
+which runs on top of the [CometBFT](https://github.com/cometbft/cometbft) consensus engine.
 
 ### Different of Evermint & Evmos
 
 - Evermint is for research and development purpose.
 - Evermint is fork of open source Evmos v12.1.6 plus bug fixes.
 - Evermint is [currently removing some modules](https://github.com/EscanBE/evermint/issues/41) from Evmos codebase and only keep `x/evm`, `x/erc20`, `x/feemarket`. The goal is to make it more simple for research and only focus on the skeleton of Evmos.
+- After [upgraded to Cosmos-SDK v0.50](https://github.com/EscanBE/evermint/pull/148), Evermint is now has many breaking change to the Legacy Evmos v12.1.6. If you want to use the open-source libraries previously developed for Evmos v12.1.6, you might need to use [Evermint version which uses Cosmos-SDK v0.47 and below](https://github.com/EscanBE/evermint/tree/v12.3.0-cosmos47).
 
 ## Documentation
 
 Evermint does not maintain its own documentation site, user can refer to Evmos documentation hosted at [evmos/docs](https://github.com/evmos/docs) and can be found at [docs.evmos.org](https://docs.evmos.org).
 Head over there and check it out.
 
-**Note**: Requires [Go 1.20+](https://golang.org/dl/)
+**Note**: Requires [Go 1.22+](https://golang.org/dl/)
 
 ## Quick Start
 
@@ -65,4 +66,4 @@ evmd convert-address evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz evmos
 4. [`snapshots` command](https://github.com/EscanBE/evermint/pull/12)
 5. [`inspect` command](https://github.com/EscanBE/evermint/pull/14)
 6. [Flag `--allow-insecure-unlock`](https://github.com/EscanBE/evermint/pull/142)
-7. Dependencies updated: `Cosmos-SDK v0.47.13`, `CometBFT v0.37.5`, `ibc-go v7.8.0`, `go-ethereum v1.10.26`
+7. Dependencies updated: `Cosmos-SDK v0.50.9`, `CometBFT v0.38.12`, `ibc-go v8.5.0`, `go-ethereum v1.10.26`

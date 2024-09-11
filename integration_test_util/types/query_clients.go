@@ -7,7 +7,7 @@ import (
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/cosmos/cosmos-sdk/client"
-	cosmostxtypes "github.com/cosmos/cosmos-sdk/types/tx"
+	sdktxtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -16,23 +16,23 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 type QueryClients struct {
-	GrpcConnection          grpc1.ClientConn
-	ClientQueryCtx          client.Context
-	TendermintRpcHttpClient *httpclient.HTTP
-	Auth                    authtypes.QueryClient
-	Bank                    banktypes.QueryClient
-	Distribution            disttypes.QueryClient
-	Erc20                   erc20types.QueryClient
-	EVM                     evmtypes.QueryClient
-	GovV1                   govtypesv1.QueryClient
-	GovLegacy               govtypeslegacy.QueryClient
-	IbcTransfer             ibctransfertypes.QueryClient
-	Slashing                slashingtypes.QueryClient
-	Staking                 stakingtypes.QueryClient
-	ServiceClient           cosmostxtypes.ServiceClient
-	Rpc                     *rpctypes.QueryClient
+	GrpcConnection        grpc1.ClientConn
+	ClientQueryCtx        client.Context
+	CometBFTRpcHttpClient *httpclient.HTTP
+	Auth                  authtypes.QueryClient
+	Bank                  banktypes.QueryClient
+	Distribution          disttypes.QueryClient
+	Erc20                 erc20types.QueryClient
+	EVM                   evmtypes.QueryClient
+	GovV1                 govtypesv1.QueryClient
+	GovLegacy             govtypeslegacy.QueryClient
+	IbcTransfer           ibctransfertypes.QueryClient
+	Slashing              slashingtypes.QueryClient
+	Staking               stakingtypes.QueryClient
+	ServiceClient         sdktxtypes.ServiceClient
+	Rpc                   *rpctypes.QueryClient
 }

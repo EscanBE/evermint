@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/big"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -141,7 +143,7 @@ func (args *TransactionArgs) ToTransaction() *MsgEthereumTx {
 	}
 
 	if args.From != nil {
-		from = args.From.Hex()
+		from = sdk.AccAddress(args.From.Bytes()).String()
 	}
 
 	msg := MsgEthereumTx{

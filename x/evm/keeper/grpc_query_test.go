@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/big"
 
+	storetypes "cosmossdk.io/store/types"
+
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	sdkmath "cosmossdk.io/math"
@@ -78,8 +80,7 @@ func (suite *KeeperTestSuite) TestQueryAccount() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.ctx)
-			res, err := suite.queryClient.Account(ctx, req)
+			res, err := suite.queryClient.Account(suite.ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -119,10 +120,13 @@ func (suite *KeeperTestSuite) TestQueryCosmosAccount() {
 		{
 			"success",
 			func() {
+				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, suite.address.Bytes())
+				suite.Require().NotNil(acc)
+
 				expAccount = &evmtypes.QueryCosmosAccountResponse{
 					CosmosAddress: sdk.AccAddress(suite.address.Bytes()).String(),
-					Sequence:      0,
-					AccountNumber: 0,
+					Sequence:      acc.GetSequence(),
+					AccountNumber: acc.GetAccountNumber(),
 				}
 				req = &evmtypes.QueryCosmosAccountRequest{
 					Address: suite.address.String(),
@@ -134,14 +138,20 @@ func (suite *KeeperTestSuite) TestQueryCosmosAccount() {
 			"success with seq and account number",
 			func() {
 				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, suite.address.Bytes())
-				suite.Require().NoError(acc.SetSequence(10))
-				suite.Require().NoError(acc.SetAccountNumber(1))
+				suite.Require().NotNil(acc)
+
+				nextSeqNumber := acc.GetSequence() + 1
+				nextAccNumber := suite.app.AccountKeeper.NextAccountNumber(suite.ctx)
+
+				suite.Require().NoError(acc.SetSequence(nextSeqNumber))
+				suite.Require().NoError(acc.SetAccountNumber(nextAccNumber))
+
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 				expAccount = &evmtypes.QueryCosmosAccountResponse{
 					CosmosAddress: sdk.AccAddress(suite.address.Bytes()).String(),
-					Sequence:      10,
-					AccountNumber: 1,
+					Sequence:      nextSeqNumber,
+					AccountNumber: nextAccNumber,
 				}
 				req = &evmtypes.QueryCosmosAccountRequest{
 					Address: suite.address.String(),
@@ -156,8 +166,7 @@ func (suite *KeeperTestSuite) TestQueryCosmosAccount() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.ctx)
-			res, err := suite.queryClient.CosmosAccount(ctx, req)
+			res, err := suite.queryClient.CosmosAccount(suite.ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -215,8 +224,7 @@ func (suite *KeeperTestSuite) TestQueryBalance() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.ctx)
-			res, err := suite.queryClient.Balance(ctx, req)
+			res, err := suite.queryClient.Balance(suite.ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -274,8 +282,7 @@ func (suite *KeeperTestSuite) TestQueryStorage() {
 			tc.malleate(vmdb)
 			suite.Require().NoError(vmdb.Commit())
 
-			ctx := sdk.WrapSDKContext(suite.ctx)
-			res, err := suite.queryClient.Storage(ctx, req)
+			res, err := suite.queryClient.Storage(suite.ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -333,8 +340,7 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 			tc.malleate(vmdb)
 			suite.Require().NoError(vmdb.Commit())
 
-			ctx := sdk.WrapSDKContext(suite.ctx)
-			res, err := suite.queryClient.Code(ctx, req)
+			res, err := suite.queryClient.Code(suite.ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -392,7 +398,7 @@ func (suite *KeeperTestSuite) TestQueryTxLogs() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
-			vmdb := statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewTxConfig(common.BytesToHash(suite.ctx.HeaderHash().Bytes()), txHash, txIndex, logIndex))
+			vmdb := statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewTxConfig(common.BytesToHash(suite.ctx.HeaderHash()), txHash, txIndex, logIndex))
 			tc.malleate(vmdb)
 			suite.Require().NoError(vmdb.Commit())
 
@@ -403,10 +409,9 @@ func (suite *KeeperTestSuite) TestQueryTxLogs() {
 }
 
 func (suite *KeeperTestSuite) TestQueryParams() {
-	ctx := sdk.WrapSDKContext(suite.ctx)
 	expParams := evmtypes.DefaultParams()
 
-	res, err := suite.queryClient.Params(ctx, &evmtypes.QueryParamsRequest{})
+	res, err := suite.queryClient.Params(suite.ctx, &evmtypes.QueryParamsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Equal(expParams, res.Params)
 }
@@ -437,10 +442,12 @@ func (suite *KeeperTestSuite) TestQueryValidatorAccount() {
 		{
 			"success",
 			func() {
+				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, suite.address.Bytes())
+				suite.Require().NotNil(acc)
 				expAccount = &evmtypes.QueryValidatorAccountResponse{
 					AccountAddress: sdk.AccAddress(suite.address.Bytes()).String(),
-					Sequence:       0,
-					AccountNumber:  0,
+					Sequence:       acc.GetSequence(),
+					AccountNumber:  acc.GetAccountNumber(),
 				}
 				req = &evmtypes.QueryValidatorAccountRequest{
 					ConsAddress: suite.consAddress.String(),
@@ -449,17 +456,18 @@ func (suite *KeeperTestSuite) TestQueryValidatorAccount() {
 			true,
 		},
 		{
-			"success with seq and account number",
+			"success with seq increased",
 			func() {
 				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, suite.address.Bytes())
-				suite.Require().NoError(acc.SetSequence(10))
-				suite.Require().NoError(acc.SetAccountNumber(1))
+				suite.Require().NotNil(acc)
+				oldSeqNumber := acc.GetSequence()
+				suite.Require().NoError(acc.SetSequence(oldSeqNumber + 1))
 				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 				expAccount = &evmtypes.QueryValidatorAccountResponse{
 					AccountAddress: sdk.AccAddress(suite.address.Bytes()).String(),
-					Sequence:       10,
-					AccountNumber:  1,
+					Sequence:       oldSeqNumber + 1,
+					AccountNumber:  acc.GetAccountNumber(),
 				}
 				req = &evmtypes.QueryValidatorAccountRequest{
 					ConsAddress: suite.consAddress.String(),
@@ -474,8 +482,7 @@ func (suite *KeeperTestSuite) TestQueryValidatorAccount() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.ctx)
-			res, err := suite.queryClient.ValidatorAccount(ctx, req)
+			res, err := suite.queryClient.ValidatorAccount(suite.ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -746,7 +753,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 				ProposerAddress: suite.ctx.BlockHeader().ProposerAddress,
 			}
 
-			rsp, err := suite.queryClient.EstimateGas(sdk.WrapSDKContext(suite.ctx), &req)
+			rsp, err := suite.queryClient.EstimateGas(suite.ctx, &req)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(int64(tc.expGas), int64(rsp.Gas))
@@ -907,6 +914,7 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 				nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 				data := evmtypes.ERC20Contract.Bin
 				ethTxParams := &evmtypes.EvmTxArgs{
+					From:     suite.address,
 					ChainID:  chainID,
 					Nonce:    nonce,
 					GasLimit: ethparams.TxGasContractCreation,
@@ -942,7 +950,7 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 			suite.enableFeemarket = tc.enableFeemarket
 			suite.SetupTest()
 
-			suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(100_000))
+			suite.ctx = suite.ctx.WithBlockGasMeter(storetypes.NewGasMeter(100_000))
 
 			// Deploy contract
 			contractAddr := suite.DeployTestContract(suite.T(), suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
@@ -961,7 +969,7 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 			if chainID != nil {
 				traceReq.ChainId = chainID.Int64()
 			}
-			res, err := suite.queryClient.TraceTx(sdk.WrapSDKContext(suite.ctx), &traceReq)
+			res, err := suite.queryClient.TraceTx(suite.ctx, &traceReq)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -1139,7 +1147,7 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 				traceReq.ChainId = chainID.Int64()
 			}
 
-			res, err := suite.queryClient.TraceBlock(sdk.WrapSDKContext(suite.ctx), &traceReq)
+			res, err := suite.queryClient.TraceBlock(suite.ctx, &traceReq)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -1180,14 +1188,14 @@ func (suite *KeeperTestSuite) TestNonceInQuery() {
 	})
 	suite.Require().NoError(err)
 	proposerAddress := suite.ctx.BlockHeader().ProposerAddress
-	_, err = suite.queryClient.EstimateGas(sdk.WrapSDKContext(suite.ctx), &evmtypes.EthCallRequest{
+	_, err = suite.queryClient.EstimateGas(suite.ctx, &evmtypes.EthCallRequest{
 		Args:            args,
 		GasCap:          config.DefaultGasCap,
 		ProposerAddress: proposerAddress,
 	})
 	suite.Require().NoError(err)
 
-	_, err = suite.queryClient.EthCall(sdk.WrapSDKContext(suite.ctx), &evmtypes.EthCallRequest{
+	_, err = suite.queryClient.EthCall(suite.ctx, &evmtypes.EthCallRequest{
 		Args:            args,
 		GasCap:          config.DefaultGasCap,
 		ProposerAddress: proposerAddress,

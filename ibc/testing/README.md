@@ -16,7 +16,7 @@ be in the future. The coordinator also contains functions to do basic setup of c
 between two chains.
 
 A chain is an SDK application (as represented by an app.go file). Inside the chain is an `TestingApp` which allows
-the chain to simulate block production and transaction processing. The chain contains by default a single tendermint
+the chain to simulate block production and transaction processing. The chain contains by default a single CometBFT
 validator. A chain is used to process SDK messages.
 
 A path connects two channel endpoints. It contains all the information needed to relay between two endpoints.
@@ -259,11 +259,11 @@ package transfertesting
 import (
 	"encoding/json"
 
-	"github.com/cometbft/cometbft/libs/log"
-	dbm "github.com/cometbft/cometbft-db"
+	"cosmossdk.io/log"
+	sdkdb "github.com/cosmos/cosmos-db"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/simapp"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/simapp"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {

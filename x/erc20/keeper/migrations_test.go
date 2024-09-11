@@ -1,9 +1,9 @@
 package keeper_test
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -41,11 +41,11 @@ func (ms mockSubspace) WithKeyTable(keyTable paramtypes.KeyTable) paramtypes.Sub
 }
 
 func (suite *KeeperTestSuite) TestMigrations() {
-	storeKey := sdk.NewKVStoreKey(erc20types.ModuleName)
-	tKey := sdk.NewTransientStoreKey("transient_test")
+	storeKey := storetypes.NewKVStoreKey(erc20types.ModuleName)
+	tKey := storetypes.NewTransientStoreKey("transient_test")
 	ctx := testutil.DefaultContext(storeKey, tKey)
 
-	mockKeeper := erc20keeper.NewKeeper(storeKey, nil, authtypes.NewModuleAddress(govtypes.ModuleName), nil, nil, nil, nil)
+	mockKeeper := erc20keeper.NewKeeper(storeKey, nil, authtypes.NewModuleAddress(govtypes.ModuleName), nil, nil, nil)
 	mockSubspace := newMockSubspace(storeKey, tKey)
 	migrator := erc20keeper.NewMigrator(mockKeeper, mockSubspace)
 

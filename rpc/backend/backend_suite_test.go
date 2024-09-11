@@ -9,9 +9,9 @@ import (
 
 	"github.com/EscanBE/evermint/v12/constants"
 
-	dbm "github.com/cometbft/cometbft-db"
+	sdkdb "github.com/cosmos/cosmos-db"
 
-	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -79,7 +79,7 @@ func (suite *BackendTestSuite) SetupTest() {
 		WithKeyring(keyRing).
 		WithAccountRetriever(client.TestAccountRetriever{Accounts: accounts})
 
-	idxer := indexer.NewKVIndexer(dbm.NewMemDB(), ctx.Logger, clientCtx)
+	idxer := indexer.NewKVIndexer(sdkdb.NewMemDB(), ctx.Logger, clientCtx)
 
 	suite.backend = NewBackend(ctx, ctx.Logger, clientCtx, idxer)
 	suite.backend.queryClient.QueryClient = mocks.NewEVMQueryClient(suite.T())
@@ -96,6 +96,7 @@ func (suite *BackendTestSuite) SetupTest() {
 // buildEthereumTx returns an example legacy Ethereum transaction
 func (suite *BackendTestSuite) buildEthereumTx() (*evmtypes.MsgEthereumTx, []byte) {
 	ethTxParams := evmtypes.EvmTxArgs{
+		From:     suite.from,
 		ChainID:  suite.backend.chainID,
 		Nonce:    uint64(0),
 		To:       &common.Address{},
@@ -104,9 +105,6 @@ func (suite *BackendTestSuite) buildEthereumTx() (*evmtypes.MsgEthereumTx, []byt
 		GasPrice: big.NewInt(1),
 	}
 	msgEthereumTx := evmtypes.NewTx(&ethTxParams)
-
-	// A valid msg should have empty `From`
-	msgEthereumTx.From = suite.from.Hex()
 
 	txBuilder := suite.backend.clientCtx.TxConfig.NewTxBuilder()
 	err := txBuilder.SetMsgs(msgEthereumTx)
@@ -119,8 +117,8 @@ func (suite *BackendTestSuite) buildEthereumTx() (*evmtypes.MsgEthereumTx, []byt
 
 // buildFormattedBlock returns a formatted block for testing
 func (suite *BackendTestSuite) buildFormattedBlock(
-	blockRes *tmrpctypes.ResultBlockResults,
-	resBlock *tmrpctypes.ResultBlock,
+	blockRes *cmtrpctypes.ResultBlockResults,
+	resBlock *cmtrpctypes.ResultBlock,
 	fullTx bool,
 	tx *evmtypes.MsgEthereumTx,
 	validator sdk.AccAddress,
@@ -153,7 +151,7 @@ func (suite *BackendTestSuite) buildFormattedBlock(
 	)
 }
 
-func createTestReceipt(root []byte, resBlock *tmrpctypes.ResultBlock, tx *evmtypes.MsgEthereumTx, failed bool, gasUsed uint64) *ethtypes.Receipt {
+func createTestReceipt(root []byte, resBlock *cmtrpctypes.ResultBlock, tx *evmtypes.MsgEthereumTx, failed bool, gasUsed uint64) *ethtypes.Receipt {
 	var status uint64
 	if failed {
 		status = ethtypes.ReceiptStatusFailed
@@ -197,7 +195,7 @@ func (suite *BackendTestSuite) signAndEncodeEthTx(msgEthereumTx *evmtypes.MsgEth
 	RegisterParamsWithoutHeader(queryClient, 1)
 
 	ethSigner := ethtypes.LatestSigner(suite.backend.ChainConfig())
-	msgEthereumTx.From = from.String()
+	msgEthereumTx.From = sdk.AccAddress(from.Bytes()).String()
 	err := msgEthereumTx.Sign(ethSigner, signer)
 	suite.Require().NoError(err)
 
@@ -216,7 +214,7 @@ func (suite *BackendTestSuite) signMsgEthTx(msgEthereumTx *evmtypes.MsgEthereumT
 	RegisterParamsWithoutHeader(queryClient, 1)
 
 	ethSigner := ethtypes.LatestSigner(suite.backend.ChainConfig())
-	msgEthereumTx.From = suite.from.String()
+	msgEthereumTx.From = sdk.AccAddress(suite.from.Bytes()).String()
 	err := msgEthereumTx.Sign(ethSigner, suite.signer)
 	suite.Require().NoError(err)
 

@@ -4,47 +4,57 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
 
+	"github.com/EscanBE/evermint/v12/client/docs"
+
+	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
+	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
+	"cosmossdk.io/client/v2/autocli"
+	"cosmossdk.io/core/appmodule"
+
+	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
+	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
+
+	"github.com/EscanBE/evermint/v12/utils"
+
 	"github.com/EscanBE/evermint/v12/app/params"
 
 	"github.com/gorilla/mux"
-	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 
-	dbm "github.com/cometbft/cometbft-db"
+	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
-	tmos "github.com/cometbft/cometbft/libs/os"
+	cmtos "github.com/cometbft/cometbft/libs/os"
+	sdkdb "github.com/cosmos/cosmos-db"
 
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	"github.com/cosmos/cosmos-sdk/client/grpc/node"
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
-
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	testdata_pulsar "github.com/cosmos/cosmos-sdk/testutil/testdata/testpb"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 
-	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
-
-	// unnamed import of statik for swagger UI support
-	_ "github.com/EscanBE/evermint/v12/client/docs/statik"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
 
 	"github.com/EscanBE/evermint/v12/app/ante"
 	ethante "github.com/EscanBE/evermint/v12/app/ante/evm"
@@ -54,7 +64,6 @@ import (
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
 	srvflags "github.com/EscanBE/evermint/v12/server/flags"
 	evertypes "github.com/EscanBE/evermint/v12/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	// Force-load the tracer engines to trigger registration due to Go-Ethereum v1.10.15 changes
 	_ "github.com/ethereum/go-ethereum/eth/tracers/js"
 	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
@@ -73,9 +82,9 @@ var (
 	_ ibctesting.TestingApp   = (*Evermint)(nil)
 )
 
-// Evermint implements an extended ABCI application. It is an application
-// that may process transactions through Ethereum's EVM running atop of
-// Tendermint consensus.
+// Evermint implements an extended ABCI application.
+// It is an application that may process transactions
+// through Ethereum's EVM running atop of CometBFT consensus.
 type Evermint struct {
 	*baseapp.BaseApp
 	keepers.AppKeepers
@@ -89,7 +98,8 @@ type Evermint struct {
 	invCheckPeriod uint
 
 	// the module manager
-	mm *module.Manager
+	mm           *module.Manager
+	ModuleBasics module.BasicManager // delivered from module manager, with installed codec
 
 	// the configurator
 	configurator module.Configurator
@@ -104,14 +114,12 @@ func init() {
 	DefaultNodeHome = filepath.Join(userHomeDir, constants.ApplicationHome)
 
 	sdk.DefaultPowerReduction = evertypes.PowerReduction // 10^18
-	// modify fee market parameter defaults through global
-	feemarkettypes.DefaultMinGasPrice = MainnetMinGasPrices
 }
 
 // NewEvermint returns a reference to a new initialized Evermint application.
 func NewEvermint(
 	logger log.Logger,
-	db dbm.DB,
+	db sdkdb.DB,
 	traceStore io.Writer,
 	loadLatest bool,
 	skipUpgradeHeights map[int64]bool,
@@ -126,7 +134,9 @@ func NewEvermint(
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 	txConfig := encodingConfig.TxConfig
 
-	eip712.SetEncodingConfig(encodingConfig)
+	defer func() {
+		eip712.SetEncodingConfig(encodingConfig)
+	}()
 
 	// App Opts
 	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
@@ -174,6 +184,19 @@ func NewEvermint(
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	chainApp.mm = module.NewManager(appModules(chainApp, encodingConfig, skipGenesisInvariants)...)
+	chainApp.ModuleBasics = newBasicManagerFromManager(chainApp)
+
+	{
+		txConfigWithTextual, err := utils.GetTxConfigWithSignModeTextureEnabled(
+			authtxconfig.NewBankKeeperCoinMetadataQueryFn(chainApp.BankKeeper),
+			appCodec,
+		)
+		if err != nil {
+			panic(err)
+		}
+		chainApp.txConfig = txConfigWithTextual
+		encodingConfig.TxConfig = txConfigWithTextual
+	}
 
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
@@ -195,10 +218,19 @@ func NewEvermint(
 
 	chainApp.mm.RegisterInvariants(chainApp.CrisisKeeper)
 	chainApp.configurator = module.NewConfigurator(chainApp.appCodec, chainApp.MsgServiceRouter(), chainApp.GRPCQueryRouter())
-	chainApp.mm.RegisterServices(chainApp.configurator)
+	if err := chainApp.mm.RegisterServices(chainApp.configurator); err != nil {
+		panic(err)
+	}
 
+	autocliv1.RegisterQueryServer(chainApp.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(chainApp.mm.Modules))
+
+	reflectionSvc, err := runtimeservices.NewReflectionService()
+	if err != nil {
+		panic(err)
+	}
+	reflectionv1.RegisterReflectionServiceServer(chainApp.GRPCQueryRouter(), reflectionSvc)
 	// add test gRPC service for testing gRPC queries in isolation
-	// testdata.RegisterTestServiceServer(app.GRPCQueryRouter(), testdata.TestServiceImpl{})
+	testdata_pulsar.RegisterQueryServer(chainApp.GRPCQueryRouter(), testdata_pulsar.QueryImpl{})
 
 	// initialize stores
 	chainApp.MountKVStores(chainApp.GetKVStoreKey())
@@ -220,7 +252,7 @@ func NewEvermint(
 
 	if loadLatest {
 		if err := chainApp.LoadLatestVersion(); err != nil {
-			tmos.Exit(err.Error())
+			cmtos.Exit(err.Error())
 		}
 	}
 
@@ -230,30 +262,37 @@ func NewEvermint(
 // Name returns the name of the App
 func (app *Evermint) Name() string { return app.BaseApp.Name() }
 
-// BeginBlocker runs the Tendermint ABCI BeginBlock logic. It executes state changes at the beginning
+// BeginBlocker runs the CometBFT ABCI BeginBlock logic. It executes state changes at the beginning
 // of the new block for every registered module. If there is a registered fork at the current height,
 // BeginBlocker will schedule the upgrade plan and perform the state migration (if any).
-func (app *Evermint) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+func (app *Evermint) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
 	// Perform any scheduled forks before executing the modules logic
 	app.scheduleForkUpgrade(ctx)
-	return app.mm.BeginBlock(ctx, req)
+	return app.mm.BeginBlock(ctx)
 }
 
 // EndBlocker updates every end block
-func (app *Evermint) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	return app.mm.EndBlock(ctx, req)
+func (app *Evermint) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
+	return app.mm.EndBlock(ctx)
 }
 
 // InitChainer updates at chain initialization
-func (app *Evermint) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+func (app *Evermint) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
 	var genesisState GenesisState
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
 
-	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
+	if err := app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap()); err != nil {
+		panic(err)
+	}
 
-	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
+	response, err := app.mm.InitGenesis(ctx, app.appCodec, genesisState)
+	if err != nil {
+		panic(err)
+	}
+
+	return response, nil
 }
 
 // LoadHeight loads state at a particular height
@@ -310,8 +349,8 @@ func (app *Evermint) RegisterAPIRoutes(apiSvr *api.Server, apiConfig srvconfig.A
 	clientCtx := apiSvr.ClientCtx
 	// Register new tx routes from grpc-gateway.
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
-	// Register new tendermint queries routes from grpc-gateway.
-	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	// Register new CometBFT queries routes from grpc-gateway.
+	cmtservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register legacy and grpc-gateway routes for all modules.
 	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
@@ -326,8 +365,8 @@ func (app *Evermint) RegisterAPIRoutes(apiSvr *api.Server, apiConfig srvconfig.A
 }
 
 // RegisterNodeService allows query minimum-gas-prices in app.toml
-func (app *Evermint) RegisterNodeService(clientCtx client.Context) {
-	node.RegisterNodeService(clientCtx, app.GRPCQueryRouter())
+func (app *Evermint) RegisterNodeService(clientCtx client.Context, cfg srvconfig.Config) {
+	node.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg)
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
@@ -337,7 +376,7 @@ func (app *Evermint) RegisterTxService(clientCtx client.Context) {
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
 func (app *Evermint) RegisterTendermintService(clientCtx client.Context) {
-	tmservice.RegisterTendermintService(
+	cmtservice.RegisterTendermintService(
 		clientCtx,
 		app.BaseApp.GRPCQueryRouter(),
 		app.interfaceRegistry,
@@ -348,14 +387,14 @@ func (app *Evermint) RegisterTendermintService(clientCtx client.Context) {
 func (app *Evermint) setAnteHandler(txConfig client.TxConfig, maxGasWanted uint64) {
 	options := ante.HandlerOptions{
 		Cdc:                    app.appCodec,
-		AccountKeeper:          app.AccountKeeper,
+		AccountKeeper:          &app.AccountKeeper,
 		BankKeeper:             app.BankKeeper,
 		ExtensionOptionChecker: evertypes.HasDynamicFeeExtensionOption,
 		EvmKeeper:              app.EvmKeeper,
 		VAuthKeeper:            &app.VAuthKeeper,
 		StakingKeeper:          app.StakingKeeper,
 		FeegrantKeeper:         app.FeeGrantKeeper,
-		DistributionKeeper:     app.DistrKeeper,
+		DistributionKeeper:     &app.DistrKeeper,
 		IBCKeeper:              app.IBCKeeper,
 		FeeMarketKeeper:        app.FeeMarketKeeper,
 		SignModeHandler:        txConfig.SignModeHandler(),
@@ -427,6 +466,27 @@ func (app *Evermint) GetTxConfig() client.TxConfig {
 	return app.txConfig
 }
 
+// AutoCliOpts returns the autocli options for the app.
+func (app *Evermint) AutoCliOpts() autocli.AppOptions {
+	modules := make(map[string]appmodule.AppModule, 0)
+	for _, m := range app.mm.Modules {
+		if moduleWithName, ok := m.(module.HasName); ok {
+			moduleName := moduleWithName.Name()
+			if appModule, ok := moduleWithName.(appmodule.AppModule); ok {
+				modules[moduleName] = appModule
+			}
+		}
+	}
+
+	return autocli.AppOptions{
+		Modules:               modules,
+		ModuleOptions:         runtimeservices.ExtractAutoCLIOptions(app.mm.Modules),
+		AddressCodec:          authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
+		ValidatorAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
+		ConsensusAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
+	}
+}
+
 // GetStakingKeeper implements the TestingApp interface.
 func (app *Evermint) GetStakingKeeper() ibctestingtypes.StakingKeeper {
 	return app.StakingKeeper
@@ -453,12 +513,12 @@ func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router, enableSwagger bool) e
 		return nil
 	}
 
-	statikFS, err := fs.New()
+	root, err := fs.Sub(docs.SwaggerUI, "swagger-ui")
 	if err != nil {
 		return err
 	}
 
-	staticServer := http.FileServer(statikFS)
+	staticServer := http.FileServer(http.FS(root))
 	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
 
 	return nil

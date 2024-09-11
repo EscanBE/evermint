@@ -7,17 +7,20 @@ import (
 	"math/big"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
+
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	cosmosed25519 "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 // ChainsIbcIntegrationTestSuite is a wrapper of ChainIntegrationTestSuite for IBC testing.
-// Tendermint is Disabled for IBC testing.
+// CometBFT is Disabled for IBC testing.
 type ChainsIbcIntegrationTestSuite struct {
 	Chain1        *ChainIntegrationTestSuite
 	Chain2        *ChainIntegrationTestSuite
@@ -30,32 +33,44 @@ type ChainsIbcIntegrationTestSuite struct {
 }
 
 // CreateChainsIbcIntegrationTestSuite initializes an IBC integration test suite from given chains.
-// The input chain must disable Tendermint.
+// The input chain must disable CometBFT.
 func CreateChainsIbcIntegrationTestSuite(chain1, chain2 *ChainIntegrationTestSuite, relayer1, relayer2 *itutiltypes.TestAccount) *ChainsIbcIntegrationTestSuite {
-	if chain1.HasTendermint() {
-		panic(fmt.Errorf("chain1 must disable Tendermint"))
+	if chain1.HasCometBFT() {
+		panic(fmt.Errorf("chain1 must disable CometBFT"))
 	}
-	if chain2.HasTendermint() {
-		panic(fmt.Errorf("chain2 must disable Tendermint"))
+	if chain2.HasCometBFT() {
+		panic(fmt.Errorf("chain2 must disable CometBFT"))
 	}
 
 	if relayer1 == nil {
-		relayer1 = NewTestAccount(chain1.t, nil)
+		relayer1 = chain1.CreateAccount()
 		chain1.MintCoin(relayer1, chain1.NewBaseCoin(9))
+		fmt.Println("Generated relayer for chain 1:", relayer1.GetCosmosAddress().String())
 	}
 	if relayer2 == nil {
-		relayer2 = NewTestAccount(chain2.t, nil)
+		relayer2 = chain2.CreateAccount()
 		chain2.MintCoin(relayer2, chain2.NewBaseCoin(9))
+		fmt.Println("Generated relayer for chain 2:", relayer2.GetCosmosAddress().String())
 	}
+
+	chain1.Commit()
+	chain2.Commit()
 
 	baseFeeChain1 := chain1.ChainApp.FeeMarketKeeper().GetBaseFee(chain1.CurrentContext)
 	baseFeeChain2 := chain2.ChainApp.FeeMarketKeeper().GetBaseFee(chain2.CurrentContext)
 
-	chain1.ChainApp.FeeMarketKeeper().SetBaseFee(chain1.CurrentContext, big.NewInt(0))
-	chain2.ChainApp.FeeMarketKeeper().SetBaseFee(chain2.CurrentContext, big.NewInt(0))
+	zeroFee := func(c *ChainIntegrationTestSuite) {
+		zero := sdkmath.ZeroInt()
 
-	chain1.Commit()
-	chain2.Commit()
+		fmKeeper := c.ChainApp.FeeMarketKeeper()
+		fmParams := fmKeeper.GetParams(c.CurrentContext)
+		fmParams.MinGasPrice = sdkmath.LegacyZeroDec()
+		fmParams.BaseFee = &zero
+		err := fmKeeper.SetParams(c.CurrentContext, fmParams)
+		c.Require().NoError(err)
+	}
+	zeroFee(chain1)
+	zeroFee(chain2)
 
 	coordinator := newIbcTestingCoordinator(chain1, chain2, relayer1, relayer2)
 
@@ -78,6 +93,7 @@ func CreateChainsIbcIntegrationTestSuite(chain1, chain2 *ChainIntegrationTestSui
 
 	coordinator.Setup(suite.Path)
 
+	// update header to current context
 	chain1.CurrentContext = chain1.createNewContext(chain1.CurrentContext, testChain1.CurrentHeader)
 	chain2.CurrentContext = chain2.createNewContext(chain2.CurrentContext, testChain2.CurrentHeader)
 
@@ -121,11 +137,11 @@ func newIbcTestingChain(coordinator *ibctesting.Coordinator, chain *ChainIntegra
 	})
 	chain.Require().NoError(err)
 	chain.Require().NotNil(resRelayerAcc)
-	var relayerAcc authtypes.AccountI
+	var relayerAcc sdk.AccountI
 	err2 := chain.EncodingConfig.Codec.UnpackAny(resRelayerAcc.Account, &relayerAcc)
 	chain.Require().NoError(err2)
 
-	signers := make(map[string]tmtypes.PrivValidator)
+	signers := make(map[string]cmttypes.PrivValidator)
 	for _, validatorAccount := range chain.ValidatorAccounts {
 		//goland:noinspection GoDeprecation
 		pv := ibcmock.PV{
@@ -139,7 +155,7 @@ func newIbcTestingChain(coordinator *ibctesting.Coordinator, chain *ChainIntegra
 	}
 
 	return &ibctesting.TestChain{
-		T:             chain.t,
+		TB:            chain.t,
 		Coordinator:   coordinator,
 		ChainID:       chainId,
 		App:           testApp,

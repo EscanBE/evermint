@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"math"
 
-	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
+	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
 
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
@@ -30,7 +30,7 @@ func (b *Backend) TraceTransaction(hash common.Hash, config *evmtypes.TraceConfi
 		return nil, errors.New("genesis is not traceable")
 	}
 
-	blk, err := b.TendermintBlockByNumber(rpctypes.BlockNumber(transaction.Height))
+	blk, err := b.CometBFTBlockByNumber(rpctypes.BlockNumber(transaction.Height))
 	if err != nil {
 		b.logger.Debug("block not found", "height", transaction.Height)
 		return nil, err
@@ -72,7 +72,7 @@ func (b *Backend) TraceTransaction(hash common.Hash, config *evmtypes.TraceConfi
 		return nil, fmt.Errorf("invalid transaction type %T", tx)
 	}
 
-	nc, ok := b.clientCtx.Client.(tmrpcclient.NetworkClient)
+	nc, ok := b.clientCtx.Client.(cmtrpcclient.NetworkClient)
 	if !ok {
 		return nil, errors.New("invalid rpc client")
 	}
@@ -123,7 +123,7 @@ func (b *Backend) TraceTransaction(hash common.Hash, config *evmtypes.TraceConfi
 // per transaction, dependent on the requested tracer.
 func (b *Backend) TraceBlock(height rpctypes.BlockNumber,
 	config *evmtypes.TraceConfig,
-	block *tmrpctypes.ResultBlock,
+	block *cmtrpctypes.ResultBlock,
 ) ([]*evmtypes.TxTraceResult, error) {
 	txs := block.Block.Txs
 	txsLength := len(txs)
@@ -161,7 +161,7 @@ func (b *Backend) TraceBlock(height rpctypes.BlockNumber,
 	}
 	ctxWithHeight := rpctypes.ContextWithHeight(int64(contextHeight))
 
-	nc, ok := b.clientCtx.Client.(tmrpcclient.NetworkClient)
+	nc, ok := b.clientCtx.Client.(cmtrpcclient.NetworkClient)
 	if !ok {
 		return nil, errors.New("invalid rpc client")
 	}

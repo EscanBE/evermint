@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/EscanBE/evermint/v12/app/ante"
@@ -313,6 +315,7 @@ func (suite *AnteTestSuite) TestRejectMsgsInAuthz() {
 	}
 
 	msgEthereumTx := evmtypes.NewTx(&evmtypes.EvmTxArgs{
+		From:      common.BytesToAddress(testAddresses[0]),
 		ChainID:   big.NewInt(constants.TestnetEIP155ChainId),
 		Nonce:     0,
 		GasLimit:  100_000,
@@ -459,20 +462,30 @@ func (suite *AnteTestSuite) TestRejectMsgsInAuthz() {
 			bz, err := txEncoder(tx)
 			suite.Require().NoError(err)
 
-			resCheckTx := suite.app.CheckTx(
-				abci.RequestCheckTx{
+			resCheckTx, err := suite.app.CheckTx(
+				&abci.RequestCheckTx{
 					Tx:   bz,
 					Type: abci.CheckTxType_New,
 				},
 			)
+			suite.Require().NoError(err)
 			suite.Require().Equal(tc.expectedCode, resCheckTx.Code, resCheckTx.Log)
 
-			resDeliverTx := suite.app.DeliverTx(
-				abci.RequestDeliverTx{
-					Tx: bz,
+			header := suite.ctx.BlockHeader()
+			blockRes, err := suite.app.FinalizeBlock(
+				&abci.RequestFinalizeBlock{
+					Height:             header.Height,
+					Txs:                [][]byte{bz},
+					Hash:               header.AppHash,
+					NextValidatorsHash: header.NextValidatorsHash,
+					ProposerAddress:    header.ProposerAddress,
+					Time:               header.Time.Add(time.Second),
 				},
 			)
-			suite.Require().Equal(tc.expectedCode, resDeliverTx.Code, resDeliverTx.Log)
+			suite.Require().NoError(err)
+			suite.Require().Len(blockRes.TxResults, 1)
+			txRes := blockRes.TxResults[0]
+			suite.Require().Equal(tc.expectedCode, txRes.Code, txRes.Log)
 		})
 	}
 }

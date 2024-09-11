@@ -2,15 +2,13 @@ package keeper
 
 import (
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	abci "github.com/cometbft/cometbft/abci/types"
-
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // EndBlock update base fee for the next block.
 // The EVM end block logic doesn't update the validator set, thus it returns an empty slice.
-func (k Keeper) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) {
+func (k Keeper) EndBlock(ctx sdk.Context) {
 	k.updateBaseFeeForNextBlock(ctx)
 }
 

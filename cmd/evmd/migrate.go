@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/EscanBE/evermint/v12/constants"
 
 	"github.com/spf13/cobra"
 
 	tmjson "github.com/cometbft/cometbft/libs/json"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -52,7 +54,7 @@ func MigrateGenesisCmd() *cobra.Command {
 			target := args[0]
 			importGenesis := args[1]
 
-			genDoc, err := tmtypes.GenesisDocFromFile(importGenesis)
+			genDoc, err := cmttypes.GenesisDocFromFile(importGenesis)
 			if err != nil {
 				return fmt.Errorf("failed to retrieve genesis.json: %w", err)
 			}
@@ -72,7 +74,10 @@ func MigrateGenesisCmd() *cobra.Command {
 				return fmt.Errorf("unknown migration function for version: %s", target)
 			}
 
-			newGenState := migrationFn(initialState, clientCtx)
+			newGenState, err := migrationFn(initialState, clientCtx)
+			if err != nil {
+				return errorsmod.Wrap(err, "failed to run migrationFn")
+			}
 
 			appState, err := json.Marshal(newGenState)
 			if err != nil {

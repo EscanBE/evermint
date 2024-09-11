@@ -8,35 +8,44 @@ import (
 	"path/filepath"
 	"time"
 
+	"cosmossdk.io/client/v2/autocli"
+
+	storetypes "cosmossdk.io/store/types"
+
+	"github.com/EscanBE/evermint/v12/utils"
+
 	"github.com/EscanBE/evermint/v12/app/params"
 
+	confixcmd "cosmossdk.io/tools/confix/cmd"
 	"github.com/EscanBE/evermint/v12/cmd/evmd/inspect"
 	cmdutils "github.com/EscanBE/evermint/v12/cmd/evmd/utils"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
+	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/viper"
 
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
-	dbm "github.com/cometbft/cometbft-db"
-	tmcfg "github.com/cometbft/cometbft/config"
+	"cosmossdk.io/log"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	tmcli "github.com/cometbft/cometbft/libs/cli"
-	"github.com/cometbft/cometbft/libs/log"
+	sdkdb "github.com/cosmos/cosmos-db"
 
+	"cosmossdk.io/store"
+	"cosmossdk.io/store/snapshots"
+	snapshottypes "cosmossdk.io/store/snapshots/types"
 	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/config"
+	clientconfig "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/snapshots"
-	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
-	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -62,12 +71,19 @@ const (
 // NewRootCmd creates a new root command for our binary. It is called once in the
 // main function.
 func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
-	encodingConfig := chainapp.RegisterEncodingConfig()
+	// we "pre"-instantiate the application for getting the injected/configured encoding configuration
+	tempChainApp := initTemporaryChainApp()
+	defer func() {
+		if err := tempChainApp.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
 	initClientCtx := client.Context{}.
-		WithCodec(encodingConfig.Codec).
-		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
-		WithTxConfig(encodingConfig.TxConfig).
-		WithLegacyAmino(encodingConfig.Amino).
+		WithCodec(tempChainApp.AppCodec()).
+		WithInterfaceRegistry(tempChainApp.InterfaceRegistry()).
+		WithTxConfig(tempChainApp.GetTxConfig()).
+		WithLegacyAmino(tempChainApp.LegacyAmino()).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.FlagBroadcastMode).
@@ -75,6 +91,13 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		WithKeyringOptions(appkeyring.Option()).
 		WithViper(ViperEnvPrefix).
 		WithLedgerHasProtobuf(true)
+
+	encodingConfig := params.EncodingConfig{
+		InterfaceRegistry: tempChainApp.InterfaceRegistry(),
+		Codec:             tempChainApp.AppCodec(),
+		TxConfig:          tempChainApp.GetTxConfig(),
+		Amino:             tempChainApp.LegacyAmino(),
+	}
 
 	eip712.SetEncodingConfig(encodingConfig)
 
@@ -86,23 +109,37 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.ErrOrStderr())
 
+			initClientCtx = initClientCtx.WithCmdContext(cmd.Context())
 			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
 
-			initClientCtx, err = config.ReadFromClientConfig(initClientCtx)
+			initClientCtx, err = clientconfig.ReadFromClientConfig(initClientCtx)
 			if err != nil {
 				return err
+			}
+
+			// This needs to go after ReadFromClientConfig, as that function
+			// sets the RPC client needed for SIGN_MODE_TEXTUAL. This sign mode
+			// is only available if the client is online.
+			if !initClientCtx.Offline {
+				txConfigWithTextual, err := utils.GetTxConfigWithSignModeTextureEnabled(
+					authtxconfig.NewGRPCCoinMetadataQueryFn(initClientCtx), initClientCtx.Codec,
+				)
+				if err != nil {
+					return err
+				}
+				initClientCtx = initClientCtx.WithTxConfig(txConfigWithTextual)
 			}
 
 			if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
 				return err
 			}
 
-			// override the app and tendermint configuration
+			// override the app and CometBFT configuration
 			customAppTemplate, customAppConfig := initAppConfig()
-			customTMConfig := initTendermintConfig()
+			customTMConfig := initCometBftConfig()
 
 			return sdkserver.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
 		},
@@ -113,21 +150,36 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 
 	a := appCreator{encodingConfig}
 
+	signingCtx := encodingConfig.TxConfig.SigningContext()
+
 	commands := []*cobra.Command{
 		appclient.ValidateChainID(
 			InitCmd(chainapp.ModuleBasics, chainapp.DefaultNodeHome),
 		),
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, chainapp.DefaultNodeHome, genutiltypes.DefaultMessageValidator),
+		genutilcli.CollectGenTxsCmd(
+			banktypes.GenesisBalancesIterator{},
+			chainapp.DefaultNodeHome,
+			genutiltypes.DefaultMessageValidator,
+			signingCtx.ValidatorAddressCodec(),
+		),
 		MigrateGenesisCmd(),
-		genutilcli.GenTxCmd(chainapp.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, chainapp.DefaultNodeHome),
+		genutilcli.GenTxCmd(
+			chainapp.ModuleBasics,
+			encodingConfig.TxConfig,
+			banktypes.GenesisBalancesIterator{},
+			chainapp.DefaultNodeHome,
+			signingCtx.ValidatorAddressCodec(),
+		),
 		genutilcli.ValidateGenesisCmd(chainapp.ModuleBasics),
-		genutilcli.AddGenesisAccountCmd(chainapp.DefaultNodeHome),
+		genutilcli.AddGenesisAccountCmd(
+			chainapp.DefaultNodeHome,
+			signingCtx.AddressCodec(),
+		),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		NewTestnetCmd(chainapp.ModuleBasics, banktypes.GenesisBalancesIterator{}),
 		debug.Cmd(),
-		config.Cmd(),
-		pruning.PruningCmd(a.newApp),
-		NewConvertAddressCmd(),
+		confixcmd.ConfigCommand(),
+		pruning.Cmd(a.newApp, chainapp.DefaultNodeHome),
 		func() *cobra.Command {
 			snapshotCmd := snapshot.Cmd(a.newApp)
 			snapshotCmd.Long = fmt.Sprintf(`
@@ -155,7 +207,7 @@ You gonna get "100000-3.tar.gz" at current working directory
 You gonna get "data/application.db" unpacked
 
 6. Now bootstrap state with "bootstrap-state":
-%s tendermint bootstrap-state
+%s cometbft bootstrap-state
 `,
 				constants.ApplicationBinaryName, constants.ApplicationBinaryName, constants.ApplicationBinaryName,
 				constants.ApplicationHome,
@@ -164,9 +216,8 @@ You gonna get "data/application.db" unpacked
 			return snapshotCmd
 		}(),
 		inspect.Cmd(),
+		NewConvertAddressCmd(),
 	}
-
-	// End of command rename chain
 
 	rootCmd.AddCommand(commands...)
 
@@ -179,9 +230,9 @@ You gonna get "data/application.db" unpacked
 
 	// add basic commands: auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
-		rpc.StatusCommand(),
+		sdkserver.StatusCommand(),
 		queryCommand(),
-		txCommand(),
+		txCommand(tempChainApp),
 		appclient.KeyCommands(chainapp.DefaultNodeHome),
 	)
 	rootCmd, err := srvflags.AddTxFlags(rootCmd)
@@ -192,6 +243,11 @@ You gonna get "data/application.db" unpacked
 	// add rosetta
 	rootCmd.AddCommand(rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec))
 
+	autoCliOpts := enrichAutoCliOpts(tempChainApp.AutoCliOpts(), initClientCtx)
+	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
+		panic(err)
+	}
+
 	const minimumDefaultGasAdjustment = 1.2
 	if //goland:noinspection GoBoolExpressions
 	flags.DefaultGasAdjustment < minimumDefaultGasAdjustment {
@@ -200,6 +256,16 @@ You gonna get "data/application.db" unpacked
 	}
 
 	return rootCmd, encodingConfig
+}
+
+func enrichAutoCliOpts(autoCliOpts autocli.AppOptions, clientCtx client.Context) autocli.AppOptions {
+	autoCliOpts.AddressCodec = addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
+	autoCliOpts.ValidatorAddressCodec = addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix())
+	autoCliOpts.ConsensusAddressCodec = addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix())
+
+	autoCliOpts.ClientCtx = clientCtx
+
+	return autoCliOpts
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
@@ -217,20 +283,20 @@ func queryCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		authcmd.GetAccountCmd(),
 		rpc.ValidatorCommand(),
-		rpc.BlockCommand(),
+		sdkserver.QueryBlocksCmd(),
+		sdkserver.QueryBlockCmd(),
+		sdkserver.QueryBlockResultsCmd(),
 		authcmd.QueryTxsByEventsCmd(),
 		authcmd.QueryTxCmd(),
 	)
 
-	chainapp.ModuleBasics.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
 }
 
-func txCommand() *cobra.Command {
+func txCommand(chainApp *chainapp.Evermint) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "tx",
 		Short:                      "Transactions subcommands",
@@ -245,13 +311,13 @@ func txCommand() *cobra.Command {
 		authcmd.GetMultiSignCommand(),
 		authcmd.GetMultiSignBatchCmd(),
 		authcmd.GetValidateSignaturesCommand(),
+		flags.LineBreak,
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
-		authcmd.GetAuxToFeeCommand(),
 	)
 
-	chainapp.ModuleBasics.AddTxCommands(cmd)
+	chainApp.ModuleBasics.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -279,8 +345,8 @@ type appCreator struct {
 }
 
 // newApp is an appCreator
-func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
-	var cache sdk.MultiStorePersistentCache
+func (a appCreator) newApp(logger log.Logger, db sdkdb.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
+	var cache storetypes.MultiStorePersistentCache
 
 	if cast.ToBool(appOpts.Get(sdkserver.FlagInterBlockCache)) {
 		cache = store.NewCommitKVStoreCacheManager()
@@ -298,7 +364,7 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 
 	homeDir := cast.ToString(appOpts.Get(flags.FlagHome))
 	snapshotDir := filepath.Join(homeDir, "data", "snapshots")
-	snapshotDB, err := dbm.NewDB("metadata", sdkserver.GetAppDBBackend(appOpts), snapshotDir)
+	snapshotDB, err := sdkdb.NewDB("metadata", sdkserver.GetAppDBBackend(appOpts), snapshotDir)
 	if err != nil {
 		panic(err)
 	}
@@ -323,7 +389,7 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 		if err := v.ReadInConfig(); err != nil {
 			panic(err)
 		}
-		conf := new(config.ClientConfig)
+		conf := new(clientconfig.ClientConfig)
 		if err := v.Unmarshal(conf); err != nil {
 			panic(err)
 		}
@@ -357,7 +423,7 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 // and exports state.
 func (a appCreator) appExport(
 	logger log.Logger,
-	db dbm.DB,
+	db sdkdb.DB,
 	traceStore io.Writer,
 	height int64,
 	forZeroHeight bool,
@@ -365,36 +431,64 @@ func (a appCreator) appExport(
 	appOpts servertypes.AppOptions,
 	modulesToExport []string,
 ) (servertypes.ExportedApp, error) {
-	var app *chainapp.Evermint
+	var chainApp *chainapp.Evermint
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
 	if !ok || homePath == "" {
 		return servertypes.ExportedApp{}, errors.New("application home not set")
 	}
 
 	if height != -1 {
-		app = chainapp.NewEvermint(logger, db, traceStore, false, map[int64]bool{}, "", uint(1), a.encCfg, appOpts)
+		chainApp = chainapp.NewEvermint(logger, db, traceStore, false, map[int64]bool{}, "", uint(1), a.encCfg, appOpts)
 
-		if err := app.LoadHeight(height); err != nil {
+		if err := chainApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		app = chainapp.NewEvermint(logger, db, traceStore, true, map[int64]bool{}, "", uint(1), a.encCfg, appOpts)
+		chainApp = chainapp.NewEvermint(logger, db, traceStore, true, map[int64]bool{}, "", uint(1), a.encCfg, appOpts)
 	}
 
-	return app.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
+	return chainApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
 }
 
-// initTendermintConfig helps to override default Tendermint Config values.
-// return tmcfg.DefaultConfig if no custom configuration is required for the application.
-func initTendermintConfig() *tmcfg.Config {
-	cfg := tmcfg.DefaultConfig()
-	cfg.Consensus.TimeoutCommit = time.Second * 3
-	// use v0 since v1 severely impacts the node's performance
-	cfg.Mempool.Version = tmcfg.MempoolV0
+// initCometBftConfig helps to override default CometBFT Config values.
+// return cmtcfg.DefaultConfig if no custom configuration is required for the application.
+func initCometBftConfig() *cmtcfg.Config {
+	cfg := cmtcfg.DefaultConfig()
+	cfg.Consensus.TimeoutCommit = time.Second * 5
 
 	// to put a higher strain on node memory, use these values:
 	// cfg.P2P.MaxNumInboundPeers = 100
 	// cfg.P2P.MaxNumOutboundPeers = 40
 
 	return cfg
+}
+
+func initTemporaryChainApp() *chainapp.Evermint {
+	encodingConfig := chainapp.RegisterEncodingConfig()
+
+	// we "pre"-instantiate the application for getting the injected/configured encoding configuration
+	initAppOptions := viper.New()
+	tempDir := func() string {
+		dir, err := os.MkdirTemp("", constants.ApplicationHome)
+		if err != nil {
+			dir = chainapp.DefaultNodeHome
+		}
+		defer func() {
+			_ = os.RemoveAll(dir)
+		}()
+
+		return dir
+	}()
+	initAppOptions.Set(flags.FlagHome, tempDir)
+	return chainapp.NewEvermint(
+		log.NewNopLogger(),
+		sdkdb.NewMemDB(),
+		nil,
+		true,
+		map[int64]bool{},
+		tempDir,
+		0,
+		encodingConfig,
+		initAppOptions,
+	)
 }

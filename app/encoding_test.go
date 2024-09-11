@@ -16,6 +16,7 @@ func TestRegisterEncodingConfig(t *testing.T) {
 	signer := utiltx.NewSigner(key)
 
 	ethTxParams := evmtypes.EvmTxArgs{
+		From:      addr,
 		ChainID:   big.NewInt(1),
 		Nonce:     1,
 		Amount:    big.NewInt(10),
@@ -25,7 +26,6 @@ func TestRegisterEncodingConfig(t *testing.T) {
 		Input:     []byte{},
 	}
 	msg := evmtypes.NewTx(&ethTxParams)
-	msg.From = addr.Hex()
 
 	ethSigner := ethtypes.LatestSignerForChainID(big.NewInt(1))
 	err := msg.Sign(ethSigner, signer)
@@ -36,10 +36,10 @@ func TestRegisterEncodingConfig(t *testing.T) {
 	_, err = cfg.TxConfig.TxEncoder()(msg)
 	require.Error(t, err, "encoding failed")
 
-	// FIXME: transaction hashing is hardcoded on Tendermint:
+	// FIXME: transaction hashing is hardcoded on CometBFT:
 	// See https://github.com/tendermint/tendermint/issues/6539 for reference
 	// txHash := msg.AsTransaction().Hash()
-	// tmTx := tmtypes.Tx(bz)
+	// cometTX := cmttypes.Tx(bz)
 
-	// require.Equal(t, txHash.Bytes(), tmTx.Hash())
+	// require.Equal(t, txHash.Bytes(), cometTX.Hash())
 }

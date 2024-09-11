@@ -3,7 +3,7 @@ package ethermint.feemarket.v1;
 
 option go_package = "github.com/EscanBE/evermint/v12/x/feemarket/types";
 
-// EventFeeMarket is the event type for the fee market module
+// EventFeeMarket is the event type for the x/feemarket module
 message EventFeeMarket {
   // base_fee for EIP-1559 blocks
   string base_fee = 1;

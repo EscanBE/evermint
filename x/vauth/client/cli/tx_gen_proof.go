@@ -4,6 +4,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
+
 	errorsmod "cosmossdk.io/errors"
 
 	vauthutils "github.com/EscanBE/evermint/v12/x/vauth/utils"
@@ -48,7 +50,7 @@ func NewGenProofTxCmd() *cobra.Command {
 			fmt.Println("EVM address:    ", common.BytesToAddress(accAddr))
 
 			hash := crypto.Keccak256([]byte(vauthtypes.MessageToSign))
-			signature, _, err := clientCtx.Keyring.SignByAddress(accAddr, hash)
+			signature, _, err := clientCtx.Keyring.SignByAddress(accAddr, hash, signingtypes.SignMode_SIGN_MODE_DIRECT)
 			if err != nil {
 				return errorsmod.Wrap(err, "failed to sign")
 			}

@@ -11,7 +11,7 @@ import (
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
 	evertypes "github.com/EscanBE/evermint/v12/types"
-	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
+	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -270,7 +270,7 @@ func (suite *BackendTestSuite) TestSetEtherbase() {
 					client,
 					"/cosmos.auth.v1beta1.Query/Account",
 					requestMarshal,
-					tmrpcclient.ABCIQueryOptions{Height: int64(1), Prove: false},
+					cmtrpcclient.ABCIQueryOptions{Height: int64(1), Prove: false},
 				)
 			},
 			common.Address{},

@@ -3,12 +3,12 @@ package keeper_test
 import (
 	"math/big"
 
+	storetypes "cosmossdk.io/store/types"
+
 	sdkmath "cosmossdk.io/math"
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func (suite *KeeperTestSuite) TestCalculateBaseFee() {
@@ -18,7 +18,7 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 		name               string
 		NoBaseFee          bool
 		parentBlockGasUsed uint64
-		minGasPrice        sdk.Dec
+		minGasPrice        sdkmath.LegacyDec
 		expFee             *big.Int
 	}{
 		{
@@ -94,10 +94,10 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 				MaxBytes: 10,
 			}
 			consParams := tmproto.ConsensusParams{Block: &blockParams}
-			suite.ctx = suite.ctx.WithConsensusParams(&consParams)
+			suite.ctx = suite.ctx.WithConsensusParams(consParams)
 
 			// Set parent block gas
-			suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(uint64(blockParams.MaxGas)))
+			suite.ctx = suite.ctx.WithBlockGasMeter(storetypes.NewGasMeter(uint64(blockParams.MaxGas)))
 			suite.ctx.BlockGasMeter().ConsumeGas(tc.parentBlockGasUsed, "consume")
 
 			fee := suite.app.FeeMarketKeeper.CalculateBaseFee(suite.ctx)

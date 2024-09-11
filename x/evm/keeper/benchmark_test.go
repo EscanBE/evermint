@@ -54,7 +54,7 @@ func DoBenchmark(b *testing.B, txBuilder TxBuilder) {
 	suite, contractAddr := SetupContract(b)
 
 	msg := txBuilder(suite, contractAddr)
-	msg.From = suite.address.Hex()
+	msg.From = sdk.AccAddress(suite.address.Bytes()).String()
 	err := msg.Sign(ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID()), suite.signer)
 	require.NoError(b, err)
 
@@ -71,7 +71,7 @@ func DoBenchmark(b *testing.B, txBuilder TxBuilder) {
 		err = authante.DeductFees(suite.app.BankKeeper, suite.ctx, suite.app.AccountKeeper.GetAccount(ctx, msg.GetFrom()), fees)
 		require.NoError(b, err)
 
-		rsp, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(ctx), msg)
+		rsp, err := suite.app.EvmKeeper.EthereumTx(ctx, msg)
 		require.NoError(b, err)
 		require.False(b, rsp.Failed())
 	}
@@ -83,6 +83,7 @@ func BenchmarkTokenTransfer(b *testing.B) {
 		require.NoError(b, err)
 		nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 		ethTxParams := &evmtypes.EvmTxArgs{
+			From:     suite.address,
 			ChainID:  suite.app.EvmKeeper.ChainID(),
 			Nonce:    nonce,
 			To:       &contract,
@@ -101,6 +102,7 @@ func BenchmarkEmitLogs(b *testing.B) {
 		require.NoError(b, err)
 		nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 		ethTxParams := &evmtypes.EvmTxArgs{
+			From:     suite.address,
 			ChainID:  suite.app.EvmKeeper.ChainID(),
 			Nonce:    nonce,
 			To:       &contract,
@@ -119,6 +121,7 @@ func BenchmarkTokenTransferFrom(b *testing.B) {
 		require.NoError(b, err)
 		nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 		ethTxParams := &evmtypes.EvmTxArgs{
+			From:     suite.address,
 			ChainID:  suite.app.EvmKeeper.ChainID(),
 			Nonce:    nonce,
 			To:       &contract,
@@ -137,6 +140,7 @@ func BenchmarkTokenMint(b *testing.B) {
 		require.NoError(b, err)
 		nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 		ethTxParams := &evmtypes.EvmTxArgs{
+			From:     suite.address,
 			ChainID:  suite.app.EvmKeeper.ChainID(),
 			Nonce:    nonce,
 			To:       &contract,
@@ -156,6 +160,7 @@ func BenchmarkMessageCall(b *testing.B) {
 	require.NoError(b, err)
 	nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 	ethTxParams := &evmtypes.EvmTxArgs{
+		From:     suite.address,
 		ChainID:  suite.app.EvmKeeper.ChainID(),
 		Nonce:    nonce,
 		To:       &contract,
@@ -166,7 +171,6 @@ func BenchmarkMessageCall(b *testing.B) {
 	}
 	msg := evmtypes.NewTx(ethTxParams)
 
-	msg.From = suite.address.Hex()
 	err = msg.Sign(ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID()), suite.signer)
 	require.NoError(b, err)
 
@@ -183,7 +187,7 @@ func BenchmarkMessageCall(b *testing.B) {
 		err = authante.DeductFees(suite.app.BankKeeper, suite.ctx, suite.app.AccountKeeper.GetAccount(ctx, msg.GetFrom()), fees)
 		require.NoError(b, err)
 
-		rsp, err := suite.app.EvmKeeper.EthereumTx(sdk.WrapSDKContext(ctx), msg)
+		rsp, err := suite.app.EvmKeeper.EthereumTx(ctx, msg)
 		require.NoError(b, err)
 		require.False(b, rsp.Failed())
 	}

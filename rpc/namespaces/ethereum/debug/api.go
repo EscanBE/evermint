@@ -20,9 +20,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/server"
 
+	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/rpc/backend"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	"github.com/cometbft/cometbft/libs/log"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/consensus/ethash"
@@ -73,8 +73,8 @@ func (a *API) TraceBlockByNumber(height rpctypes.BlockNumber, config *evmtypes.T
 	if height == 0 {
 		return nil, errors.New("genesis is not traceable")
 	}
-	// Get Tendermint Block
-	resBlock, err := a.backend.TendermintBlockByNumber(height)
+	// Get CometBFT Block
+	resBlock, err := a.backend.CometBFTBlockByNumber(height)
 	if err != nil {
 		a.logger.Debug("get block failed", "height", height, "error", err.Error())
 		return nil, err
@@ -87,8 +87,8 @@ func (a *API) TraceBlockByNumber(height rpctypes.BlockNumber, config *evmtypes.T
 // EVM and returns them as a JSON object.
 func (a *API) TraceBlockByHash(hash common.Hash, config *evmtypes.TraceConfig) ([]*evmtypes.TxTraceResult, error) {
 	a.logger.Debug("debug_traceBlockByHash", "hash", hash)
-	// Get Tendermint Block
-	resBlock, err := a.backend.TendermintBlockByHash(hash)
+	// Get CometBFT Block
+	resBlock, err := a.backend.CometBFTBlockByHash(hash)
 	if err != nil {
 		a.logger.Debug("get block failed", "hash", hash.Hex(), "error", err.Error())
 		return nil, err

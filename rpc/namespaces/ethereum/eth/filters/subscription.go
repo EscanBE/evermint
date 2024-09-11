@@ -3,7 +3,7 @@ package filters
 import (
 	"time"
 
-	coretypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/eth/filters"
@@ -21,7 +21,7 @@ type Subscription struct {
 	hashes    chan []common.Hash
 	headers   chan *ethtypes.Header
 	installed chan struct{} // closed when the filter is installed
-	eventCh   <-chan coretypes.ResultEvent
+	eventCh   <-chan cmtrpctypes.ResultEvent
 	err       chan error
 }
 
@@ -30,7 +30,7 @@ func (s Subscription) ID() rpc.ID {
 	return s.id
 }
 
-// Unsubscribe from the current subscription to Tendermint Websocket. It sends an error to the
+// Unsubscribe from the current subscription to CometBFT Websocket. It sends an error to the
 // subscription error channel if unsubscribe fails.
 func (s *Subscription) Unsubscribe(es *EventSystem) {
 	go func() {
@@ -56,7 +56,7 @@ func (s *Subscription) Err() <-chan error {
 	return s.err
 }
 
-// Event returns the tendermint result event channel
-func (s *Subscription) Event() <-chan coretypes.ResultEvent {
+// Event returns the CometBFT result event channel
+func (s *Subscription) Event() <-chan cmtrpctypes.ResultEvent {
 	return s.eventCh
 }

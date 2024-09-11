@@ -43,8 +43,8 @@ func (suite *DemoTestSuite) SetupTest() {
 }
 
 func (suite *DemoTestSuite) SetupIbcTest() {
-	// There is issue that IBC dual chains not work with Tendermint client so temporary disable it
-	suite.CITS.Cleanup() // don't use Tendermint enabled chain
+	// There is issue that IBC dual chains not work with CometBFT client so temporary disable it
+	suite.CITS.Cleanup() // don't use CometBFT enabled chain
 
 	suite.CITS = integration_test_util.CreateChainIntegrationTestSuiteFromChainConfig(
 		suite.T(), suite.Require(),
@@ -71,9 +71,9 @@ func (suite *DemoTestSuite) TearDownTest() {
 func (suite *DemoTestSuite) TearDownSuite() {
 }
 
-func (suite *DemoTestSuite) SkipIfDisabledTendermint() {
-	if !suite.CITS.HasTendermint() {
-		suite.T().Skip("Tendermint is disabled, some methods can not be used, skip")
+func (suite *DemoTestSuite) SkipIfDisabledCometBFT() {
+	if !suite.CITS.HasCometBFT() {
+		suite.T().Skip("CometBFT is disabled, some methods can not be used, skip")
 	}
 }
 

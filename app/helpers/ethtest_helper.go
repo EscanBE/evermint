@@ -20,20 +20,20 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	dbm "github.com/cometbft/cometbft-db"
+	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
+	sdkdb "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // EthSetup initializes a new Evermint app. A Nop logger is set in Evermint app.
 func EthSetup(isCheckTx bool, patchGenesis func(*chainapp.Evermint, chainapp.GenesisState) chainapp.GenesisState) *chainapp.Evermint {
-	return EthSetupWithDB(isCheckTx, patchGenesis, dbm.NewMemDB())
+	return EthSetupWithDB(isCheckTx, patchGenesis, sdkdb.NewMemDB())
 }
 
 // EthSetupWithDB initializes a new Evermint app. A Nop logger is set in Evermint app.
-func EthSetupWithDB(isCheckTx bool, patchGenesis func(*chainapp.Evermint, chainapp.GenesisState) chainapp.GenesisState, db dbm.DB) *chainapp.Evermint {
+func EthSetupWithDB(isCheckTx bool, patchGenesis func(*chainapp.Evermint, chainapp.GenesisState) chainapp.GenesisState, db sdkdb.DB) *chainapp.Evermint {
 	encodingConfig := chainapp.RegisterEncodingConfig()
 
 	chainID := constants.TestnetFullChainId
@@ -61,14 +61,17 @@ func EthSetupWithDB(isCheckTx bool, patchGenesis func(*chainapp.Evermint, chaina
 		}
 
 		// Initialize the chain
-		chainApp.InitChain(
-			abci.RequestInitChain{
+		_, err = chainApp.InitChain(
+			&abci.RequestInitChain{
 				ChainId:         chainID,
 				Validators:      []abci.ValidatorUpdate{},
 				ConsensusParams: DefaultConsensusParams,
 				AppStateBytes:   stateBytes,
 			},
 		)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return chainApp
@@ -84,8 +87,8 @@ func NewTestGenesisState(codec codec.Codec) chainapp.GenesisState {
 	encodingConfig := chainapp.RegisterEncodingConfig()
 
 	// create validator set with single validator
-	validator := tmtypes.NewValidator(pubKey, 1)
-	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
+	validator := cmttypes.NewValidator(pubKey, 1)
+	valSet := cmttypes.NewValidatorSet([]*cmttypes.Validator{validator})
 
 	// generate genesis account
 	senderPrivKey := secp256k1.GenPrivKey()
@@ -100,7 +103,7 @@ func NewTestGenesisState(codec codec.Codec) chainapp.GenesisState {
 }
 
 func genesisStateWithValSet(codec codec.Codec, genesisState chainapp.GenesisState,
-	valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount,
+	valSet *cmttypes.ValidatorSet, genAccs []authtypes.GenesisAccount,
 	balances ...banktypes.Balance,
 ) chainapp.GenesisState {
 	// set genesis accounts
@@ -135,7 +138,7 @@ func genesisStateWithValSet(codec codec.Codec, genesisState chainapp.GenesisStat
 			MinSelfDelegation: sdkmath.ZeroInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdkmath.LegacyOneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress().String(), sdk.ValAddress(val.Address).String(), sdkmath.LegacyOneDec()))
 	}
 	// set validators and delegations
 	stakingGenesis := stakingtypes.NewGenesisState(stakingtypes.DefaultParams(), validators, delegations)

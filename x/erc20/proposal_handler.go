@@ -43,7 +43,7 @@ func handleRegisterCoinProposal(
 	p *erc20types.RegisterCoinProposal,
 ) error {
 	for _, metadata := range p.Metadata {
-		pair, err := k.RegisterCoin(ctx, metadata)
+		pair, err := k.RegisterCoin(ctx, metadata, p.OverrideExistingBankMetadata)
 		if err != nil {
 			return err
 		}

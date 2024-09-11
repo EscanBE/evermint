@@ -21,6 +21,7 @@ type EvmTxArgs struct {
 	ChainID   *big.Int
 	Amount    *big.Int
 	GasTipCap *big.Int
+	From      common.Address
 	To        *common.Address
 	Accesses  *ethtypes.AccessList
 }

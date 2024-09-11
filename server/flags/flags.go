@@ -10,13 +10,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Tendermint/cosmos-sdk full-node start flags
+// CometBFT/Cosmos-SDK full-node start flags
 const (
-	WithTendermint = "with-tendermint"
-	Address        = "address"
-	Transport      = "transport"
-	TraceStore     = "trace-store"
-	CPUProfile     = "cpu-profile"
+	WithCometBFT = "with-cometbft"
+	Address      = "address"
+	Transport    = "transport"
+	TraceStore   = "trace-store"
+	CPUProfile   = "cpu-profile"
 	// The type of database for application and snapshots databases
 	AppDBBackend = "app-db-backend"
 )
@@ -83,7 +83,7 @@ func AddTxFlags(cmd *cobra.Command) (*cobra.Command, error) {
 	cmd.PersistentFlags().String(flags.FlagFrom, "", "Name or address of private key with which to sign")
 	cmd.PersistentFlags().String(flags.FlagFees, "", fmt.Sprintf("Fees to pay along with transaction; eg: 10%s", constants.BaseDenom))
 	cmd.PersistentFlags().String(flags.FlagGasPrices, "", fmt.Sprintf("Gas prices to determine the transaction fee (e.g. 10%s)", constants.BaseDenom))
-	cmd.PersistentFlags().String(flags.FlagNode, "tcp://localhost:26657", "<host>:<port> to tendermint rpc interface for this chain")                                                                                                   //nolint:lll
+	cmd.PersistentFlags().String(flags.FlagNode, "tcp://localhost:26657", "<host>:<port> to CometBFT RPC interface for this chain")                                                                                                     //nolint:lll
 	cmd.PersistentFlags().Float64(flags.FlagGasAdjustment, flags.DefaultGasAdjustment, "adjustment factor to be multiplied against the estimate returned by the tx simulation; if the gas limit is set manually this flag is ignored ") //nolint:lll
 	cmd.PersistentFlags().StringP(flags.FlagBroadcastMode, "b", flags.BroadcastSync, "Transaction broadcasting mode (sync|async|block)")
 	cmd.PersistentFlags().String(flags.FlagKeyringBackend, keyring.BackendOS, "Select keyring's backend")

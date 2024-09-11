@@ -8,7 +8,7 @@ import (
 
 // GetLogs returns all the logs from all the ethereum transactions in a block.
 func (b *Backend) GetLogs(hash common.Hash) ([][]*ethtypes.Log, error) {
-	resBlock, err := b.TendermintBlockByHash(hash)
+	resBlock, err := b.CometBFTBlockByHash(hash)
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +21,7 @@ func (b *Backend) GetLogs(hash common.Hash) ([][]*ethtypes.Log, error) {
 // GetLogsByHeight returns all the logs from all the ethereum transactions in a block.
 func (b *Backend) GetLogsByHeight(height *int64) ([][]*ethtypes.Log, error) {
 	// NOTE: we query the state in case the tx result logs are not persisted after an upgrade.
-	blockRes, err := b.TendermintBlockResultByNumber(height)
+	blockRes, err := b.CometBFTBlockResultByNumber(height)
 	if err != nil {
 		return nil, err
 	}

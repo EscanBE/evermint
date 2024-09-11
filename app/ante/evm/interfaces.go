@@ -4,7 +4,7 @@ import (
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/tx"
+	sdktxtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -21,7 +21,7 @@ type EVMKeeper interface { //nolint: revive
 	DynamicFeeEVMKeeper
 
 	NewEVM(ctx sdk.Context, msg core.Message, cfg *statedb.EVMConfig, tracer vm.EVMLogger, stateDB vm.StateDB) *vm.EVM
-	DeductTxCostsFromUserBalance(ctx sdk.Context, fees sdk.Coins, from common.Address) error
+	DeductTxCostsFromUserBalance(ctx sdk.Context, fees sdk.Coins, from sdk.AccAddress) error
 	GetBalance(ctx sdk.Context, addr common.Address) *big.Int
 	SetupExecutionContext(ctx sdk.Context, txGas uint64, txType uint8) sdk.Context
 	GetTxCountTransient(ctx sdk.Context) uint64
@@ -41,5 +41,5 @@ type DynamicFeeEVMKeeper interface {
 }
 
 type protoTxProvider interface {
-	GetProtoTx() *tx.Tx
+	GetProtoTx() *sdktxtypes.Tx
 }

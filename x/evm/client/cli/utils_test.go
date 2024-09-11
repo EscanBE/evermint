@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
@@ -29,30 +31,71 @@ func cosmosAddressFromArg(addr string) (sdk.AccAddress, error) {
 }
 
 func TestAddressFormats(t *testing.T) {
+	validBech32Addr := marker.ReplaceAbleAddress("evm18wvvwfmq77a6d8tza4h5sfuy2yj3jj88v603m8")
+	invalidBech32Addr := validBech32Addr + "m"
+
 	testCases := []struct {
 		name        string
 		addrString  string
 		expectedHex string
 		expectErr   bool
 	}{
-		{"Cosmos Address", "cosmos18wvvwfmq77a6d8tza4h5sfuy2yj3jj88yqg82a", "0x3B98c72760f7BBa69D62ED6f48278451251948e7", false},
-		{"hex without 0x", "3B98C72760F7BBA69D62ED6F48278451251948E7", "0x3B98c72760f7BBa69D62ED6f48278451251948e7", false},
-		{"hex with mixed casing", "3b98C72760f7BBA69D62ED6F48278451251948e7", "0x3B98c72760f7BBa69D62ED6f48278451251948e7", false},
-		{"hex with 0x", "0x3B98C72760F7BBA69D62ED6F48278451251948E7", "0x3B98c72760f7BBa69D62ED6f48278451251948e7", false},
-		{"invalid hex ethereum address", "0x3B98C72760F7BBA69D62ED6F48278451251948E", "", true},
-		{"invalid Cosmos address", "cosmos18wvvwfmq77a6d8tza4h5sfuy2yj3jj88", "", true},
-		{"empty string", "", "", true},
+		{
+			name:        "bech32 address",
+			addrString:  validBech32Addr,
+			expectedHex: "0x3B98c72760f7BBa69D62ED6f48278451251948e7",
+			expectErr:   false,
+		},
+		{
+			name:        "hex without 0x",
+			addrString:  "3B98C72760F7BBA69D62ED6F48278451251948E7",
+			expectedHex: "0x3B98c72760f7BBa69D62ED6f48278451251948e7",
+			expectErr:   false,
+		},
+		{
+			name:        "hex with mixed casing",
+			addrString:  "3b98C72760f7BBA69D62ED6F48278451251948e7",
+			expectedHex: "0x3B98c72760f7BBa69D62ED6f48278451251948e7",
+			expectErr:   false,
+		},
+		{
+			name:        "hex with 0x",
+			addrString:  "0x3B98C72760F7BBA69D62ED6F48278451251948E7",
+			expectedHex: "0x3B98c72760f7BBa69D62ED6f48278451251948e7",
+			expectErr:   false,
+		},
+		{
+			name:        "invalid hex ethereum address",
+			addrString:  "0x3B98C72760F7BBA69D62ED6F48278451251948E",
+			expectedHex: "",
+			expectErr:   true,
+		},
+		{
+			name:        "invalid bech32 address",
+			addrString:  invalidBech32Addr,
+			expectedHex: "",
+			expectErr:   true,
+		},
+		{
+			name:        "empty string",
+			addrString:  "",
+			expectedHex: "",
+			expectErr:   true,
+		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			hex, err := accountToHex(tc.addrString)
-			require.Equal(t, tc.expectErr, err != nil, err)
 
-			if !tc.expectErr {
-				require.Equal(t, hex, tc.expectedHex)
+			if tc.expectErr {
+				require.Error(t, err)
+				return
 			}
+
+			require.NoError(t, err)
+			require.Equal(t, tc.expectedHex, hex)
 		})
 	}
 }

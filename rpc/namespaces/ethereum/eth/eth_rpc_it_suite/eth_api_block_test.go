@@ -15,7 +15,7 @@ import (
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
+	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -68,7 +68,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 	suite.Run("basic test", func() {
 		suite.Commit() // require at least 2 blocks
 
-		previousBlockResult, err := suite.CITS.QueryClients.TendermintRpcHttpClient.Block(context.Background(), ptrInt64(1))
+		previousBlockResult, err := suite.CITS.QueryClients.CometBFTRpcHttpClient.Block(context.Background(), ptrInt64(1))
 		suite.Require().NoError(err)
 		suite.Require().NotNil(previousBlockResult)
 
@@ -76,7 +76,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 		suite.Require().NoError(err)
 		suite.Require().NotNil(gotBlockByNumber)
 
-		currentBlockResult, err := suite.CITS.QueryClients.TendermintRpcHttpClient.Block(context.Background(), ptrInt64(2))
+		currentBlockResult, err := suite.CITS.QueryClients.CometBFTRpcHttpClient.Block(context.Background(), ptrInt64(2))
 		suite.Require().NoError(err)
 		suite.Require().NotNil(currentBlockResult)
 		suite.Require().Equal(int64(2), currentBlockResult.Block.Height)
@@ -88,9 +88,9 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 		suite.Equal(gotBlockByNumber, gotBlockByHash, "result of eth_getBlockByNumber and eth_getBlockByHash must be same")
 
 		suite.Equal(hexutil.Uint64(currentBlockResult.Block.Height), gotBlockByNumber["number"])
-		suite.Equal(hexutil.Bytes(currentBlockResult.Block.Hash()), gotBlockByNumber["hash"], "hash must be Tendermint block hash")
-		suite.Equal(common.BytesToHash(previousBlockResult.Block.Hash()), gotBlockByNumber["parentHash"], "parentHash must be previous Tendermint block hash")
-		suite.Equal(hexutil.Bytes(currentBlockResult.Block.AppHash), gotBlockByNumber["stateRoot"], "stateRoot must be Tendermint AppHash")
+		suite.Equal(hexutil.Bytes(currentBlockResult.Block.Hash()), gotBlockByNumber["hash"], "hash must be CometBFT block hash")
+		suite.Equal(common.BytesToHash(previousBlockResult.Block.Hash()), gotBlockByNumber["parentHash"], "parentHash must be previous CometBFT block hash")
+		suite.Equal(hexutil.Bytes(currentBlockResult.Block.AppHash), gotBlockByNumber["stateRoot"], "stateRoot must be CometBFT AppHash")
 		suite.Equal([]common.Hash{}, gotBlockByNumber["uncles"], "uncles must be empty since it is not possible in PoS chain")
 	})
 
@@ -162,7 +162,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 		balance := suite.CITS.QueryBalance(0, receiver.GetCosmosAddress().String())
 		suite.Require().False(balance.IsZero(), "receiver must received some balance")
 
-		previousBlockResult, err := suite.CITS.QueryClients.TendermintRpcHttpClient.Block(context.Background(), ptrInt64(testBlockHeight-1))
+		previousBlockResult, err := suite.CITS.QueryClients.CometBFTRpcHttpClient.Block(context.Background(), ptrInt64(testBlockHeight-1))
 		suite.Require().NoError(err)
 		suite.Require().NotNil(previousBlockResult)
 
@@ -170,7 +170,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 		suite.Require().NoError(err)
 		suite.Require().NotNil(gotBlockByNumber)
 
-		blockResult, err := suite.CITS.QueryClients.TendermintRpcHttpClient.Block(context.Background(), ptrInt64(testBlockHeight))
+		blockResult, err := suite.CITS.QueryClients.CometBFTRpcHttpClient.Block(context.Background(), ptrInt64(testBlockHeight))
 		suite.Require().NoError(err)
 		suite.Require().NotNil(blockResult)
 		suite.Require().Equal(evmTxsCount+nonEvmTxsCount, len(blockResult.Block.Txs), "must be same as sent txs count for both EVM & non-EVM txs")
@@ -181,12 +181,12 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 
 		suite.Equal(gotBlockByNumber, gotBlockByHash, "result of eth_getBlockByNumber and eth_getBlockByHash must be same")
 
-		resultBlockResult, err := suite.CITS.RpcBackend.TendermintBlockResultByNumber(ptrInt64(testBlockHeight))
+		resultBlockResult, err := suite.CITS.RpcBackend.CometBFTBlockResultByNumber(ptrInt64(testBlockHeight))
 		suite.Require().NoError(err)
 		blockBloom := suite.CITS.RpcBackend.BlockBloom(resultBlockResult)
 
 		baseFee := suite.App().FeeMarketKeeper().GetBaseFee(suite.Ctx())
-		consensusParams, err := suite.CITS.QueryClients.ClientQueryCtx.Client.(tmrpcclient.NetworkClient).ConsensusParams(context.Background(), ptrInt64(testBlockHeight))
+		consensusParams, err := suite.CITS.QueryClients.ClientQueryCtx.Client.(cmtrpcclient.NetworkClient).ConsensusParams(context.Background(), ptrInt64(testBlockHeight))
 		suite.Require().NoError(err, "failed to fetch consensus params of test block")
 		suite.Equal(int64(40_000_000), consensusParams.ConsensusParams.Block.MaxGas, "invalid setup?")
 
@@ -332,13 +332,13 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 		suite.Equal("0x", textResultStruct.ExtraData)
 		suite.Equal(fmt.Sprintf("0x%x", consensusParams.ConsensusParams.Block.MaxGas), textResultStruct.GasLimit)
 		suite.NotEqual("0x0", textResultStruct.GasUsed, "gasUsed must not be zero since there are some txs")
-		suite.Equal("0x"+hex.EncodeToString(blockResult.Block.Hash()), textResultStruct.Hash, "hash must be Tendermint block hash")
+		suite.Equal("0x"+hex.EncodeToString(blockResult.Block.Hash()), textResultStruct.Hash, "hash must be CometBFT block hash")
 		suite.Equal(fmt.Sprintf("0x%x", blockBloom.Bytes()), textResultStruct.LogsBloom)
-		suite.Equal(strings.ToLower(suite.CITS.ValidatorAccounts.Number(1).GetEthAddress().String()), textResultStruct.Miner, "mis-match validator address as miner or must be lower-case") // Tendermint node uses the first pre-defined validator
+		suite.Equal(strings.ToLower(suite.CITS.ValidatorAccounts.Number(1).GetEthAddress().String()), textResultStruct.Miner, "mis-match validator address as miner or must be lower-case") // CometBFT node uses the first pre-defined validator
 		suite.Equal("0x0000000000000000000000000000000000000000000000000000000000000000", textResultStruct.MixHash, "mixHash must be zero since PoS chain does not have this")
 		suite.Equal("0x0000000000000000", textResultStruct.Nonce, "nonce must be zero since PoS chain does not have this")
 		suite.Equal(fmt.Sprintf("0x%x", testBlockHeight), textResultStruct.Number)
-		suite.Equal("0x"+hex.EncodeToString(previousBlockResult.Block.Hash()), textResultStruct.ParentHash, "parentHash must be previous Tendermint block hash")
+		suite.Equal("0x"+hex.EncodeToString(previousBlockResult.Block.Hash()), textResultStruct.ParentHash, "parentHash must be previous CometBFT block hash")
 		suite.Equal(func() string {
 			var receipts ethtypes.Receipts
 			for _, tx := range textResultStruct.Transactions {
@@ -360,8 +360,8 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 			return ethtypes.DeriveSha(receipts, trie.NewStackTrie(nil)).String()
 		}(), textResultStruct.ReceiptsRoot, "mis-match receipt root")
 		suite.Equal("0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347", textResultStruct.Sha3Uncles, "sha3Uncles must be value of EmptyUncleHash")
-		suite.Equal(fmt.Sprintf("0x%x", blockResult.Block.Size()), textResultStruct.Size, "must must be Tendermint block size")
-		suite.Equal("0x"+hex.EncodeToString(blockResult.Block.AppHash.Bytes()), textResultStruct.StateRoot, "stateRoot must be Tendermint AppHash")
+		suite.Equal(fmt.Sprintf("0x%x", blockResult.Block.Size()), textResultStruct.Size, "must must be CometBFT block size")
+		suite.Equal("0x"+hex.EncodeToString(blockResult.Block.AppHash.Bytes()), textResultStruct.StateRoot, "stateRoot must be CometBFT AppHash")
 		suite.Equal(fmt.Sprintf("0x%x", blockResult.Block.Time.UTC().Unix()), textResultStruct.Timestamp, "timestamp must be block UTC epoch seconds")
 		suite.Equal("0x0", textResultStruct.TotalDifficulty, "total difficulty must be zero since PoS chain does not have this")
 		suite.Len(textResultStruct.Transactions, evmTxsCount, "transaction list must be same as sent EVM txs")
@@ -414,6 +414,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 		suite.Commit()
 
 		evmTxArgs := &evmtypes.EvmTxArgs{
+			From:      sender.GetEthAddress(),
 			ChainID:   evmKeeper.ChainID(),
 			Nonce:     nonceSender,
 			GasLimit:  300_000,
@@ -437,7 +438,6 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 		suite.Require().Len(*evmTxArgs.Accesses, 2)
 
 		msgEthereumTx := evmtypes.NewTx(evmTxArgs)
-		msgEthereumTx.From = sender.GetEthAddress().String()
 
 		_, err = suite.CITS.DeliverEthTx(sender, msgEthereumTx)
 		suite.Require().NoError(err)
@@ -749,7 +749,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockTransactionCountByNumberAndHash() {
 	balance := suite.CITS.QueryBalance(0, receiver.GetCosmosAddress().String())
 	suite.Require().False(balance.IsZero(), "receiver must received some balance")
 
-	blockResult, err := suite.CITS.QueryClients.TendermintRpcHttpClient.Block(context.Background(), ptrInt64(testBlockHeight))
+	blockResult, err := suite.CITS.QueryClients.CometBFTRpcHttpClient.Block(context.Background(), ptrInt64(testBlockHeight))
 	suite.Require().NoError(err)
 	suite.Require().NotNil(blockResult)
 	suite.Require().Equal(evmTxsCount+nonEvmTxsCount, len(blockResult.Block.Txs), "must be same as sent txs count for both EVM & non-EVM txs")

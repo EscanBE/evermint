@@ -19,10 +19,10 @@ import (
 	clientconfig "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/spf13/viper"
 
-	tmconfig "github.com/cometbft/cometbft/config"
-	tmrand "github.com/cometbft/cometbft/libs/rand"
-	"github.com/cometbft/cometbft/types"
-	tmtime "github.com/cometbft/cometbft/types/time"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	cmtrand "github.com/cometbft/cometbft/libs/rand"
+	cmttypes "github.com/cometbft/cometbft/types"
+	cmttime "github.com/cometbft/cometbft/types/time"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -121,7 +121,7 @@ func NewTestnetCmd(mbm module.BasicManager, genBalIterator banktypes.GenesisBala
 	return testnetCmd
 }
 
-// get cmd to initialize all files for tendermint testnet and application
+// get cmd to initialize all files for CometBFT testnet and application
 func testnetInitFilesCmd(mbm module.BasicManager, genBalIterator banktypes.GenesisBalancesIterator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init-files",
@@ -202,7 +202,7 @@ Example:
 	}
 
 	addTestnetFlagsToCmd(cmd)
-	cmd.Flags().Bool(flagEnableLogging, false, "Enable INFO logging of tendermint validator nodes")
+	cmd.Flags().Bool(flagEnableLogging, false, "Enable INFO logging of CometBFT validator nodes")
 	cmd.Flags().String(flagRPCAddress, "tcp://0.0.0.0:26657", "the RPC address to listen on")
 	cmd.Flags().String(flagAPIAddress, "tcp://0.0.0.0:1317", "the address to listen on for REST API")
 	cmd.Flags().String(srvflags.GRPCAddress, config.DefaultGRPCAddress, "the gRPC server address to listen on")
@@ -217,13 +217,13 @@ const nodeDirPerm = 0o755
 func initTestnetFiles(
 	clientCtx client.Context,
 	cmd *cobra.Command,
-	nodeConfig *tmconfig.Config,
+	nodeConfig *cmtcfg.Config,
 	mbm module.BasicManager,
 	genBalIterator banktypes.GenesisBalancesIterator,
 	args initArgs,
 ) error {
 	if args.chainID == "" {
-		args.chainID = fmt.Sprintf("%s_%d-1", constants.ChainIdPrefix, tmrand.Int63n(9999999999999)+1)
+		args.chainID = fmt.Sprintf("%s_%d-1", constants.ChainIdPrefix, cmtrand.Int63n(9999999999999)+1)
 	}
 
 	nodeIDs := make([]string, args.numValidators)
@@ -347,7 +347,7 @@ func initTestnetFiles(
 
 		valTokens := sdk.TokensFromConsensusPower(100, evertypes.PowerReduction)
 		createValMsg, err := stakingtypes.NewMsgCreateValidator(
-			sdk.ValAddress(addr),
+			sdk.ValAddress(addr).String(),
 			valPubKeys[i],
 			sdk.NewCoin(constants.BaseDenom, valTokens),
 			stakingtypes.NewDescription(nodeDirName, "", "", "", ""),
@@ -372,7 +372,7 @@ func initTestnetFiles(
 			WithKeybase(kb).
 			WithTxConfig(clientCtx.TxConfig)
 
-		if err := clienttx.Sign(txFactory, nodeDirName, txBuilder, true); err != nil {
+		if err := clienttx.Sign(cmd.Context(), txFactory, nodeDirName, txBuilder, true); err != nil {
 			return err
 		}
 
@@ -387,7 +387,7 @@ func initTestnetFiles(
 
 		customAppTemplate, customAppConfig := config.AppConfig(constants.BaseDenom)
 		srvconfig.SetConfigTemplate(customAppTemplate)
-		if err := sdkserver.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, tmconfig.DefaultConfig()); err != nil {
+		if err := sdkserver.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, cmtcfg.DefaultConfig()); err != nil {
 			return err
 		}
 
@@ -500,7 +500,7 @@ func initGenFiles(
 		return err
 	}
 
-	genDoc := types.GenesisDoc{
+	genDoc := cmttypes.GenesisDoc{
 		ChainID:    chainID,
 		AppState:   appGenStateJSON,
 		Validators: nil,
@@ -516,12 +516,14 @@ func initGenFiles(
 }
 
 func collectGenFiles(
-	clientCtx client.Context, nodeConfig *tmconfig.Config, chainID string,
+	clientCtx client.Context, nodeConfig *cmtcfg.Config, chainID string,
 	nodeIDs []string, valPubKeys []cryptotypes.PubKey, numValidators int,
 	outputDir, nodeDirPrefix, nodeDaemonHome string, genBalIterator banktypes.GenesisBalancesIterator,
 ) error {
 	var appState json.RawMessage
-	genTime := tmtime.Now()
+	genTime := cmttime.Now()
+
+	valAddrCodec := clientCtx.TxConfig.SigningContext().ValidatorAddressCodec()
 
 	for i := 0; i < numValidators; i++ {
 		nodeDirName := fmt.Sprintf("%s%d", nodeDirPrefix, i)
@@ -534,12 +536,13 @@ func collectGenFiles(
 		nodeID, valPubKey := nodeIDs[i], valPubKeys[i]
 		initCfg := genutiltypes.NewInitConfig(chainID, gentxsDir, nodeID, valPubKey)
 
-		genDoc, err := types.GenesisDocFromFile(nodeConfig.GenesisFile())
+		genFile := nodeConfig.GenesisFile()
+		appGenesis, err := genutiltypes.AppGenesisFromFile(genFile)
 		if err != nil {
 			return err
 		}
 
-		nodeAppState, err := genutil.GenAppStateFromConfig(clientCtx.Codec, clientCtx.TxConfig, nodeConfig, initCfg, *genDoc, genBalIterator, genutiltypes.DefaultMessageValidator)
+		nodeAppState, err := genutil.GenAppStateFromConfig(clientCtx.Codec, clientCtx.TxConfig, nodeConfig, initCfg, appGenesis, genBalIterator, genutiltypes.DefaultMessageValidator, valAddrCodec)
 		if err != nil {
 			return err
 		}
@@ -548,8 +551,6 @@ func collectGenFiles(
 			// set the canonical application state (they should not differ)
 			appState = nodeAppState
 		}
-
-		genFile := nodeConfig.GenesisFile()
 
 		// overwrite each validator's genesis file to have a canonical genesis time
 		if err := genutil.ExportGenesisFileWithTime(genFile, chainID, nil, appState, genTime); err != nil {

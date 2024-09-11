@@ -2,10 +2,25 @@ package eip712_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"testing"
+	"time"
+
+	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
+	"github.com/EscanBE/evermint/v12/app/helpers"
+	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
+	"github.com/EscanBE/evermint/v12/utils"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/crypto/tmhash"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmversion "github.com/cometbft/cometbft/proto/tendermint/version"
+	"github.com/cometbft/cometbft/version"
+	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
+
 	"github.com/EscanBE/evermint/v12/app/params"
 	"github.com/EscanBE/evermint/v12/constants"
 
@@ -40,10 +55,16 @@ const (
 	msgsFieldName = "msgs"
 )
 
+func init() {
+	cfg := sdk.GetConfig()
+	cmdcfg.SetBech32Prefixes(cfg)
+	cmdcfg.SetBip44CoinType(cfg)
+}
+
 type EIP712TestSuite struct {
 	suite.Suite
 
-	config                   params.EncodingConfig
+	encodingConfig           params.EncodingConfig
 	clientCtx                client.Context
 	useLegacyEIP712TypedData bool
 	denom                    string
@@ -67,12 +88,52 @@ func TestEIP712TestSuite(t *testing.T) {
 }
 
 func (suite *EIP712TestSuite) SetupTest() {
-	suite.config = chainapp.RegisterEncodingConfig()
-	suite.clientCtx = client.Context{}.WithTxConfig(suite.config.TxConfig)
+	tempChainApp, _ := initTemporaryChainApp()
+	defer func() {
+		if err := tempChainApp.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	suite.encodingConfig = params.EncodingConfig{
+		InterfaceRegistry: tempChainApp.InterfaceRegistry(),
+		Codec:             tempChainApp.AppCodec(),
+		TxConfig:          tempChainApp.GetTxConfig(),
+		Amino:             tempChainApp.LegacyAmino(),
+	}
+
+	{
+		goCtx := context.Background()
+
+		clientCtx := client.Context{}.
+			WithCodec(tempChainApp.AppCodec()).
+			WithInterfaceRegistry(tempChainApp.InterfaceRegistry()).
+			WithTxConfig(tempChainApp.GetTxConfig()).
+			WithLegacyAmino(tempChainApp.LegacyAmino())
+
+		// create a new tx config with textual signing enabled
+		txConfigWithTextual, err := utils.GetTxConfigWithSignModeTextureEnabled(
+			authtxconfig.NewBankKeeperCoinMetadataQueryFn(tempChainApp.BankKeeper),
+			clientCtx.Codec,
+		)
+		suite.Require().NoError(err)
+		clientCtx = clientCtx.WithTxConfig(txConfigWithTextual)
+		goCtx = context.WithValue(goCtx, client.ClientContextKey, &clientCtx)
+
+		// inject the query context into the context so signing texture can query coin metadata
+		queryCtx, err := tempChainApp.CreateQueryContext(tempChainApp.LastBlockHeight(), false)
+		suite.Require().NoError(err)
+		goCtx = context.WithValue(goCtx, sdk.SdkContextKey, queryCtx)
+
+		// update the client context with the cmd context so signing texture can use the context to query coin metadata
+		clientCtx = clientCtx.WithCmdContext(goCtx)
+
+		suite.clientCtx = clientCtx
+	}
+
 	suite.denom = constants.BaseDenom
 
-	sdk.GetConfig().SetBech32PrefixForAccount(constants.Bech32Prefix, "")
-	eip712.SetEncodingConfig(suite.config)
+	eip712.SetEncodingConfig(suite.encodingConfig)
 }
 
 // createTestAddress creates random test addresses for messages
@@ -114,6 +175,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 
 	signModes := []signing.SignMode{
 		signing.SignMode_SIGN_MODE_DIRECT,
+		// signing.SignMode_SIGN_MODE_TEXTUAL, // TODO ES: enable?
 		signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
 	}
 
@@ -129,14 +191,15 @@ func (suite *EIP712TestSuite) TestEIP712() {
 	}
 
 	testCases := []struct {
-		title         string
-		chainID       string
-		msgs          []sdk.Msg
-		timeoutHeight uint64
-		expectSuccess bool
+		name                     string
+		chainID                  string
+		msgs                     []sdk.Msg
+		timeoutHeight            uint64
+		wantSuccess              bool
+		wantErrSignDocFlattening *bool
 	}{
 		{
-			title: "Succeeds - Standard MsgSend",
+			name: "pass - Standard MsgSend",
 			msgs: []sdk.Msg{
 				banktypes.NewMsgSend(
 					suite.createTestAddress(),
@@ -144,10 +207,10 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					suite.makeCoins(suite.denom, sdkmath.NewInt(1)),
 				),
 			},
-			expectSuccess: true,
+			wantSuccess: true,
 		},
 		{
-			title: "Succeeds - Standard MsgVote",
+			name: "pass - Standard MsgVote",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
 					suite.createTestAddress(),
@@ -155,47 +218,47 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					govtypes.OptionNo,
 				),
 			},
-			expectSuccess: true,
+			wantSuccess: true,
 		},
 		{
-			title: "Succeeds - Standard MsgDelegate",
+			name: "pass - Standard MsgDelegate",
 			msgs: []sdk.Msg{
 				stakingtypes.NewMsgDelegate(
-					suite.createTestAddress(),
-					sdk.ValAddress(suite.createTestAddress()),
+					suite.createTestAddress().String(),
+					sdk.ValAddress(suite.createTestAddress()).String(),
 					suite.makeCoins(suite.denom, sdkmath.NewInt(1))[0],
 				),
 			},
-			expectSuccess: true,
+			wantSuccess: true,
 		},
 		{
-			title: "Succeeds - Standard MsgWithdrawDelegationReward",
+			name: "pass - Standard MsgWithdrawDelegationReward",
 			msgs: []sdk.Msg{
 				distributiontypes.NewMsgWithdrawDelegatorReward(
-					suite.createTestAddress(),
-					sdk.ValAddress(suite.createTestAddress()),
+					suite.createTestAddress().String(),
+					sdk.ValAddress(suite.createTestAddress()).String(),
 				),
 			},
-			expectSuccess: true,
+			wantSuccess: true,
 		},
 		{
-			title: "Succeeds - Two Single-Signer MsgDelegate",
+			name: "pass - Two Single-Signer MsgDelegate",
 			msgs: []sdk.Msg{
 				stakingtypes.NewMsgDelegate(
-					testParams.address,
-					sdk.ValAddress(suite.createTestAddress()),
+					testParams.address.String(),
+					sdk.ValAddress(suite.createTestAddress()).String(),
 					suite.makeCoins(suite.denom, sdkmath.NewInt(1))[0],
 				),
 				stakingtypes.NewMsgDelegate(
-					testParams.address,
-					sdk.ValAddress(suite.createTestAddress()),
+					testParams.address.String(),
+					sdk.ValAddress(suite.createTestAddress()).String(),
 					suite.makeCoins(suite.denom, sdkmath.NewInt(5))[0],
 				),
 			},
-			expectSuccess: true,
+			wantSuccess: true,
 		},
 		{
-			title: "Succeeds - Single-Signer MsgVote V1 with Omitted Value",
+			name: "pass - Single-Signer MsgVote V1 with Omitted Value",
 			msgs: []sdk.Msg{
 				govtypesv1.NewMsgVote(
 					testParams.address,
@@ -204,10 +267,10 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					"",
 				),
 			},
-			expectSuccess: true,
+			wantSuccess: true,
 		},
 		{
-			title: "Succeeds - Single-Signer MsgSend + MsgVote",
+			name: "pass - Single-Signer MsgSend + MsgVote",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
 					testParams.address,
@@ -220,10 +283,10 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
 				),
 			},
-			expectSuccess: !suite.useLegacyEIP712TypedData,
+			wantSuccess: !suite.useLegacyEIP712TypedData,
 		},
 		{
-			title: "Succeeds - Single-Signer 2x MsgVoteV1 with Different Schemas",
+			name: "pass - Single-Signer 2x MsgVoteV1 with Different Schemas",
 			msgs: []sdk.Msg{
 				govtypesv1.NewMsgVote(
 					testParams.address,
@@ -238,10 +301,10 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					"Has Metadata",
 				),
 			},
-			expectSuccess: !suite.useLegacyEIP712TypedData,
+			wantSuccess: !suite.useLegacyEIP712TypedData,
 		},
 		{
-			title: "Fails - Two MsgVotes with Different Signers",
+			name: "fail - Multiple messages with Different Signers (MsgVote x/gov)",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
 					suite.createTestAddress(),
@@ -254,15 +317,35 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					govtypes.OptionAbstain,
 				),
 			},
-			expectSuccess: false,
+			wantSuccess: false,
 		},
 		{
-			title:         "Fails - Empty Transaction",
-			msgs:          []sdk.Msg{},
-			expectSuccess: false,
+			name: "fail - Multiple messages with Different Signers (MsgSend x/bank)",
+			msgs: []sdk.Msg{
+				banktypes.NewMsgSend(
+					suite.createTestAddress(),
+					suite.createTestAddress(),
+					suite.makeCoins(suite.denom, sdkmath.NewInt(100)),
+				),
+				banktypes.NewMsgSend(
+					suite.createTestAddress(),
+					suite.createTestAddress(),
+					suite.makeCoins(suite.denom, sdkmath.NewInt(100)),
+				),
+			},
+			wantSuccess: false,
 		},
 		{
-			title:   "Fails - Invalid ChainID",
+			name:        "fail - Empty Transaction",
+			msgs:        []sdk.Msg{},
+			wantSuccess: false,
+			wantErrSignDocFlattening: func() *bool {
+				b := true
+				return &b
+			}(),
+		},
+		{
+			name:    "fail - Invalid ChainID",
 			chainID: "invalidchainid",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
@@ -271,10 +354,10 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					govtypes.OptionNo,
 				),
 			},
-			expectSuccess: false,
+			wantSuccess: false,
 		},
 		{
-			title: "Fails - Includes TimeoutHeight",
+			name: "fail - Includes TimeoutHeight",
 			msgs: []sdk.Msg{
 				govtypes.NewMsgVote(
 					suite.createTestAddress(),
@@ -283,41 +366,13 @@ func (suite *EIP712TestSuite) TestEIP712() {
 				),
 			},
 			timeoutHeight: 1000,
-			expectSuccess: false,
-		},
-		{
-			title: "Fails - Single Message / Multi-Signer",
-			msgs: []sdk.Msg{
-				banktypes.NewMsgMultiSend(
-					[]banktypes.Input{
-						banktypes.NewInput(
-							suite.createTestAddress(),
-							suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
-						),
-						banktypes.NewInput(
-							suite.createTestAddress(),
-							suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
-						),
-					},
-					[]banktypes.Output{
-						banktypes.NewOutput(
-							suite.createTestAddress(),
-							suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
-						),
-						banktypes.NewOutput(
-							suite.createTestAddress(),
-							suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
-						),
-					},
-				),
-			},
-			expectSuccess: false,
+			wantSuccess:   false,
 		},
 	}
 
 	for _, tc := range testCases {
 		for _, signMode := range signModes {
-			suite.Run(tc.title, func() {
+			suite.Run(tc.name, func() {
 				privKey, pubKey := suite.createTestKeyPair()
 
 				txBuilder := suite.clientCtx.TxConfig.NewTxBuilder()
@@ -361,21 +416,34 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					Address:       sdk.MustBech32ifyAddressBytes(constants.Bech32Prefix, pubKey.Bytes()),
 				}
 
-				bz, err := suite.clientCtx.TxConfig.SignModeHandler().GetSignBytes(
+				bz, err := authsigning.GetSignBytesAdapter(
+					suite.clientCtx.CmdContext,
+					suite.clientCtx.TxConfig.SignModeHandler(),
 					signMode,
 					signerData,
 					txBuilder.GetTx(),
 				)
 				suite.Require().NoError(err)
 
-				suite.verifyEIP712SignatureVerification(tc.expectSuccess, *privKey, *pubKey, bz)
+				suite.verifyEIP712SignatureVerification(tc.wantSuccess, *privKey, *pubKey, bz)
 
 				// Verify payload flattening only if the payload is in valid JSON format
 				if signMode == signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON {
-					suite.verifySignDocFlattening(bz)
+					var wantErrSignDocFlattening bool
+					if tc.wantErrSignDocFlattening != nil {
+						wantErrSignDocFlattening = *tc.wantErrSignDocFlattening
+					}
 
-					if tc.expectSuccess {
-						suite.verifyBasicTypedData(bz)
+					err := suite.verifySignDocFlattening(bz)
+
+					if wantErrSignDocFlattening {
+						suite.Require().Error(err)
+					} else {
+						suite.Require().NoError(err)
+
+						if tc.wantSuccess {
+							suite.verifyBasicTypedData(bz)
+						}
 					}
 				}
 			})
@@ -421,14 +489,17 @@ func (suite *EIP712TestSuite) verifyEIP712SignatureVerification(expectedSuccess 
 
 // verifySignDocFlattening tests the flattening algorithm against the sign doc's JSON payload,
 // using verifyPayloadAgainstFlattened.
-func (suite *EIP712TestSuite) verifySignDocFlattening(signDoc []byte) {
+func (suite *EIP712TestSuite) verifySignDocFlattening(signDoc []byte) error {
 	payload := gjson.ParseBytes(signDoc)
 	suite.Require().True(payload.IsObject())
 
 	flattened, _, err := eip712.FlattenPayloadMessages(payload)
-	suite.Require().NoError(err)
+	if err != nil {
+		return err
+	}
 
 	suite.verifyPayloadAgainstFlattened(payload, flattened)
+	return nil
 }
 
 // verifyPayloadAgainstFlattened compares a payload against its flattened counterpart to ensure that
@@ -626,4 +697,63 @@ func (suite *EIP712TestSuite) TestTypedDataGeneration() {
 	typedData, err = eip712.WrapTxToTypedData(0, []byte(payloadRaw))
 	suite.Require().NoError(err)
 	suite.Require().False(typedData.Types["TypemsgType1"] == nil)
+}
+
+func initTemporaryChainApp() (*chainapp.Evermint, sdk.Context) {
+	consAddress := sdk.ConsAddress(utiltx.GenerateAddress().Bytes())
+	tempChainApp := helpers.Setup(false, feemarkettypes.DefaultGenesisState(), chainID)
+	header := tmproto.Header{
+		Height:          1,
+		ChainID:         chainID,
+		Time:            time.Now().UTC(),
+		ProposerAddress: consAddress.Bytes(),
+
+		Version: tmversion.Consensus{
+			Block: version.BlockProtocol,
+		},
+		LastBlockId: tmproto.BlockID{
+			Hash: tmhash.Sum([]byte("block_id")),
+			PartSetHeader: tmproto.PartSetHeader{
+				Total: 11,
+				Hash:  tmhash.Sum([]byte("partset_header")),
+			},
+		},
+		AppHash:            tmhash.Sum([]byte("app")),
+		DataHash:           tmhash.Sum([]byte("data")),
+		EvidenceHash:       tmhash.Sum([]byte("evidence")),
+		ValidatorsHash:     tmhash.Sum([]byte("validators")),
+		NextValidatorsHash: tmhash.Sum([]byte("next_validators")),
+		ConsensusHash:      tmhash.Sum([]byte("consensus")),
+		LastResultsHash:    tmhash.Sum([]byte("last_result")),
+	}
+
+	ctx := tempChainApp.BaseApp.NewContext(false).WithBlockHeader(header).WithChainID(chainID)
+
+	{
+		// Finalize & commit block so the query context can be created.
+		// The query context is needed for the signing texture to query coin metadata.
+		_, err := tempChainApp.FinalizeBlock(&abci.RequestFinalizeBlock{
+			Height:             header.Height,
+			Hash:               header.AppHash,
+			Time:               header.Time,
+			ProposerAddress:    header.ProposerAddress,
+			NextValidatorsHash: header.NextValidatorsHash,
+		})
+		if err != nil {
+			panic(err)
+		}
+
+		_, err = tempChainApp.Commit()
+		if err != nil {
+			panic(err)
+		}
+
+		header.Height++
+		header.Time = header.Time.Add(time.Second)
+		ctx = ctx.
+			WithBlockHeader(header).
+			WithMultiStore(tempChainApp.CommitMultiStore().CacheMultiStore())
+	}
+
+	return tempChainApp, ctx
 }

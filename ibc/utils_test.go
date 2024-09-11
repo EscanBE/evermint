@@ -3,6 +3,8 @@ package ibc
 import (
 	"testing"
 
+	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/EscanBE/evermint/v12/constants"
@@ -13,14 +15,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	teststypes "github.com/EscanBE/evermint/v12/types/tests"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func init() {
 	cfg := sdk.GetConfig()
-	cfg.SetBech32PrefixForAccount(constants.Bech32Prefix, constants.Bech32PrefixAccPub)
+	cmdcfg.SetBech32Prefixes(cfg)
+	cmdcfg.SetBip44CoinType(cfg)
 }
 
 func TestGetTransferSenderRecipient(t *testing.T) {

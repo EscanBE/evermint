@@ -8,12 +8,12 @@ import (
 
 	"github.com/pkg/errors"
 
+	"cosmossdk.io/log"
 	tmjson "github.com/cometbft/cometbft/libs/json"
-	"github.com/cometbft/cometbft/libs/log"
-	tmquery "github.com/cometbft/cometbft/libs/pubsub/query"
+	cmtquery "github.com/cometbft/cometbft/libs/pubsub/query"
 	coretypes "github.com/cometbft/cometbft/rpc/core/types"
-	rpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmtjrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -27,21 +27,21 @@ import (
 )
 
 var (
-	txEvents  = tmtypes.QueryForEvent(tmtypes.EventTx).String()
-	evmEvents = tmquery.MustParse(fmt.Sprintf("%s='%s' AND %s.%s='%s'",
-		tmtypes.EventTypeKey,
-		tmtypes.EventTx,
+	txEvents  = cmttypes.QueryForEvent(cmttypes.EventTx).String()
+	evmEvents = cmtquery.MustCompile(fmt.Sprintf("%s='%s' AND %s.%s='%s'",
+		cmttypes.EventTypeKey,
+		cmttypes.EventTx,
 		sdk.EventTypeMessage,
 		sdk.AttributeKeyModule, evmtypes.ModuleName)).String()
-	headerEvents = tmtypes.QueryForEvent(tmtypes.EventNewBlockHeader).String()
+	headerEvents = cmttypes.QueryForEvent(cmttypes.EventNewBlockHeader).String()
 )
 
 // EventSystem creates subscriptions, processes events and broadcasts them to the
-// subscription which match the subscription criteria using the Tendermint's RPC client.
+// subscription which match the subscription criteria using the RPC client of CometBFT.
 type EventSystem struct {
-	logger     log.Logger
-	ctx        context.Context
-	tmWSClient *rpcclient.WSClient
+	logger        log.Logger
+	ctx           context.Context
+	cometWSClient *cmtjrpcclient.WSClient
 
 	// light client mode
 	lightMode bool
@@ -62,23 +62,23 @@ type EventSystem struct {
 //
 // The returned manager has a loop that needs to be stopped with the Stop function
 // or by stopping the given mux.
-func NewEventSystem(logger log.Logger, tmWSClient *rpcclient.WSClient) *EventSystem {
+func NewEventSystem(logger log.Logger, cometWSClient *cmtjrpcclient.WSClient) *EventSystem {
 	index := make(filterIndex)
 	for i := filters.UnknownSubscription; i < filters.LastIndexSubscription; i++ {
 		index[i] = make(map[rpc.ID]*Subscription)
 	}
 
 	es := &EventSystem{
-		logger:     logger,
-		ctx:        context.Background(),
-		tmWSClient: tmWSClient,
-		lightMode:  false,
-		index:      index,
-		topicChans: make(map[string]chan<- coretypes.ResultEvent, len(index)),
-		indexMux:   new(sync.RWMutex),
-		install:    make(chan *Subscription),
-		uninstall:  make(chan *Subscription),
-		eventBus:   pubsub.NewEventBus(),
+		logger:        logger,
+		ctx:           context.Background(),
+		cometWSClient: cometWSClient,
+		lightMode:     false,
+		index:         index,
+		topicChans:    make(map[string]chan<- coretypes.ResultEvent, len(index)),
+		indexMux:      new(sync.RWMutex),
+		install:       make(chan *Subscription),
+		uninstall:     make(chan *Subscription),
+		eventBus:      pubsub.NewEventBus(),
 	}
 
 	go es.eventLoop()
@@ -92,8 +92,8 @@ func (es *EventSystem) WithContext(ctx context.Context) {
 	es.ctx = ctx
 }
 
-// subscribe performs a new event subscription to a given Tendermint event.
-// The subscription creates a unidirectional receive event channel to receive the ResultEvent.
+// subscribe performs a new event subscription to a given CometBFT event.
+// The subscription creates a unidirectional receives event channel to receive the ResultEvent.
 func (es *EventSystem) subscribe(sub *Subscription) (*Subscription, pubsub.UnsubscribeFunc, error) {
 	var (
 		err      error
@@ -119,11 +119,11 @@ func (es *EventSystem) subscribe(sub *Subscription) (*Subscription, pubsub.Unsub
 
 	switch sub.typ {
 	case filters.LogsSubscription:
-		err = es.tmWSClient.Subscribe(ctx, sub.event)
+		err = es.cometWSClient.Subscribe(ctx, sub.event)
 	case filters.BlocksSubscription:
-		err = es.tmWSClient.Subscribe(ctx, sub.event)
+		err = es.cometWSClient.Subscribe(ctx, sub.event)
 	case filters.PendingTransactionsSubscription:
-		err = es.tmWSClient.Subscribe(ctx, sub.event)
+		err = es.cometWSClient.Subscribe(ctx, sub.event)
 	default:
 		err = fmt.Errorf("invalid filter subscription type %d", sub.typ)
 	}
@@ -251,7 +251,7 @@ func (es *EventSystem) eventLoop() {
 
 			// remove topic only when channel is not used by other subscriptions
 			if !channelInUse {
-				if err := es.tmWSClient.Unsubscribe(es.ctx, f.event); err != nil {
+				if err := es.cometWSClient.Unsubscribe(es.ctx, f.event); err != nil {
 					es.logger.Error("failed to unsubscribe from query", "query", f.event, "error", err.Error())
 				}
 
@@ -271,7 +271,7 @@ func (es *EventSystem) eventLoop() {
 
 func (es *EventSystem) consumeEvents() {
 	for {
-		for rpcResp := range es.tmWSClient.ResponsesCh {
+		for rpcResp := range es.cometWSClient.ResponsesCh {
 			var ev coretypes.ResultEvent
 
 			if rpcResp.Error != nil {

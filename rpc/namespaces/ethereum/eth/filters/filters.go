@@ -9,8 +9,8 @@ import (
 	"github.com/EscanBE/evermint/v12/rpc/backend"
 	"github.com/EscanBE/evermint/v12/rpc/types"
 
-	"github.com/cometbft/cometbft/libs/log"
-	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	"cosmossdk.io/log"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/pkg/errors"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -98,14 +98,14 @@ func (f *Filter) Logs(_ context.Context, logLimit int, blockLimit int64) ([]*eth
 
 	// If we're doing singleton block filtering, execute and return
 	if f.criteria.BlockHash != nil && *f.criteria.BlockHash != (common.Hash{}) {
-		resBlock, err := f.backend.TendermintBlockByHash(*f.criteria.BlockHash)
+		resBlock, err := f.backend.CometBFTBlockByHash(*f.criteria.BlockHash)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch header by hash %s: %w", f.criteria.BlockHash, err)
 		}
 
-		blockRes, err := f.backend.TendermintBlockResultByNumber(&resBlock.Block.Height)
+		blockRes, err := f.backend.CometBFTBlockResultByNumber(&resBlock.Block.Height)
 		if err != nil {
-			f.logger.Debug("failed to fetch block result from Tendermint", "height", resBlock.Block.Height, "error", err.Error())
+			f.logger.Debug("failed to fetch block result from CometBFT", "height", resBlock.Block.Height, "error", err.Error())
 			return nil, nil
 		}
 
@@ -152,9 +152,9 @@ func (f *Filter) Logs(_ context.Context, logLimit int, blockLimit int64) ([]*eth
 	to := f.criteria.ToBlock.Int64()
 
 	for height := from; height <= to; height++ {
-		blockRes, err := f.backend.TendermintBlockResultByNumber(&height)
+		blockRes, err := f.backend.CometBFTBlockResultByNumber(&height)
 		if err != nil {
-			f.logger.Debug("failed to fetch block result from Tendermint", "height", height, "error", err.Error())
+			f.logger.Debug("failed to fetch block result from CometBFT", "height", height, "error", err.Error())
 			return nil, nil
 		}
 
@@ -175,7 +175,7 @@ func (f *Filter) Logs(_ context.Context, logLimit int, blockLimit int64) ([]*eth
 }
 
 // blockLogs returns the logs matching the filter criteria within a single block.
-func (f *Filter) blockLogs(blockRes *tmrpctypes.ResultBlockResults, bloom ethtypes.Bloom) ([]*ethtypes.Log, error) {
+func (f *Filter) blockLogs(blockRes *cmtrpctypes.ResultBlockResults, bloom ethtypes.Bloom) ([]*ethtypes.Log, error) {
 	if !bloomFilter(bloom, f.criteria.Addresses, f.criteria.Topics) {
 		return []*ethtypes.Log{}, nil
 	}

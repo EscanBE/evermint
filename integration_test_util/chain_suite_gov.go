@@ -16,6 +16,7 @@ import (
 // TxFullGov submit gov proposal, full vote Yes and wait gov passed.
 func (suite *ChainIntegrationTestSuite) TxFullGov(proposer *itutiltypes.TestAccount, newProposalContent govtypeslegacy.Content) uint64 {
 	suite.Require().NotNil(proposer)
+	suite.Require().NoError(newProposalContent.ValidateBasic())
 
 	depositAmount := sdkmath.NewInt(int64(0.1 * math.Pow10(18)))
 	msg, err := govtypeslegacy.NewMsgSubmitProposal(newProposalContent, sdk.NewCoins(
@@ -35,8 +36,8 @@ func (suite *ChainIntegrationTestSuite) TxFullGov(proposer *itutiltypes.TestAcco
 
 	suite.TxAllVote(proposal.Id, govv1types.OptionYes)
 	suite.Commit()
-	if suite.HasTendermint() {
-		time.Sleep(itutiltypes.TendermintGovVotingPeriod + 200*time.Millisecond)
+	if suite.HasCometBFT() {
+		time.Sleep(itutiltypes.CometBFTGovVotingPeriod + 200*time.Millisecond)
 	}
 
 	var proposalById *govv1types.Proposal

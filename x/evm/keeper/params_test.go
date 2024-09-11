@@ -17,7 +17,7 @@ func (suite *KeeperTestSuite) TestParams() {
 		expected  bool
 	}{
 		{
-			"success - Checks if the default params are set correctly",
+			"pass - Checks if the default params are set correctly",
 			func() interface{} {
 				return evmtypes.DefaultParams()
 			},
@@ -27,7 +27,7 @@ func (suite *KeeperTestSuite) TestParams() {
 			true,
 		},
 		{
-			"success - EvmDenom param is set to \"inj\" and can be retrieved correctly",
+			"pass - EvmDenom param is set to \"inj\" and can be retrieved correctly",
 			func() interface{} {
 				params.EvmDenom = "inj"
 				err := suite.app.EvmKeeper.SetParams(suite.ctx, params)
@@ -41,7 +41,7 @@ func (suite *KeeperTestSuite) TestParams() {
 			true,
 		},
 		{
-			"success - Check EnableCreate param is set to false and can be retrieved correctly",
+			"pass - Check EnableCreate param is set to false and can be retrieved correctly",
 			func() interface{} {
 				params.EnableCreate = false
 				err := suite.app.EvmKeeper.SetParams(suite.ctx, params)
@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) TestParams() {
 			true,
 		},
 		{
-			"success - Check EnableCall param is set to false and can be retrieved correctly",
+			"pass - Check EnableCall param is set to false and can be retrieved correctly",
 			func() interface{} {
 				params.EnableCall = false
 				err := suite.app.EvmKeeper.SetParams(suite.ctx, params)
@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) TestParams() {
 			true,
 		},
 		{
-			"success - Check AllowUnprotectedTxs param is set to false and can be retrieved correctly",
+			"pass - Check AllowUnprotectedTxs param is set to false and can be retrieved correctly",
 			func() interface{} {
 				params.AllowUnprotectedTxs = false
 				err := suite.app.EvmKeeper.SetParams(suite.ctx, params)
@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) TestParams() {
 			true,
 		},
 		{
-			"success - Check ChainConfig param is set to the default value and can be retrieved correctly",
+			"pass - Check ChainConfig param is set to the default value and can be retrieved correctly",
 			func() interface{} {
 				params.ChainConfig = evmtypes.DefaultChainConfig()
 				err := suite.app.EvmKeeper.SetParams(suite.ctx, params)

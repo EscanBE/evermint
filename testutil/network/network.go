@@ -9,29 +9,31 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
 	"github.com/EscanBE/evermint/v12/app/params"
 
 	"github.com/EscanBE/evermint/v12/constants"
+	sdktunetwork "github.com/cosmos/cosmos-sdk/testutil/network"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
+	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
-	dbm "github.com/cometbft/cometbft-db"
-	tmcfg "github.com/cometbft/cometbft/config"
-	tmflags "github.com/cometbft/cometbft/libs/cli/flags"
-	"github.com/cometbft/cometbft/libs/log"
-	tmrand "github.com/cometbft/cometbft/libs/rand"
-	"github.com/cometbft/cometbft/node"
-	tmclient "github.com/cometbft/cometbft/rpc/client"
+	cmtrand "github.com/cometbft/cometbft/libs/rand"
+	cmtnode "github.com/cometbft/cometbft/node"
+	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
+	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
+	pruningtypes "cosmossdk.io/store/pruning/types"
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -45,7 +47,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -61,7 +62,7 @@ import (
 var lock = new(sync.Mutex)
 
 // AppConstructor defines a function which accepts a network configuration and
-// creates an ABCI Application to provide to Tendermint.
+// creates an ABCI Application to provide to CometBFT.
 type AppConstructor = func(val Validator) servertypes.Application
 
 // Config defines the necessary configuration used to bootstrap and start an
@@ -89,7 +90,7 @@ type Config struct {
 	JSONRPCAddress    string                // JSON-RPC listen address (including port)
 	APIAddress        string                // REST API listen address (including port)
 	GRPCAddress       string                // GRPC server listen address (including port)
-	EnableTMLogging   bool                  // enable Tendermint logging to STDOUT
+	EnableTMLogging   bool                  // enable CometBFT logging to STDOUT
 	CleanupDir        bool                  // remove base temporary directory during cleanup
 	PrintMnemonic     bool                  // print the mnemonic of first validator as log output for testing
 }
@@ -108,7 +109,7 @@ func DefaultConfig() Config {
 		AppConstructor:    NewAppConstructor(encodingConfig),
 		GenesisState:      chainapp.ModuleBasics.DefaultGenesis(encodingConfig.Codec),
 		TimeoutCommit:     3 * time.Second,
-		ChainID:           fmt.Sprintf("%s_%d-1", constants.ChainIdPrefix, tmrand.Int63n(9999999999999)+1),
+		ChainID:           fmt.Sprintf("%s_%d-1", constants.ChainIdPrefix, cmtrand.Int63n(9999999999999)+1),
 		NumValidators:     4,
 		BondDenom:         constants.BaseDenom,
 		MinGasPrices:      fmt.Sprintf("0.000006%s", constants.BaseDenom),
@@ -127,7 +128,7 @@ func DefaultConfig() Config {
 func NewAppConstructor(encodingCfg params.EncodingConfig) AppConstructor {
 	return func(val Validator) servertypes.Application {
 		return chainapp.NewEvermint(
-			val.Ctx.Logger, dbm.NewMemDB(), nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
+			val.Ctx.Logger, sdkdb.NewMemDB(), nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
 			encodingCfg,
 			simtestutil.EmptyAppOptions{},
 			baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(val.AppConfig.Pruning)),
@@ -142,7 +143,7 @@ type (
 	// clients. Typically, this test network would be used in client and integration
 	// testing where user input is expected.
 	//
-	// Note, due to Tendermint constraints in regards to RPC functionality, there
+	// Note, due to CometBFT constraints in regards to RPC functionality, there
 	// may only be one test network running at a time. Thus, any caller must be
 	// sure to Cleanup after testing is finished in order to allow other tests
 	// to create networks. In addition, only the first validator will have a valid
@@ -155,7 +156,7 @@ type (
 		Config Config
 	}
 
-	// Validator defines an in-process Tendermint validator node. Through this object,
+	// Validator defines an in-process CometBFT validator node. Through this object,
 	// a client can make RPC and API calls and interact with any client command
 	// or handler.
 	Validator struct {
@@ -171,10 +172,10 @@ type (
 		P2PAddress    string
 		Address       sdk.AccAddress
 		ValAddress    sdk.ValAddress
-		RPCClient     tmclient.Client
+		RPCClient     cmtrpcclient.Client
 		JSONRPCClient *ethclient.Client
 
-		tmNode      *node.Node
+		cometNode   *cmtnode.Node
 		api         *api.Server
 		grpc        *grpc.Server
 		grpcWeb     *http.Server
@@ -253,13 +254,13 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		appCfg.Telemetry.GlobalLabels = [][]string{{"chain_id", cfg.ChainID}}
 
 		ctx := server.NewDefaultContext()
-		tmCfg := ctx.Config
-		tmCfg.Consensus.TimeoutCommit = cfg.TimeoutCommit
+		cometCfg := ctx.Config
+		cometCfg.Consensus.TimeoutCommit = cfg.TimeoutCommit
 
 		// Only allow the first validator to expose an RPC, API and gRPC
-		// server/client due to Tendermint in-process constraints.
+		// server/client due to CometBFT in-process constraints.
 		apiAddr := ""
-		tmCfg.RPC.ListenAddress = ""
+		cometCfg.RPC.ListenAddress = ""
 		appCfg.GRPC.Enable = false
 		appCfg.GRPCWeb.Enable = false
 		appCfg.JSONRPC.Enable = false
@@ -269,7 +270,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 				apiListenAddr = cfg.APIAddress
 			} else {
 				var err error
-				apiListenAddr, _, err = server.FreeTCPAddr()
+				apiListenAddr, _, _, err = sdktunetwork.FreeTCPAddr()
 				if err != nil {
 					return nil, err
 				}
@@ -283,19 +284,19 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			apiAddr = fmt.Sprintf("http://%s:%s", apiURL.Hostname(), apiURL.Port())
 
 			if cfg.RPCAddress != "" {
-				tmCfg.RPC.ListenAddress = cfg.RPCAddress
+				cometCfg.RPC.ListenAddress = cfg.RPCAddress
 			} else {
-				rpcAddr, _, err := server.FreeTCPAddr()
+				rpcAddr, _, _, err := sdktunetwork.FreeTCPAddr()
 				if err != nil {
 					return nil, err
 				}
-				tmCfg.RPC.ListenAddress = rpcAddr
+				cometCfg.RPC.ListenAddress = rpcAddr
 			}
 
 			if cfg.GRPCAddress != "" {
 				appCfg.GRPC.Address = cfg.GRPCAddress
 			} else {
-				_, grpcPort, err := server.FreeTCPAddr()
+				_, grpcPort, _, err := sdktunetwork.FreeTCPAddr()
 				if err != nil {
 					return nil, err
 				}
@@ -303,17 +304,10 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			}
 			appCfg.GRPC.Enable = true
 
-			_, grpcWebPort, err := server.FreeTCPAddr()
-			if err != nil {
-				return nil, err
-			}
-			appCfg.GRPCWeb.Address = fmt.Sprintf("0.0.0.0:%s", grpcWebPort)
-			appCfg.GRPCWeb.Enable = true
-
 			if cfg.JSONRPCAddress != "" {
 				appCfg.JSONRPC.Address = cfg.JSONRPCAddress
 			} else {
-				_, jsonRPCPort, err := server.FreeTCPAddr()
+				_, jsonRPCPort, _, err := sdktunetwork.FreeTCPAddr()
 				if err != nil {
 					return nil, err
 				}
@@ -323,10 +317,11 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			appCfg.JSONRPC.API = config.GetAPINamespaces()
 		}
 
-		logger := log.NewNopLogger()
+		var logger log.Logger
 		if cfg.EnableTMLogging {
-			logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
-			logger, _ = tmflags.ParseLogLevel("info", logger, tmcfg.DefaultLogLevel)
+			logger = log.NewLogger(os.Stdout)
+		} else {
+			logger = log.NewNopLogger()
 		}
 
 		ctx.Logger = logger
@@ -346,25 +341,25 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			return nil, err
 		}
 
-		tmCfg.SetRoot(nodeDir)
-		tmCfg.Moniker = nodeDirName
+		cometCfg.SetRoot(nodeDir)
+		cometCfg.Moniker = nodeDirName
 		monikers[i] = nodeDirName
 
-		proxyAddr, _, err := server.FreeTCPAddr()
+		proxyAddr, _, _, err := sdktunetwork.FreeTCPAddr()
 		if err != nil {
 			return nil, err
 		}
-		tmCfg.ProxyApp = proxyAddr
+		cometCfg.ProxyApp = proxyAddr
 
-		p2pAddr, _, err := server.FreeTCPAddr()
+		p2pAddr, _, _, err := sdktunetwork.FreeTCPAddr()
 		if err != nil {
 			return nil, err
 		}
-		tmCfg.P2P.ListenAddress = p2pAddr
-		tmCfg.P2P.AddrBookStrict = false
-		tmCfg.P2P.AllowDuplicateIP = true
+		cometCfg.P2P.ListenAddress = p2pAddr
+		cometCfg.P2P.AddrBookStrict = false
+		cometCfg.P2P.AllowDuplicateIP = true
 
-		nodeID, pubKey, err := genutil.InitializeNodeValidatorFiles(tmCfg)
+		nodeID, pubKey, err := genutil.InitializeNodeValidatorFiles(cometCfg)
 		if err != nil {
 			return nil, err
 		}
@@ -410,7 +405,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			sdk.NewCoin(cfg.BondDenom, cfg.StakingTokens),
 		)
 
-		genFiles = append(genFiles, tmCfg.GenesisFile())
+		genFiles = append(genFiles, cometCfg.GenesisFile())
 		genBalances = append(genBalances, banktypes.Balance{Address: addr.String(), Coins: balances.Sort()})
 		genAccounts = append(genAccounts, authtypes.NewBaseAccount(addr, nil, 0, 0))
 
@@ -420,7 +415,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		}
 
 		createValMsg, err := stakingtypes.NewMsgCreateValidator(
-			sdk.ValAddress(addr),
+			sdk.ValAddress(addr).String(),
 			valPubKeys[i],
 			sdk.NewCoin(cfg.BondDenom, cfg.BondedTokens),
 			stakingtypes.NewDescription(nodeDirName, "", "", "", ""),
@@ -454,7 +449,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			WithKeybase(kb).
 			WithTxConfig(cfg.TxConfig)
 
-		if err := clienttx.Sign(txFactory, nodeDirName, txBuilder, true); err != nil {
+		if err := clienttx.Sign(context.Background(), txFactory, nodeDirName, txBuilder, true); err != nil {
 			return nil, err
 		}
 
@@ -481,7 +476,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		clientCtx := client.Context{}.
 			WithKeyringDir(clientDir).
 			WithKeyring(kb).
-			WithHomeDir(tmCfg.RootDir).
+			WithHomeDir(cometCfg.RootDir).
 			WithChainID(cfg.ChainID).
 			WithInterfaceRegistry(cfg.InterfaceRegistry).
 			WithCodec(cfg.Codec).
@@ -497,8 +492,8 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 			NodeID:     nodeID,
 			PubKey:     pubKey,
 			Moniker:    nodeDirName,
-			RPCAddress: tmCfg.RPC.ListenAddress,
-			P2PAddress: tmCfg.P2P.ListenAddress,
+			RPCAddress: cometCfg.RPC.ListenAddress,
+			P2PAddress: cometCfg.P2P.ListenAddress,
 			APIAddress: apiAddr,
 			Address:    addr,
 			ValAddress: sdk.ValAddress(addr),
@@ -526,9 +521,33 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 
 	// Ensure we cleanup incase any test was abruptly halted (e.g. SIGINT) as any
 	// defer in a test would not be called.
-	server.TrapSignal(network.Cleanup)
+	trapSignal(network.Cleanup)
 
 	return network, nil
+}
+
+// trapSignal traps SIGINT and SIGTERM and calls os.Exit once a signal is received.
+func trapSignal(cleanupFunc func()) {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		sig := <-sigs
+
+		if cleanupFunc != nil {
+			cleanupFunc()
+		}
+		exitCode := 128
+
+		switch sig {
+		case syscall.SIGINT:
+			exitCode += int(syscall.SIGINT)
+		case syscall.SIGTERM:
+			exitCode += int(syscall.SIGTERM)
+		}
+
+		os.Exit(exitCode)
+	}()
 }
 
 // LatestHeight returns the latest height of the network or an error if the
@@ -600,7 +619,7 @@ func (n *Network) WaitForNextBlock() error {
 }
 
 // Cleanup removes the root testing (temporary) directory and stops both the
-// Tendermint and API services. It allows other callers to create and start
+// CometBFT and API services. It allows other callers to create and start
 // test networks. This method must be called when a test is finished, typically
 // in a defer.
 func (n *Network) Cleanup() {
@@ -612,8 +631,8 @@ func (n *Network) Cleanup() {
 	n.Logger.Log("cleaning up test network...")
 
 	for _, v := range n.Validators {
-		if v.tmNode != nil && v.tmNode.IsRunning() {
-			_ = v.tmNode.Stop()
+		if v.cometNode != nil && v.cometNode.IsRunning() {
+			_ = v.cometNode.Stop()
 		}
 
 		if v.api != nil {
@@ -632,9 +651,9 @@ func (n *Network) Cleanup() {
 			defer cancelFn()
 
 			if err := v.jsonrpc.Shutdown(shutdownCtx); err != nil {
-				v.tmNode.Logger.Error("HTTP server shutdown produced a warning", "error", err.Error())
+				v.cometNode.Logger.Error("HTTP server shutdown produced a warning", "error", err.Error())
 			} else {
-				v.tmNode.Logger.Info("HTTP server shut down, waiting 5 sec")
+				v.cometNode.Logger.Info("HTTP server shut down, waiting 5 sec")
 				select {
 				case <-time.Tick(5 * time.Second):
 				case <-v.jsonrpcDone:

@@ -17,7 +17,7 @@ func (suite *KeeperTestSuite) TestParams() {
 		expected  bool
 	}{
 		{
-			"success - Checks if the default params are set correctly",
+			"pass - Checks if the default params are set correctly",
 			func() interface{} {
 				return erc20types.DefaultParams()
 			},

@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"testing"
 
+	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -45,7 +47,7 @@ func TestEvmDataEncoding(t *testing.T) {
 	require.Equal(t, ret, res.Ret)
 }
 
-func TestUnwrapEthererumMsg(t *testing.T) {
+func TestUnwrapEthereumMsg(t *testing.T) {
 	_, err := evmtypes.UnwrapEthereumMsg(nil, common.Hash{})
 	require.NotNil(t, err)
 
@@ -58,6 +60,7 @@ func TestUnwrapEthererumMsg(t *testing.T) {
 	require.NotNil(t, err)
 
 	evmTxParams := &evmtypes.EvmTxArgs{
+		From:     utiltx.GenerateAddress(),
 		ChainID:  big.NewInt(1),
 		Nonce:    0,
 		To:       &common.Address{},

@@ -2,6 +2,8 @@ package ante
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
+	txsigning "cosmossdk.io/x/tx/signing"
 	anteutils "github.com/EscanBE/evermint/v12/app/ante/utils"
 	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -9,11 +11,13 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
-	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 
 	cosmosante "github.com/EscanBE/evermint/v12/app/ante/cosmos"
 	evmante "github.com/EscanBE/evermint/v12/app/ante/evm"
@@ -26,9 +30,9 @@ import (
 // AnteHandler decorators.
 type HandlerOptions struct {
 	Cdc                    codec.BinaryCodec
-	AccountKeeper          evmtypes.AccountKeeper
-	BankKeeper             evmtypes.BankKeeper
-	DistributionKeeper     anteutils.DistributionKeeper
+	AccountKeeper          *authkeeper.AccountKeeper
+	BankKeeper             bankkeeper.Keeper
+	DistributionKeeper     *distrkeeper.Keeper
 	IBCKeeper              *ibckeeper.Keeper
 	StakingKeeper          *stakingkeeper.Keeper
 	FeeMarketKeeper        evmante.FeeMarketKeeper
@@ -36,8 +40,8 @@ type HandlerOptions struct {
 	VAuthKeeper            cosmosante.VAuthKeeper
 	FeegrantKeeper         ante.FeegrantKeeper
 	ExtensionOptionChecker ante.ExtensionOptionChecker
-	SignModeHandler        authsigning.SignModeHandler
-	SigGasConsumer         func(meter sdk.GasMeter, sig signing.SignatureV2, params authtypes.Params) error
+	SignModeHandler        *txsigning.HandlerMap
+	SigGasConsumer         func(meter storetypes.GasMeter, sig signing.SignatureV2, params authtypes.Params) error
 	MaxTxGasWanted         uint64
 	TxFeeChecker           anteutils.TxFeeChecker
 	DisabledAuthzMsgs      map[string]bool
@@ -114,7 +118,7 @@ func newEVMAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		evmante.NewExternalOwnedAccountVerificationDecorator(options.AccountKeeper, options.BankKeeper, options.EvmKeeper),
 		evmante.NewEthBasicValidationDecorator(),
 		evmante.NewCanTransferDecorator(options.EvmKeeper),
-		evmante.NewEthGasConsumeDecorator(options.BankKeeper, options.DistributionKeeper, options.EvmKeeper, options.StakingKeeper, options.MaxTxGasWanted),
+		evmante.NewEthGasConsumeDecorator(options.BankKeeper, *options.DistributionKeeper, options.EvmKeeper, *options.StakingKeeper, options.MaxTxGasWanted),
 		evmante.NewEthIncrementSenderSequenceDecorator(options.AccountKeeper),
 		evmante.NewEthSetupExecutionDecorator(options.EvmKeeper),
 		// emit eth tx hash and index at the very last ante handler.
@@ -137,7 +141,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		cosmosante.NewMinGasPriceDecorator(options.FeeMarketKeeper, options.EvmKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		cosmosante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.DistributionKeeper, options.FeegrantKeeper, options.StakingKeeper, options.TxFeeChecker),
+		cosmosante.NewDeductFeeDecorator(*options.AccountKeeper, options.BankKeeper, *options.DistributionKeeper, options.FeegrantKeeper, *options.StakingKeeper, options.TxFeeChecker),
 		// SetPubKeyDecorator must be called before all signature verification decorators
 		ante.NewSetPubKeyDecorator(options.AccountKeeper),
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
@@ -162,14 +166,14 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 		cosmosante.NewMinGasPriceDecorator(options.FeeMarketKeeper, options.EvmKeeper),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		cosmosante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.DistributionKeeper, options.FeegrantKeeper, options.StakingKeeper, options.TxFeeChecker),
+		cosmosante.NewDeductFeeDecorator(*options.AccountKeeper, options.BankKeeper, *options.DistributionKeeper, options.FeegrantKeeper, *options.StakingKeeper, options.TxFeeChecker),
 		// SetPubKeyDecorator must be called before all signature verification decorators
 		ante.NewSetPubKeyDecorator(options.AccountKeeper),
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
 		ante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
 		// Note: signature verification uses EIP instead of the cosmos signature validator
 		//nolint: staticcheck
-		cosmosante.NewLegacyEip712SigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
+		cosmosante.NewLegacyEip712SigVerificationDecorator(*options.AccountKeeper, options.SignModeHandler),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 	)

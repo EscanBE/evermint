@@ -5,10 +5,12 @@ import (
 	"errors"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	txTypes "github.com/cosmos/cosmos-sdk/types/tx"
+	sdktxtypes "github.com/cosmos/cosmos-sdk/types/tx"
 
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
@@ -88,7 +90,12 @@ func legacyDecodeAminoSignDoc(signDocBytes []byte) (apitypes.TypedData, error) {
 	msg := msgs[0]
 
 	// By convention, the fee payer is the first address in the list of signers.
-	feePayer := msg.GetSigners()[0]
+	signers, err := getMsgV1Signers(msg)
+	if err != nil {
+		return apitypes.TypedData{}, errorsmod.Wrap(err, "failed to get signers")
+	}
+	feePayer := signers[0]
+
 	feeDelegation := &FeeDelegationOptions{
 		FeePayer: feePayer,
 	}
@@ -120,17 +127,17 @@ func legacyDecodeProtobufSignDoc(signDocBytes []byte) (apitypes.TypedData, error
 		return apitypes.TypedData{}, err
 	}
 
-	signDoc := &txTypes.SignDoc{}
+	signDoc := &sdktxtypes.SignDoc{}
 	if err := signDoc.Unmarshal(signDocBytes); err != nil {
 		return apitypes.TypedData{}, err
 	}
 
-	authInfo := &txTypes.AuthInfo{}
+	authInfo := &sdktxtypes.AuthInfo{}
 	if err := authInfo.Unmarshal(signDoc.AuthInfoBytes); err != nil {
 		return apitypes.TypedData{}, err
 	}
 
-	body := &txTypes.TxBody{}
+	body := &sdktxtypes.TxBody{}
 	if err := body.Unmarshal(signDoc.BodyBytes); err != nil {
 		return apitypes.TypedData{}, err
 	}
@@ -168,17 +175,15 @@ func legacyDecodeProtobufSignDoc(signDocBytes []byte) (apitypes.TypedData, error
 		return apitypes.TypedData{}, fmt.Errorf("invalid chain ID passed as argument: %w", err)
 	}
 
-	stdFee := &legacytx.StdFee{
-		Amount: authInfo.Fee.Amount,
-		Gas:    authInfo.Fee.GasLimit,
+	signers, err := getMsgV1Signers(msg)
+	if err != nil {
+		return apitypes.TypedData{}, errorsmod.Wrap(err, "failed to get signers")
 	}
 
-	feePayer := msg.GetSigners()[0]
+	feePayer := signers[0]
 	feeDelegation := &FeeDelegationOptions{
 		FeePayer: feePayer,
 	}
-
-	tip := authInfo.Tip
 
 	// WrapTxToTypedData expects the payload as an Amino Sign Doc
 	signBytes := legacytx.StdSignBytes(
@@ -186,10 +191,12 @@ func legacyDecodeProtobufSignDoc(signDocBytes []byte) (apitypes.TypedData, error
 		signDoc.AccountNumber,
 		signerInfo.Sequence,
 		body.TimeoutHeight,
-		*stdFee,
+		legacytx.StdFee{
+			Amount: authInfo.Fee.Amount,
+			Gas:    authInfo.Fee.GasLimit,
+		},
 		msgs,
 		body.Memo,
-		tip,
 	)
 
 	typedData, err := LegacyWrapTxToTypedData(
@@ -222,13 +229,20 @@ func legacyValidatePayloadMessages(msgs []sdk.Msg) error {
 			return err
 		}
 
-		if len(m.GetSigners()) != 1 {
+		signers, err := getMsgV1Signers(m)
+		if err != nil {
+			return errorsmod.Wrap(err, "failed to get signers")
+		}
+
+		if len(signers) != 1 {
 			return errors.New("unable to build EIP-712 payload: expect exactly 1 signer")
 		}
 
+		signer := signers[0]
+
 		if i == 0 {
 			msgType = t
-			msgSigner = m.GetSigners()[0]
+			msgSigner = signer
 			continue
 		}
 
@@ -236,7 +250,7 @@ func legacyValidatePayloadMessages(msgs []sdk.Msg) error {
 			return errors.New("unable to build EIP-712 payload: different types of messages detected")
 		}
 
-		if !msgSigner.Equals(m.GetSigners()[0]) {
+		if !msgSigner.Equals(signer) {
 			return errors.New("unable to build EIP-712 payload: multiple signers detected")
 		}
 	}

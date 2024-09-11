@@ -4,9 +4,11 @@ import (
 	_ "embed"
 	"math/big"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	storetypes "cosmossdk.io/store/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/EscanBE/evermint/v12/constants"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
@@ -14,8 +16,6 @@ import (
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
 	"github.com/ethereum/go-ethereum/common"
-
-	abci "github.com/cometbft/cometbft/abci/types"
 )
 
 func (suite *KeeperTestSuite) TestWithChainID() {
@@ -32,25 +32,25 @@ func (suite *KeeperTestSuite) TestWithChainID() {
 			true,
 		},
 		{
-			"success - other chainID",
+			"pass - other chainID",
 			"chain_7701-1",
 			7701,
 			false,
 		},
 		{
-			"success - Mainnet chain ID",
+			"pass - Mainnet chain ID",
 			constants.MainnetFullChainId,
 			constants.MainnetEIP155ChainId,
 			false,
 		},
 		{
-			"success - Testnet chain ID",
+			"pass - Testnet chain ID",
 			constants.TestnetFullChainId,
 			constants.TestnetEIP155ChainId,
 			false,
 		},
 		{
-			"success - Devnet chain ID",
+			"pass - Devnet chain ID",
 			constants.DevnetFullChainId,
 			constants.DevnetEIP155ChainId,
 			false,
@@ -95,9 +95,9 @@ func (suite *KeeperTestSuite) TestBaseFee() {
 			suite.enableLondonHF = tc.enableLondonHF
 			suite.SetupTest()
 
-			suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(100_000))
+			suite.ctx = suite.ctx.WithBlockGasMeter(storetypes.NewGasMeter(100_000))
 
-			suite.app.FeeMarketKeeper.EndBlock(suite.ctx, abci.RequestEndBlock{})
+			suite.app.FeeMarketKeeper.EndBlock(suite.ctx)
 			params := suite.app.EvmKeeper.GetParams(suite.ctx)
 			ethCfg := params.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
 			baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx, ethCfg)
@@ -134,7 +134,7 @@ func (suite *KeeperTestSuite) TestGetAccountStorage() {
 			suite.SetupTest()
 			tc.malleate()
 			i := 0
-			suite.app.AccountKeeper.IterateAccounts(suite.ctx, func(account authtypes.AccountI) bool {
+			suite.app.AccountKeeper.IterateAccounts(suite.ctx, func(account sdk.AccountI) bool {
 				baseAccount, ok := account.(*authtypes.BaseAccount)
 				if !ok {
 					// ignore non base-account

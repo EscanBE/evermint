@@ -5,13 +5,13 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	"cosmossdk.io/x/feegrant"
 	cosmosante "github.com/EscanBE/evermint/v12/app/ante/cosmos"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/testutil"
 	testutiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	sdktestutil "github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/feegrant"
 )
 
 func (suite *AnteTestSuite) TestDeductFeeDecorator() {
@@ -90,7 +90,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			},
 		},
 		{
-			name:        "success - sufficient balance to pay fees & min gas prices is zero",
+			name:        "pass - sufficient balance to pay fees & min gas prices is zero",
 			balance:     initBalance,
 			gas:         10_000_000,
 			gasPrice:    &lowGasPrice,
@@ -107,7 +107,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			},
 		},
 		{
-			name:        "success - sufficient balance to pay fees (fees > required fees)",
+			name:        "pass - sufficient balance to pay fees (fees > required fees)",
 			balance:     initBalance,
 			gas:         10_000_000,
 			checkTx:     true,
@@ -123,7 +123,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			},
 		},
 		{
-			name:        "success - zero fees",
+			name:        "pass - zero fees",
 			balance:     initBalance,
 			gas:         100,
 			gasPrice:    &zero,
@@ -155,7 +155,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 			errContains: fmt.Sprintf("%s does not not allow to pay fees for %s", fgAddr, addr),
 		},
 		{
-			name:        "success - with authorized fee granter",
+			name:        "pass - with authorized fee granter",
 			balance:     initBalance,
 			gas:         10_000_000,
 			feeGranter:  fgAddr,
@@ -206,7 +206,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 
 				// remove the feegrant keeper from the decorator
 				dfd = cosmosante.NewDeductFeeDecorator(
-					suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.DistrKeeper, nil, suite.app.StakingKeeper, nil,
+					suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.DistrKeeper, nil, *suite.app.StakingKeeper, nil,
 				)
 			},
 		},
@@ -219,7 +219,7 @@ func (suite *AnteTestSuite) TestDeductFeeDecorator() {
 
 			// Create a new DeductFeeDecorator
 			dfd = cosmosante.NewDeductFeeDecorator(
-				suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.DistrKeeper, suite.app.FeeGrantKeeper, suite.app.StakingKeeper, nil,
+				suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.DistrKeeper, suite.app.FeeGrantKeeper, *suite.app.StakingKeeper, nil,
 			)
 
 			err := testutil.FundAccountWithBaseDenom(suite.ctx, suite.app.BankKeeper, addr, tc.balance.Int64())

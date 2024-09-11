@@ -19,12 +19,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 
-	dbm "github.com/cometbft/cometbft-db"
+	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
+	sdkdb "github.com/cosmos/cosmos-db"
 )
 
 func TestEvermintExport(t *testing.T) {
@@ -35,8 +35,8 @@ func TestEvermintExport(t *testing.T) {
 	encodingConfig := chainapp.RegisterEncodingConfig()
 
 	// create validator set with single validator
-	validator := tmtypes.NewValidator(pubKey, 1)
-	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
+	validator := cmttypes.NewValidator(pubKey, 1)
+	valSet := cmttypes.NewValidatorSet([]*cmttypes.Validator{validator})
 
 	// generate genesis account
 	senderPrivKey := secp256k1.GenPrivKey()
@@ -47,9 +47,9 @@ func TestEvermintExport(t *testing.T) {
 	}
 
 	chainID := constants.TestnetFullChainId
-	db := dbm.NewMemDB()
+	db := sdkdb.NewMemDB()
 	chainApp := chainapp.NewEvermint(
-		log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, chainapp.DefaultNodeHome, 0, encodingConfig,
+		log.NewLogger(os.Stdout), db, nil, true, map[int64]bool{}, chainapp.DefaultNodeHome, 0, encodingConfig,
 		simtestutil.NewAppOptionsWithFlagHome(chainapp.DefaultNodeHome),
 		baseapp.SetChainID(chainID),
 	)
@@ -60,21 +60,23 @@ func TestEvermintExport(t *testing.T) {
 	require.NoError(t, err)
 
 	// Initialize the chain
-	chainApp.InitChain(
-		abci.RequestInitChain{
-			ChainId:       chainID,
-			Validators:    []abci.ValidatorUpdate{},
-			AppStateBytes: stateBytes,
+	_, err = chainApp.InitChain(
+		&abci.RequestInitChain{
+			ChainId:         chainID,
+			Validators:      []abci.ValidatorUpdate{},
+			ConsensusParams: helpers.DefaultConsensusParams,
+			AppStateBytes:   stateBytes,
 		},
 	)
-	chainApp.Commit()
+	require.NoError(t, err)
 
-	// Making a new app object with the db, so that initchain hasn't been called
-	app2 := chainapp.NewEvermint(
-		log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, chainapp.DefaultNodeHome, 0, encodingConfig,
-		simtestutil.NewAppOptionsWithFlagHome(chainapp.DefaultNodeHome),
-		baseapp.SetChainID(chainID),
-	)
-	_, err = app2.ExportAppStateAndValidators(false, []string{}, []string{})
+	_, err = chainApp.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Height:             chainApp.LastBlockHeight() + 1,
+		Hash:               chainApp.LastCommitID().Hash,
+		NextValidatorsHash: valSet.Hash(),
+	})
+	require.NoError(t, err)
+
+	_, err = chainApp.ExportAppStateAndValidators(true, []string{}, []string{})
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
 }

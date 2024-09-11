@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/EscanBE/evermint/v12/app/helpers"
 	"github.com/EscanBE/evermint/v12/constants"
 
@@ -41,7 +43,7 @@ type AnteTestSuite struct {
 func (suite *AnteTestSuite) SetupTest() {
 	checkTx := false
 
-	suite.app = helpers.EthSetup(checkTx, func(app *chainapp.Evermint, genesis chainapp.GenesisState) chainapp.GenesisState {
+	suite.app = helpers.EthSetup(checkTx, func(chainApp *chainapp.Evermint, genesis chainapp.GenesisState) chainapp.GenesisState {
 		if suite.enableFeemarket {
 			// setup feemarketGenesis params
 			feemarketGenesis := feemarkettypes.DefaultGenesisState()
@@ -49,7 +51,7 @@ func (suite *AnteTestSuite) SetupTest() {
 			// Verify feeMarket genesis
 			err := feemarketGenesis.Validate()
 			suite.Require().NoError(err)
-			genesis[feemarkettypes.ModuleName] = app.AppCodec().MustMarshalJSON(feemarketGenesis)
+			genesis[feemarkettypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(feemarketGenesis)
 		}
 		evmGenesis := evmtypes.DefaultGenesisState()
 		evmGenesis.Params.AllowUnprotectedTxs = false
@@ -65,22 +67,25 @@ func (suite *AnteTestSuite) SetupTest() {
 		if suite.evmParamsOption != nil {
 			suite.evmParamsOption(&evmGenesis.Params)
 		}
-		genesis[evmtypes.ModuleName] = app.AppCodec().MustMarshalJSON(evmGenesis)
+		genesis[evmtypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(evmGenesis)
 		return genesis
 	})
 
-	suite.ctx = suite.app.BaseApp.NewContext(checkTx, tmproto.Header{Height: 1, ChainID: constants.TestnetFullChainId, Time: time.Now().UTC()})
+	suite.ctx = suite.app.BaseApp.NewContext(checkTx).WithBlockHeader(tmproto.Header{Height: 1, ChainID: constants.TestnetFullChainId, Time: time.Now().UTC()})
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(evmtypes.DefaultEVMDenom, sdkmath.OneInt())))
-	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1000000000000000000))
+	suite.ctx = suite.ctx.WithBlockGasMeter(storetypes.NewGasMeter(1000000000000000000))
 	suite.app.EvmKeeper.WithChainID(suite.ctx)
 
 	// set staking denomination to Evermint denom
-	params := suite.app.StakingKeeper.GetParams(suite.ctx)
+	params, err := suite.app.StakingKeeper.GetParams(suite.ctx)
+	suite.Require().NoError(err)
 	params.BondDenom = constants.BaseDenom
-	suite.app.StakingKeeper.SetParams(suite.ctx, params)
+	err = suite.app.StakingKeeper.SetParams(suite.ctx, params)
+	suite.Require().NoError(err)
 
-	infCtx := suite.ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
-	suite.app.AccountKeeper.SetParams(infCtx, authtypes.DefaultParams())
+	infCtx := suite.ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
+	err = suite.app.AccountKeeper.Params.Set(infCtx, authtypes.DefaultParams())
+	suite.Require().NoError(err)
 
 	encodingConfig := chainapp.RegisterEncodingConfig()
 	// We're using TestMsg amino encoding in some tests, so register it here.
@@ -93,9 +98,9 @@ func (suite *AnteTestSuite) SetupTest() {
 
 	anteHandler := ante.NewAnteHandler(ante.HandlerOptions{
 		Cdc:                suite.app.AppCodec(),
-		AccountKeeper:      suite.app.AccountKeeper,
+		AccountKeeper:      &suite.app.AccountKeeper,
 		BankKeeper:         suite.app.BankKeeper,
-		DistributionKeeper: suite.app.DistrKeeper,
+		DistributionKeeper: &suite.app.DistrKeeper,
 		EvmKeeper:          suite.app.EvmKeeper,
 		FeegrantKeeper:     suite.app.FeeGrantKeeper,
 		IBCKeeper:          suite.app.IBCKeeper,
@@ -108,7 +113,6 @@ func (suite *AnteTestSuite) SetupTest() {
 	suite.anteHandler = anteHandler
 	suite.ethSigner = types.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
 
-	var err error
 	suite.ctx, err = testutil.Commit(suite.ctx, suite.app, time.Second*0, nil)
 	suite.Require().NoError(err)
 }

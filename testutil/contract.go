@@ -24,86 +24,88 @@ import (
 // compiled contract data and constructor arguments
 func DeployContract(
 	ctx sdk.Context,
-	app *chainapp.Evermint,
+	chainApp *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	queryClientEvm evm.QueryClient,
 	contract evm.CompiledContract,
 	constructorArgs ...interface{},
-) (common.Address, error) {
-	chainID := app.EvmKeeper.ChainID()
+) (sdk.Context, common.Address, error) {
+	chainID := chainApp.EvmKeeper.ChainID()
 	from := common.BytesToAddress(priv.PubKey().Address().Bytes())
-	nonce := app.EvmKeeper.GetNonce(ctx, from)
+	nonce := chainApp.EvmKeeper.GetNonce(ctx, from)
 
 	ctorArgs, err := contract.ABI.Pack("", constructorArgs...)
 	if err != nil {
-		return common.Address{}, err
+		return ctx, common.Address{}, err
 	}
 
 	data := append(contract.Bin, ctorArgs...) //nolint:gocritic
 	gas, err := tx.GasLimit(ctx, from, data, queryClientEvm)
 	if err != nil {
-		return common.Address{}, err
+		return ctx, common.Address{}, err
 	}
 
 	msgEthereumTx := evm.NewTx(&evm.EvmTxArgs{
+		From:      from,
 		ChainID:   chainID,
 		Nonce:     nonce,
 		GasLimit:  gas,
-		GasFeeCap: app.FeeMarketKeeper.GetBaseFee(ctx),
+		GasFeeCap: chainApp.FeeMarketKeeper.GetBaseFee(ctx),
 		GasTipCap: big.NewInt(1),
 		Input:     data,
 		Accesses:  &ethtypes.AccessList{},
 	})
-	msgEthereumTx.From = from.String()
 
-	res, err := DeliverEthTx(app, priv, msgEthereumTx)
+	newCtx, res, err := DeliverEthTx(ctx, chainApp, priv, msgEthereumTx)
+	ctx = newCtx
 	if err != nil {
-		return common.Address{}, err
+		return ctx, common.Address{}, err
 	}
 
-	if _, err := CheckEthTxResponse(res, app.AppCodec()); err != nil {
-		return common.Address{}, err
+	if _, err := CheckEthTxResponse(res, chainApp.AppCodec()); err != nil {
+		return ctx, common.Address{}, err
 	}
 
-	return crypto.CreateAddress(from, nonce), nil
+	return ctx, crypto.CreateAddress(from, nonce), nil
 }
 
 // DeployContractWithFactory deploys a contract using a contract factory
 // with the provided factoryAddress
 func DeployContractWithFactory(
 	ctx sdk.Context,
-	app *chainapp.Evermint,
+	chainApp *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	factoryAddress common.Address,
-) (common.Address, abci.ResponseDeliverTx, error) {
-	chainID := app.EvmKeeper.ChainID()
+) (sdk.Context, common.Address, abci.ExecTxResult, error) {
+	chainID := chainApp.EvmKeeper.ChainID()
 	from := common.BytesToAddress(priv.PubKey().Address().Bytes())
-	factoryNonce := app.EvmKeeper.GetNonce(ctx, factoryAddress)
-	nonce := app.EvmKeeper.GetNonce(ctx, from)
+	factoryNonce := chainApp.EvmKeeper.GetNonce(ctx, factoryAddress)
+	nonce := chainApp.EvmKeeper.GetNonce(ctx, from)
 
 	msgEthereumTx := evm.NewTx(&evm.EvmTxArgs{
+		From:     from,
 		ChainID:  chainID,
 		Nonce:    nonce,
 		To:       &factoryAddress,
 		GasLimit: uint64(100000),
 		GasPrice: big.NewInt(1000000000),
 	})
-	msgEthereumTx.From = from.String()
 
-	res, err := DeliverEthTx(app, priv, msgEthereumTx)
+	newCtx, res, err := DeliverEthTx(ctx, chainApp, priv, msgEthereumTx)
+	ctx = newCtx
 	if err != nil {
-		return common.Address{}, abci.ResponseDeliverTx{}, err
+		return ctx, common.Address{}, abci.ExecTxResult{}, err
 	}
 
-	if _, err := CheckEthTxResponse(res, app.AppCodec()); err != nil {
-		return common.Address{}, abci.ResponseDeliverTx{}, err
+	if _, err := CheckEthTxResponse(res, chainApp.AppCodec()); err != nil {
+		return ctx, common.Address{}, abci.ExecTxResult{}, err
 	}
 
-	return crypto.CreateAddress(factoryAddress, factoryNonce), res, err
+	return ctx, crypto.CreateAddress(factoryAddress, factoryNonce), res, err
 }
 
 // CheckEthTxResponse checks that the transaction was executed successfully
-func CheckEthTxResponse(r abci.ResponseDeliverTx, cdc codec.Codec) (*evm.MsgEthereumTxResponse, error) {
+func CheckEthTxResponse(r abci.ExecTxResult, cdc codec.Codec) (*evm.MsgEthereumTxResponse, error) {
 	if !r.IsOK() {
 		return nil, fmt.Errorf("tx failed. Code: %d, Logs: %s", r.Code, r.Log)
 	}

@@ -7,14 +7,14 @@ import (
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 
+	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/EscanBE/evermint/v12/indexer"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
+	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -30,13 +30,13 @@ func TestKVIndexer(t *testing.T) {
 
 	to := common.BigToAddress(big.NewInt(1))
 	ethTxParams := evmtypes.EvmTxArgs{
+		From:     from,
 		Nonce:    0,
 		To:       &to,
 		Amount:   big.NewInt(1000),
 		GasLimit: 21000,
 	}
 	tx := evmtypes.NewTx(&ethTxParams)
-	tx.From = from.Hex()
 	require.NoError(t, tx.Sign(ethSigner, signer))
 	txHash := tx.AsTransaction().Hash()
 
@@ -44,28 +44,28 @@ func TestKVIndexer(t *testing.T) {
 	clientCtx := client.Context{}.WithTxConfig(encodingConfig.TxConfig).WithCodec(encodingConfig.Codec)
 
 	// build cosmos-sdk wrapper tx
-	tmTx, err := tx.BuildTx(clientCtx.TxConfig.NewTxBuilder(), constants.BaseDenom)
+	cometTx, err := tx.BuildTx(clientCtx.TxConfig.NewTxBuilder(), constants.BaseDenom)
 	require.NoError(t, err)
-	txBz, err := clientCtx.TxConfig.TxEncoder()(tmTx)
+	txBz, err := clientCtx.TxConfig.TxEncoder()(cometTx)
 	require.NoError(t, err)
 
 	// build an invalid wrapper tx
 	builder := clientCtx.TxConfig.NewTxBuilder()
 	require.NoError(t, builder.SetMsgs(tx))
-	tmTx2 := builder.GetTx()
-	txBz2, err := clientCtx.TxConfig.TxEncoder()(tmTx2)
+	cometTx2 := builder.GetTx()
+	txBz2, err := clientCtx.TxConfig.TxEncoder()(cometTx2)
 	require.NoError(t, err)
 
 	testCases := []struct {
 		name        string
-		block       *tmtypes.Block
-		blockResult []*abci.ResponseDeliverTx
+		block       *cmttypes.Block
+		blockResult []*abci.ExecTxResult
 		expSuccess  bool
 	}{
 		{
 			name:  "success",
-			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			blockResult: []*abci.ResponseDeliverTx{
+			block: &cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
+			blockResult: []*abci.ExecTxResult{
 				{
 					Code: 0,
 					Events: []abci.Event{
@@ -81,7 +81,7 @@ func TestKVIndexer(t *testing.T) {
 							Attributes: []abci.EventAttribute{
 								{Key: evmtypes.AttributeKeyReceiptEvmTxHash, Value: txHash.Hex()},
 								{Key: evmtypes.AttributeKeyReceiptTxIndex, Value: "0"},
-								{Key: evmtypes.AttributeKeyReceiptTendermintTxHash, Value: "14A84ED06282645EFBF080E0B7ED80D8D8D6A36337668A12B5F229F81CDD3F57"},
+								{Key: evmtypes.AttributeKeyReceiptCometBFTTxHash, Value: "14A84ED06282645EFBF080E0B7ED80D8D8D6A36337668A12B5F229F81CDD3F57"},
 							},
 						},
 					},
@@ -91,8 +91,8 @@ func TestKVIndexer(t *testing.T) {
 		},
 		{
 			name:  "success, exceed block gas limit",
-			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			blockResult: []*abci.ResponseDeliverTx{
+			block: &cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
+			blockResult: []*abci.ExecTxResult{
 				{
 					Code: 11,
 					Log:  "out of gas in location: block gas meter; gasWanted: 21000",
@@ -111,8 +111,8 @@ func TestKVIndexer(t *testing.T) {
 		},
 		{
 			name:  "fail, failed eth tx",
-			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			blockResult: []*abci.ResponseDeliverTx{
+			block: &cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
+			blockResult: []*abci.ExecTxResult{
 				{
 					Code:   15,
 					Log:    "nonce mismatch",
@@ -123,8 +123,8 @@ func TestKVIndexer(t *testing.T) {
 		},
 		{
 			name:  "fail, no events (simulate case tx aborted before ante, due to block gas maxed out)",
-			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz}}},
-			blockResult: []*abci.ResponseDeliverTx{
+			block: &cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
+			blockResult: []*abci.ExecTxResult{
 				{
 					Code:   0,
 					Events: []abci.Event{},
@@ -134,8 +134,8 @@ func TestKVIndexer(t *testing.T) {
 		},
 		{
 			name:  "fail, not eth tx",
-			block: &tmtypes.Block{Header: tmtypes.Header{Height: 1}, Data: tmtypes.Data{Txs: []tmtypes.Tx{txBz2}}},
-			blockResult: []*abci.ResponseDeliverTx{
+			block: &cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz2}}},
+			blockResult: []*abci.ExecTxResult{
 				{
 					Code:   0,
 					Events: []abci.Event{},
@@ -147,7 +147,7 @@ func TestKVIndexer(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			db := dbm.NewMemDB()
+			db := sdkdb.NewMemDB()
 			idxer := indexer.NewKVIndexer(db, log.NewNopLogger(), clientCtx)
 
 			err = idxer.IndexBlock(tc.block, tc.blockResult)

@@ -72,16 +72,16 @@ func TestKeeperTestSuite(t *testing.T) {
 	RunSpecs(t, "Keeper Suite")
 }
 
+const chainID = constants.TestnetFullChainId
+
 func (suite *KeeperTestSuite) SetupTest() {
 	checkTx := false
-	chainID := constants.TestnetFullChainId
 	suite.app = helpers.Setup(checkTx, nil, chainID)
 	suite.SetupApp(checkTx)
 }
 
 func (suite *KeeperTestSuite) SetupTestWithT(t require.TestingT) {
 	checkTx := false
-	chainID := constants.TestnetFullChainId
 	suite.app = helpers.Setup(checkTx, nil, chainID)
 	suite.SetupAppWithT(checkTx, t)
 }
@@ -106,7 +106,7 @@ func (suite *KeeperTestSuite) SetupAppWithT(checkTx bool, t require.TestingT) {
 	require.NoError(t, err)
 	suite.consAddress = sdk.ConsAddress(priv.PubKey().Address())
 
-	suite.app = helpers.EthSetup(checkTx, func(app *chainapp.Evermint, genesis chainapp.GenesisState) chainapp.GenesisState {
+	suite.app = helpers.EthSetup(checkTx, func(chainApp *chainapp.Evermint, genesis chainapp.GenesisState) chainapp.GenesisState {
 		feemarketGenesis := feemarkettypes.DefaultGenesisState()
 		if suite.enableFeemarket {
 			feemarketGenesis.Params.NoBaseFee = false
@@ -114,7 +114,7 @@ func (suite *KeeperTestSuite) SetupAppWithT(checkTx bool, t require.TestingT) {
 			feemarketGenesis.Params.NoBaseFee = true
 			feemarketGenesis.Params.BaseFee = nil
 		}
-		genesis[feemarkettypes.ModuleName] = app.AppCodec().MustMarshalJSON(feemarketGenesis)
+		genesis[feemarkettypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(feemarketGenesis)
 		if !suite.enableLondonHF {
 			evmGenesis := evmtypes.DefaultGenesisState()
 			maxInt := sdkmath.NewInt(math.MaxInt64)
@@ -124,7 +124,7 @@ func (suite *KeeperTestSuite) SetupAppWithT(checkTx bool, t require.TestingT) {
 			evmGenesis.Params.ChainConfig.MergeNetsplitBlock = &maxInt
 			evmGenesis.Params.ChainConfig.ShanghaiBlock = &maxInt
 			evmGenesis.Params.ChainConfig.CancunBlock = &maxInt
-			genesis[evmtypes.ModuleName] = app.AppCodec().MustMarshalJSON(evmGenesis)
+			genesis[evmtypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(evmGenesis)
 		}
 		return genesis
 	})
@@ -151,42 +151,44 @@ func (suite *KeeperTestSuite) SetupAppWithT(checkTx bool, t require.TestingT) {
 		require.NoError(t, err)
 
 		// Initialize the chain
-		suite.app.InitChain(
-			abci.RequestInitChain{
-				ChainId:         constants.TestnetFullChainId,
+		_, err = suite.app.InitChain(
+			&abci.RequestInitChain{
+				ChainId:         chainID,
 				Validators:      []abci.ValidatorUpdate{},
 				ConsensusParams: helpers.DefaultConsensusParams,
 				AppStateBytes:   stateBytes,
 			},
 		)
+		suite.Require().NoError(err)
 	}
 
 	header := testutil.NewHeader(
-		1, time.Now().UTC(), constants.TestnetFullChainId, suite.consAddress,
+		1, time.Now().UTC(), chainID, suite.consAddress,
 		tmhash.Sum([]byte("app")), tmhash.Sum([]byte("validators")),
 	)
-	suite.ctx = suite.app.NewContext(checkTx, header)
+	suite.ctx = suite.app.NewContext(checkTx).WithBlockHeader(header).WithChainID(chainID)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
 	evmtypes.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
 	suite.queryClient = evmtypes.NewQueryClient(queryHelper)
 
-	acc := authtypes.NewBaseAccount(suite.address.Bytes(), nil, 0, 0)
-
+	acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, suite.address.Bytes())
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 	valAddr := sdk.ValAddress(suite.address.Bytes())
-	validator, err := stakingtypes.NewValidator(valAddr, priv.PubKey(), stakingtypes.Description{})
+	validator, err := stakingtypes.NewValidator(valAddr.String(), priv.PubKey(), stakingtypes.Description{})
 	require.NoError(t, err)
 	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
 	require.NoError(t, err)
 	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
 	require.NoError(t, err)
-	suite.app.StakingKeeper.SetValidator(suite.ctx, validator)
+	err = suite.app.StakingKeeper.SetValidator(suite.ctx, validator)
+	suite.Require().NoError(err)
 
 	stakingParams := stakingtypes.DefaultParams()
 	stakingParams.BondDenom = constants.BaseDenom
-	suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
+	err = suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
+	suite.Require().NoError(err)
 
 	encodingConfig := chainapp.RegisterEncodingConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)

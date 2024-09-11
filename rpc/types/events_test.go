@@ -16,12 +16,12 @@ func TestParseTxResult(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		response abci.ResponseDeliverTx
+		response abci.ExecTxResult
 		expTx    *ParsedTx // expected parse result, nil means expect error.
 	}{
 		{
 			"with receipt",
-			abci.ResponseDeliverTx{
+			abci.ExecTxResult{
 				GasUsed: 21000,
 				Events: []abci.Event{
 					{Type: "coin_received", Attributes: []abci.EventAttribute{
@@ -39,7 +39,7 @@ func TestParseTxResult(t *testing.T) {
 					{Type: evmtypes.EventTypeTxReceipt, Attributes: []abci.EventAttribute{
 						{Key: evmtypes.AttributeKeyReceiptEvmTxHash, Value: txHash.Hex()},
 						{Key: evmtypes.AttributeKeyReceiptTxIndex, Value: "0"},
-						{Key: evmtypes.AttributeKeyReceiptTendermintTxHash, Value: "14A84ED06282645EFBF080E0B7ED80D8D8D6A36337668A12B5F229F81CDD3F57"},
+						{Key: evmtypes.AttributeKeyReceiptCometBFTTxHash, Value: "14A84ED06282645EFBF080E0B7ED80D8D8D6A36337668A12B5F229F81CDD3F57"},
 					}},
 					{Type: "message", Attributes: []abci.EventAttribute{
 						{Key: "action", Value: "/ethermint.evm.v1.MsgEthereumTx"},
@@ -57,7 +57,7 @@ func TestParseTxResult(t *testing.T) {
 		},
 		{
 			"tx failed without receipt",
-			abci.ResponseDeliverTx{
+			abci.ExecTxResult{
 				GasUsed: 21000,
 				Events: []abci.Event{
 					{

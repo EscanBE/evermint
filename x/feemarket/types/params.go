@@ -4,13 +4,17 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
 )
 
-// DefaultMinGasPrice is 0 (i.e disabled)
-var DefaultMinGasPrice = sdkmath.LegacyZeroDec()
+var (
+	// DefaultBaseFee is 1B wei (1 Gwei)
+	DefaultBaseFee uint64 = ethparams.InitialBaseFee
+
+	// DefaultMinGasPrice is 1B wei (1 Gwei)
+	DefaultMinGasPrice = sdkmath.LegacyNewDec(1_000_000_000)
+)
 
 // Parameter keys
 var (
@@ -20,7 +24,10 @@ var (
 	ParamStoreKeyMinGasPrice = []byte("MinGasPrice")
 )
 
-// ParamKeyTable returns the parameter key table.
+// Deprecated: ParamKeyTable returns the parameter key table.
+// Usage of x/params to manage parameters is deprecated in favor of x/gov
+// controlled execution of MsgUpdateParams messages. These types remain solely
+// for migration purposes and will be removed in a future release.
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
@@ -38,7 +45,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 func NewParams(
 	noBaseFee bool,
 	baseFee uint64,
-	minGasPrice sdk.Dec,
+	minGasPrice sdkmath.LegacyDec,
 ) Params {
 	baseFeeSdkInt := sdkmath.NewIntFromUint64(baseFee)
 	return Params{
@@ -52,7 +59,7 @@ func NewParams(
 func DefaultParams() Params {
 	return NewParams(
 		false,
-		ethparams.InitialBaseFee,
+		DefaultBaseFee,
 		DefaultMinGasPrice,
 	)
 }
@@ -89,7 +96,7 @@ func validateBool(i interface{}) error {
 }
 
 func validateMinGasPrice(i interface{}) error {
-	v, ok := i.(sdk.Dec)
+	v, ok := i.(sdkmath.LegacyDec)
 
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

@@ -9,11 +9,11 @@ import (
 	"github.com/EscanBE/evermint/v12/rpc/types"
 	"github.com/cosmos/cosmos-sdk/client"
 
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 
-	coretypes "github.com/cometbft/cometbft/rpc/core/types"
-	rpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmtjrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -39,11 +39,11 @@ type Backend interface {
 	GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (map[string]interface{}, error)
 	HeaderByNumber(blockNum types.BlockNumber) (*ethtypes.Header, error)
 	HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error)
-	TendermintBlockByHash(hash common.Hash) (*coretypes.ResultBlock, error)
-	TendermintBlockResultByNumber(height *int64) (*coretypes.ResultBlockResults, error)
+	CometBFTBlockByHash(hash common.Hash) (*cmtrpctypes.ResultBlock, error)
+	CometBFTBlockResultByNumber(height *int64) (*cmtrpctypes.ResultBlockResults, error)
 	GetLogs(blockHash common.Hash) ([][]*ethtypes.Log, error)
 	GetLogsByHeight(*int64) ([][]*ethtypes.Log, error)
-	BlockBloom(blockRes *coretypes.ResultBlockResults) ethtypes.Bloom
+	BlockBloom(blockRes *cmtrpctypes.ResultBlockResults) ethtypes.Bloom
 
 	BloomStatus() (uint64, uint64)
 
@@ -78,14 +78,14 @@ type PublicFilterAPI struct {
 }
 
 // NewPublicAPI returns a new PublicFilterAPI instance.
-func NewPublicAPI(logger log.Logger, clientCtx client.Context, tmWSClient *rpcclient.WSClient, backend Backend) *PublicFilterAPI {
+func NewPublicAPI(logger log.Logger, clientCtx client.Context, cometWSClient *cmtjrpcclient.WSClient, backend Backend) *PublicFilterAPI {
 	logger = logger.With("api", "filter")
 	api := &PublicFilterAPI{
 		logger:    logger,
 		clientCtx: clientCtx,
 		backend:   backend,
 		filters:   make(map[rpc.ID]*filter),
-		events:    NewEventSystem(logger, tmWSClient),
+		events:    NewEventSystem(logger, cometWSClient),
 	}
 
 	go api.timeoutLoop()
@@ -144,7 +144,7 @@ func (api *PublicFilterAPI) NewPendingTransactionFilter() rpc.ID {
 		s:        pendingTxSub,
 	}
 
-	go func(txsCh <-chan coretypes.ResultEvent, errCh <-chan error) {
+	go func(txsCh <-chan cmtrpctypes.ResultEvent, errCh <-chan error) {
 		defer cancelSubs()
 
 		for {
@@ -157,7 +157,7 @@ func (api *PublicFilterAPI) NewPendingTransactionFilter() rpc.ID {
 					return
 				}
 
-				data, ok := ev.Data.(tmtypes.EventDataTx)
+				data, ok := ev.Data.(cmttypes.EventDataTx)
 				if !ok {
 					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", ev.Data))
 					continue
@@ -208,7 +208,7 @@ func (api *PublicFilterAPI) NewPendingTransactions(ctx context.Context) (*rpc.Su
 		return nil, err
 	}
 
-	go func(txsCh <-chan coretypes.ResultEvent) {
+	go func(txsCh <-chan cmtrpctypes.ResultEvent) {
 		defer cancelSubs()
 
 		for {
@@ -221,7 +221,7 @@ func (api *PublicFilterAPI) NewPendingTransactions(ctx context.Context) (*rpc.Su
 					return
 				}
 
-				data, ok := ev.Data.(tmtypes.EventDataTx)
+				data, ok := ev.Data.(cmttypes.EventDataTx)
 				if !ok {
 					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", ev.Data))
 					continue
@@ -270,7 +270,7 @@ func (api *PublicFilterAPI) NewBlockFilter() rpc.ID {
 
 	api.filters[headerSub.ID()] = &filter{typ: filters.BlocksSubscription, deadline: time.NewTimer(deadline), hashes: []common.Hash{}, s: headerSub}
 
-	go func(headersCh <-chan coretypes.ResultEvent, errCh <-chan error) {
+	go func(headersCh <-chan cmtrpctypes.ResultEvent, errCh <-chan error) {
 		defer cancelSubs()
 
 		for {
@@ -283,7 +283,7 @@ func (api *PublicFilterAPI) NewBlockFilter() rpc.ID {
 					return
 				}
 
-				data, ok := ev.Data.(tmtypes.EventDataNewBlockHeader)
+				data, ok := ev.Data.(cmttypes.EventDataNewBlockHeader)
 				if !ok {
 					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", ev.Data))
 					continue
@@ -321,7 +321,7 @@ func (api *PublicFilterAPI) NewHeads(ctx context.Context) (*rpc.Subscription, er
 		return &rpc.Subscription{}, err
 	}
 
-	go func(headersCh <-chan coretypes.ResultEvent) {
+	go func(headersCh <-chan cmtrpctypes.ResultEvent) {
 		defer cancelSubs()
 
 		for {
@@ -332,16 +332,16 @@ func (api *PublicFilterAPI) NewHeads(ctx context.Context) (*rpc.Subscription, er
 					return
 				}
 
-				data, ok := ev.Data.(tmtypes.EventDataNewBlockHeader)
+				data, ok := ev.Data.(cmttypes.EventDataNewBlock)
 				if !ok {
 					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", ev.Data))
 					continue
 				}
 
-				baseFee := types.BaseFeeFromEvents(data.ResultBeginBlock.Events)
+				baseFee := types.BaseFeeFromEvents(data.ResultFinalizeBlock.Events)
 
-				// TODO: fetch bloom from events
-				header := types.EthHeaderFromTendermint(data.Header, ethtypes.Bloom{}, baseFee)
+				// TODO ES: fetch bloom from events
+				header := types.EthHeaderFromCometBFT(data.Block.Header, ethtypes.Bloom{}, baseFee)
 				_ = notifier.Notify(rpcSub.ID, header) // #nosec G703
 			case <-rpcSub.Err():
 				headersSub.Unsubscribe(api.events)
@@ -371,7 +371,7 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 		return &rpc.Subscription{}, err
 	}
 
-	go func(logsCh <-chan coretypes.ResultEvent) {
+	go func(logsCh <-chan cmtrpctypes.ResultEvent) {
 		defer cancelSubs()
 
 		for {
@@ -391,7 +391,7 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 				}
 
 				// get transaction result data
-				dataTx, ok := ev.Data.(tmtypes.EventDataTx)
+				dataTx, ok := ev.Data.(cmttypes.EventDataTx)
 				if !ok {
 					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", ev.Data))
 					continue
@@ -468,7 +468,7 @@ func (api *PublicFilterAPI) NewFilter(criteria filters.FilterCriteria) (rpc.ID, 
 		s:        logsSub,
 	}
 
-	go func(eventCh <-chan coretypes.ResultEvent) {
+	go func(eventCh <-chan cmtrpctypes.ResultEvent) {
 		defer cancelSubs()
 
 		for {
@@ -480,7 +480,7 @@ func (api *PublicFilterAPI) NewFilter(criteria filters.FilterCriteria) (rpc.ID, 
 					api.filtersMu.Unlock()
 					return
 				}
-				dataTx, ok := ev.Data.(tmtypes.EventDataTx)
+				dataTx, ok := ev.Data.(cmttypes.EventDataTx)
 				if !ok {
 					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", ev.Data))
 					continue

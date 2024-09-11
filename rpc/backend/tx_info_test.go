@@ -7,16 +7,16 @@ import (
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
+	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/indexer"
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
-	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
-	"github.com/cometbft/cometbft/types"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmttypes "github.com/cometbft/cometbft/types"
+	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -26,8 +26,8 @@ func (suite *BackendTestSuite) TestGetTransactionByHash() {
 	txHash := msgEthereumTx.AsTransaction().Hash()
 
 	txBz := suite.signAndEncodeEthTx(msgEthereumTx)
-	block := &types.Block{Header: types.Header{Height: 1, ChainID: "test"}, Data: types.Data{Txs: []types.Tx{txBz}}}
-	responseDeliver := []*abci.ResponseDeliverTx{
+	block := &cmttypes.Block{Header: cmttypes.Header{Height: 1, ChainID: "test"}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}}
+	responseDeliver := []*abci.ExecTxResult{
 		{
 			Code: 0,
 			Events: []abci.Event{
@@ -43,7 +43,7 @@ func (suite *BackendTestSuite) TestGetTransactionByHash() {
 					Attributes: []abci.EventAttribute{
 						{Key: evmtypes.AttributeKeyReceiptEvmTxHash, Value: txHash.Hex()},
 						{Key: evmtypes.AttributeKeyReceiptTxIndex, Value: "0"},
-						{Key: evmtypes.AttributeKeyReceiptTendermintTxHash, Value: ""},
+						{Key: evmtypes.AttributeKeyReceiptCometBFTTxHash, Value: ""},
 					},
 				},
 			},
@@ -118,7 +118,7 @@ func (suite *BackendTestSuite) TestGetTransactionByHash() {
 			suite.SetupTest() // reset
 			tc.registerMock()
 
-			db := dbm.NewMemDB()
+			db := sdkdb.NewMemDB()
 			suite.backend.indexer = indexer.NewKVIndexer(db, log.NewNopLogger(), suite.backend.clientCtx)
 			err := suite.backend.indexer.IndexBlock(block, responseDeliver)
 			suite.Require().NoError(err)
@@ -171,7 +171,7 @@ func (suite *BackendTestSuite) TestGetTransactionsByHashPending() {
 			"pass - Tx found and returned",
 			func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
-				RegisterUnconfirmedTxs(client, nil, types.Txs{bz})
+				RegisterUnconfirmedTxs(client, nil, cmttypes.Txs{bz})
 			},
 			msgEthereumTx,
 			rpcTransaction,
@@ -291,8 +291,8 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 	msgEthTx, _ := suite.buildEthereumTx()
 	msgEthTx, bz := suite.signMsgEthTx(msgEthTx)
 
-	defaultBlock := types.MakeBlock(1, []types.Tx{bz}, nil, nil)
-	defaultResponseDeliverTx := []*abci.ResponseDeliverTx{
+	defaultBlock := cmttypes.MakeBlock(1, []cmttypes.Tx{bz}, nil, nil)
+	defaultResponseDeliverTx := []*abci.ExecTxResult{
 		{
 			Code: 0,
 			Events: []abci.Event{
@@ -308,7 +308,7 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 					Attributes: []abci.EventAttribute{
 						{Key: evmtypes.AttributeKeyReceiptEvmTxHash, Value: common.HexToHash(msgEthTx.Hash).Hex()},
 						{Key: evmtypes.AttributeKeyReceiptTxIndex, Value: "0"},
-						{Key: evmtypes.AttributeKeyReceiptTendermintTxHash, Value: ""},
+						{Key: evmtypes.AttributeKeyReceiptCometBFTTxHash, Value: ""},
 					},
 				},
 			},
@@ -326,7 +326,7 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 	testCases := []struct {
 		name         string
 		registerMock func()
-		block        *tmrpctypes.ResultBlock
+		block        *cmtrpctypes.ResultBlock
 		idx          hexutil.Uint
 		expRPCTx     *rpctypes.RPCTransaction
 		expPass      bool
@@ -341,7 +341,7 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByBlockAndIndexError(indexer, 1, 1)
 			},
-			&tmrpctypes.ResultBlock{Block: types.MakeBlock(1, []types.Tx{bz}, nil, nil)},
+			&cmtrpctypes.ResultBlock{Block: cmttypes.MakeBlock(1, []cmttypes.Tx{bz}, nil, nil)},
 			1,
 			nil,
 			true,
@@ -358,7 +358,7 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByBlockAndIndex(indexer, 1, 0)
 			},
-			&tmrpctypes.ResultBlock{Block: defaultBlock},
+			&cmtrpctypes.ResultBlock{Block: defaultBlock},
 			0,
 			nil,
 			false,
@@ -368,10 +368,10 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 			func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
-				db := dbm.NewMemDB()
+				db := sdkdb.NewMemDB()
 				suite.backend.indexer = indexer.NewKVIndexer(db, log.NewNopLogger(), suite.backend.clientCtx)
 				txBz := suite.signAndEncodeEthTx(msgEthTx)
-				block := &types.Block{Header: types.Header{Height: 1, ChainID: "test"}, Data: types.Data{Txs: []types.Tx{txBz}}}
+				block := &cmttypes.Block{Header: cmttypes.Header{Height: 1, ChainID: "test"}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}}
 				err := suite.backend.indexer.IndexBlock(block, defaultResponseDeliverTx)
 				suite.Require().NoError(err)
 				suite.backend.indexer.Ready()
@@ -379,7 +379,7 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				suite.Require().NoError(err)
 				RegisterBaseFee(queryClient, sdkmath.NewInt(1))
 			},
-			&tmrpctypes.ResultBlock{Block: defaultBlock},
+			&cmtrpctypes.ResultBlock{Block: defaultBlock},
 			0,
 			txFromMsg,
 			true,
@@ -396,7 +396,7 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByBlockAndIndex(indexer, 1, 0)
 			},
-			&tmrpctypes.ResultBlock{Block: defaultBlock},
+			&cmtrpctypes.ResultBlock{Block: defaultBlock},
 			0,
 			txFromMsg,
 			true,
@@ -422,7 +422,7 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 
 func (suite *BackendTestSuite) TestGetTransactionByBlockNumberAndIndex() {
 	msgEthTx, bz := suite.buildEthereumTx()
-	defaultBlock := types.MakeBlock(1, []types.Tx{bz}, nil, nil)
+	defaultBlock := cmttypes.MakeBlock(1, []cmttypes.Tx{bz}, nil, nil)
 	txFromMsg, _ := rpctypes.NewTransactionFromMsg(
 		msgEthTx,
 		common.BytesToHash(defaultBlock.Hash().Bytes()),
@@ -540,18 +540,16 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 
 	testCases := []struct {
 		name         string
-		registerMock func() []*abci.ResponseDeliverTx
+		registerMock func() []*abci.ExecTxResult
 		tx           *evmtypes.MsgEthereumTx
-		block        *types.Block
+		block        *cmttypes.Block
 		expTxReceipt *rpctypes.RPCReceipt
 		expPass      bool
 	}{
 		{
 			name: "fail - Receipts do not match",
-			registerMock: func() []*abci.ResponseDeliverTx {
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
+			registerMock: func() []*abci.ExecTxResult {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
-				RegisterParamsWithoutHeader(queryClient, 1)
 				_, err := RegisterBlock(client, 1, txBz)
 				suite.Require().NoError(err)
 
@@ -563,16 +561,14 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 				return blockResWithReceipt.TxsResults
 			},
 			tx:           msgEthereumTx,
-			block:        &types.Block{Header: types.Header{Height: 1}, Data: types.Data{Txs: []types.Tx{txBz}}},
+			block:        &cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
 			expTxReceipt: (*rpctypes.RPCReceipt)(nil),
 			expPass:      false,
 		},
 		{
 			name: "pass - receipt match",
-			registerMock: func() []*abci.ResponseDeliverTx {
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
+			registerMock: func() []*abci.ExecTxResult {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
-				RegisterParamsWithoutHeader(queryClient, 1)
 				_, err := RegisterBlock(client, 1, txBz)
 				suite.Require().NoError(err)
 
@@ -582,13 +578,12 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 				return blockResWithReceipt.TxsResults
 			},
 			tx:    msgEthereumTx,
-			block: &types.Block{Header: types.Header{Height: 1}, Data: types.Data{Txs: []types.Tx{txBz}}},
+			block: &cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
 			expTxReceipt: func() *rpctypes.RPCReceipt {
 				rpcReceipt, err := rpctypes.NewRPCReceiptFromReceipt(
 					msgEthereumTx,
 					&receipt,
 					common.Big0, // effective gas price
-					msgEthereumTx.AsTransaction().ChainId(),
 				)
 				suite.Require().NoError(err)
 				return rpcReceipt
@@ -602,7 +597,7 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 			suite.SetupTest() // reset
 			responseDeliverTxs := tc.registerMock()
 
-			db := dbm.NewMemDB()
+			db := sdkdb.NewMemDB()
 			suite.backend.indexer = indexer.NewKVIndexer(db, log.NewNopLogger(), suite.backend.clientCtx)
 			err := suite.backend.indexer.IndexBlock(tc.block, responseDeliverTxs)
 			suite.Require().NoError(err)

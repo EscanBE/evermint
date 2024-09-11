@@ -3,14 +3,14 @@ package backend
 import (
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
 	ethrpc "github.com/EscanBE/evermint/v12/rpc/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 func (suite *BackendTestSuite) TestGetLogs() {
 	_, bz := suite.buildEthereumTx()
-	block := tmtypes.MakeBlock(1, []tmtypes.Tx{bz}, nil, nil)
+	block := cmttypes.MakeBlock(1, []cmttypes.Tx{bz}, nil, nil)
 
 	testCases := []struct {
 		name         string
@@ -52,7 +52,7 @@ func (suite *BackendTestSuite) TestGetLogs() {
 			false,
 		},
 		{
-			"success - getting logs with block hash",
+			"pass - getting logs with block hash",
 			func(hash common.Hash) {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				_, err := RegisterBlockByHash(client, hash, bz)

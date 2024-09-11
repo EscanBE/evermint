@@ -410,11 +410,12 @@ func (suite *ChainIntegrationTestSuite) prepareMsgEthereumTx(ctx sdk.Context, se
 	}
 
 	evmTxArgs := &evmtypes.EvmTxArgs{
+		From:      from,
 		ChainID:   suite.ChainApp.EvmKeeper().ChainID(),
 		Nonce:     suite.ChainApp.EvmKeeper().GetNonce(ctx, from),
 		GasLimit:  gas,
 		GasFeeCap: suite.ChainApp.FeeMarketKeeper().GetBaseFee(ctx),
-		GasTipCap: big.NewInt(1),
+		GasTipCap: common.Big1,
 		To:        to,
 		Amount:    amount,
 		Input:     inputCallData,
@@ -422,7 +423,6 @@ func (suite *ChainIntegrationTestSuite) prepareMsgEthereumTx(ctx sdk.Context, se
 	}
 
 	msgEthereumTx := evmtypes.NewTx(evmTxArgs)
-	msgEthereumTx.From = from.String()
 
 	return msgEthereumTx
 }

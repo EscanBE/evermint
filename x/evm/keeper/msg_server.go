@@ -13,13 +13,13 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	tmbytes "github.com/cometbft/cometbft/libs/bytes"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/hashicorp/go-metrics"
 
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
@@ -33,7 +33,7 @@ var _ evmtypes.MsgServer = &Keeper{}
 func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) (*evmtypes.MsgEthereumTxResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	sender := msg.From
+	senderAccAddr := sdk.MustAccAddressFromBech32(msg.From)
 	tx := msg.AsTransaction()
 	txIndex := k.GetTxCountTransient(ctx) - 1
 
@@ -79,9 +79,9 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 		}
 	}()
 
-	var tmTxHash *tmbytes.HexBytes
+	var cometTxHash *cmtbytes.HexBytes
 	if len(ctx.TxBytes()) > 0 {
-		tmTxHash = utils.Ptr[tmbytes.HexBytes](tmtypes.Tx(ctx.TxBytes()).Hash())
+		cometTxHash = utils.Ptr[cmtbytes.HexBytes](cmttypes.Tx(ctx.TxBytes()).Hash())
 	}
 
 	txData, err := evmtypes.UnpackTxData(msg.Data)
@@ -100,7 +100,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 	// supply the fields those are used in sdk event construction
 	receipt.TxHash = common.HexToHash(response.Hash)
 	if tx.To() == nil && !response.Failed() {
-		receipt.ContractAddress = crypto.CreateAddress(common.HexToAddress(sender), tx.Nonce())
+		receipt.ContractAddress = crypto.CreateAddress(common.BytesToAddress(senderAccAddr), tx.Nonce())
 	}
 	receipt.GasUsed = response.GasUsed
 	receipt.BlockNumber = big.NewInt(ctx.BlockHeight())
@@ -115,7 +115,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 			}
 			return nil
 		}(),
-		tmTxHash,
+		cometTxHash,
 	)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to get sdk event for receipt")
@@ -127,7 +127,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, evmtypes.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, sender),
+			sdk.NewAttribute(sdk.AttributeKeySender, senderAccAddr.String()),
 		),
 	})
 

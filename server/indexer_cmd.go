@@ -6,9 +6,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/EscanBE/evermint/v12/indexer"
-	tmnode "github.com/cometbft/cometbft/node"
+	cmtcfg "github.com/cometbft/cometbft/config"
 	sm "github.com/cometbft/cometbft/state"
-	tmstore "github.com/cometbft/cometbft/store"
+	cmtstore "github.com/cometbft/cometbft/store"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 )
@@ -47,14 +47,14 @@ func NewIndexTxCmd() *cobra.Command {
 			}
 			idxer := indexer.NewKVIndexer(idxDB, logger.With("module", "evmindex"), clientCtx)
 
-			// open local tendermint db, because the local rpc won't be available.
-			tmdb, err := tmnode.DefaultDBProvider(&tmnode.DBContext{ID: "blockstore", Config: cfg})
+			// open local CometBFT db, because the local rpc won't be available.
+			tmdb, err := cmtcfg.DefaultDBProvider(&cmtcfg.DBContext{ID: "blockstore", Config: cfg})
 			if err != nil {
 				return err
 			}
-			blockStore := tmstore.NewBlockStore(tmdb)
+			blockStore := cmtstore.NewBlockStore(tmdb)
 
-			stateDB, err := tmnode.DefaultDBProvider(&tmnode.DBContext{ID: "state", Config: cfg})
+			stateDB, err := cmtcfg.DefaultDBProvider(&cmtcfg.DBContext{ID: "state", Config: cfg})
 			if err != nil {
 				return err
 			}
@@ -67,11 +67,11 @@ func NewIndexTxCmd() *cobra.Command {
 				if blk == nil {
 					return fmt.Errorf("block not found %d", height)
 				}
-				resBlk, err := stateStore.LoadABCIResponses(height)
+				resBlk, err := stateStore.LoadFinalizeBlockResponse(height)
 				if err != nil {
 					return err
 				}
-				if err := idxer.IndexBlock(blk, resBlk.DeliverTxs); err != nil {
+				if err := idxer.IndexBlock(blk, resBlk.TxResults); err != nil {
 					return err
 				}
 				fmt.Println(height)

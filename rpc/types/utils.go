@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"math/big"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/utils"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
-	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
+	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/pkg/errors"
 
@@ -28,7 +30,7 @@ import (
 )
 
 // RawTxToEthTx returns a evm MsgEthereum transaction from raw tx bytes.
-func RawTxToEthTx(clientCtx client.Context, txBz tmtypes.Tx) ([]*evmtypes.MsgEthereumTx, error) {
+func RawTxToEthTx(clientCtx client.Context, txBz cmttypes.Tx) ([]*evmtypes.MsgEthereumTx, error) {
 	tx, err := clientCtx.TxConfig.TxDecoder()(txBz)
 	if err != nil {
 		return nil, errorsmod.Wrap(errortypes.ErrJSONUnmarshal, err.Error())
@@ -46,9 +48,9 @@ func RawTxToEthTx(clientCtx client.Context, txBz tmtypes.Tx) ([]*evmtypes.MsgEth
 	return ethTxs, nil
 }
 
-// EthHeaderFromTendermint is an util function that returns an Ethereum Header
-// from a tendermint Header.
-func EthHeaderFromTendermint(header tmtypes.Header, bloom ethtypes.Bloom, baseFee *big.Int) *ethtypes.Header {
+// EthHeaderFromCometBFT is an util function that returns an Ethereum Header
+// from a CometBFT Header.
+func EthHeaderFromCometBFT(header cmttypes.Header, bloom ethtypes.Bloom, baseFee *big.Int) *ethtypes.Header {
 	txHash := ethtypes.EmptyRootHash
 	if len(header.DataHash) == 0 {
 		txHash = common.BytesToHash(header.DataHash)
@@ -77,7 +79,7 @@ func EthHeaderFromTendermint(header tmtypes.Header, bloom ethtypes.Bloom, baseFe
 
 // BlockMaxGasFromConsensusParams returns the gas limit for the current block from the chain consensus params.
 func BlockMaxGasFromConsensusParams(goCtx context.Context, clientCtx client.Context, blockHeight int64) (int64, error) {
-	tmrpcClient, ok := clientCtx.Client.(tmrpcclient.Client)
+	tmrpcClient, ok := clientCtx.Client.(cmtrpcclient.Client)
 	if !ok {
 		panic("incorrect tm rpc client")
 	}
@@ -98,10 +100,10 @@ func BlockMaxGasFromConsensusParams(goCtx context.Context, clientCtx client.Cont
 	return gasLimit, nil
 }
 
-// FormatBlock creates an ethereum block from a tendermint header and ethereum-formatted
+// FormatBlock creates an ethereum block from a CometBFT header and ethereum-formatted
 // transactions.
 func FormatBlock(
-	header tmtypes.Header,
+	header cmttypes.Header,
 	chainID *big.Int,
 	size int,
 	gasLimit int64, gasUsed *big.Int, baseFee *big.Int,
@@ -157,7 +159,7 @@ func FormatBlock(
 		"hash":             hexutil.Bytes(header.Hash()),
 		"parentHash":       common.BytesToHash(header.LastBlockID.Hash.Bytes()),
 		"nonce":            ethtypes.BlockNonce{},   // PoW specific
-		"sha3Uncles":       ethtypes.EmptyUncleHash, // No uncles in Tendermint
+		"sha3Uncles":       ethtypes.EmptyUncleHash, // No uncles in CometBFT
 		"logsBloom":        bloom,
 		"stateRoot":        hexutil.Bytes(header.AppHash),
 		"miner":            validatorAddr,
@@ -261,13 +263,8 @@ func NewRPCReceiptFromReceipt(
 	ethMsg *evmtypes.MsgEthereumTx,
 	ethReceipt *ethtypes.Receipt,
 	effectiveGasPrice *big.Int,
-	chainID *big.Int,
 ) (receipt *RPCReceipt, err error) {
-	from, err := ethMsg.GetSender(chainID)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get sender")
-	}
-
+	from := common.BytesToAddress(sdk.MustAccAddressFromBech32(ethMsg.From))
 	txData, err := evmtypes.UnpackTxData(ethMsg.Data)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to unpack tx data")

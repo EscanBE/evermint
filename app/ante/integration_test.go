@@ -44,9 +44,10 @@ var _ = Describe("when sending a Cosmos transaction", func() {
 		})
 
 		It("should succeed", func() {
-			res, err := testutil.DeliverTx(s.ctx, s.app, priv, nil, msg)
+			ctx, res, err := testutil.DeliverTx(s.ctx, s.app, priv, nil, msg)
 			Expect(err).To(BeNil())
 			Expect(res.IsOK()).To(BeTrue())
+			s.ctx = ctx
 		})
 	})
 
@@ -62,7 +63,7 @@ var _ = Describe("when sending a Cosmos transaction", func() {
 		})
 
 		It("should fail", func() {
-			res, err := testutil.DeliverTx(s.ctx, s.app, priv, nil, msg)
+			_, res, err := testutil.DeliverTx(s.ctx, s.app, priv, nil, msg)
 			Expect(res.IsOK()).To(BeTrue())
 			Expect(err).To(HaveOccurred())
 		})

@@ -3,6 +3,10 @@ package cosmos
 import (
 	"fmt"
 
+	txsigning "cosmossdk.io/x/tx/signing"
+
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
@@ -20,8 +24,6 @@ import (
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
-
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
 var evermintCodec codec.ProtoCodecMarshaler
@@ -39,14 +41,14 @@ func init() {
 // CONTRACT: Pubkeys are set in context for all signers before this decorator runs
 // CONTRACT: Tx must implement SigVerifiableTx interface
 type LegacyEip712SigVerificationDecorator struct {
-	ak              evmtypes.AccountKeeper
-	signModeHandler authsigning.SignModeHandler
+	ak              authkeeper.AccountKeeper
+	signModeHandler *txsigning.HandlerMap
 }
 
 // Deprecated: NewLegacyEip712SigVerificationDecorator creates a new LegacyEip712SigVerificationDecorator
 func NewLegacyEip712SigVerificationDecorator(
-	ak evmtypes.AccountKeeper,
-	signModeHandler authsigning.SignModeHandler,
+	ak authkeeper.AccountKeeper,
+	signModeHandler *txsigning.HandlerMap,
 ) LegacyEip712SigVerificationDecorator {
 	return LegacyEip712SigVerificationDecorator{
 		ak:              ak,
@@ -83,7 +85,10 @@ func (svd LegacyEip712SigVerificationDecorator) AnteHandle(ctx sdk.Context,
 		return ctx, err
 	}
 
-	signerAddrs := sigTx.GetSigners()
+	signerAddrs, err := sigTx.GetSigners()
+	if err != nil {
+		return ctx, errorsmod.Wrap(err, "failed to get signer")
+	}
 
 	// EIP712 allows just one signature
 	if len(sigs) != 1 {
@@ -155,7 +160,7 @@ func VerifySignature(
 	pubKey cryptotypes.PubKey,
 	signerData authsigning.SignerData,
 	sigData signing.SignatureData,
-	_ authsigning.SignModeHandler,
+	_ *txsigning.HandlerMap,
 	tx authsigning.Tx,
 ) error {
 	switch data := sigData.(type) {
@@ -186,7 +191,8 @@ func VerifySignature(
 				Amount: tx.GetFee(),
 				Gas:    tx.GetGas(),
 			},
-			msgs, tx.GetMemo(), tx.GetTip(),
+			msgs,
+			tx.GetMemo(),
 		)
 
 		signerChainID, err := evertypes.ParseChainID(signerData.ChainID)

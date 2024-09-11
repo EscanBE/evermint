@@ -5,8 +5,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type ParamsTestSuite struct {
@@ -131,7 +129,7 @@ func (suite *ParamsTestSuite) TestParamsValidatePriv() {
 	suite.Require().Error(validateBaseFee(int64(2000000000)))
 	suite.Require().Error(validateBaseFee(sdkmath.NewInt(-2000000000)))
 	suite.Require().NoError(validateBaseFee(sdkmath.NewInt(2000000000)))
-	suite.Require().Error(validateMinGasPrice(sdk.Dec{}))
+	suite.Require().Error(validateMinGasPrice(sdkmath.LegacyDec{}))
 }
 
 func (suite *ParamsTestSuite) TestParamsValidateMinGasPrice() {

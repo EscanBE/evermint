@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/rename_chain/marker"
@@ -24,12 +26,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func init() {
+	cfg := sdk.GetConfig()
+	cmdcfg.SetBech32Prefixes(cfg)
+	cmdcfg.SetBip44CoinType(cfg)
+}
+
 // Testing Constants
 var (
-	chainID = constants.TestnetFullChainId
-	ctx     = client.Context{}.WithTxConfig(
-		chainapp.RegisterEncodingConfig().TxConfig,
-	)
+	chainID        = constants.TestnetFullChainId
+	encodingConfig = chainapp.RegisterEncodingConfig()
+	ctx            = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 )
 var feePayerAddress = marker.ReplaceAbleAddress("evm17xpfvakm2amg962yls6f84z3kell8c5lcryk68")
 
@@ -45,8 +52,6 @@ type TestCaseStruct struct {
 
 func TestLedgerPreprocessing(t *testing.T) {
 	// Update bech32 prefix
-	sdk.GetConfig().SetBech32PrefixForAccount(constants.Bech32Prefix, "")
-
 	testCases := []TestCaseStruct{
 		createBasicTestCase(t),
 		createPopulatedTestCase(t),
@@ -93,10 +98,12 @@ func TestLedgerPreprocessing(t *testing.T) {
 		// Verify tx fields are unchanged
 		tx := tc.txBuilder.GetTx()
 
-		require.Equal(t, tx.FeePayer().String(), tc.expectedFeePayer)
-		require.Equal(t, tx.GetGas(), tc.expectedGas)
-		require.Equal(t, tx.GetFee().AmountOf(constants.BaseDenom), tc.expectedFee)
-		require.Equal(t, tx.GetMemo(), tc.expectedMemo)
+		feePayer, err := encodingConfig.TxConfig.SigningContext().AddressCodec().BytesToString(tx.FeePayer())
+		require.NoError(t, err)
+		require.Equal(t, tc.expectedFeePayer, feePayer)
+		require.Equal(t, tc.expectedGas, tx.GetGas())
+		require.Equal(t, tc.expectedFee, tx.GetFee().AmountOf(constants.BaseDenom))
+		require.Equal(t, tc.expectedMemo, tx.GetMemo())
 
 		// Verify message is unchanged
 		if tc.expectedMsg != "" {

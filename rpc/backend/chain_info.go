@@ -11,8 +11,8 @@ import (
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	tmrpcclient "github.com/cometbft/cometbft/rpc/client"
-	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -51,7 +51,7 @@ func (b *Backend) ChainConfig() *ethparams.ChainConfig {
 }
 
 // GlobalMinGasPrice returns MinGasPrice param from FeeMarket
-func (b *Backend) GlobalMinGasPrice() (sdk.Dec, error) {
+func (b *Backend) GlobalMinGasPrice() (sdkmath.LegacyDec, error) {
 	res, err := b.queryClient.FeeMarket.Params(b.ctx, &feemarkettypes.QueryParamsRequest{})
 	if err != nil {
 		return sdkmath.LegacyZeroDec(), err
@@ -63,7 +63,7 @@ func (b *Backend) GlobalMinGasPrice() (sdk.Dec, error) {
 // If the base fee is not enabled globally, the query returns nil.
 // If the London hard fork is not activated at the current height, the query will
 // return nil.
-func (b *Backend) BaseFee(blockRes *tmrpctypes.ResultBlockResults) (*big.Int, error) {
+func (b *Backend) BaseFee(blockRes *cmtrpctypes.ResultBlockResults) (*big.Int, error) {
 	// return BaseFee if London hard fork is activated and feemarket is enabled
 	res, err := b.queryClient.BaseFee(rpctypes.ContextWithHeight(blockRes.Height), &evmtypes.QueryBaseFeeRequest{})
 	if err != nil {
@@ -86,7 +86,7 @@ func (b *Backend) CurrentHeader() *ethtypes.Header {
 // PendingTransactions returns the transactions that are in the transaction pool
 // and have a from address that is one of the accounts this node manages.
 func (b *Backend) PendingTransactions() ([]*sdk.Tx, error) {
-	mc, ok := b.clientCtx.Client.(tmrpcclient.MempoolClient)
+	mc, ok := b.clientCtx.Client.(cmtrpcclient.MempoolClient)
 	if !ok {
 		return nil, errors.New("invalid rpc client")
 	}
@@ -177,9 +177,9 @@ func (b *Backend) FeeHistory(
 	// fetch block
 	for blockID := blockStart; blockID <= blockEnd; blockID++ {
 		index := int32(blockID - blockStart) // #nosec G701
-		// tendermint block
-		tendermintblock, err := b.TendermintBlockByNumber(rpctypes.BlockNumber(blockID))
-		if tendermintblock == nil {
+		// CometBFT block
+		cometBlock, err := b.CometBFTBlockByNumber(rpctypes.BlockNumber(blockID))
+		if cometBlock == nil {
 			return nil, err
 		}
 
@@ -189,15 +189,15 @@ func (b *Backend) FeeHistory(
 			return nil, err
 		}
 
-		// tendermint block result
-		tendermintBlockResult, err := b.TendermintBlockResultByNumber(&tendermintblock.Block.Height)
-		if tendermintBlockResult == nil {
-			b.logger.Debug("block result not found", "height", tendermintblock.Block.Height, "error", err.Error())
+		// CometBF^ block result
+		cometBlockResult, err := b.CometBFTBlockResultByNumber(&cometBlock.Block.Height)
+		if cometBlockResult == nil {
+			b.logger.Debug("block result not found", "height", cometBlock.Block.Height, "error", err.Error())
 			return nil, err
 		}
 
 		oneFeeHistory := rpctypes.OneFeeHistory{}
-		err = b.processBlock(tendermintblock, &ethBlock, rewardPercentiles, tendermintBlockResult, &oneFeeHistory)
+		err = b.processBlock(cometBlock, &ethBlock, rewardPercentiles, cometBlockResult, &oneFeeHistory)
 		if err != nil {
 			return nil, err
 		}

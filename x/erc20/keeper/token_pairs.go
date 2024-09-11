@@ -1,7 +1,8 @@
 package keeper
 
 import (
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -23,7 +24,7 @@ func (k Keeper) GetTokenPairs(ctx sdk.Context) []erc20types.TokenPair {
 // IterateTokenPairs iterates over all the stored token pairs
 func (k Keeper) IterateTokenPairs(ctx sdk.Context, cb func(tokenPair erc20types.TokenPair) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, erc20types.KeyPrefixTokenPair)
+	iterator := storetypes.KVStorePrefixIterator(store, erc20types.KeyPrefixTokenPair)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {

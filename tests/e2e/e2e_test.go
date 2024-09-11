@@ -99,7 +99,7 @@ func (s *IntegrationTestSuite) TestCLITxs() {
 			expErrMsg: "out of gas",
 		},
 		{
-			name: "success - submit upgrade proposal, defined fees & gas",
+			name: "pass - submit upgrade proposal, defined fees & gas",
 			cmd: func() (string, error) {
 				return s.upgradeManager.CreateSubmitProposalExec(
 					"v11.0.0",
@@ -113,7 +113,7 @@ func (s *IntegrationTestSuite) TestCLITxs() {
 			expPass: true,
 		},
 		{
-			name: "success - submit upgrade proposal, using gas & gas-prices",
+			name: "pass - submit upgrade proposal, using gas & gas-prices",
 			cmd: func() (string, error) {
 				return s.upgradeManager.CreateSubmitProposalExec(
 					"v11.0.0",
@@ -140,7 +140,7 @@ func (s *IntegrationTestSuite) TestCLITxs() {
 			expErrMsg: "insufficient fee",
 		},
 		{
-			name: "success - vote upgrade proposal (using gas 'auto' and specific fees)",
+			name: "pass - vote upgrade proposal (using gas 'auto' and specific fees)",
 			cmd: func() (string, error) {
 				return s.upgradeManager.CreateVoteProposalExec(
 					s.upgradeParams.ChainID,

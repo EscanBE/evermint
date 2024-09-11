@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"math"
 	"math/big"
@@ -30,14 +31,13 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibcgotesting "github.com/cosmos/ibc-go/v7/testing"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcgotesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/stretchr/testify/require"
 )
 
 func CreatePacket(amount, denom, sender, receiver, srcPort, srcChannel, dstPort, dstChannel string, seq, timeout uint64) channeltypes.Packet {
@@ -59,27 +59,26 @@ func CreatePacket(amount, denom, sender, receiver, srcPort, srcChannel, dstPort,
 	)
 }
 
-func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
+func (suite *KeeperTestSuite) DoSetupTest() {
 	// account key
 	priv, err := ethsecp256k1.GenerateKey()
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 	suite.priv = priv
 	suite.address = common.BytesToAddress(priv.PubKey().Address().Bytes())
 	suite.signer = utiltx.NewSigner(priv)
 
 	// consensus key
 	privCons, err := ethsecp256k1.GenerateKey()
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 	consAddress := sdk.ConsAddress(privCons.PubKey().Address())
 	suite.consAddress = consAddress
 
 	// init app
-	chainID := constants.TestnetFullChainId
 	suite.app = helpers.Setup(false, feemarkettypes.DefaultGenesisState(), chainID)
 	header := testutil.NewHeader(
 		1, time.Now().UTC(), chainID, consAddress, nil, nil,
 	)
-	suite.ctx = suite.app.BaseApp.NewContext(false, header)
+	suite.ctx = suite.app.BaseApp.NewContext(false).WithBlockHeader(header).WithChainID(chainID)
 
 	// query clients
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.app.InterfaceRegistry())
@@ -91,24 +90,29 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.queryClientEvm = evmtypes.NewQueryClient(queryHelperEvm)
 
 	// bond denom
-	stakingParams := suite.app.StakingKeeper.GetParams(suite.ctx)
+	stakingParams, err := suite.app.StakingKeeper.GetParams(suite.ctx)
+	suite.Require().NoError(err)
 	stakingParams.BondDenom = constants.BaseDenom
-	suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
+	err = suite.app.StakingKeeper.SetParams(suite.ctx, stakingParams)
+	suite.Require().NoError(err)
 
 	evmParams := suite.app.EvmKeeper.GetParams(suite.ctx)
 	evmParams.EvmDenom = constants.BaseDenom
 	err = suite.app.EvmKeeper.SetParams(suite.ctx, evmParams)
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 
 	// Set Validator
 	valAddr := sdk.ValAddress(suite.address.Bytes())
-	validator, err := stakingtypes.NewValidator(valAddr, privCons.PubKey(), stakingtypes.Description{})
-	require.NoError(t, err)
+	validator, err := stakingtypes.NewValidator(valAddr.String(), privCons.PubKey(), stakingtypes.Description{})
+	suite.Require().NoError(err)
 	validator = stakingkeeper.TestingUpdateValidator(suite.app.StakingKeeper, suite.ctx, validator, true)
-	err = suite.app.StakingKeeper.Hooks().AfterValidatorCreated(suite.ctx, validator.GetOperator())
-	require.NoError(t, err)
+	valAddrBz, err := suite.app.StakingKeeper.ValidatorAddressCodec().StringToBytes(validator.GetOperator())
+	suite.Require().NoError(err)
+	suite.Require().True(bytes.Equal(valAddr.Bytes(), valAddrBz))
+	err = suite.app.StakingKeeper.Hooks().AfterValidatorCreated(suite.ctx, valAddr)
+	suite.Require().NoError(err)
 	err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 
 	// fund signer acc to pay for tx fees
 	amt := sdkmath.NewInt(int64(math.Pow10(18) * 2))
@@ -121,7 +125,8 @@ func (suite *KeeperTestSuite) DoSetupTest(t require.TestingT) {
 	suite.Require().NoError(err)
 
 	// TODO change to setup with 1 validator
-	validators := s.app.StakingKeeper.GetValidators(s.ctx, 2)
+	validators, err := s.app.StakingKeeper.GetValidators(s.ctx, 2)
+	suite.Require().NoError(err)
 	// set a bonded validator that takes part in consensus
 	if validators[0].Status == stakingtypes.Bonded {
 		suite.validator = validators[0]
@@ -155,15 +160,16 @@ func (suite *KeeperTestSuite) SetupIBCTest() {
 	// s.app.FeeMarketKeeper.SetBaseFee(s.EvermintChain.GetContext(), big.NewInt(1))
 
 	// Set block proposer once, so its carried over on the ibc-go-testing suite
-	validators := s.app.StakingKeeper.GetValidators(suite.EvermintChain.GetContext(), 2)
+	validators, err := s.app.StakingKeeper.GetValidators(suite.EvermintChain.GetContext(), 2)
+	suite.Require().NoError(err)
 	cons, err := validators[0].GetConsAddr()
 	suite.Require().NoError(err)
-	suite.EvermintChain.CurrentHeader.ProposerAddress = cons.Bytes()
+	suite.EvermintChain.CurrentHeader.ProposerAddress = cons
 
 	err = s.app.StakingKeeper.SetValidatorByConsAddr(suite.EvermintChain.GetContext(), validators[0])
 	suite.Require().NoError(err)
 
-	_, err = s.app.EvmKeeper.GetCoinbaseAddress(suite.EvermintChain.GetContext(), sdk.ConsAddress(suite.EvermintChain.CurrentHeader.ProposerAddress))
+	_, err = s.app.EvmKeeper.GetCoinbaseAddress(suite.EvermintChain.GetContext(), suite.EvermintChain.CurrentHeader.ProposerAddress)
 	suite.Require().NoError(err)
 	// Mint coins locked on the account generated with secp.
 	amt, ok := sdkmath.NewIntFromString("1000000000000000000000")
@@ -238,7 +244,7 @@ func (suite *KeeperTestSuite) SetupIBCTest() {
 var timeoutHeight = clienttypes.NewHeight(1000, 1000)
 
 func (suite *KeeperTestSuite) StateDB() *statedb.StateDB {
-	return statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(suite.ctx.HeaderHash().Bytes())))
+	return statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(suite.ctx.HeaderHash())))
 }
 
 func (suite *KeeperTestSuite) MintFeeCollector(coins sdk.Coins) {
@@ -249,12 +255,11 @@ func (suite *KeeperTestSuite) MintFeeCollector(coins sdk.Coins) {
 }
 
 func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transferData []byte) *evmtypes.MsgEthereumTx {
-	ctx := sdk.WrapSDKContext(suite.ctx)
 	chainID := suite.app.EvmKeeper.ChainID()
 
 	args, err := json.Marshal(&evmtypes.TransactionArgs{To: &contractAddr, From: &from, Data: (*hexutil.Bytes)(&transferData)})
 	suite.Require().NoError(err)
-	res, err := suite.queryClientEvm.EstimateGas(ctx, &evmtypes.EthCallRequest{
+	res, err := suite.queryClientEvm.EstimateGas(suite.ctx, &evmtypes.EthCallRequest{
 		Args:   args,
 		GasCap: config.DefaultGasCap,
 	})
@@ -266,6 +271,7 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 	evmParams := suite.app.EvmKeeper.GetParams(suite.ctx)
 	suite.MintFeeCollector(sdk.NewCoins(sdk.NewCoin(evmParams.EvmDenom, sdkmath.NewInt(suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).Int64()*int64(res.Gas)))))
 	ercTransferTxParams := &evmtypes.EvmTxArgs{
+		From:      from,
 		ChainID:   chainID,
 		Nonce:     nonce,
 		To:        &contractAddr,
@@ -277,10 +283,9 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 	}
 	ercTransferTx := evmtypes.NewTx(ercTransferTxParams)
 
-	ercTransferTx.From = suite.address.Hex()
 	err = ercTransferTx.Sign(ethtypes.LatestSignerForChainID(chainID), suite.signer)
 	suite.Require().NoError(err)
-	rsp, err := suite.app.EvmKeeper.EthereumTx(ctx, ercTransferTx)
+	rsp, err := suite.app.EvmKeeper.EthereumTx(suite.ctx, ercTransferTx)
 	suite.Require().NoError(err)
 	suite.Require().Empty(rsp.VmError)
 	return ercTransferTx
@@ -288,15 +293,17 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 
 // Commit commits and starts a new block with an updated context.
 func (suite *KeeperTestSuite) Commit() {
-	suite.CommitAndBeginBlockAfter(time.Hour * 1)
+	suite.CommitAndBeginBlockAfter(time.Hour)
 }
 
-// Commit commits a block at a given time. Reminder: At the end of each
-// Tendermint Consensus round the following methods are run
-//  1. BeginBlock
-//  2. DeliverTx
-//  3. EndBlock
-//  4. Commit
+// Commit commits a block at a given time.
+// Reminder: At the end of each CometBFT Consensus round the following methods are run
+//  1. FinalizeBlock, which contains:
+//     1.1. preBlock
+//     1.1. beginBlock
+//     1.2. deliverTx
+//     1.3. endBlock
+//  2. Commit
 func (suite *KeeperTestSuite) CommitAndBeginBlockAfter(t time.Duration) {
 	var err error
 	suite.ctx, err = testutil.Commit(suite.ctx, suite.app, t, nil)
@@ -310,7 +317,7 @@ func (suite *KeeperTestSuite) CommitAndBeginBlockAfter(t time.Duration) {
 // DeployContract deploys the ERC20MinterBurnerDecimalsContract.
 func (suite *KeeperTestSuite) DeployContract(name, symbol string, decimals uint8) (common.Address, error) {
 	suite.Commit()
-	addr, err := testutil.DeployContract(
+	newCtx, addr, err := testutil.DeployContract(
 		suite.ctx,
 		suite.app,
 		suite.priv,
@@ -318,13 +325,14 @@ func (suite *KeeperTestSuite) DeployContract(name, symbol string, decimals uint8
 		contracts.ERC20MinterBurnerDecimalsContract,
 		name, symbol, decimals,
 	)
+	suite.ctx = newCtx
 	suite.Commit()
 	return addr, err
 }
 
 func (suite *KeeperTestSuite) DeployContractMaliciousDelayed() (common.Address, error) {
 	suite.Commit()
-	addr, err := testutil.DeployContract(
+	newCtx, addr, err := testutil.DeployContract(
 		suite.ctx,
 		suite.app,
 		suite.priv,
@@ -332,13 +340,14 @@ func (suite *KeeperTestSuite) DeployContractMaliciousDelayed() (common.Address, 
 		contracts.ERC20MaliciousDelayedContract,
 		big.NewInt(1000000000000000000),
 	)
+	suite.ctx = newCtx
 	suite.Commit()
 	return addr, err
 }
 
 func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation() (common.Address, error) {
 	suite.Commit()
-	addr, err := testutil.DeployContract(
+	newCtx, addr, err := testutil.DeployContract(
 		suite.ctx,
 		suite.app,
 		suite.priv,
@@ -346,6 +355,7 @@ func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation() (common.
 		contracts.ERC20DirectBalanceManipulationContract,
 		big.NewInt(1000000000000000000),
 	)
+	suite.ctx = newCtx
 	suite.Commit()
 	return addr, err
 }
@@ -353,7 +363,7 @@ func (suite *KeeperTestSuite) DeployContractDirectBalanceManipulation() (common.
 // DeployContractToChain deploys the ERC20MinterBurnerDecimalsContract
 // to the Evermint chain (used on IBC tests)
 func (suite *KeeperTestSuite) DeployContractToChain(name, symbol string, decimals uint8) (common.Address, error) {
-	return testutil.DeployContract(
+	newCtx, addr, err := testutil.DeployContract(
 		s.EvermintChain.GetContext(),
 		s.EvermintChain.App.(*chainapp.Evermint),
 		suite.EvermintChain.SenderPrivKey,
@@ -361,6 +371,8 @@ func (suite *KeeperTestSuite) DeployContractToChain(name, symbol string, decimal
 		contracts.ERC20MinterBurnerDecimalsContract,
 		name, symbol, decimals,
 	)
+	suite.ctx = newCtx
+	return addr, err
 }
 
 func (suite *KeeperTestSuite) sendAndReceiveMessage(

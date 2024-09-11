@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"path/filepath"
 
+	evertypes "github.com/EscanBE/evermint/v12/types"
+
 	errorsmod "cosmossdk.io/errors"
 
-	dbm "github.com/cometbft/cometbft-db"
-	tmstore "github.com/cometbft/cometbft/store"
+	cmtstore "github.com/cometbft/cometbft/store"
+	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
 )
@@ -22,12 +24,12 @@ func LatestBlockNumberCmd() *cobra.Command {
 			home := cfg.RootDir
 
 			dataDir := filepath.Join(home, "data")
-			db, err := dbm.NewDB("blockstore", server.GetAppDBBackend(serverCtx.Viper), dataDir)
+			db, err := sdkdb.NewDB("blockstore", server.GetAppDBBackend(serverCtx.Viper), dataDir)
 			if err != nil {
 				panic(errorsmod.Wrap(err, "error while opening db"))
 			}
 
-			blockStoreState := tmstore.LoadBlockStoreState(db)
+			blockStoreState := cmtstore.LoadBlockStoreState(evertypes.CosmosDbToCometDb(db))
 
 			fmt.Println("Latest block height available in database:", blockStoreState.Height)
 		},

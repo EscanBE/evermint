@@ -51,8 +51,6 @@ func PrepareEthTx(
 			}
 		}
 
-		msgEthTx.From = ""
-
 		txGasLimit += msgEthTx.GetGas()
 		txFee = txFee.Add(sdk.Coin{Denom: constants.BaseDenom, Amount: sdkmath.NewIntFromBigInt(msgEthTx.GetFee())})
 	}
@@ -104,6 +102,7 @@ func CreateEthTx(
 	// When we send multiple Ethereum Tx's in one Cosmos Tx, we need to increment the nonce for each one.
 	nonce := chainApp.EvmKeeper.GetNonce(ctx, fromAddr) + uint64(nonceIncrement)
 	evmTxParams := &evmtypes.EvmTxArgs{
+		From:      fromAddr,
 		ChainID:   chainID,
 		Nonce:     nonce,
 		To:        &toAddr,
@@ -114,7 +113,6 @@ func CreateEthTx(
 		Accesses:  &ethtypes.AccessList{},
 	}
 	msgEthereumTx := evmtypes.NewTx(evmTxParams)
-	msgEthereumTx.From = fromAddr.String()
 
 	// If we are creating multiple eth Tx's with different senders, we need to sign here rather than later.
 	if privKey != nil {
@@ -144,8 +142,7 @@ func GasLimit(ctx sdk.Context, from common.Address, data evmtypes.HexString, que
 			return gas, err
 		}
 
-		goCtx := sdk.WrapSDKContext(ctx)
-		res, err := queryClientEvm.EstimateGas(goCtx, &evmtypes.EthCallRequest{
+		res, err := queryClientEvm.EstimateGas(ctx, &evmtypes.EthCallRequest{
 			Args:   args,
 			GasCap: config.DefaultGasCap,
 		})

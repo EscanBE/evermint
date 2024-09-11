@@ -6,9 +6,9 @@ import (
 	evmante "github.com/EscanBE/evermint/v12/app/ante/evm"
 	"github.com/EscanBE/evermint/v12/testutil"
 
+	storetypes "cosmossdk.io/store/types"
 	testutiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -28,11 +28,15 @@ func (suite *AnteTestSuite) TestEthSetupContextDecorator() {
 		tx      sdk.Tx
 		expPass bool
 	}{
-		{"invalid transaction type - does not implement GasTx", &testutiltx.InvalidTx{}, false},
 		{
-			"success - transaction implement GasTx",
-			tx,
-			true,
+			name:    "fail - invalid transaction type - does not implement GasTx",
+			tx:      &testutiltx.InvalidTx{},
+			expPass: false,
+		},
+		{
+			name:    "pass - transaction implement GasTx",
+			tx:      tx,
+			expPass: true,
 		},
 	}
 

@@ -13,7 +13,7 @@ import (
 	"github.com/EscanBE/evermint/v12/server/config"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
 	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto"
@@ -95,11 +95,6 @@ func (b *Backend) SetEtherbase(etherbase common.Address) bool {
 	withdrawAddr := sdk.AccAddress(etherbase.Bytes())
 	msg := distributiontypes.NewMsgSetWithdrawAddress(delAddr, withdrawAddr)
 
-	if err := msg.ValidateBasic(); err != nil {
-		b.logger.Debug("tx failed basic validation", "error", err.Error())
-		return false
-	}
-
 	// Assemble transaction from fields
 	builder, ok := b.clientCtx.TxConfig.NewTxBuilder().(authtx.ExtensionOptionsTxBuilder)
 	if !ok {
@@ -156,7 +151,7 @@ func (b *Backend) SetEtherbase(etherbase common.Address) bool {
 		return false
 	}
 
-	if err := clienttx.Sign(txFactory, keyInfo.Name, builder, false); err != nil {
+	if err := clienttx.Sign(b.clientCtx.CmdContext, txFactory, keyInfo.Name, builder, false); err != nil {
 		b.logger.Debug("failed to sign tx", "error", err.Error())
 		return false
 	}
@@ -169,7 +164,7 @@ func (b *Backend) SetEtherbase(etherbase common.Address) bool {
 		return false
 	}
 
-	tmHash := common.BytesToHash(tmtypes.Tx(txBytes).Hash())
+	cometTxHash := common.BytesToHash(cmttypes.Tx(txBytes).Hash())
 
 	// Broadcast transaction in sync mode (default)
 	// NOTE: If error is encountered on the node, the broadcast will not return an error
@@ -183,7 +178,7 @@ func (b *Backend) SetEtherbase(etherbase common.Address) bool {
 		return false
 	}
 
-	b.logger.Debug("broadcasted tx to set miner withdraw address (etherbase)", "hash", tmHash.String())
+	b.logger.Debug("broadcasted tx to set miner withdraw address (etherbase)", "hash", cometTxHash.String())
 	return true
 }
 

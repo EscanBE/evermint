@@ -50,9 +50,12 @@ func PreprocessLedgerTx(chainID string, keyType cosmoskr.KeyType, txBuilder clie
 	}
 
 	// Add ExtensionOptionsWeb3Tx extension with signature
-	var option *codectypes.Any
-	option, err = codectypes.NewAnyWithValue(&evertypes.ExtensionOptionsWeb3Tx{
-		FeePayer:         txBuilder.GetTx().FeePayer().String(),
+	feePayerAccAddr, err := txConfig.SigningContext().AddressCodec().BytesToString(txBuilder.GetTx().FeePayer())
+	if err != nil {
+		return fmt.Errorf("could not parse feePayer address: %w", err)
+	}
+	option, err := codectypes.NewAnyWithValue(&evertypes.ExtensionOptionsWeb3Tx{
+		FeePayer:         feePayerAccAddr,
 		TypedDataChainID: chainIDInt.Uint64(),
 		FeePayerSig:      sigBytes,
 	})

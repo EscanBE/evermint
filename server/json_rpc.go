@@ -10,23 +10,22 @@ import (
 	"github.com/EscanBE/evermint/v12/rpc"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/server/types"
 	ethlog "github.com/ethereum/go-ethereum/log"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 
-	"github.com/EscanBE/evermint/v12/server/config"
+	svrconfig "github.com/EscanBE/evermint/v12/server/config"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 )
 
 // StartJSONRPC starts the JSON-RPC server
 func StartJSONRPC(ctx *server.Context,
 	clientCtx client.Context,
-	tmRPCAddr,
-	tmEndpoint string,
-	config *config.Config,
+	cometRPCAddr,
+	cometEndpoint string,
+	config *svrconfig.Config,
 	indexer evertypes.EVMTxIndexer,
 ) (*http.Server, chan struct{}, error) {
-	tmWsClient := ConnectTmWS(tmRPCAddr, tmEndpoint, ctx.Logger)
+	cometWsClient := ConnectCometBftWS(cometRPCAddr, cometEndpoint, ctx.Logger)
 
 	logger := ctx.Logger.With("module", "geth")
 	ethlog.Root().SetHandler(ethlog.FuncHandler(func(r *ethlog.Record) error {
@@ -45,7 +44,7 @@ func StartJSONRPC(ctx *server.Context,
 
 	rpcAPIArr := config.JSONRPC.API
 
-	apis := rpc.GetRPCAPIs(ctx, clientCtx, tmWsClient, indexer, rpcAPIArr)
+	apis := rpc.GetRPCAPIs(ctx, clientCtx, cometWsClient, indexer, rpcAPIArr)
 
 	for _, api := range apis {
 		if err := rpcServer.RegisterName(api.Namespace, api.Service); err != nil {
@@ -99,14 +98,14 @@ func StartJSONRPC(ctx *server.Context,
 	case err := <-errCh:
 		ctx.Logger.Error("failed to boot JSON-RPC server", "error", err.Error())
 		return nil, nil, err
-	case <-time.After(types.ServerStartTime): // assume JSON RPC server started successfully
+	case <-time.After(svrconfig.ServerStartTime): // assume JSON RPC server started successfully
 	}
 
 	ctx.Logger.Info("Starting JSON WebSocket server", "address", config.JSONRPC.WsAddress)
 
-	// allocate separate WS connection to Tendermint
-	tmWsClient = ConnectTmWS(tmRPCAddr, tmEndpoint, ctx.Logger)
-	wsSrv := rpc.NewWebsocketsServer(clientCtx, ctx.Logger, tmWsClient, config)
+	// allocate separate WS connection to CometBFT
+	cometWsClient = ConnectCometBftWS(cometRPCAddr, cometEndpoint, ctx.Logger)
+	wsSrv := rpc.NewWebsocketsServer(clientCtx, ctx.Logger, cometWsClient, config)
 	wsSrv.Start()
 	return httpSrv, httpSrvDone, nil
 }

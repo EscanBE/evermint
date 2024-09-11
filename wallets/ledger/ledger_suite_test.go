@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/EscanBE/evermint/v12/constants"
@@ -17,7 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptoTypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	txTypes "github.com/cosmos/cosmos-sdk/types/tx"
+	sdktxtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	auxTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -63,6 +65,11 @@ func (suite *LedgerTestSuite) newPubKey(pk string) (res cryptoTypes.PubKey) {
 	return pubkey
 }
 
+var (
+	fromAddr = marker.ReplaceAbleAddress("evm1r5sckdd808qvg7p8d0auaw896zcluqfdkh4lcm")
+	toAddr   = marker.ReplaceAbleAddress("evm10t8ca2w09ykd6ph0agdz5stvgau47whh4j0f58")
+)
+
 func (suite *LedgerTestSuite) getMockTxAmino() []byte {
 	whitespaceRegex := regexp.MustCompile(`\s+`)
 	tmp := whitespaceRegex.ReplaceAllString(
@@ -79,12 +86,14 @@ func (suite *LedgerTestSuite) getMockTxAmino() []byte {
 				"type":"cosmos-sdk/MsgSend",
 				"value":{
 					"amount":[{"amount":"150","denom":"atom"}],
-					"from_address":"cosmos1r5sckdd808qvg7p8d0auaw896zcluqfd7djffp",
-					"to_address":"cosmos10t8ca2w09ykd6ph0agdz5stvgau47whhaggl9a"
+					"from_address":"%s",
+					"to_address":"%s"
 				}
 			}],
 			"sequence":"6"
-		}`, constants.TestnetFullChainId,
+		}`,
+			constants.TestnetFullChainId,
+			fromAddr, toAddr,
 		),
 		"",
 	)
@@ -97,11 +106,11 @@ func (suite *LedgerTestSuite) getMockTxProtobuf() []byte {
 
 	memo := "memo"
 	msg := bankTypes.NewMsgSend(
-		sdk.MustAccAddressFromBech32("cosmos1r5sckdd808qvg7p8d0auaw896zcluqfd7djffp"),
-		sdk.MustAccAddressFromBech32("cosmos10t8ca2w09ykd6ph0agdz5stvgau47whhaggl9a"),
+		sdk.MustAccAddressFromBech32(fromAddr),
+		sdk.MustAccAddressFromBech32(toAddr),
 		[]sdk.Coin{
 			{
-				Denom:  "atom",
+				Denom:  constants.BaseDenom,
 				Amount: sdkmath.NewIntFromUint64(150),
 			},
 		},
@@ -110,7 +119,7 @@ func (suite *LedgerTestSuite) getMockTxProtobuf() []byte {
 	msgAsAny, err := codectypes.NewAnyWithValue(msg)
 	suite.Require().NoError(err)
 
-	body := &txTypes.TxBody{
+	body := &sdktxtypes.TxBody{
 		Messages: []*codectypes.Any{
 			msgAsAny,
 		},
@@ -122,24 +131,24 @@ func (suite *LedgerTestSuite) getMockTxProtobuf() []byte {
 	pubKeyAsAny, err := codectypes.NewAnyWithValue(pubKey)
 	suite.Require().NoError(err)
 
-	signingMode := txTypes.ModeInfo_Single_{
-		Single: &txTypes.ModeInfo_Single{
+	signingMode := sdktxtypes.ModeInfo_Single_{
+		Single: &sdktxtypes.ModeInfo_Single{
 			Mode: signing.SignMode_SIGN_MODE_DIRECT,
 		},
 	}
 
-	signerInfo := &txTypes.SignerInfo{
+	signerInfo := &sdktxtypes.SignerInfo{
 		PublicKey: pubKeyAsAny,
-		ModeInfo: &txTypes.ModeInfo{
+		ModeInfo: &sdktxtypes.ModeInfo{
 			Sum: &signingMode,
 		},
 		Sequence: 6,
 	}
 
-	fee := txTypes.Fee{Amount: sdk.NewCoins(sdk.NewInt64Coin("atom", 150)), GasLimit: 20000}
+	fee := sdktxtypes.Fee{Amount: sdk.NewCoins(sdk.NewInt64Coin(constants.BaseDenom, 150)), GasLimit: 20000}
 
-	authInfo := &txTypes.AuthInfo{
-		SignerInfos: []*txTypes.SignerInfo{signerInfo},
+	authInfo := &sdktxtypes.AuthInfo{
+		SignerInfos: []*sdktxtypes.SignerInfo{signerInfo},
 		Fee:         &fee,
 	}
 

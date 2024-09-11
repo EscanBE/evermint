@@ -10,12 +10,12 @@ import (
 
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	cosmostxtypes "github.com/cosmos/cosmos-sdk/types/tx"
+	sdktxtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -38,8 +38,6 @@ func (suite *ChainIntegrationTestSuite) PrepareEthTx(
 	if err != nil {
 		return nil, err
 	}
-
-	ethMsg.From = ""
 
 	txGasLimit += ethMsg.GetGas()
 	txFee = txFee.Add(sdk.Coin{Denom: suite.ChainConstantsConfig.GetMinDenom(), Amount: sdkmath.NewIntFromBigInt(ethMsg.GetFee())})
@@ -137,6 +135,11 @@ func (suite *ChainIntegrationTestSuite) signCosmosTx(
 
 	txCfg := suite.EncodingConfig.TxConfig
 
+	signMode, err := authsigning.APISignModeToInternal(txCfg.SignModeHandler().DefaultMode())
+	if err != nil {
+		return nil, err
+	}
+
 	seq, err := suite.ChainApp.AccountKeeper().GetSequence(ctx, account.GetCosmosAddress())
 	if err != nil {
 		return nil, err
@@ -147,7 +150,7 @@ func (suite *ChainIntegrationTestSuite) signCosmosTx(
 	sigV2 := signing.SignatureV2{
 		PubKey: account.GetPubKey(),
 		Data: &signing.SingleSignatureData{
-			SignMode:  txCfg.SignModeHandler().DefaultMode(),
+			SignMode:  signMode,
 			Signature: nil,
 		},
 		Sequence: seq,
@@ -167,7 +170,8 @@ func (suite *ChainIntegrationTestSuite) signCosmosTx(
 		Sequence:      seq,
 	}
 	sigV2, err = clienttx.SignWithPrivKey(
-		txCfg.SignModeHandler().DefaultMode(),
+		ctx,
+		signMode,
 		signerData,
 		txBuilder, account.PrivateKey, txCfg,
 		seq,
@@ -184,13 +188,13 @@ func (suite *ChainIntegrationTestSuite) signCosmosTx(
 }
 
 // QueryTxResponse returns the TxResponse for the given tx
-func (suite *ChainIntegrationTestSuite) QueryTxResponse(tx authsigning.Tx) *cosmostxtypes.GetTxResponse {
+func (suite *ChainIntegrationTestSuite) QueryTxResponse(tx authsigning.Tx) *sdktxtypes.GetTxResponse {
 	var bz []byte
 	bz, err := suite.EncodingConfig.TxConfig.TxEncoder()(tx)
 	suite.Require().NoError(err)
-	txHash := hex.EncodeToString(tmtypes.Tx(bz).Hash())
+	txHash := hex.EncodeToString(cmttypes.Tx(bz).Hash())
 
-	txResponse, err := suite.QueryClients.ServiceClient.GetTx(context.Background(), &cosmostxtypes.GetTxRequest{
+	txResponse, err := suite.QueryClients.ServiceClient.GetTx(context.Background(), &sdktxtypes.GetTxRequest{
 		Hash: txHash,
 	})
 	suite.Require().NoError(err)
