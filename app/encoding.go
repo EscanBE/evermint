@@ -1,14 +1,15 @@
 package app
 
 import (
-	"github.com/EscanBE/evermint/v12/app/params"
-	cryptocodec "github.com/EscanBE/evermint/v12/crypto/codec"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
+
+	"github.com/EscanBE/evermint/v12/app/params"
+	cryptocodec "github.com/EscanBE/evermint/v12/crypto/codec"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 )
 
 func RegisterEncodingConfig() params.EncodingConfig {

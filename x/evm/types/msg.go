@@ -6,25 +6,23 @@ import (
 	"math"
 	"math/big"
 
-	ethparams "github.com/ethereum/go-ethereum/params"
-
-	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"google.golang.org/protobuf/proto"
 
-	sdkmath "cosmossdk.io/math"
+	"github.com/ethereum/go-ethereum/core"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	ethparams "github.com/ethereum/go-ethereum/params"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-
-	"github.com/ethereum/go-ethereum/core"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 var (
@@ -199,7 +197,6 @@ func (msg *MsgEthereumTx) GetMsgs() []sdk.Msg {
 }
 
 func (msg *MsgEthereumTx) GetMsgsV2() ([]proto.Message, error) {
-	// TODO ES: implement
 	return nil, errors.New("not implemented")
 }
 

@@ -7,45 +7,42 @@ import (
 	"testing"
 	"time"
 
-	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/signer/core/apitypes"
+	"github.com/stretchr/testify/suite"
+	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/app/helpers"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/utils"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	"github.com/cometbft/cometbft/version"
-	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
-
-	"github.com/EscanBE/evermint/v12/app/params"
-	"github.com/EscanBE/evermint/v12/constants"
 
 	sdkmath "cosmossdk.io/math"
-
-	"github.com/EscanBE/evermint/v12/ethereum/eip712"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/signer/core/apitypes"
-	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
-
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/stretchr/testify/suite"
+
+	chainapp "github.com/EscanBE/evermint/v12/app"
+	"github.com/EscanBE/evermint/v12/app/helpers"
+	"github.com/EscanBE/evermint/v12/app/params"
+	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
+	"github.com/EscanBE/evermint/v12/ethereum/eip712"
+	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
+	"github.com/EscanBE/evermint/v12/utils"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 )
 
 // Unit tests for single-signer EIP-712 signature verification. Multi-signature key verification tests are out-of-scope
@@ -175,7 +172,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 
 	signModes := []signing.SignMode{
 		signing.SignMode_SIGN_MODE_DIRECT,
-		// signing.SignMode_SIGN_MODE_TEXTUAL, // TODO ES: enable?
+		// signing.SignMode_SIGN_MODE_TEXTUAL, // TODO: enable?
 		signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
 	}
 

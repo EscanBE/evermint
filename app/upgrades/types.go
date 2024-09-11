@@ -3,9 +3,10 @@ package upgrades
 import (
 	store "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	"github.com/EscanBE/evermint/v12/app/keepers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+
+	"github.com/EscanBE/evermint/v12/app/keepers"
 )
 
 // Upgrade defines a struct containing necessary fields that a SoftwareUpgradeProposal
@@ -37,6 +38,6 @@ type Fork struct {
 	UpgradeInfo string
 
 	// Function that runs some custom state transition code at the beginning of a fork.
-	// TODO ES: what this for?
+	// TODO: use this
 	BeginForkLogic func(ctx sdk.Context, keepers *keepers.AppKeepers)
 }
