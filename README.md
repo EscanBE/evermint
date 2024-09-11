@@ -40,7 +40,7 @@ which runs on top of the [CometBFT](https://github.com/cometbft/cometbft) consen
 - Evermint is for research and development purpose.
 - Evermint is fork of open source Evmos v12.1.6 plus bug fixes.
 - Evermint is [currently removing some modules](https://github.com/EscanBE/evermint/issues/41) from Evmos codebase and only keep `x/evm`, `x/erc20`, `x/feemarket`. The goal is to make it more simple for research and only focus on the skeleton of Evmos.
-- After upgraded to Cosmos-SDK v0.50, Evermint is now has many breaking change to the Legacy Evmos v12.1.6. If you want to use the open-source libraries previously developed for Evmos v12.1.6, you might need to use [Evermint version which uses Cosmos-SDK v0.47 and below](https://github.com/EscanBE/evermint/tree/v12.3.0-cosmos47).
+- After [upgraded to Cosmos-SDK v0.50](https://github.com/EscanBE/evermint/pull/148), Evermint is now has many breaking change to the Legacy Evmos v12.1.6. If you want to use the open-source libraries previously developed for Evmos v12.1.6, you might need to use [Evermint version which uses Cosmos-SDK v0.47 and below](https://github.com/EscanBE/evermint/tree/v12.3.0-cosmos47).
 
 ## Documentation
 

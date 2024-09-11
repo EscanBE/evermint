@@ -35,6 +35,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Unreleased
 
+# Cosmos-SDK v0.50
+
+### State Machine Breaking
+
+- (deps) [#148](https://github.com/EscanBE/evermint/pull/148) Bumps Cosmos-SDK v0.50, CometBFT v0.38, IBC v8
+
+# Cosmos-SDK v0.47
+
 **From this version, CometBFT is officially used as the consensus engine.**
 
 ### Features
