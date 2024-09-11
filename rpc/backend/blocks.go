@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math"
 	"math/big"
@@ -327,7 +328,17 @@ func (b *Backend) BlockBloom(blockRes *cmtrpctypes.ResultBlockResults) ethtypes.
 
 		for _, attr := range event.Attributes {
 			if attr.Key == evmtypes.AttributeKeyEthereumBloom {
-				return ethtypes.BytesToBloom([]byte(attr.Value))
+				bloom := attr.Value
+				if bloom == "" {
+					break
+				}
+
+				bz, err := hex.DecodeString(bloom)
+				if err != nil {
+					b.logger.Debug("failed to decode bloom filter", "bloom", bloom, "error", err.Error())
+					return evmtypes.EmptyBlockBloom
+				}
+				return ethtypes.BytesToBloom(bz)
 			}
 		}
 	}

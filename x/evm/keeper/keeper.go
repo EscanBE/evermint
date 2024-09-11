@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
 
@@ -129,10 +130,17 @@ func (k Keeper) ChainID() *big.Int {
 
 // EmitBlockBloomEvent emit block bloom events
 func (k Keeper) EmitBlockBloomEvent(ctx sdk.Context, bloom ethtypes.Bloom) {
+	var bloomValue string
+	if bloom.Big().Sign() == 0 {
+		// emit empty string to optimize space since most blocks will have an empty bloom
+		bloomValue = ""
+	} else {
+		bloomValue = hex.EncodeToString(bloom.Bytes())
+	}
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			evmtypes.EventTypeBlockBloom,
-			sdk.NewAttribute(evmtypes.AttributeKeyEthereumBloom, string(bloom.Bytes())),
+			sdk.NewAttribute(evmtypes.AttributeKeyEthereumBloom, bloomValue),
 		),
 	)
 }
