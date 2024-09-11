@@ -37,6 +37,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Cosmos-SDK v0.50
 
+### API Breaking
+
+- (evm) [#149](https://github.com/EscanBE/evermint/pull/149) Improve how block bloom emitted and include bloom to block returned by subscription to filter system
+
 ### State Machine Breaking
 
 - (deps) [#148](https://github.com/EscanBE/evermint/pull/148) Bumps Cosmos-SDK v0.50, CometBFT v0.38, IBC v8
