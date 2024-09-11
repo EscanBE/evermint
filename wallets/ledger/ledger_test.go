@@ -2,6 +2,7 @@ package ledger_test
 
 import (
 	chainapp "github.com/EscanBE/evermint/v12/app"
+	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
 	"github.com/EscanBE/evermint/v12/wallets/accounts"
@@ -20,7 +21,10 @@ import (
 func init() {
 	encodingConfig := chainapp.RegisterEncodingConfig()
 	eip712.SetEncodingConfig(encodingConfig)
-	sdk.GetConfig().SetBech32PrefixForAccount(constants.Bech32Prefix, "")
+
+	cfg := sdk.GetConfig()
+	cmdcfg.SetBech32Prefixes(cfg)
+	cmdcfg.SetBip44CoinType(cfg)
 }
 
 func (suite *LedgerTestSuite) TestEvermintLedgerDerivation() {

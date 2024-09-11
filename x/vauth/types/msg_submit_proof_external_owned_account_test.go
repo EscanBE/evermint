@@ -4,7 +4,8 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+
 	"github.com/EscanBE/evermint/v12/rename_chain/marker"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -117,5 +118,7 @@ func TestMsgSubmitProofExternalOwnedAccount_ValidateBasic(t *testing.T) {
 }
 
 func init() {
-	sdk.GetConfig().SetBech32PrefixForAccount(constants.Bech32PrefixAccAddr, "")
+	cfg := sdk.GetConfig()
+	cmdcfg.SetBech32Prefixes(cfg)
+	cmdcfg.SetBip44CoinType(cfg)
 }

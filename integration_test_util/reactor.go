@@ -1,8 +1,9 @@
 package integration_test_util
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	// Force-load the tracer engines to trigger registration due to Go-Ethereum v1.10.15 changes
 	_ "github.com/ethereum/go-ethereum/eth/tracers/js"
@@ -10,25 +11,10 @@ import (
 )
 
 func init() {
-	//goland:noinspection SpellCheckingInspection
-	const prefix = constants.Bech32Prefix
-
 	config := sdk.GetConfig()
-
-	config.SetBech32PrefixForAccount(
-		prefix,
-		prefix+sdk.PrefixPublic,
-	)
-
-	config.SetBech32PrefixForValidator(
-		prefix+sdk.PrefixValidator+sdk.PrefixOperator,
-		prefix+sdk.PrefixValidator+sdk.PrefixOperator+sdk.PrefixPublic,
-	)
-
-	config.SetBech32PrefixForConsensusNode(
-		prefix+sdk.PrefixValidator+sdk.PrefixConsensus,
-		prefix+sdk.PrefixValidator+sdk.PrefixConsensus+sdk.PrefixPublic,
-	)
+	config.SetBech32PrefixForAccount(constants.Bech32PrefixAccAddr, constants.Bech32PrefixAccPub)
+	config.SetBech32PrefixForValidator(constants.Bech32PrefixValAddr, constants.Bech32PrefixValPub)
+	config.SetBech32PrefixForConsensusNode(constants.Bech32PrefixConsAddr, constants.Bech32PrefixConsPub)
 
 	sdk.DefaultBondDenom = constants.BaseDenom
 }

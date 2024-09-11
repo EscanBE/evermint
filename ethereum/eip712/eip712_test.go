@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/app/helpers"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
@@ -52,6 +54,12 @@ import (
 const (
 	msgsFieldName = "msgs"
 )
+
+func init() {
+	cfg := sdk.GetConfig()
+	cmdcfg.SetBech32Prefixes(cfg)
+	cmdcfg.SetBip44CoinType(cfg)
+}
 
 type EIP712TestSuite struct {
 	suite.Suite
@@ -125,7 +133,6 @@ func (suite *EIP712TestSuite) SetupTest() {
 
 	suite.denom = constants.BaseDenom
 
-	sdk.GetConfig().SetBech32PrefixForAccount(constants.Bech32Prefix, "")
 	eip712.SetEncodingConfig(suite.encodingConfig)
 }
 

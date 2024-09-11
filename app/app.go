@@ -134,7 +134,9 @@ func NewEvermint(
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 	txConfig := encodingConfig.TxConfig
 
-	eip712.SetEncodingConfig(encodingConfig)
+	defer func() {
+		eip712.SetEncodingConfig(encodingConfig)
+	}()
 
 	// App Opts
 	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
@@ -193,6 +195,7 @@ func NewEvermint(
 			panic(err)
 		}
 		chainApp.txConfig = txConfigWithTextual
+		encodingConfig.TxConfig = txConfigWithTextual
 	}
 
 	// During begin block slashing happens after distr.BeginBlocker so that

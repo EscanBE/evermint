@@ -758,7 +758,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			expPass:   false,
 		},
 		{
-			name: "passes - Single-signer EIP-712",
+			name: "pass - Single-signer EIP-712",
 			txFn: func() sdk.Tx {
 				msg := banktypes.NewMsgSend(
 					sdk.AccAddress(privKey.PubKey().Address()),
@@ -787,7 +787,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			expPass:   true,
 		},
 		{
-			name: "passes - EIP-712 multi-key",
+			name: "pass - EIP-712 multi-key",
 			txFn: func() sdk.Tx {
 				numKeys := 5
 				privKeys, pubKeys := suite.GenerateMultipleKeys(numKeys)
@@ -820,7 +820,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			expPass:   true,
 		},
 		{
-			name: "passes - Mixed multi-key",
+			name: "pass - Mixed multi-key",
 			txFn: func() sdk.Tx {
 				numKeys := 5
 				privKeys, pubKeys := suite.GenerateMultipleKeys(numKeys)
@@ -853,7 +853,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			expPass:   true,
 		},
 		{
-			name: "passes - Mixed multi-key with MsgVote",
+			name: "pass - Mixed multi-key with MsgVote",
 			txFn: func() sdk.Tx {
 				numKeys := 5
 				privKeys, pubKeys := suite.GenerateMultipleKeys(numKeys)

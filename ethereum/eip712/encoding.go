@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	client "github.com/cosmos/cosmos-sdk/client"
+
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/EscanBE/evermint/v12/app/params"
@@ -20,8 +22,9 @@ import (
 )
 
 var (
-	protoCodec codec.ProtoCodecMarshaler
+	protoCodec codec.Codec
 	aminoCodec *codec.LegacyAmino
+	txConfig   client.TxConfig
 )
 
 // SetEncodingConfig set the encoding config to the singleton codecs (Amino and Protobuf).
@@ -30,7 +33,8 @@ var (
 // initialization with the app's encoding config.
 func SetEncodingConfig(cfg params.EncodingConfig) {
 	aminoCodec = cfg.Amino
-	protoCodec = codec.NewProtoCodec(cfg.InterfaceRegistry)
+	protoCodec = cfg.Codec
+	txConfig = cfg.TxConfig
 }
 
 // GetEIP712BytesForMsg returns the EIP-712 object bytes for the given SignDoc bytes by decoding the bytes into

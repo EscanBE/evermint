@@ -50,6 +50,7 @@ func MakeEncodingConfig() EncodingConfig {
 }
 
 func init() {
-	cmdcfg.SetBech32Prefixes(sdk.GetConfig())
-	cmdcfg.SetBip44CoinType(sdk.GetConfig())
+	cfg := sdk.GetConfig()
+	cmdcfg.SetBech32Prefixes(cfg)
+	cmdcfg.SetBip44CoinType(cfg)
 }

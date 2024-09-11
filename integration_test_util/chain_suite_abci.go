@@ -213,13 +213,11 @@ func (suite *ChainIntegrationTestSuite) BroadcastTxAsync(tx sdk.Tx) (resultBroad
 
 // commit is helper function, it:
 //
-// - Runs the EndBlocker logic.
+// - Runs the FinalizeBlock logic, which includes: preBlock, beginBlock, deliverTx, endBlock
 //
 // - Commits the changes.
 //
 // - Updates the header.
-//
-// - Runs the BeginBlocker logic.
 //
 // - Finally, returns the updated header.
 func (suite *ChainIntegrationTestSuite) commit(ctx sdk.Context, t time.Duration, vs *cmttypes.ValidatorSet) (tmproto.Header, *cmttypes.ValidatorSet, error) {
@@ -259,10 +257,6 @@ func (suite *ChainIntegrationTestSuite) commit(ctx sdk.Context, t time.Duration,
 	header.Height++
 	header.Time = header.Time.Add(t)
 	header.AppHash = chainApp.BaseApp().LastCommitID().Hash
-
-	if _, err := chainApp.BeginBlocker(ctx); err != nil {
-		return header, nil, err
-	}
 
 	return header, nextVals, nil
 }

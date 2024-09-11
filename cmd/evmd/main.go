@@ -27,12 +27,12 @@ func main() {
 
 func setupConfig() {
 	// set the address prefixes
-	config := sdk.GetConfig()
-	cmdcfg.SetBech32Prefixes(config)
+	cfg := sdk.GetConfig()
+	cmdcfg.SetBech32Prefixes(cfg)
+	cmdcfg.SetBip44CoinType(cfg)
 	// TODO fix
 	// if err := cmdcfg.EnableObservability(); err != nil {
 	// 	panic(err)
 	// }
-	cmdcfg.SetBip44CoinType(config)
-	config.Seal()
+	cfg.Seal()
 }

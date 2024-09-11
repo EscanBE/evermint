@@ -4,38 +4,35 @@ import (
 	"encoding/json"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
-
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-
-	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cmttypes "github.com/cometbft/cometbft/types"
-	sdkdb "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/cosmos/ibc-go/v8/testing/mock"
 
+	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
+	sdkdb "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	chainapp "github.com/EscanBE/evermint/v12/app"
+	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+	"github.com/EscanBE/evermint/v12/constants"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-
-	"github.com/EscanBE/evermint/v12/cmd/config"
 )
 
 func init() {
 	cfg := sdk.GetConfig()
-	config.SetBech32Prefixes(cfg)
-	config.SetBip44CoinType(cfg)
+	cmdcfg.SetBech32Prefixes(cfg)
+	cmdcfg.SetBip44CoinType(cfg)
 }
 
 // DefaultTestingAppInit defines the IBC application used for testing
@@ -63,8 +60,8 @@ var DefaultConsensusParams = &tmproto.ConsensusParams{
 func init() {
 	feemarkettypes.DefaultMinGasPrice = sdkmath.LegacyZeroDec()
 	cfg := sdk.GetConfig()
-	config.SetBech32Prefixes(cfg)
-	config.SetBip44CoinType(cfg)
+	cmdcfg.SetBech32Prefixes(cfg)
+	cmdcfg.SetBip44CoinType(cfg)
 }
 
 // Setup initializes a new Evermint. A Nop logger is set in Evermint.

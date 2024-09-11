@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+
 	storemetrics "cosmossdk.io/store/metrics"
 
 	"github.com/cosmos/cosmos-sdk/codec/address"
@@ -237,5 +239,7 @@ func (s *KeeperTestSuite) mintToAccount(accAddr sdk.AccAddress, coins sdk.Coins)
 }
 
 func init() {
-	sdk.GetConfig().SetBech32PrefixForAccount(constants.Bech32PrefixAccAddr, "")
+	cfg := sdk.GetConfig()
+	cmdcfg.SetBech32Prefixes(cfg)
+	cmdcfg.SetBip44CoinType(cfg)
 }

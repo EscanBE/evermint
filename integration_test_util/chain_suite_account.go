@@ -4,7 +4,7 @@ import (
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 )
 
-// CreateAccount put new test account into account store
+// CreateAccount generate a new test account and put into account store
 func (suite *ChainIntegrationTestSuite) CreateAccount() *itutiltypes.TestAccount {
 	newTA := NewTestAccount(suite.T(), nil)
 

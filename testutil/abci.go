@@ -21,12 +21,14 @@ import (
 	"github.com/EscanBE/evermint/v12/testutil/tx"
 )
 
-// Commit commits a block at a given time. Reminder: At the end of each
-// Tendermint Consensus round the following methods are run
-//  1. BeginBlock
-//  2. DeliverTx
-//  3. EndBlock
-//  4. Commit
+// Commit commits a block at a given time.
+// Reminder: At the end of each CometBFT Consensus round the following methods are run
+//  1. FinalizeBlock, which contains:
+//     1.1. preBlock
+//     1.1. beginBlock
+//     1.2. deliverTx
+//     1.3. endBlock
+//  2. Commit
 func Commit(ctx sdk.Context, chainApp *chainapp.Evermint, t time.Duration, vs *cmttypes.ValidatorSet) (sdk.Context, error) {
 	ctx = ReflectChangesToCommitMultiStore(ctx, chainApp.BaseApp)
 

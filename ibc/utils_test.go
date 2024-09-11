@@ -3,6 +3,8 @@ package ibc
 import (
 	"testing"
 
+	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/EscanBE/evermint/v12/constants"
@@ -20,7 +22,8 @@ import (
 
 func init() {
 	cfg := sdk.GetConfig()
-	cfg.SetBech32PrefixForAccount(constants.Bech32Prefix, constants.Bech32PrefixAccPub)
+	cmdcfg.SetBech32Prefixes(cfg)
+	cmdcfg.SetBip44CoinType(cfg)
 }
 
 func TestGetTransferSenderRecipient(t *testing.T) {
