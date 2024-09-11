@@ -3,6 +3,7 @@ package filters
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"sync"
 	"time"
 
@@ -337,10 +338,16 @@ func (api *PublicFilterAPI) NewHeads(ctx context.Context) (*rpc.Subscription, er
 					continue
 				}
 
-				baseFee := rpctypes.BaseFeeFromEvents(data.ResultFinalizeBlock.Events)
+				var baseFee *big.Int
+				var bloom ethtypes.Bloom
 
-				// TODO ES: fetch bloom from events
-				header := rpctypes.EthHeaderFromCometBFT(data.Block.Header, ethtypes.Bloom{}, baseFee)
+				baseFee = rpctypes.BaseFeeFromEvents(data.ResultFinalizeBlock.Events)
+				if nBloom := rpctypes.BloomFromEvents(data.ResultFinalizeBlock.Events); nBloom != nil {
+					bloom = *nBloom
+				} else {
+					bloom = evmtypes.EmptyBlockBloom
+				}
+				header := rpctypes.EthHeaderFromCometBFT(data.Block.Header, bloom, baseFee)
 				_ = notifier.Notify(rpcSub.ID, header) // #nosec G703
 			case <-rpcSub.Err():
 				headersSub.Unsubscribe(api.events)
