@@ -164,7 +164,7 @@ func (b *Backend) SetEtherbase(etherbase common.Address) bool {
 		return false
 	}
 
-	tmHash := common.BytesToHash(cmttypes.Tx(txBytes).Hash())
+	cometTxHash := common.BytesToHash(cmttypes.Tx(txBytes).Hash())
 
 	// Broadcast transaction in sync mode (default)
 	// NOTE: If error is encountered on the node, the broadcast will not return an error
@@ -178,7 +178,7 @@ func (b *Backend) SetEtherbase(etherbase common.Address) bool {
 		return false
 	}
 
-	b.logger.Debug("broadcasted tx to set miner withdraw address (etherbase)", "hash", tmHash.String())
+	b.logger.Debug("broadcasted tx to set miner withdraw address (etherbase)", "hash", cometTxHash.String())
 	return true
 }
 

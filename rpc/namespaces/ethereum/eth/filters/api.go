@@ -39,8 +39,8 @@ type Backend interface {
 	GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (map[string]interface{}, error)
 	HeaderByNumber(blockNum types.BlockNumber) (*ethtypes.Header, error)
 	HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error)
-	TendermintBlockByHash(hash common.Hash) (*cmtrpctypes.ResultBlock, error)
-	TendermintBlockResultByNumber(height *int64) (*cmtrpctypes.ResultBlockResults, error)
+	CometBFTBlockByHash(hash common.Hash) (*cmtrpctypes.ResultBlock, error)
+	CometBFTBlockResultByNumber(height *int64) (*cmtrpctypes.ResultBlockResults, error)
 	GetLogs(blockHash common.Hash) ([][]*ethtypes.Log, error)
 	GetLogsByHeight(*int64) ([][]*ethtypes.Log, error)
 	BlockBloom(blockRes *cmtrpctypes.ResultBlockResults) ethtypes.Bloom
@@ -78,14 +78,14 @@ type PublicFilterAPI struct {
 }
 
 // NewPublicAPI returns a new PublicFilterAPI instance.
-func NewPublicAPI(logger log.Logger, clientCtx client.Context, tmWSClient *cmtjrpcclient.WSClient, backend Backend) *PublicFilterAPI {
+func NewPublicAPI(logger log.Logger, clientCtx client.Context, cometWSClient *cmtjrpcclient.WSClient, backend Backend) *PublicFilterAPI {
 	logger = logger.With("api", "filter")
 	api := &PublicFilterAPI{
 		logger:    logger,
 		clientCtx: clientCtx,
 		backend:   backend,
 		filters:   make(map[rpc.ID]*filter),
-		events:    NewEventSystem(logger, tmWSClient),
+		events:    NewEventSystem(logger, cometWSClient),
 	}
 
 	go api.timeoutLoop()
@@ -341,7 +341,7 @@ func (api *PublicFilterAPI) NewHeads(ctx context.Context) (*rpc.Subscription, er
 				baseFee := types.BaseFeeFromEvents(data.ResultFinalizeBlock.Events)
 
 				// TODO ES: fetch bloom from events
-				header := types.EthHeaderFromTendermint(data.Block.Header, ethtypes.Bloom{}, baseFee)
+				header := types.EthHeaderFromCometBFT(data.Block.Header, ethtypes.Bloom{}, baseFee)
 				_ = notifier.Notify(rpcSub.ID, header) // #nosec G703
 			case <-rpcSub.Err():
 				headersSub.Unsubscribe(api.events)

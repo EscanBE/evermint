@@ -177,9 +177,9 @@ func (b *Backend) FeeHistory(
 	// fetch block
 	for blockID := blockStart; blockID <= blockEnd; blockID++ {
 		index := int32(blockID - blockStart) // #nosec G701
-		// tendermint block
-		tendermintblock, err := b.TendermintBlockByNumber(rpctypes.BlockNumber(blockID))
-		if tendermintblock == nil {
+		// CometBFT block
+		cometBlock, err := b.CometBFTBlockByNumber(rpctypes.BlockNumber(blockID))
+		if cometBlock == nil {
 			return nil, err
 		}
 
@@ -189,15 +189,15 @@ func (b *Backend) FeeHistory(
 			return nil, err
 		}
 
-		// tendermint block result
-		tendermintBlockResult, err := b.TendermintBlockResultByNumber(&tendermintblock.Block.Height)
-		if tendermintBlockResult == nil {
-			b.logger.Debug("block result not found", "height", tendermintblock.Block.Height, "error", err.Error())
+		// CometBF^ block result
+		cometBlockResult, err := b.CometBFTBlockResultByNumber(&cometBlock.Block.Height)
+		if cometBlockResult == nil {
+			b.logger.Debug("block result not found", "height", cometBlock.Block.Height, "error", err.Error())
 			return nil, err
 		}
 
 		oneFeeHistory := rpctypes.OneFeeHistory{}
-		err = b.processBlock(tendermintblock, &ethBlock, rewardPercentiles, tendermintBlockResult, &oneFeeHistory)
+		err = b.processBlock(cometBlock, &ethBlock, rewardPercentiles, cometBlockResult, &oneFeeHistory)
 		if err != nil {
 			return nil, err
 		}

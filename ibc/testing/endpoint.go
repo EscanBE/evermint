@@ -88,12 +88,12 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		tmConfig, ok := endpoint.ClientConfig.(*ibctesting.TendermintConfig)
+		cometConfig, ok := endpoint.ClientConfig.(*ibctesting.TendermintConfig)
 		require.True(endpoint.Chain.TB, ok)
 
 		height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
 		clientState = ibclightclient.NewClientState(
-			endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
+			endpoint.Counterparty.Chain.ChainID, cometConfig.TrustLevel, cometConfig.TrustingPeriod, cometConfig.UnbondingPeriod, cometConfig.MaxClockDrift,
 			height, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
 		)
 		consensusState = endpoint.Counterparty.Chain.LastHeader.ConsensusState()

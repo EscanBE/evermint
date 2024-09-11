@@ -38,7 +38,7 @@ func init() {
 // DefaultTestingAppInit defines the IBC application used for testing
 var DefaultTestingAppInit func(chainId string) func() (ibctesting.TestingApp, map[string]json.RawMessage) = SetupTestingApp
 
-// DefaultConsensusParams defines the default Tendermint consensus params used in
+// DefaultConsensusParams defines the default CometBFT consensus params used in
 // Evermint testing.
 var DefaultConsensusParams = &tmproto.ConsensusParams{
 	Block: &tmproto.BlockParams{

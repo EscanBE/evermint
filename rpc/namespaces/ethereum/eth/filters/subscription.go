@@ -30,7 +30,7 @@ func (s Subscription) ID() rpc.ID {
 	return s.id
 }
 
-// Unsubscribe from the current subscription to Tendermint Websocket. It sends an error to the
+// Unsubscribe from the current subscription to CometBFT Websocket. It sends an error to the
 // subscription error channel if unsubscribe fails.
 func (s *Subscription) Unsubscribe(es *EventSystem) {
 	go func() {
@@ -56,7 +56,7 @@ func (s *Subscription) Err() <-chan error {
 	return s.err
 }
 
-// Event returns the tendermint result event channel
+// Event returns the CometBFT result event channel
 func (s *Subscription) Event() <-chan cmtrpctypes.ResultEvent {
 	return s.eventCh
 }

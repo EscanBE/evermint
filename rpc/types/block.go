@@ -47,9 +47,9 @@ func NewBlockNumber(n *big.Int) BlockNumber {
 	return BlockNumber(n.Int64())
 }
 
-// ContextWithHeight wraps a context with the a gRPC block height header. If the provided height is
+// ContextWithHeight wraps a context with the gRPC block height header. If the provided height is
 // 0, it will return an empty context and the gRPC query will use the latest block height for querying.
-// Note that all metadata are processed and removed by tendermint layer, so it wont be accessible at gRPC server level.
+// Note that all metadata are processed and removed by CometBFT layer, so it won't be accessible at gRPC server level.
 func ContextWithHeight(height int64) context.Context {
 	if height == 0 {
 		return context.Background()
@@ -108,10 +108,10 @@ func (bn BlockNumber) Int64() int64 {
 	return int64(bn)
 }
 
-// TmHeight is a util function used for the Tendermint RPC client. It returns
+// CometBftHeight is an util function used for the CometBFT RPC client. It returns
 // nil if the block number is "latest". Otherwise, it returns the pointer of the
 // int64 value of the height.
-func (bn BlockNumber) TmHeight() *int64 {
+func (bn BlockNumber) CometBftHeight() *int64 {
 	if bn < 0 {
 		return nil
 	}

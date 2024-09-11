@@ -61,7 +61,7 @@ var defaultConsensusParams = &cmttypes.ConsensusParams{
 
 const CometBFTGovVotingPeriod = 5 * time.Second
 
-func NewChainApp(chainCfg ChainConfig, disableCometBFT bool, testConfig TestConfig, encCfg params.EncodingConfig, db cmtdb.DB, validatorAccounts TestAccounts, walletAccounts TestAccounts, genesisAccountBalance sdk.Coins, tempHolder *TemporaryHolder, logger log.Logger) (chainApp ChainApp, cometBFTApp CometBFTApp, validatorSet *cmttypes.ValidatorSet) {
+func NewChainApp(chainCfg ChainConfig, disableCometBFT bool, testConfig TestConfig, encCfg params.EncodingConfig, db cmtdb.DB, validatorAccounts TestAccounts, walletAccounts TestAccounts, genesisAccountBalance sdk.Coins, tempHolder *TemporaryHolder, logger log.Logger) (chainApp ChainApp, cometApp CometBftApp, validatorSet *cmttypes.ValidatorSet) {
 	defaultNodeHome := chainapp.DefaultNodeHome
 	moduleBasics := chainapp.ModuleBasics
 
@@ -180,7 +180,7 @@ func NewChainApp(chainCfg ChainConfig, disableCometBFT bool, testConfig TestConf
 		if err != nil {
 			panic(err)
 		}
-		cometBFTApp = nil
+		cometApp = nil
 	} else {
 		validator := validatorAccounts.Number(1)
 		if validator.GetValidatorAddress().String() != sdk.ValAddress(validator.GetPubKey().Address()).String() {
@@ -190,10 +190,10 @@ func NewChainApp(chainCfg ChainConfig, disableCometBFT bool, testConfig TestConf
 		for _, tempFile := range tempFiles {
 			tempHolder.AddTempFile(tempFile)
 		}
-		cometBFTApp = NewCometBFTApp(node, rpcPort)
+		cometApp = NewCometBftApp(node, rpcPort)
 	}
 
-	return cai, cometBFTApp, valSet
+	return cai, cometApp, valSet
 }
 
 func genesisStateWithValSet(chainCfg ChainConfig, disableCometBFT bool, testConfig TestConfig, codec codec.Codec, genesisState chainapp.GenesisState, valSet *cmttypes.ValidatorSet, genesisValidatorAccounts []authtypes.GenesisAccount, genesisWalletAccounts []authtypes.GenesisAccount, balances []banktypes.Balance, signingInfos []slashingtypes.SigningInfo) chainapp.GenesisState {

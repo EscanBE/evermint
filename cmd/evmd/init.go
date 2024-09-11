@@ -65,7 +65,7 @@ func displayInfo(info printInfo) error {
 	return nil
 }
 
-// InitCmd returns a command that initializes all files needed for Tendermint
+// InitCmd returns a command that initializes all files needed for CometBFT
 // and the respective application.
 func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{

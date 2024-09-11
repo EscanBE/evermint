@@ -27,7 +27,7 @@ import (
 )
 
 // StartCometBFTNode starts a CometBFT node for the given ABCI Application, used for testing purposes.
-func StartCometBFTNode(app abci.Application, genesis *cmttypes.GenesisDoc, db cmtdb.DB, validatorPrivKey tmcrypto.PrivKey, logger log.Logger) (cometBFTNode *cmtnode.Node, rpcPort int, tempFiles []string) {
+func StartCometBFTNode(app abci.Application, genesis *cmttypes.GenesisDoc, db cmtdb.DB, validatorPrivKey tmcrypto.PrivKey, logger log.Logger) (cometNode *cmtnode.Node, rpcPort int, tempFiles []string) {
 	if app == nil {
 		panic("missing app")
 	}

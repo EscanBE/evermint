@@ -36,7 +36,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/hashicorp/go-metrics v0.5.3
 	github.com/hashicorp/go-version v1.6.0
-	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/onsi/ginkgo/v2 v2.13.0
 	github.com/onsi/gomega v1.28.0
 	github.com/ory/dockertest/v3 v3.10.0
@@ -173,6 +172,7 @@ require (
 	github.com/huin/goupnp v1.0.3 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
+	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect

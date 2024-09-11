@@ -82,9 +82,9 @@ var (
 	_ ibctesting.TestingApp   = (*Evermint)(nil)
 )
 
-// Evermint implements an extended ABCI application. It is an application
-// that may process transactions through Ethereum's EVM running atop of
-// Tendermint consensus.
+// Evermint implements an extended ABCI application.
+// It is an application that may process transactions
+// through Ethereum's EVM running atop of CometBFT consensus.
 type Evermint struct {
 	*baseapp.BaseApp
 	keepers.AppKeepers
@@ -262,7 +262,7 @@ func NewEvermint(
 // Name returns the name of the App
 func (app *Evermint) Name() string { return app.BaseApp.Name() }
 
-// BeginBlocker runs the Tendermint ABCI BeginBlock logic. It executes state changes at the beginning
+// BeginBlocker runs the CometBFT ABCI BeginBlock logic. It executes state changes at the beginning
 // of the new block for every registered module. If there is a registered fork at the current height,
 // BeginBlocker will schedule the upgrade plan and perform the state migration (if any).
 func (app *Evermint) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
@@ -349,7 +349,7 @@ func (app *Evermint) RegisterAPIRoutes(apiSvr *api.Server, apiConfig srvconfig.A
 	clientCtx := apiSvr.ClientCtx
 	// Register new tx routes from grpc-gateway.
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
-	// Register new tendermint queries routes from grpc-gateway.
+	// Register new CometBFT queries routes from grpc-gateway.
 	cmtservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register legacy and grpc-gateway routes for all modules.

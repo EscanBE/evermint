@@ -52,7 +52,7 @@ func GetSdkEventForReceipt(
 	receipt *ethtypes.Receipt,
 	effectiveGasPrice *big.Int,
 	vmErr error,
-	tendermintTxHash *cmtbytes.HexBytes,
+	cometTxHash *cmtbytes.HexBytes,
 ) (sdk.Event, error) {
 	bzReceipt, err := receipt.MarshalBinary()
 	if err != nil {
@@ -79,8 +79,8 @@ func GetSdkEventForReceipt(
 	if vmErr != nil {
 		attrs = append(attrs, sdk.NewAttribute(AttributeKeyReceiptVmError, vmErr.Error()))
 	}
-	if tendermintTxHash != nil {
-		attrs = append(attrs, sdk.NewAttribute(AttributeKeyReceiptCometBFTTxHash, tendermintTxHash.String()))
+	if cometTxHash != nil {
+		attrs = append(attrs, sdk.NewAttribute(AttributeKeyReceiptCometBFTTxHash, cometTxHash.String()))
 	}
 
 	return sdk.NewEvent(

@@ -169,7 +169,7 @@ func (e *PublicAPI) GetTransactionByHash(hash common.Hash) (*rpctypes.RPCTransac
 // GetTransactionCount returns the number of transactions at the given address up to the given block number.
 func (e *PublicAPI) GetTransactionCount(address common.Address, blockNrOrHash rpctypes.BlockNumberOrHash) (*hexutil.Uint64, error) {
 	e.logger.Debug("eth_getTransactionCount", "address", address.Hex(), "block number or hash", blockNrOrHash)
-	blockNum, err := e.backend.BlockNumberFromTendermint(blockNrOrHash)
+	blockNum, err := e.backend.BlockNumberFromCometBFT(blockNrOrHash)
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +271,7 @@ func (e *PublicAPI) Call(args evmtypes.TransactionArgs,
 ) (hexutil.Bytes, error) {
 	e.logger.Debug("eth_call", "args", args.String(), "block number or hash", blockNrOrHash)
 
-	blockNum, err := e.backend.BlockNumberFromTendermint(blockNrOrHash)
+	blockNum, err := e.backend.BlockNumberFromCometBFT(blockNrOrHash)
 	if err != nil {
 		return nil, err
 	}
@@ -423,7 +423,7 @@ func (e *PublicAPI) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, err
 		return nil, nil
 	}
 
-	resBlockResult, err := e.backend.TendermintBlockResultByNumber(&res.Height)
+	resBlockResult, err := e.backend.CometBFTBlockResultByNumber(&res.Height)
 	if err != nil {
 		e.logger.Debug("block result not found", "number", res.Height, "error", err.Error())
 		return nil, errorsmod.Wrap(err, "block result not found")
@@ -434,7 +434,7 @@ func (e *PublicAPI) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, err
 		return nil, errorsmod.Wrap(err, "tx was dropped before ante handle")
 	}
 
-	resBlock, err := e.backend.TendermintBlockByNumber(rpctypes.BlockNumber(res.Height))
+	resBlock, err := e.backend.CometBFTBlockByNumber(rpctypes.BlockNumber(res.Height))
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "block not found")
 	}

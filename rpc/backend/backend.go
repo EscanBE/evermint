@@ -70,18 +70,18 @@ type EVMBackend interface {
 	GetBlockByHash(hash common.Hash, fullTx bool) (map[string]interface{}, error)
 	GetBlockTransactionCountByHash(hash common.Hash) *hexutil.Uint
 	GetBlockTransactionCountByNumber(blockNum rpctypes.BlockNumber) *hexutil.Uint
-	TendermintBlockByNumber(blockNum rpctypes.BlockNumber) (*cmtrpctypes.ResultBlock, error)
-	TendermintBlockResultByNumber(height *int64) (*cmtrpctypes.ResultBlockResults, error)
-	TendermintBlockByHash(blockHash common.Hash) (*cmtrpctypes.ResultBlock, error)
-	BlockNumberFromTendermint(blockNrOrHash rpctypes.BlockNumberOrHash) (rpctypes.BlockNumber, error)
-	BlockNumberFromTendermintByHash(blockHash common.Hash) (*big.Int, error)
-	EthMsgsFromTendermintBlock(block *cmtrpctypes.ResultBlock, blockRes *cmtrpctypes.ResultBlockResults) []*evmtypes.MsgEthereumTx
+	CometBFTBlockByNumber(blockNum rpctypes.BlockNumber) (*cmtrpctypes.ResultBlock, error)
+	CometBFTBlockResultByNumber(height *int64) (*cmtrpctypes.ResultBlockResults, error)
+	CometBFTBlockByHash(blockHash common.Hash) (*cmtrpctypes.ResultBlock, error)
+	BlockNumberFromCometBFT(blockNrOrHash rpctypes.BlockNumberOrHash) (rpctypes.BlockNumber, error)
+	BlockNumberFromCometBFTByHash(blockHash common.Hash) (*big.Int, error)
+	EthMsgsFromCometBFTBlock(block *cmtrpctypes.ResultBlock, blockRes *cmtrpctypes.ResultBlockResults) []*evmtypes.MsgEthereumTx
 	BlockBloom(blockRes *cmtrpctypes.ResultBlockResults) ethtypes.Bloom
 	HeaderByNumber(blockNum rpctypes.BlockNumber) (*ethtypes.Header, error)
 	HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error)
-	RPCBlockFromTendermintBlock(resBlock *cmtrpctypes.ResultBlock, blockRes *cmtrpctypes.ResultBlockResults, fullTx bool) (map[string]interface{}, error)
+	RPCBlockFromCometBFTBlock(resBlock *cmtrpctypes.ResultBlock, blockRes *cmtrpctypes.ResultBlockResults, fullTx bool) (map[string]interface{}, error)
 	EthBlockByNumber(blockNum rpctypes.BlockNumber) (*ethtypes.Block, error)
-	EthBlockFromTendermintBlock(resBlock *cmtrpctypes.ResultBlock, blockRes *cmtrpctypes.ResultBlockResults) (*ethtypes.Block, error)
+	EthBlockFromCometBFTBlock(resBlock *cmtrpctypes.ResultBlock, blockRes *cmtrpctypes.ResultBlockResults) (*ethtypes.Block, error)
 
 	// Account Info
 	GetCode(address common.Address, blockNrOrHash rpctypes.BlockNumberOrHash) (hexutil.Bytes, error)

@@ -479,15 +479,15 @@ localnet-clean:
 localnet-unsafe-reset:
 	docker-compose down
 ifeq ($(OS),Windows_NT)
-	@docker run --rm -v $(CURDIR)\build\node0\evmd:/evermint\Z evermint/node "./evmd tendermint unsafe-reset-all --home=/evermint"
-	@docker run --rm -v $(CURDIR)\build\node1\evmd:/evermint\Z evermint/node "./evmd tendermint unsafe-reset-all --home=/evermint"
-	@docker run --rm -v $(CURDIR)\build\node2\evmd:/evermint\Z evermint/node "./evmd tendermint unsafe-reset-all --home=/evermint"
-	@docker run --rm -v $(CURDIR)\build\node3\evmd:/evermint\Z evermint/node "./evmd tendermint unsafe-reset-all --home=/evermint"
+	@docker run --rm -v $(CURDIR)\build\node0\evmd:/evermint\Z evermint/node "./evmd cometbft unsafe-reset-all --home=/evermint"
+	@docker run --rm -v $(CURDIR)\build\node1\evmd:/evermint\Z evermint/node "./evmd cometbft unsafe-reset-all --home=/evermint"
+	@docker run --rm -v $(CURDIR)\build\node2\evmd:/evermint\Z evermint/node "./evmd cometbft unsafe-reset-all --home=/evermint"
+	@docker run --rm -v $(CURDIR)\build\node3\evmd:/evermint\Z evermint/node "./evmd cometbft unsafe-reset-all --home=/evermint"
 else
-	@docker run --rm -v $(CURDIR)/build/node0/evmd:/evermint:Z evermint/node "./evmd tendermint unsafe-reset-all --home=/evermint"
-	@docker run --rm -v $(CURDIR)/build/node1/evmd:/evermint:Z evermint/node "./evmd tendermint unsafe-reset-all --home=/evermint"
-	@docker run --rm -v $(CURDIR)/build/node2/evmd:/evermint:Z evermint/node "./evmd tendermint unsafe-reset-all --home=/evermint"
-	@docker run --rm -v $(CURDIR)/build/node3/evmd:/evermint:Z evermint/node "./evmd tendermint unsafe-reset-all --home=/evermint"
+	@docker run --rm -v $(CURDIR)/build/node0/evmd:/evermint:Z evermint/node "./evmd cometbft unsafe-reset-all --home=/evermint"
+	@docker run --rm -v $(CURDIR)/build/node1/evmd:/evermint:Z evermint/node "./evmd cometbft unsafe-reset-all --home=/evermint"
+	@docker run --rm -v $(CURDIR)/build/node2/evmd:/evermint:Z evermint/node "./evmd cometbft unsafe-reset-all --home=/evermint"
+	@docker run --rm -v $(CURDIR)/build/node3/evmd:/evermint:Z evermint/node "./evmd cometbft unsafe-reset-all --home=/evermint"
 endif
 
 # Clean testnet

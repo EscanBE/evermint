@@ -27,7 +27,7 @@ func (b *Backend) GetTransactionByHash(txHash common.Hash) (*rpctypes.RPCTransac
 		return b.getTransactionByHashPending(txHash)
 	}
 
-	block, err := b.TendermintBlockByNumber(rpctypes.BlockNumber(res.Height))
+	block, err := b.CometBFTBlockByNumber(rpctypes.BlockNumber(res.Height))
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (b *Backend) GetTransactionByHash(txHash common.Hash) (*rpctypes.RPCTransac
 		return nil, errors.New("invalid ethereum tx")
 	}
 
-	blockRes, err := b.TendermintBlockResultByNumber(&block.Block.Height)
+	blockRes, err := b.CometBFTBlockResultByNumber(&block.Block.Height)
 	if err != nil {
 		b.logger.Debug("block result not found", "height", block.Block.Height, "error", err.Error())
 		return nil, nil
@@ -51,7 +51,7 @@ func (b *Backend) GetTransactionByHash(txHash common.Hash) (*rpctypes.RPCTransac
 
 	if res.EthTxIndex == -1 {
 		// Fallback to find tx index by iterating all valid eth transactions
-		msgs := b.EthMsgsFromTendermintBlock(block, blockRes)
+		msgs := b.EthMsgsFromCometBFTBlock(block, blockRes)
 		for i := range msgs {
 			if msgs[i].Hash == hexTx {
 				if i > math.MaxInt32 {
@@ -133,12 +133,12 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 		return nil, nil
 	}
 
-	resBlock, err := b.TendermintBlockByNumber(rpctypes.BlockNumber(res.Height))
+	resBlock, err := b.CometBFTBlockByNumber(rpctypes.BlockNumber(res.Height))
 	if err != nil {
 		b.logger.Debug("block not found", "height", res.Height, "error", err.Error())
 		return nil, nil
 	}
-	blockRes, err := b.TendermintBlockResultByNumber(&res.Height)
+	blockRes, err := b.CometBFTBlockResultByNumber(&res.Height)
 	if err != nil {
 		b.logger.Debug("failed to retrieve block results", "height", res.Height, "error", err.Error())
 		return nil, nil
@@ -147,7 +147,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 
 	if res.EthTxIndex == -1 {
 		// Fallback to find tx index by iterating all valid eth transactions
-		msgs := b.EthMsgsFromTendermintBlock(resBlock, blockRes)
+		msgs := b.EthMsgsFromCometBFTBlock(resBlock, blockRes)
 		for i := range msgs {
 			if msgs[i].Hash == hexTx {
 				res.EthTxIndex = int32(i) // #nosec G701
@@ -292,7 +292,7 @@ func (b *Backend) GetTransactionByBlockHashAndIndex(hash common.Hash, idx hexuti
 func (b *Backend) GetTransactionByBlockNumberAndIndex(blockNum rpctypes.BlockNumber, idx hexutil.Uint) (*rpctypes.RPCTransaction, error) {
 	b.logger.Debug("eth_getTransactionByBlockNumberAndIndex", "number", blockNum, "index", idx)
 
-	block, err := b.TendermintBlockByNumber(blockNum)
+	block, err := b.CometBFTBlockByNumber(blockNum)
 	if err != nil {
 		b.logger.Debug("block not found", "height", blockNum.Int64(), "error", err.Error())
 		return nil, nil
@@ -319,7 +319,7 @@ func (b *Backend) GetTxByTxIndex(height int64, index uint) (*evertypes.TxResult,
 
 // GetTransactionByBlockAndIndex is the common code shared by `GetTransactionByBlockNumberAndIndex` and `GetTransactionByBlockHashAndIndex`.
 func (b *Backend) GetTransactionByBlockAndIndex(block *cmtrpctypes.ResultBlock, idx hexutil.Uint) (*rpctypes.RPCTransaction, error) {
-	blockRes, err := b.TendermintBlockResultByNumber(&block.Block.Height)
+	blockRes, err := b.CometBFTBlockResultByNumber(&block.Block.Height)
 	if err != nil {
 		return nil, nil
 	}
@@ -343,7 +343,7 @@ func (b *Backend) GetTransactionByBlockAndIndex(block *cmtrpctypes.ResultBlock, 
 		}
 	} else {
 		i := int(idx) // #nosec G701
-		ethMsgs := b.EthMsgsFromTendermintBlock(block, blockRes)
+		ethMsgs := b.EthMsgsFromCometBFTBlock(block, blockRes)
 		if i >= len(ethMsgs) {
 			b.logger.Debug("block txs index out of bound", "index", i)
 			return nil, nil

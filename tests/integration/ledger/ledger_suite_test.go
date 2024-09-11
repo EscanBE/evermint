@@ -162,7 +162,7 @@ func (suite *LedgerTestSuite) NewKeyringAndCtxs(krHome string, input io.Reader, 
 		WithLedgerHasProtobuf(true).
 		WithUseLedger(true).
 		WithKeyring(kr).
-		WithClient(mocks.MockTendermintRPC{Client: rpcclientmock.Client{}}).
+		WithClient(mocks.MockCometBftRPC{Client: rpcclientmock.Client{}}).
 		WithChainID(constants.TestnetFullChainId)
 
 	ctx := context.Background()

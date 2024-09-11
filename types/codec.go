@@ -5,7 +5,7 @@ import (
 	sdktxtypes "github.com/cosmos/cosmos-sdk/types/tx"
 )
 
-// RegisterInterfaces registers the tendermint concrete client-related
+// RegisterInterfaces registers the CometBFT concrete client-related
 // implementations and interfaces.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(

@@ -83,7 +83,7 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 			contextBlockHeader := ctx.BlockHeader()
 			header, err := cmttypes.HeaderFromProto(&contextBlockHeader)
 			if err != nil {
-				k.Logger(ctx).Error("failed to cast tendermint header from proto", "error", err)
+				k.Logger(ctx).Error("failed to cast CometBFT header from proto", "error", err)
 				return common.Hash{}
 			}
 
@@ -101,7 +101,7 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 
 			header, err := cmttypes.HeaderFromProto(&histInfo.Header)
 			if err != nil {
-				k.Logger(ctx).Error("failed to cast tendermint header from proto", "error", err)
+				k.Logger(ctx).Error("failed to cast CometBFT header from proto", "error", err)
 				return common.Hash{}
 			}
 

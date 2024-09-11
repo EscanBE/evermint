@@ -158,7 +158,7 @@ Error:  Received unexpected error:
         [error stream]:
 
         7:03AM INF Unlocking keyring
-        7:03AM INF starting ABCI with Tendermint
+        7:03AM INF starting ABCI with CometBFT
         panic: invalid minimum gas prices: invalid decimal coin expression: 0...
 
         goroutine 1 [running]:

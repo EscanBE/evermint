@@ -79,9 +79,9 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 		}
 	}()
 
-	var tmTxHash *cmtbytes.HexBytes
+	var cometTxHash *cmtbytes.HexBytes
 	if len(ctx.TxBytes()) > 0 {
-		tmTxHash = utils.Ptr[cmtbytes.HexBytes](cmttypes.Tx(ctx.TxBytes()).Hash())
+		cometTxHash = utils.Ptr[cmtbytes.HexBytes](cmttypes.Tx(ctx.TxBytes()).Hash())
 	}
 
 	txData, err := evmtypes.UnpackTxData(msg.Data)
@@ -115,7 +115,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 			}
 			return nil
 		}(),
-		tmTxHash,
+		cometTxHash,
 	)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to get sdk event for receipt")

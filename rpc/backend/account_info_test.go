@@ -129,7 +129,7 @@ func (suite *BackendTestSuite) TestGetProof() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterAccount(queryClient, addr, bn.Int64())
 
-				// Use the IAVL height if a valid tendermint height is passed in.
+				// Use the IAVL height if a valid CometBFT height is passed in.
 				iavlHeight := bn.Int64()
 				RegisterABCIQueryWithOptions(
 					client,
@@ -264,7 +264,7 @@ func (suite *BackendTestSuite) TestGetBalance() {
 			nil,
 		},
 		{
-			"fail - tendermint client failed to get block",
+			"fail - CometBFT client failed to get block",
 			utiltx.GenerateAddress(),
 			rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
 			func(bn rpctypes.BlockNumber, addr common.Address) {

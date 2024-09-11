@@ -137,7 +137,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 				return err
 			}
 
-			// override the app and tendermint configuration
+			// override the app and CometBFT configuration
 			customAppTemplate, customAppConfig := initAppConfig()
 			customTMConfig := initCometBftConfig()
 
@@ -207,7 +207,7 @@ You gonna get "100000-3.tar.gz" at current working directory
 You gonna get "data/application.db" unpacked
 
 6. Now bootstrap state with "bootstrap-state":
-%s tendermint bootstrap-state
+%s cometbft bootstrap-state
 `,
 				constants.ApplicationBinaryName, constants.ApplicationBinaryName, constants.ApplicationBinaryName,
 				constants.ApplicationHome,

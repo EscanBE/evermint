@@ -42,7 +42,7 @@ func (suite *EthRpcTestSuite) SetupSuite() {
 
 func (suite *EthRpcTestSuite) SetupTest() {
 	suite.CITS = integration_test_util.CreateChainIntegrationTestSuite(suite.T(), suite.Require())
-	suite.CITS.EnsureCometBFT() // RPC requires Tendermint
+	suite.CITS.EnsureCometBFT() // RPC requires CometBFT
 }
 
 func (suite *EthRpcTestSuite) TearDownTest() {

@@ -8,7 +8,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	tmstore "github.com/cometbft/cometbft/store"
+	cmtstore "github.com/cometbft/cometbft/store"
 	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
@@ -29,7 +29,7 @@ func LatestBlockNumberCmd() *cobra.Command {
 				panic(errorsmod.Wrap(err, "error while opening db"))
 			}
 
-			blockStoreState := tmstore.LoadBlockStoreState(evertypes.CosmosDbToCometDb(db))
+			blockStoreState := cmtstore.LoadBlockStoreState(evertypes.CosmosDbToCometDb(db))
 
 			fmt.Println("Latest block height available in database:", blockStoreState.Height)
 		},

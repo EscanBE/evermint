@@ -44,44 +44,44 @@ import (
 
 func startInProcess(cfg Config, val *Validator) error {
 	logger := val.Ctx.Logger
-	tmCfg := val.Ctx.Config
-	tmCfg.Instrumentation.Prometheus = false
+	cometCfg := val.Ctx.Config
+	cometCfg.Instrumentation.Prometheus = false
 
 	if err := val.AppConfig.ValidateBasic(); err != nil {
 		return err
 	}
 
-	nodeKey, err := cmtp2p.LoadOrGenNodeKey(tmCfg.NodeKeyFile())
+	nodeKey, err := cmtp2p.LoadOrGenNodeKey(cometCfg.NodeKeyFile())
 	if err != nil {
 		return err
 	}
 
 	app := cfg.AppConstructor(*val)
 
-	genDocProvider := cmtnode.DefaultGenesisDocProviderFunc(tmCfg)
+	genDocProvider := cmtnode.DefaultGenesisDocProviderFunc(cometCfg)
 	cmtApp := sdkserver.NewCometABCIWrapper(app)
-	tmNode, err := cmtnode.NewNode(
-		tmCfg,
-		cmtprivval.LoadOrGenFilePV(tmCfg.PrivValidatorKeyFile(), tmCfg.PrivValidatorStateFile()),
+	cometNode, err := cmtnode.NewNode(
+		cometCfg,
+		cmtprivval.LoadOrGenFilePV(cometCfg.PrivValidatorKeyFile(), cometCfg.PrivValidatorStateFile()),
 		nodeKey,
 		cmtproxy.NewLocalClientCreator(cmtApp),
 		genDocProvider,
 		cmtcfg.DefaultDBProvider,
-		cmtnode.DefaultMetricsProvider(tmCfg.Instrumentation),
+		cmtnode.DefaultMetricsProvider(cometCfg.Instrumentation),
 		servercmtlog.CometLoggerWrapper{Logger: logger.With("module", val.Moniker)},
 	)
 	if err != nil {
 		return err
 	}
 
-	if err := tmNode.Start(); err != nil {
+	if err := cometNode.Start(); err != nil {
 		return err
 	}
 
-	val.tmNode = tmNode
+	val.cometNode = cometNode
 
 	if val.RPCAddress != "" {
-		val.RPCClient = local.New(tmNode)
+		val.RPCClient = local.New(cometNode)
 	}
 
 	// We'll need a RPC client if the validator exposes a gRPC or REST endpoint.
@@ -92,7 +92,7 @@ func startInProcess(cfg Config, val *Validator) error {
 		// Add the tx service in the gRPC router.
 		app.RegisterTxService(val.ClientCtx)
 
-		// Add the tendermint queries service in the gRPC router.
+		// Add the CometBFT queries service in the gRPC router.
 		app.RegisterTendermintService(val.ClientCtx)
 	}
 
@@ -134,10 +134,10 @@ func startInProcess(cfg Config, val *Validator) error {
 			return fmt.Errorf("validator %s context is nil", val.Moniker)
 		}
 
-		tmEndpoint := "/websocket"
-		tmRPCAddr := fmt.Sprintf("tcp://%s", val.AppConfig.GRPC.Address)
+		cometEndpoint := "/websocket"
+		cometRPCAddr := fmt.Sprintf("tcp://%s", val.AppConfig.GRPC.Address)
 
-		val.jsonrpc, val.jsonrpcDone, err = server.StartJSONRPC(val.Ctx, val.ClientCtx, tmRPCAddr, tmEndpoint, val.AppConfig, nil)
+		val.jsonrpc, val.jsonrpcDone, err = server.StartJSONRPC(val.Ctx, val.ClientCtx, cometRPCAddr, cometEndpoint, val.AppConfig, nil)
 		if err != nil {
 			return err
 		}

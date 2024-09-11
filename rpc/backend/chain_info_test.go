@@ -361,7 +361,7 @@ func (suite *BackendTestSuite) TestFeeHistory() {
 			false,
 		},
 		{
-			"fail - Tendermint block fetching error ",
+			"fail - CometBFT block fetching error ",
 			func(validator sdk.AccAddress) {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				suite.backend.cfg.JSONRPC.FeeHistoryCap = 2

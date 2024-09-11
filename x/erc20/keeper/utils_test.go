@@ -296,12 +296,14 @@ func (suite *KeeperTestSuite) Commit() {
 	suite.CommitAndBeginBlockAfter(time.Hour)
 }
 
-// Commit commits a block at a given time. Reminder: At the end of each
-// Tendermint Consensus round the following methods are run
-//  1. BeginBlock
-//  2. DeliverTx
-//  3. EndBlock
-//  4. Commit
+// Commit commits a block at a given time.
+// Reminder: At the end of each CometBFT Consensus round the following methods are run
+//  1. FinalizeBlock, which contains:
+//     1.1. preBlock
+//     1.1. beginBlock
+//     1.2. deliverTx
+//     1.3. endBlock
+//  2. Commit
 func (suite *KeeperTestSuite) CommitAndBeginBlockAfter(t time.Duration) {
 	var err error
 	suite.ctx, err = testutil.Commit(suite.ctx, suite.app, t, nil)

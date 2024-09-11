@@ -44,7 +44,7 @@ import (
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	cmtjrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 	tmstate "github.com/cometbft/cometbft/state"
-	"github.com/cometbft/cometbft/store"
+	cmtstore "github.com/cometbft/cometbft/store"
 	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cometbft/cometbft/version"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -87,7 +87,7 @@ type ChainIntegrationTestSuite struct {
 	EncodingConfig       params.EncodingConfig
 	ChainConstantsConfig itutiltypes.ChainConstantConfig
 	DB                   *cmtdb.MemDB
-	CometBFTApp          itutiltypes.CometBFTApp
+	CometBFTApp          itutiltypes.CometBftApp
 	ChainApp             itutiltypes.ChainApp
 	ValidatorSet         *cmttypes.ValidatorSet
 	CurrentContext       sdk.Context // might be out-dated if CometBFT is used
@@ -194,7 +194,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 	}
 
 	logger := log.NewNopLogger()
-	app, tmApp, valSet := itutiltypes.NewChainApp(chainCfg, disableCometBFT, testConfig, encodingConfig, cmtDB, validatorAccounts, walletAccounts, genesisAccountBalance, tempHolder, logger)
+	app, cometApp, valSet := itutiltypes.NewChainApp(chainCfg, disableCometBFT, testConfig, encodingConfig, cmtDB, validatorAccounts, walletAccounts, genesisAccountBalance, tempHolder, logger)
 	baseApp := app.BaseApp()
 
 	header := createFirstBlockHeader(
@@ -244,7 +244,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 		),
 		DB:                cmtDB,
 		ChainApp:          app,
-		CometBFTApp:       tmApp,
+		CometBFTApp:       cometApp,
 		ValidatorSet:      valSet,
 		CurrentContext:    ctx.WithMultiStore(baseApp.CommitMultiStore().CacheMultiStore()),
 		ValidatorAccounts: validatorAccounts,
@@ -419,7 +419,7 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 		FeeMarket:     feeMarketQueryClient,
 	}
 
-	var cometBFTRpcHttpClient *httpclient.HTTP
+	var cometRpcHttpClient *httpclient.HTTP
 	if suite.HasCometBFT() {
 		rpcAddr26657, supported := suite.CometBFTApp.GetRpcAddr()
 		suite.Require().True(supported)
@@ -427,10 +427,10 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 		httpClient26657, err := cmtjrpcclient.DefaultHTTPClient(rpcAddr26657)
 		suite.Require().NoError(err)
 
-		cometBFTRpcHttpClient, err = httpclient.NewWithClient(rpcAddr26657, "/websocket", httpClient26657)
+		cometRpcHttpClient, err = httpclient.NewWithClient(rpcAddr26657, "/websocket", httpClient26657)
 		suite.Require().NoError(err)
 
-		err = cometBFTRpcHttpClient.Start()
+		err = cometRpcHttpClient.Start()
 		suite.Require().NoError(err)
 	}
 
@@ -454,7 +454,7 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 	}
 
 	if suite.HasCometBFT() {
-		clientQueryCtx = clientQueryCtx.WithClient(cometBFTRpcHttpClient)
+		clientQueryCtx = clientQueryCtx.WithClient(cometRpcHttpClient)
 	}
 
 	sdktxtypes.RegisterServiceServer(
@@ -465,7 +465,7 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 	return &itutiltypes.QueryClients{
 		GrpcConnection:        queryHelper,
 		ClientQueryCtx:        clientQueryCtx,
-		CometBFTRpcHttpClient: cometBFTRpcHttpClient,
+		CometBFTRpcHttpClient: cometRpcHttpClient,
 		Auth:                  authQueryClient,
 		Bank:                  bankQueryClient,
 		Distribution:          distributionQueryClient,
@@ -578,11 +578,11 @@ func (suite *ChainIntegrationTestSuite) commitAndBeginBlockAfter(t time.Duration
 
 		blockStore, stateStore := suite.GetBlockStoreAndStateStore()
 
-		tmBlk := blockStore.LoadBlock(latestHeight)
+		cometBlk := blockStore.LoadBlock(latestHeight)
 		valSet, err := stateStore.LoadValidators(latestHeight)
 		suite.Require().NoErrorf(err, "failed to load validator set for block %d", latestHeight)
 
-		header := tmBlk.Header.ToProto()
+		header := cometBlk.Header.ToProto()
 		ctx := suite.createNewContext(suite.CurrentContext, *header)
 		suite.triggerEvmIndexer(latestHeight, blockStore, stateStore) // trigger EVM Tx-Indexer indexing data to latest
 
@@ -617,7 +617,7 @@ func (suite *ChainIntegrationTestSuite) GetIbcTimeoutHeight(offsetHeight int64) 
 }
 
 // triggerEvmIndexer indexes EVM txs from blockStore and stateStore, upto latestHeight.
-func (suite *ChainIntegrationTestSuite) triggerEvmIndexer(latestHeight int64, blockStore *store.BlockStore, stateStore tmstate.Store) {
+func (suite *ChainIntegrationTestSuite) triggerEvmIndexer(latestHeight int64, blockStore *cmtstore.BlockStore, stateStore tmstate.Store) {
 	suite.Require().NotZero(latestHeight)
 	suite.Require().NotNil(blockStore)
 	suite.Require().NotNil(stateStore)
@@ -636,10 +636,10 @@ func (suite *ChainIntegrationTestSuite) triggerEvmIndexer(latestHeight int64, bl
 
 	var ch int64
 	for ch = indexFromBlock; ch <= latestHeight; ch++ {
-		tmBlk := blockStore.LoadBlock(ch)
-		tmAbciResponse, err := stateStore.LoadFinalizeBlockResponse(ch)
+		cometBlk := blockStore.LoadBlock(ch)
+		cometAbciResponse, err := stateStore.LoadFinalizeBlockResponse(ch)
 		suite.Require().NoErrorf(err, "failed to load abci response for block %d", ch)
-		err = suite.EvmTxIndexer.IndexBlock(tmBlk, tmAbciResponse.TxResults)
+		err = suite.EvmTxIndexer.IndexBlock(cometBlk, cometAbciResponse.TxResults)
 		suite.Require().NoErrorf(err, "failed to index block %d", ch)
 	}
 
@@ -649,9 +649,9 @@ func (suite *ChainIntegrationTestSuite) triggerEvmIndexer(latestHeight int64, bl
 // GetBlockStoreAndStateStore returns blockStore and stateStore if CometBFT is Enabled.
 //
 // WARN: if CometBFT is Disabled, the call will panic.
-func (suite *ChainIntegrationTestSuite) GetBlockStoreAndStateStore() (*store.BlockStore, tmstate.Store) {
+func (suite *ChainIntegrationTestSuite) GetBlockStoreAndStateStore() (*cmtstore.BlockStore, tmstate.Store) {
 	suite.EnsureCometBFT()
-	blockStore := store.NewBlockStore(suite.DB)
+	blockStore := cmtstore.NewBlockStore(suite.DB)
 	stateStore := tmstate.NewStore(suite.DB, tmstate.StoreOptions{
 		DiscardABCIResponses: false,
 	})

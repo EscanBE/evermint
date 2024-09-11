@@ -68,7 +68,7 @@ type StartOptions struct {
 	DBOpener        DBOpener
 }
 
-// NewDefaultStartOptions use the default db opener provided in tm-db.
+// NewDefaultStartOptions use the default db opener provided in CometBFT db.
 func NewDefaultStartOptions(appCreator types.AppCreator, defaultNodeHome string) StartOptions {
 	return StartOptions{
 		AppCreator:      appCreator,

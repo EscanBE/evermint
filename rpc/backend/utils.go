@@ -99,14 +99,14 @@ func (b *Backend) getAccountNonce(accAddr common.Address, pending bool, height i
 
 // output: targetOneFeeHistory
 func (b *Backend) processBlock(
-	tendermintBlock *cmtrpctypes.ResultBlock,
+	cometBlock *cmtrpctypes.ResultBlock,
 	ethBlock *map[string]interface{},
 	rewardPercentiles []float64,
-	tendermintBlockResult *cmtrpctypes.ResultBlockResults,
+	cometBlockResult *cmtrpctypes.ResultBlockResults,
 	targetOneFeeHistory *types.OneFeeHistory,
 ) error {
-	blockHeight := tendermintBlock.Block.Height
-	blockBaseFee, err := b.BaseFee(tendermintBlockResult)
+	blockHeight := cometBlock.Block.Height
+	blockBaseFee, err := b.BaseFee(cometBlockResult)
 	if err != nil {
 		return err
 	}
@@ -146,23 +146,23 @@ func (b *Backend) processBlock(
 		targetOneFeeHistory.Reward[i] = big.NewInt(0)
 	}
 
-	// check tendermintTxs
-	tendermintTxs := tendermintBlock.Block.Txs
-	tendermintTxResults := tendermintBlockResult.TxsResults
-	tendermintTxCount := len(tendermintTxs)
+	// check CometBFT Txs
+	cometTxs := cometBlock.Block.Txs
+	cometTxResults := cometBlockResult.TxsResults
+	cometTxCount := len(cometTxs)
 
 	var sorter sortGasAndReward
 
-	for i := 0; i < tendermintTxCount; i++ {
-		eachTendermintTx := tendermintTxs[i]
-		eachTendermintTxResult := tendermintTxResults[i]
+	for i := 0; i < cometTxCount; i++ {
+		eachCometTx := cometTxs[i]
+		eachCometTxResult := cometTxResults[i]
 
-		tx, err := b.clientCtx.TxConfig.TxDecoder()(eachTendermintTx)
+		tx, err := b.clientCtx.TxConfig.TxDecoder()(eachCometTx)
 		if err != nil {
 			b.logger.Debug("failed to decode transaction in block", "height", blockHeight, "error", err.Error())
 			continue
 		}
-		txGasUsed := uint64(eachTendermintTxResult.GasUsed) // #nosec G701
+		txGasUsed := uint64(eachCometTxResult.GasUsed) // #nosec G701
 		for _, msg := range tx.GetMsgs() {
 			ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
 			if !ok {
@@ -365,7 +365,7 @@ func findAttribute(attrs []abci.EventAttribute, key string) (value string, found
 	return
 }
 
-// GetLogsFromBlockResults returns the list of event logs from the tendermint block result response
+// GetLogsFromBlockResults returns the list of event logs from the CometBFT block result response
 func GetLogsFromBlockResults(blockRes *cmtrpctypes.ResultBlockResults) ([][]*ethtypes.Log, error) {
 	blockLogs := [][]*ethtypes.Log{}
 	for _, txResult := range blockRes.TxsResults {

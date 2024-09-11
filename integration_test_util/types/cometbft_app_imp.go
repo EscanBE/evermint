@@ -7,17 +7,17 @@ import (
 	cmtnode "github.com/cometbft/cometbft/node"
 )
 
-var _ CometBFTApp = &cometBFTAppImp{}
+var _ CometBftApp = &cometBftAppImp{}
 
-type cometBFTAppImp struct {
-	cometBFTNode *cmtnode.Node
-	rpcAddr      string
-	grpcAddr     string //nolint:unused
+type cometBftAppImp struct {
+	cometNode *cmtnode.Node
+	rpcAddr   string
+	grpcAddr  string //nolint:unused
 }
 
-func NewCometBFTApp(cometBFTNode *cmtnode.Node, rpcPort int) CometBFTApp {
-	app := &cometBFTAppImp{
-		cometBFTNode: cometBFTNode,
+func NewCometBftApp(cometNode *cmtnode.Node, rpcPort int) CometBftApp {
+	app := &cometBftAppImp{
+		cometNode: cometNode,
 	}
 	if rpcPort > 0 {
 		app.rpcAddr = fmt.Sprintf("tcp://localhost:%d", rpcPort)
@@ -25,19 +25,19 @@ func NewCometBFTApp(cometBFTNode *cmtnode.Node, rpcPort int) CometBFTApp {
 	return app
 }
 
-func (a *cometBFTAppImp) CometBFTNode() *cmtnode.Node {
-	return a.cometBFTNode
+func (a *cometBftAppImp) CometBftNode() *cmtnode.Node {
+	return a.cometNode
 }
 
-func (a *cometBFTAppImp) GetRpcAddr() (addr string, supported bool) {
+func (a *cometBftAppImp) GetRpcAddr() (addr string, supported bool) {
 	return a.rpcAddr, a.rpcAddr != ""
 }
 
-func (a *cometBFTAppImp) Shutdown() {
-	if a == nil || a.cometBFTNode == nil || !a.cometBFTNode.IsRunning() {
+func (a *cometBftAppImp) Shutdown() {
+	if a == nil || a.cometNode == nil || !a.cometNode.IsRunning() {
 		return
 	}
-	err := a.cometBFTNode.Stop()
+	err := a.cometNode.Stop()
 	if err != nil {
 		if strings.Contains(err.Error(), "already stopped") {
 			// ignore
@@ -46,5 +46,5 @@ func (a *cometBFTAppImp) Shutdown() {
 			fmt.Println(err)
 		}
 	}
-	a.cometBFTNode.Wait()
+	a.cometNode.Wait()
 }

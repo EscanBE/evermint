@@ -44,16 +44,16 @@ func TestKVIndexer(t *testing.T) {
 	clientCtx := client.Context{}.WithTxConfig(encodingConfig.TxConfig).WithCodec(encodingConfig.Codec)
 
 	// build cosmos-sdk wrapper tx
-	tmTx, err := tx.BuildTx(clientCtx.TxConfig.NewTxBuilder(), constants.BaseDenom)
+	cometTx, err := tx.BuildTx(clientCtx.TxConfig.NewTxBuilder(), constants.BaseDenom)
 	require.NoError(t, err)
-	txBz, err := clientCtx.TxConfig.TxEncoder()(tmTx)
+	txBz, err := clientCtx.TxConfig.TxEncoder()(cometTx)
 	require.NoError(t, err)
 
 	// build an invalid wrapper tx
 	builder := clientCtx.TxConfig.NewTxBuilder()
 	require.NoError(t, builder.SetMsgs(tx))
-	tmTx2 := builder.GetTx()
-	txBz2, err := clientCtx.TxConfig.TxEncoder()(tmTx2)
+	cometTx2 := builder.GetTx()
+	txBz2, err := clientCtx.TxConfig.TxEncoder()(cometTx2)
 	require.NoError(t, err)
 
 	testCases := []struct {

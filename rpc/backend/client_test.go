@@ -28,9 +28,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Client defines a mocked object that implements the Tendermint JSON-RPC Client
-// interface. It allows for performing Client queries without having to run a
-// Tendermint RPC Client server.
+// Client defines a mocked object that implements the CometBFT JSON-RPC Client interface.
+// It allows for performing Client queries without having to run a CometBFT RPC Client server.
 //
 // To use a mock method it has to be registered in a given test.
 var _ cmtrpcclient.Client = &mocks.Client{}

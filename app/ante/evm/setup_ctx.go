@@ -77,13 +77,13 @@ func NewEthEmitEventDecorator(evmKeeper EVMKeeper) EthEmitEventDecorator {
 // AnteHandle emits some basic events for the eth messages
 func (eeed EthEmitEventDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	// After eth tx passed ante handler, the fee is deducted and nonce increased, it shouldn't be ignored by json-rpc,
-	// we need to emit some basic events at the very end of ante handler to be indexed by tendermint.
+	// we need to emit some basic events at the very end of ante handler to be indexed by CometBFT.
 	txIndex := eeed.evmKeeper.GetTxCountTransient(ctx) - 1
 
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
-		// emit ethereum tx hash as an event so that it can be indexed by Tendermint for query purposes
+		// emit ethereum tx hash as an event so that it can be indexed by CometBFT for query purposes
 		// it's emitted in ante handler, so we can query failed transaction (out of block gas limit).
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			evmtypes.EventTypeEthereumTx,

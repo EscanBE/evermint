@@ -6176,9 +6176,9 @@ type MsgEthereumTxResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// hash of the ethereum transaction in hex format. This hash differs from the
-	// Tendermint sha256 hash of the transaction bytes. See
-	// https://github.com/cometbft/cometbft/issues/6539 for reference
+	// hash of the ethereum transaction in hex format.
+	// This hash differs from the CometBFT sha256 hash of the transaction bytes.
+	// See https://github.com/tendermint/tendermint/issues/6539 for reference
 	Hash string `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty"`
 	// ret is the returned data from evm function (result or data supplied with revert
 	// opcode)

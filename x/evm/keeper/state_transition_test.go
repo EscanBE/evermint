@@ -47,7 +47,7 @@ func (suite *KeeperTestSuite) TestGetHashFn() {
 			common.BytesToHash(tmhash.Sum([]byte("header"))),
 		},
 		{
-			"case 1.2: failed to cast Tendermint header",
+			"case 1.2: failed to cast CometBFT header",
 			uint64(suite.ctx.BlockHeight()),
 			func() {
 				header := tmproto.Header{}
@@ -57,7 +57,7 @@ func (suite *KeeperTestSuite) TestGetHashFn() {
 			common.Hash{},
 		},
 		{
-			"case 1.3: hash calculated from Tendermint header",
+			"case 1.3: hash calculated from CometBFT header",
 			uint64(suite.ctx.BlockHeight()),
 			func() {
 				suite.ctx = suite.ctx.WithBlockHeader(header)
