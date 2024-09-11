@@ -3,23 +3,23 @@ package filters
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"sync"
 	"time"
-
-	"github.com/EscanBE/evermint/v12/rpc/types"
-	"github.com/cosmos/cosmos-sdk/client"
-
-	"cosmossdk.io/log"
-
-	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
-	cmtjrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
-	cmttypes "github.com/cometbft/cometbft/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/eth/filters"
 	"github.com/ethereum/go-ethereum/rpc"
 
+	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	cmtjrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
+	cmttypes "github.com/cometbft/cometbft/types"
+
+	"cosmossdk.io/log"
+	"github.com/cosmos/cosmos-sdk/client"
+
+	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
@@ -36,8 +36,8 @@ type FilterAPI interface {
 
 // Backend defines the methods requided by the PublicFilterAPI backend
 type Backend interface {
-	GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (map[string]interface{}, error)
-	HeaderByNumber(blockNum types.BlockNumber) (*ethtypes.Header, error)
+	GetBlockByNumber(blockNum rpctypes.BlockNumber, fullTx bool) (map[string]interface{}, error)
+	HeaderByNumber(blockNum rpctypes.BlockNumber) (*ethtypes.Header, error)
 	HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error)
 	CometBFTBlockByHash(hash common.Hash) (*cmtrpctypes.ResultBlock, error)
 	CometBFTBlockResultByNumber(height *int64) (*cmtrpctypes.ResultBlockResults, error)
@@ -338,10 +338,16 @@ func (api *PublicFilterAPI) NewHeads(ctx context.Context) (*rpc.Subscription, er
 					continue
 				}
 
-				baseFee := types.BaseFeeFromEvents(data.ResultFinalizeBlock.Events)
+				var baseFee *big.Int
+				var bloom ethtypes.Bloom
 
-				// TODO ES: fetch bloom from events
-				header := types.EthHeaderFromCometBFT(data.Block.Header, ethtypes.Bloom{}, baseFee)
+				baseFee = rpctypes.BaseFeeFromEvents(data.ResultFinalizeBlock.Events)
+				if nBloom := rpctypes.BloomFromEvents(data.ResultFinalizeBlock.Events); nBloom != nil {
+					bloom = *nBloom
+				} else {
+					bloom = evmtypes.EmptyBlockBloom
+				}
+				header := rpctypes.EthHeaderFromCometBFT(data.Block.Header, bloom, baseFee)
 				_ = notifier.Notify(rpcSub.ID, header) // #nosec G703
 			case <-rpcSub.Err():
 				headersSub.Unsubscribe(api.events)

@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
 
@@ -937,20 +938,20 @@ func (suite *BackendTestSuite) TestBlockBloom() {
 		expBlockBloom ethtypes.Bloom
 	}{
 		{
-			"empty block result",
-			&cmtrpctypes.ResultBlockResults{},
-			evmtypes.EmptyBlockBloom,
+			name:          "empty block result",
+			blockRes:      &cmtrpctypes.ResultBlockResults{},
+			expBlockBloom: evmtypes.EmptyBlockBloom,
 		},
 		{
-			"non block bloom event type",
-			&cmtrpctypes.ResultBlockResults{
+			name: "non block bloom event type",
+			blockRes: &cmtrpctypes.ResultBlockResults{
 				FinalizeBlockEvents: []abci.Event{{Type: evmtypes.EventTypeEthereumTx}},
 			},
-			evmtypes.EmptyBlockBloom,
+			expBlockBloom: evmtypes.EmptyBlockBloom,
 		},
 		{
-			"nonblock bloom attribute key",
-			&cmtrpctypes.ResultBlockResults{
+			name: "nonblock bloom attribute key",
+			blockRes: &cmtrpctypes.ResultBlockResults{
 				FinalizeBlockEvents: []abci.Event{
 					{
 						Type: evmtypes.EventTypeBlockBloom,
@@ -960,11 +961,11 @@ func (suite *BackendTestSuite) TestBlockBloom() {
 					},
 				},
 			},
-			evmtypes.EmptyBlockBloom,
+			expBlockBloom: evmtypes.EmptyBlockBloom,
 		},
 		{
-			"block bloom attribute key",
-			&cmtrpctypes.ResultBlockResults{
+			name: "block bloom attribute key",
+			blockRes: &cmtrpctypes.ResultBlockResults{
 				FinalizeBlockEvents: []abci.Event{
 					{
 						Type: evmtypes.EventTypeBlockBloom,
@@ -974,7 +975,24 @@ func (suite *BackendTestSuite) TestBlockBloom() {
 					},
 				},
 			},
-			ethtypes.Bloom{},
+			expBlockBloom: evmtypes.EmptyBlockBloom,
+		},
+		{
+			name: "block bloom attribute key and value",
+			blockRes: &cmtrpctypes.ResultBlockResults{
+				FinalizeBlockEvents: []abci.Event{
+					{
+						Type: evmtypes.EventTypeBlockBloom,
+						Attributes: []abci.EventAttribute{
+							{
+								Key:   evmtypes.AttributeKeyEthereumBloom,
+								Value: hex.EncodeToString(ethtypes.BytesToBloom([]byte("test")).Bytes()),
+							},
+						},
+					},
+				},
+			},
+			expBlockBloom: ethtypes.BytesToBloom([]byte("test")),
 		},
 	}
 	for _, tc := range testCases {

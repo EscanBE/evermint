@@ -1,6 +1,7 @@
 package types
 
 import (
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"testing"
 
 	ethparams "github.com/ethereum/go-ethereum/params"
@@ -126,4 +127,9 @@ func TestIsLondon(t *testing.T) {
 		ethConfig := ethparams.MainnetChainConfig
 		require.Equal(t, IsLondon(ethConfig, tc.height), tc.result)
 	}
+}
+
+func TestEmptyBlockBloom(t *testing.T) {
+	require.Equal(t, ethtypes.Bloom{}.Bytes(), EmptyBlockBloom.Bytes())
+	require.Zero(t, EmptyBlockBloom.Big().Sign())
 }

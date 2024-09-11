@@ -9,35 +9,26 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/EscanBE/evermint/v12/client/docs"
+	"github.com/gorilla/mux"
+	"github.com/spf13/cast"
+
+	abci "github.com/cometbft/cometbft/abci/types"
+	cmtos "github.com/cometbft/cometbft/libs/os"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
-
-	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
-	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
-
-	"github.com/EscanBE/evermint/v12/utils"
-
-	"github.com/EscanBE/evermint/v12/app/params"
-
-	"github.com/gorilla/mux"
-	"github.com/spf13/cast"
-
 	"cosmossdk.io/log"
-	abci "github.com/cometbft/cometbft/abci/types"
-	cmtos "github.com/cometbft/cometbft/libs/os"
-	sdkdb "github.com/cosmos/cosmos-db"
-
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	"github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -45,13 +36,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
+	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
@@ -59,11 +51,15 @@ import (
 	"github.com/EscanBE/evermint/v12/app/ante"
 	ethante "github.com/EscanBE/evermint/v12/app/ante/evm"
 	"github.com/EscanBE/evermint/v12/app/keepers"
+	"github.com/EscanBE/evermint/v12/app/params"
 	"github.com/EscanBE/evermint/v12/app/upgrades"
+	"github.com/EscanBE/evermint/v12/client/docs"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
 	srvflags "github.com/EscanBE/evermint/v12/server/flags"
 	evertypes "github.com/EscanBE/evermint/v12/types"
+	"github.com/EscanBE/evermint/v12/utils"
+
 	// Force-load the tracer engines to trigger registration due to Go-Ethereum v1.10.15 changes
 	_ "github.com/ethereum/go-ethereum/eth/tracers/js"
 	_ "github.com/ethereum/go-ethereum/eth/tracers/native"

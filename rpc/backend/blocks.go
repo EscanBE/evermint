@@ -320,17 +320,10 @@ func (b *Backend) HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error) 
 
 // BlockBloom query block bloom filter from block results
 func (b *Backend) BlockBloom(blockRes *cmtrpctypes.ResultBlockResults) ethtypes.Bloom {
-	for _, event := range blockRes.FinalizeBlockEvents {
-		if event.Type != evmtypes.EventTypeBlockBloom {
-			continue
-		}
-
-		for _, attr := range event.Attributes {
-			if attr.Key == evmtypes.AttributeKeyEthereumBloom {
-				return ethtypes.BytesToBloom([]byte(attr.Value))
-			}
-		}
+	if bloom := rpctypes.BloomFromEvents(blockRes.FinalizeBlockEvents); bloom != nil {
+		return *bloom
 	}
+
 	return evmtypes.EmptyBlockBloom
 }
 

@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 
@@ -293,7 +294,7 @@ func NewRPCReceiptFromReceipt(
 	return &rpcReceipt, nil
 }
 
-// BaseFeeFromEvents parses the feemarket basefee from cosmos events
+// BaseFeeFromEvents parses the x/feemarket BaseFee from CometBFT events
 func BaseFeeFromEvents(events []abci.Event) *big.Int {
 	for _, event := range events {
 		if event.Type != feemarkettypes.EventTypeFeeMarket {
@@ -311,6 +312,35 @@ func BaseFeeFromEvents(events []abci.Event) *big.Int {
 			}
 		}
 	}
+	return nil
+}
+
+// BloomFromEvents parses the x/evm block bloom from CometBFT events
+func BloomFromEvents(events []abci.Event) *ethtypes.Bloom {
+	for _, event := range events {
+		if event.Type != evmtypes.EventTypeBlockBloom {
+			continue
+		}
+
+		for _, attr := range event.Attributes {
+			if attr.Key != evmtypes.AttributeKeyEthereumBloom {
+				continue
+			}
+
+			var bloom ethtypes.Bloom
+
+			if bloomHex := attr.Value; bloomHex != "" {
+				bz, err := hex.DecodeString(bloomHex)
+				if err != nil {
+					return nil
+				}
+				bloom = ethtypes.BytesToBloom(bz)
+			}
+
+			return &bloom
+		}
+	}
+
 	return nil
 }
 
