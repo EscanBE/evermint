@@ -20,42 +20,46 @@ func TestPackTxData(t *testing.T) {
 		expPass bool
 	}{
 		{
-			"access list tx",
-			&AccessListTx{},
-			true,
+			name:    "pass - access list tx",
+			txData:  &AccessListTx{},
+			expPass: true,
 		},
 		{
-			"legacy tx",
-			&LegacyTx{},
-			true,
+			name:    "pass - legacy tx",
+			txData:  &LegacyTx{},
+			expPass: true,
 		},
 		{
-			"nil",
-			nil,
-			false,
+			name:    "fail - nil",
+			txData:  nil,
+			expPass: false,
 		},
 	}
 
-	testCasesAny := []caseAny{}
+	var testCasesAny []caseAny
 
 	for _, tc := range testCases {
-		txDataAny, err := PackTxData(tc.txData)
-		if tc.expPass {
-			require.NoError(t, err, tc.name)
-		} else {
-			require.Error(t, err, tc.name)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			txDataAny, err := PackTxData(tc.txData)
+			if tc.expPass {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
 
-		testCasesAny = append(testCasesAny, caseAny{tc.name, txDataAny, tc.expPass})
+			testCasesAny = append(testCasesAny, caseAny{tc.name, txDataAny, tc.expPass})
+		})
 	}
 
 	for i, tc := range testCasesAny {
-		cs, err := UnpackTxData(tc.any)
-		if tc.expPass {
-			require.NoError(t, err, tc.name)
-			require.Equal(t, testCases[i].txData, cs, tc.name)
-		} else {
-			require.Error(t, err, tc.name)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			cs, err := UnpackTxData(tc.any)
+			if tc.expPass {
+				require.NoError(t, err, tc.name)
+				require.Equal(t, testCases[i].txData, cs)
+			} else {
+				require.Error(t, err)
+			}
+		})
 	}
 }

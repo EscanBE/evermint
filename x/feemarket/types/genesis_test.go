@@ -21,33 +21,34 @@ func (suite *GenesisTestSuite) TestValidateGenesis() {
 		expPass  bool
 	}{
 		{
-			"default",
-			DefaultGenesisState(),
-			true,
+			name:     "pass - default",
+			genState: DefaultGenesisState(),
+			expPass:  true,
 		},
 		{
-			"valid genesis",
-			&GenesisState{
+			name: "pass - valid genesis",
+			genState: &GenesisState{
 				DefaultParams(),
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"empty genesis",
-			&GenesisState{
+			name: "fail - empty genesis",
+			genState: &GenesisState{
 				Params: Params{},
 			},
-			false,
+			expPass: false,
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		err := tc.genState.Validate()
-		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-		}
+		suite.Run(tc.name, func() {
+			err := tc.genState.Validate()
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }

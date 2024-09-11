@@ -26,30 +26,30 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 		expPass bool
 	}{
 		{
-			"fail - empty options",
-			ante.HandlerOptions{},
-			false,
+			name:    "fail - empty options",
+			options: ante.HandlerOptions{},
+			expPass: false,
 		},
 		{
-			"fail - empty account keeper",
-			ante.HandlerOptions{
+			name: "fail - empty account keeper",
+			options: ante.HandlerOptions{
 				Cdc:           suite.app.AppCodec(),
 				AccountKeeper: nil,
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"fail - empty bank keeper",
-			ante.HandlerOptions{
+			name: "fail - empty bank keeper",
+			options: ante.HandlerOptions{
 				Cdc:           suite.app.AppCodec(),
 				AccountKeeper: &suite.app.AccountKeeper,
 				BankKeeper:    nil,
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"fail - empty distribution keeper",
-			ante.HandlerOptions{
+			name: "fail - empty distribution keeper",
+			options: ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
 				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
@@ -57,11 +57,11 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 
 				IBCKeeper: nil,
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"fail - empty IBC keeper",
-			ante.HandlerOptions{
+			name: "fail - empty IBC keeper",
+			options: ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
 				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
@@ -69,11 +69,11 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 
 				IBCKeeper: nil,
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"fail - empty staking keeper",
-			ante.HandlerOptions{
+			name: "fail - empty staking keeper",
+			options: ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
 				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
@@ -82,11 +82,11 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 				IBCKeeper:     suite.app.IBCKeeper,
 				StakingKeeper: nil,
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"fail - empty fee market keeper",
-			ante.HandlerOptions{
+			name: "fail - empty fee market keeper",
+			options: ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
 				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
@@ -96,11 +96,11 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 				StakingKeeper:   suite.app.StakingKeeper,
 				FeeMarketKeeper: nil,
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"fail - empty EVM keeper",
-			ante.HandlerOptions{
+			name: "fail - empty EVM keeper",
+			options: ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
 				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
@@ -110,11 +110,11 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 				FeeMarketKeeper:    suite.app.FeeMarketKeeper,
 				EvmKeeper:          nil,
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"fail - empty VAuth keeper",
-			ante.HandlerOptions{
+			name: "fail - empty VAuth keeper",
+			options: ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
 				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
@@ -125,11 +125,11 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 				EvmKeeper:          suite.app.EvmKeeper,
 				VAuthKeeper:        &suite.app.VAuthKeeper,
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"fail - empty signature gas consumer",
-			ante.HandlerOptions{
+			name: "fail - empty signature gas consumer",
+			options: ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
 				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
@@ -140,11 +140,11 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 				EvmKeeper:          suite.app.EvmKeeper,
 				SigGasConsumer:     nil,
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"fail - empty signature mode handler",
-			ante.HandlerOptions{
+			name: "fail - empty signature mode handler",
+			options: ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
 				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
@@ -156,11 +156,11 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 				SigGasConsumer:     ante.SigVerificationGasConsumer,
 				SignModeHandler:    nil,
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"fail - empty tx fee checker",
-			ante.HandlerOptions{
+			name: "fail - empty tx fee checker",
+			options: ante.HandlerOptions{
 				Cdc:                suite.app.AppCodec(),
 				AccountKeeper:      &suite.app.AccountKeeper,
 				BankKeeper:         suite.app.BankKeeper,
@@ -173,11 +173,11 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 				SignModeHandler:    suite.app.GetTxConfig().SignModeHandler(),
 				TxFeeChecker:       nil,
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"fail - empty disabled authz msgs",
-			ante.HandlerOptions{
+			name: "fail - empty disabled authz msgs",
+			options: ante.HandlerOptions{
 				Cdc:                    suite.app.AppCodec(),
 				AccountKeeper:          &suite.app.AccountKeeper,
 				BankKeeper:             suite.app.BankKeeper,
@@ -193,11 +193,11 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 				MaxTxGasWanted:         40000000,
 				TxFeeChecker:           ethante.NewDynamicFeeChecker(suite.app.EvmKeeper),
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"pass - default app options",
-			ante.HandlerOptions{
+			name: "pass - default app options",
+			options: ante.HandlerOptions{
 				Cdc:                    suite.app.AppCodec(),
 				AccountKeeper:          &suite.app.AccountKeeper,
 				BankKeeper:             suite.app.BankKeeper,
@@ -214,7 +214,7 @@ func (suite *AnteTestSuite) TestValidateHandlerOptions() {
 				MaxTxGasWanted:         40000000,
 				TxFeeChecker:           ethante.NewDynamicFeeChecker(suite.app.EvmKeeper),
 			}.WithDefaultDisabledAuthzMsgs(),
-			true,
+			expPass: true,
 		},
 	}
 

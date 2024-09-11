@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
@@ -28,38 +27,38 @@ func (suite *BackendTestSuite) TestGetCode() {
 		expCode       hexutil.Bytes
 	}{
 		{
-			"fail - BlockHash and BlockNumber are both nil ",
-			utiltx.GenerateAddress(),
-			rpctypes.BlockNumberOrHash{},
-			func(addr common.Address) {},
-			false,
-			nil,
+			name:          "fail - BlockHash and BlockNumber are both nil ",
+			addr:          utiltx.GenerateAddress(),
+			blockNrOrHash: rpctypes.BlockNumberOrHash{},
+			registerMock:  func(addr common.Address) {},
+			expPass:       false,
+			expCode:       nil,
 		},
 		{
-			"fail - query client errors on getting Code",
-			utiltx.GenerateAddress(),
-			rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
-			func(addr common.Address) {
+			name:          "fail - query client errors on getting Code",
+			addr:          utiltx.GenerateAddress(),
+			blockNrOrHash: rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
+			registerMock: func(addr common.Address) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterCodeError(queryClient, addr)
 			},
-			false,
-			nil,
+			expPass: false,
+			expCode: nil,
 		},
 		{
-			"pass",
-			utiltx.GenerateAddress(),
-			rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
-			func(addr common.Address) {
+			name:          "pass",
+			addr:          utiltx.GenerateAddress(),
+			blockNrOrHash: rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
+			registerMock: func(addr common.Address) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterCode(queryClient, addr, contractCode)
 			},
-			true,
-			contractCode,
+			expPass: true,
+			expCode: contractCode,
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			tc.registerMock(tc.addr)
 
@@ -89,38 +88,38 @@ func (suite *BackendTestSuite) TestGetProof() {
 		expAccRes     *rpctypes.AccountResult
 	}{
 		{
-			"fail - BlockNumeber = 1 (invalidBlockNumber)",
-			address1,
-			[]string{},
-			rpctypes.BlockNumberOrHash{BlockNumber: &blockNrInvalid},
-			func(bn rpctypes.BlockNumber, addr common.Address) {
+			name:          "fail - BlockNumeber = 1 (invalidBlockNumber)",
+			addr:          address1,
+			storageKeys:   []string{},
+			blockNrOrHash: rpctypes.BlockNumberOrHash{BlockNumber: &blockNrInvalid},
+			registerMock: func(bn rpctypes.BlockNumber, addr common.Address) {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				_, err := RegisterBlock(client, bn.Int64(), nil)
 				suite.Require().NoError(err)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterAccount(queryClient, addr, blockNrInvalid.Int64())
 			},
-			false,
-			&rpctypes.AccountResult{},
+			expPass:   false,
+			expAccRes: &rpctypes.AccountResult{},
 		},
 		{
-			"fail - Block doesn't exist",
-			address1,
-			[]string{},
-			rpctypes.BlockNumberOrHash{BlockNumber: &blockNrInvalid},
-			func(bn rpctypes.BlockNumber, addr common.Address) {
+			name:          "fail - Block doesn't exist",
+			addr:          address1,
+			storageKeys:   []string{},
+			blockNrOrHash: rpctypes.BlockNumberOrHash{BlockNumber: &blockNrInvalid},
+			registerMock: func(bn rpctypes.BlockNumber, addr common.Address) {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterBlockError(client, bn.Int64())
 			},
-			false,
-			&rpctypes.AccountResult{},
+			expPass:   false,
+			expAccRes: &rpctypes.AccountResult{},
 		},
 		{
-			"pass",
-			address1,
-			[]string{"0x0"},
-			rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
-			func(bn rpctypes.BlockNumber, addr common.Address) {
+			name:          "pass",
+			addr:          address1,
+			storageKeys:   []string{"0x0"},
+			blockNrOrHash: rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
+			registerMock: func(bn rpctypes.BlockNumber, addr common.Address) {
 				suite.backend.ctx = rpctypes.ContextWithHeight(bn.Int64())
 
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
@@ -146,8 +145,8 @@ func (suite *BackendTestSuite) TestGetProof() {
 					cmtrpcclient.ABCIQueryOptions{Height: iavlHeight, Prove: true},
 				)
 			},
-			true,
-			&rpctypes.AccountResult{
+			expPass: true,
+			expAccRes: &rpctypes.AccountResult{
 				Address:      address1,
 				AccountProof: []string{""},
 				Balance:      (*hexutil.Big)(big.NewInt(0)),
@@ -165,7 +164,7 @@ func (suite *BackendTestSuite) TestGetProof() {
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			tc.registerMock(*tc.blockNrOrHash.BlockNumber, tc.addr)
 
@@ -194,41 +193,41 @@ func (suite *BackendTestSuite) TestGetStorageAt() {
 		expStorage    hexutil.Bytes
 	}{
 		{
-			"fail - BlockHash and BlockNumber are both nil",
-			utiltx.GenerateAddress(),
-			"0x0",
-			rpctypes.BlockNumberOrHash{},
-			func(addr common.Address, key string, storage string) {},
-			false,
-			nil,
+			name:          "fail - BlockHash and BlockNumber are both nil",
+			addr:          utiltx.GenerateAddress(),
+			key:           "0x0",
+			blockNrOrHash: rpctypes.BlockNumberOrHash{},
+			registerMock:  func(addr common.Address, key string, storage string) {},
+			expPass:       false,
+			expStorage:    nil,
 		},
 		{
-			"fail - query client errors on getting Storage",
-			utiltx.GenerateAddress(),
-			"0x0",
-			rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
-			func(addr common.Address, key string, storage string) {
+			name:          "fail - query client errors on getting Storage",
+			addr:          utiltx.GenerateAddress(),
+			key:           "0x0",
+			blockNrOrHash: rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
+			registerMock: func(addr common.Address, key string, storage string) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterStorageAtError(queryClient, addr, key)
 			},
-			false,
-			nil,
+			expPass:    false,
+			expStorage: nil,
 		},
 		{
-			"pass",
-			utiltx.GenerateAddress(),
-			"0x0",
-			rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
-			func(addr common.Address, key string, storage string) {
+			name:          "pass",
+			addr:          utiltx.GenerateAddress(),
+			key:           "0x0",
+			blockNrOrHash: rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
+			registerMock: func(addr common.Address, key string, storage string) {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterStorageAt(queryClient, addr, key, storage)
 			},
-			true,
-			hexutil.Bytes{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
+			expPass:    true,
+			expStorage: hexutil.Bytes{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			tc.registerMock(tc.addr, tc.key, tc.expStorage.String())
 
@@ -255,84 +254,84 @@ func (suite *BackendTestSuite) TestGetBalance() {
 		expBalance    *hexutil.Big
 	}{
 		{
-			"fail - BlockHash and BlockNumber are both nil",
-			utiltx.GenerateAddress(),
-			rpctypes.BlockNumberOrHash{},
-			func(bn rpctypes.BlockNumber, addr common.Address) {
+			name:          "fail - BlockHash and BlockNumber are both nil",
+			addr:          utiltx.GenerateAddress(),
+			blockNrOrHash: rpctypes.BlockNumberOrHash{},
+			registerMock: func(bn rpctypes.BlockNumber, addr common.Address) {
 			},
-			false,
-			nil,
+			expPass:    false,
+			expBalance: nil,
 		},
 		{
-			"fail - CometBFT client failed to get block",
-			utiltx.GenerateAddress(),
-			rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
-			func(bn rpctypes.BlockNumber, addr common.Address) {
+			name:          "fail - CometBFT client failed to get block",
+			addr:          utiltx.GenerateAddress(),
+			blockNrOrHash: rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
+			registerMock: func(bn rpctypes.BlockNumber, addr common.Address) {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterBlockError(client, bn.Int64())
 			},
-			false,
-			nil,
+			expPass:    false,
+			expBalance: nil,
 		},
 		{
-			"fail - query client failed to get balance",
-			utiltx.GenerateAddress(),
-			rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
-			func(bn rpctypes.BlockNumber, addr common.Address) {
+			name:          "fail - query client failed to get balance",
+			addr:          utiltx.GenerateAddress(),
+			blockNrOrHash: rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
+			registerMock: func(bn rpctypes.BlockNumber, addr common.Address) {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				_, err := RegisterBlock(client, bn.Int64(), nil)
 				suite.Require().NoError(err)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBalanceError(queryClient, addr, bn.Int64())
 			},
-			false,
-			nil,
+			expPass:    false,
+			expBalance: nil,
 		},
 		{
-			"fail - invalid balance",
-			utiltx.GenerateAddress(),
-			rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
-			func(bn rpctypes.BlockNumber, addr common.Address) {
+			name:          "fail - invalid balance",
+			addr:          utiltx.GenerateAddress(),
+			blockNrOrHash: rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
+			registerMock: func(bn rpctypes.BlockNumber, addr common.Address) {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				_, err := RegisterBlock(client, bn.Int64(), nil)
 				suite.Require().NoError(err)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBalanceInvalid(queryClient, addr, bn.Int64())
 			},
-			false,
-			nil,
+			expPass:    false,
+			expBalance: nil,
 		},
 		{
-			"fail - pruned node state",
-			utiltx.GenerateAddress(),
-			rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
-			func(bn rpctypes.BlockNumber, addr common.Address) {
+			name:          "fail - pruned node state",
+			addr:          utiltx.GenerateAddress(),
+			blockNrOrHash: rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
+			registerMock: func(bn rpctypes.BlockNumber, addr common.Address) {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				_, err := RegisterBlock(client, bn.Int64(), nil)
 				suite.Require().NoError(err)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBalanceNegative(queryClient, addr, bn.Int64())
 			},
-			false,
-			nil,
+			expPass:    false,
+			expBalance: nil,
 		},
 		{
-			"pass",
-			utiltx.GenerateAddress(),
-			rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
-			func(bn rpctypes.BlockNumber, addr common.Address) {
+			name:          "pass",
+			addr:          utiltx.GenerateAddress(),
+			blockNrOrHash: rpctypes.BlockNumberOrHash{BlockNumber: &blockNr},
+			registerMock: func(bn rpctypes.BlockNumber, addr common.Address) {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				_, err := RegisterBlock(client, bn.Int64(), nil)
 				suite.Require().NoError(err)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBalance(queryClient, addr, bn.Int64())
 			},
-			true,
-			(*hexutil.Big)(big.NewInt(1)),
+			expPass:    true,
+			expBalance: (*hexutil.Big)(big.NewInt(1)),
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
 			// avoid nil pointer reference
@@ -361,26 +360,26 @@ func (suite *BackendTestSuite) TestGetTransactionCount() {
 		expTxCount   hexutil.Uint64
 	}{
 		{
-			"pass - account doesn't exist",
-			false,
-			rpctypes.NewBlockNumber(big.NewInt(1)),
-			func(addr common.Address, bn rpctypes.BlockNumber) {
+			name:      "pass - account doesn't exist",
+			accExists: false,
+			blockNum:  rpctypes.NewBlockNumber(big.NewInt(1)),
+			registerMock: func(addr common.Address, bn rpctypes.BlockNumber) {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
-			true,
-			hexutil.Uint64(0),
+			expPass:    true,
+			expTxCount: hexutil.Uint64(0),
 		},
 		{
-			"fail - block height is in the future",
-			false,
-			rpctypes.NewBlockNumber(big.NewInt(10000)),
-			func(addr common.Address, bn rpctypes.BlockNumber) {
+			name:      "fail - block height is in the future",
+			accExists: false,
+			blockNum:  rpctypes.NewBlockNumber(big.NewInt(10000)),
+			registerMock: func(addr common.Address, bn rpctypes.BlockNumber) {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
-			false,
-			hexutil.Uint64(0),
+			expPass:    false,
+			expTxCount: hexutil.Uint64(0),
 		},
 		{
 			name:      "fail - indexer returns error",
@@ -395,10 +394,10 @@ func (suite *BackendTestSuite) TestGetTransactionCount() {
 		},
 		// TODO: Error mocking the GetAccount call - problem with Any type
 		//{
-		//	"pass - returns the number of transactions at the given address up to the given block number",
-		//	true,
-		//	rpctypes.NewBlockNumber(big.NewInt(1)),
-		//	func(addr common.Address, bn rpctypes.BlockNumber) {
+		//	name:      "pass - returns the number of transactions at the given address up to the given block number",
+		//	accExists: true,
+		//	blockNum:  rpctypes.NewBlockNumber(big.NewInt(1)),
+		//	registerMock: func(addr common.Address, bn rpctypes.BlockNumber) {
 		//		client := suite.backend.clientCtx.Client.(*mocks.Client)
 		//		account, err := suite.backend.clientCtx.AccountRetriever.GetAccount(suite.backend.clientCtx, suite.acc)
 		//		suite.Require().NoError(err)
@@ -408,19 +407,19 @@ func (suite *BackendTestSuite) TestGetTransactionCount() {
 		//		RegisterABCIQueryAccount(
 		//			client,
 		//			requestMarshal,
-		//			tmrpcclient.ABCIQueryOptions{Height: int64(1), Prove: false},
+		//			cmtpcclient.ABCIQueryOptions{Height: int64(1), Prove: false},
 		//			account,
 		//		)
 		//
 		//		indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 		//		RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 		//	},
-		//	true,
-		//	hexutil.Uint64(0),
+		//	expPass:    true,
+		//	expTxCount: hexutil.Uint64(0),
 		//},
 	}
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
 			addr := utiltx.GenerateAddress()

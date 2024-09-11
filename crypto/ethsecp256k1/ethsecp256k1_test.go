@@ -76,30 +76,30 @@ func TestMarshalAmino(t *testing.T) {
 	pubKey := privKey.PubKey().(*PubKey)
 
 	testCases := []struct {
-		desc      string
+		name      string
 		msg       codec.AminoMarshaler
 		typ       interface{}
 		expBinary []byte
 		expJSON   string
 	}{
 		{
-			"ethsecp256k1 private key",
-			privKey,
-			&PrivKey{},
-			append([]byte{32}, privKey.Bytes()...), // Length-prefixed.
-			"\"" + base64.StdEncoding.EncodeToString(privKey.Bytes()) + "\"",
+			name:      "ethsecp256k1 private key",
+			msg:       privKey,
+			typ:       &PrivKey{},
+			expBinary: append([]byte{32}, privKey.Bytes()...), // Length-prefixed.
+			expJSON:   "\"" + base64.StdEncoding.EncodeToString(privKey.Bytes()) + "\"",
 		},
 		{
-			"ethsecp256k1 public key",
-			pubKey,
-			&PubKey{},
-			append([]byte{33}, pubKey.Bytes()...), // Length-prefixed.
-			"\"" + base64.StdEncoding.EncodeToString(pubKey.Bytes()) + "\"",
+			name:      "ethsecp256k1 public key",
+			msg:       pubKey,
+			typ:       &PubKey{},
+			expBinary: append([]byte{33}, pubKey.Bytes()...), // Length-prefixed.
+			expJSON:   "\"" + base64.StdEncoding.EncodeToString(pubKey.Bytes()) + "\"",
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			// Do a round trip of encoding/decoding binary.
 			bz, err := aminoCdc.Marshal(tc.msg)
 			require.NoError(t, err)

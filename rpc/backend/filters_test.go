@@ -20,48 +20,48 @@ func (suite *BackendTestSuite) TestGetLogs() {
 		expPass      bool
 	}{
 		{
-			"fail - no block with that hash",
-			func(hash common.Hash) {
+			name: "fail - no block with that hash",
+			registerMock: func(hash common.Hash) {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterBlockByHashNotFound(client, hash, bz)
 			},
-			common.Hash{},
-			nil,
-			false,
+			blockHash: common.Hash{},
+			expLogs:   nil,
+			expPass:   false,
 		},
 		{
-			"fail - error fetching block by hash",
-			func(hash common.Hash) {
+			name: "fail - error fetching block by hash",
+			registerMock: func(hash common.Hash) {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterBlockByHashError(client, hash, bz)
 			},
-			common.Hash{},
-			nil,
-			false,
+			blockHash: common.Hash{},
+			expLogs:   nil,
+			expPass:   false,
 		},
 		{
-			"fail - error getting block results",
-			func(hash common.Hash) {
+			name: "fail - error getting block results",
+			registerMock: func(hash common.Hash) {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				_, err := RegisterBlockByHash(client, hash, bz)
 				suite.Require().NoError(err)
 				RegisterBlockResultsError(client, 1)
 			},
-			common.Hash{},
-			nil,
-			false,
+			blockHash: common.Hash{},
+			expLogs:   nil,
+			expPass:   false,
 		},
 		{
-			"pass - getting logs with block hash",
-			func(hash common.Hash) {
+			name: "pass - getting logs with block hash",
+			registerMock: func(hash common.Hash) {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				_, err := RegisterBlockByHash(client, hash, bz)
 				suite.Require().NoError(err)
 				_, err = RegisterBlockResultsWithEventLog(client, ethrpc.BlockNumber(1).Int64())
 				suite.Require().NoError(err)
 			},
-			common.BytesToHash(block.Hash()),
-			[][]*ethtypes.Log{
+			blockHash: common.BytesToHash(block.Hash()),
+			expLogs: [][]*ethtypes.Log{
 				{
 					{
 						Address: common.HexToAddress("0x4fea76427b8345861e80a3540a8a9d936fd39398"),
@@ -75,7 +75,7 @@ func (suite *BackendTestSuite) TestGetLogs() {
 					},
 				},
 			},
-			true,
+			expPass: true,
 		},
 	}
 
@@ -104,10 +104,10 @@ func (suite *BackendTestSuite) TestBloomStatus() {
 		expPass      bool
 	}{
 		{
-			"pass - returns the BloomBitsBlocks and the number of processed sections maintained",
-			func() {},
-			4096,
-			true,
+			name:         "pass - returns the BloomBitsBlocks and the number of processed sections maintained",
+			registerMock: func() {},
+			expResult:    4096,
+			expPass:      true,
 		},
 	}
 

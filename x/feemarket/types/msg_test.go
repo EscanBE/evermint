@@ -23,20 +23,20 @@ func (suite *MsgsTestSuite) TestMsgUpdateValidateBasic() {
 		expPass   bool
 	}{
 		{
-			"fail - invalid authority address",
-			&MsgUpdateParams{
+			name: "fail - invalid authority address",
+			msgUpdate: &MsgUpdateParams{
 				Authority: "invalid",
 				Params:    DefaultParams(),
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"pass - valid msg",
-			&MsgUpdateParams{
+			name: "pass - valid msg",
+			msgUpdate: &MsgUpdateParams{
 				Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 				Params:    DefaultParams(),
 			},
-			true,
+			expPass: true,
 		},
 	}
 

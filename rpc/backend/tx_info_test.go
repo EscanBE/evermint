@@ -60,30 +60,30 @@ func (suite *BackendTestSuite) TestGetTransactionByHash() {
 		expPass      bool
 	}{
 		{
-			"fail - Block error",
-			func() {
+			name: "fail - Block error",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterBlockError(client, 1)
 			},
-			msgEthereumTx,
-			rpcTransaction,
-			false,
+			tx:       msgEthereumTx,
+			expRPCTx: rpcTransaction,
+			expPass:  false,
 		},
 		{
-			"fail - Block Result error",
-			func() {
+			name: "fail - Block Result error",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				_, err := RegisterBlock(client, 1, txBz)
 				suite.Require().NoError(err)
 				RegisterBlockResultsError(client, 1)
 			},
-			msgEthereumTx,
-			nil,
-			true,
+			tx:       msgEthereumTx,
+			expRPCTx: nil,
+			expPass:  true,
 		},
 		{
-			"fail - Base fee error",
-			func() {
+			name: "fail - Base fee error",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				_, err := RegisterBlock(client, 1, txBz)
@@ -92,13 +92,13 @@ func (suite *BackendTestSuite) TestGetTransactionByHash() {
 				suite.Require().NoError(err)
 				RegisterBaseFeeError(queryClient)
 			},
-			msgEthereumTx,
-			nil,
-			false,
+			tx:       msgEthereumTx,
+			expRPCTx: nil,
+			expPass:  false,
 		},
 		{
-			"pass - Transaction found and returned",
-			func() {
+			name: "pass - Transaction found and returned",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				_, err := RegisterBlock(client, 1, txBz)
@@ -107,9 +107,9 @@ func (suite *BackendTestSuite) TestGetTransactionByHash() {
 				suite.Require().NoError(err)
 				RegisterBaseFee(queryClient, sdkmath.NewInt(1))
 			},
-			msgEthereumTx,
-			rpcTransaction,
-			true,
+			tx:       msgEthereumTx,
+			expRPCTx: rpcTransaction,
+			expPass:  true,
 		},
 	}
 
@@ -148,34 +148,34 @@ func (suite *BackendTestSuite) TestGetTransactionsByHashPending() {
 		expPass      bool
 	}{
 		{
-			"fail - Pending transactions returns error",
-			func() {
+			name: "pass - Pending transactions returns error",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterUnconfirmedTxsError(client, nil)
 			},
-			msgEthereumTx,
-			nil,
-			true,
+			tx:       msgEthereumTx,
+			expRPCTx: nil,
+			expPass:  true,
 		},
 		{
-			"fail - Tx not found return nil",
-			func() {
+			name: "pass - Tx not found return nil",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterUnconfirmedTxs(client, nil, nil)
 			},
-			msgEthereumTx,
-			nil,
-			true,
+			tx:       msgEthereumTx,
+			expRPCTx: nil,
+			expPass:  true,
 		},
 		{
-			"pass - Tx found and returned",
-			func() {
+			name: "pass - Tx found and returned",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterUnconfirmedTxs(client, nil, cmttypes.Txs{bz})
 			},
-			msgEthereumTx,
-			rpcTransaction,
-			true,
+			tx:       msgEthereumTx,
+			expRPCTx: rpcTransaction,
+			expPass:  true,
 		},
 	}
 
@@ -208,14 +208,14 @@ func (suite *BackendTestSuite) TestGetTxByEthHash() {
 		expPass      bool
 	}{
 		{
-			"fail - Indexer disabled can't find transaction",
-			func() {
+			name: "fail - Indexer disabled can't find transaction",
+			registerMock: func() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByTxHashErr(indexer, msgEthereumTx.AsTransaction().Hash())
 			},
-			msgEthereumTx,
-			rpcTransaction,
-			false,
+			tx:       msgEthereumTx,
+			expRPCTx: rpcTransaction,
+			expPass:  false,
 		},
 	}
 
@@ -247,26 +247,26 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockHashAndIndex() {
 		expPass      bool
 	}{
 		{
-			"pass - block not found",
-			func() {
+			name: "pass - block not found",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterBlockByHashError(client, common.Hash{}, bz)
 			},
-			common.Hash{},
-			nil,
-			true,
+			blockHash: common.Hash{},
+			expRPCTx:  nil,
+			expPass:   true,
 		},
 		{
-			"pass - Block results error",
-			func() {
+			name: "pass - Block results error",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				_, err := RegisterBlockByHash(client, common.Hash{}, bz)
 				suite.Require().NoError(err)
 				RegisterBlockResultsError(client, 1)
 			},
-			common.Hash{},
-			nil,
-			true,
+			blockHash: common.Hash{},
+			expRPCTx:  nil,
+			expPass:   true,
 		},
 	}
 
@@ -332,8 +332,8 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 		expPass      bool
 	}{
 		{
-			"pass - block txs index out of bound",
-			func() {
+			name: "pass - block txs index out of bound",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				_, err := RegisterBlockResults(client, 1)
 				suite.Require().NoError(err)
@@ -341,14 +341,14 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByBlockAndIndexError(indexer, 1, 1)
 			},
-			&cmtrpctypes.ResultBlock{Block: cmttypes.MakeBlock(1, []cmttypes.Tx{bz}, nil, nil)},
-			1,
-			nil,
-			true,
+			block:    &cmtrpctypes.ResultBlock{Block: cmttypes.MakeBlock(1, []cmttypes.Tx{bz}, nil, nil)},
+			idx:      1,
+			expRPCTx: nil,
+			expPass:  true,
 		},
 		{
-			"fail - Can't fetch base fee",
-			func() {
+			name: "fail - Can't fetch base fee",
+			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				_, err := RegisterBlockResults(client, 1)
@@ -358,14 +358,14 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByBlockAndIndex(indexer, 1, 0)
 			},
-			&cmtrpctypes.ResultBlock{Block: defaultBlock},
-			0,
-			nil,
-			false,
+			block:    &cmtrpctypes.ResultBlock{Block: defaultBlock},
+			idx:      0,
+			expRPCTx: nil,
+			expPass:  false,
 		},
 		{
-			"pass - Gets Tx by transaction index",
-			func() {
+			name: "pass - Gets Tx by transaction index",
+			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				db := sdkdb.NewMemDB()
@@ -379,14 +379,14 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				suite.Require().NoError(err)
 				RegisterBaseFee(queryClient, sdkmath.NewInt(1))
 			},
-			&cmtrpctypes.ResultBlock{Block: defaultBlock},
-			0,
-			txFromMsg,
-			true,
+			block:    &cmtrpctypes.ResultBlock{Block: defaultBlock},
+			idx:      0,
+			expRPCTx: txFromMsg,
+			expPass:  true,
 		},
 		{
-			"pass - returns the Ethereum format transaction by the Ethereum hash",
-			func() {
+			name: "pass - returns the Ethereum format transaction by the Ethereum hash",
+			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				_, err := RegisterBlockResults(client, 1)
@@ -396,10 +396,10 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByBlockAndIndex(indexer, 1, 0)
 			},
-			&cmtrpctypes.ResultBlock{Block: defaultBlock},
-			0,
-			txFromMsg,
-			true,
+			block:    &cmtrpctypes.ResultBlock{Block: defaultBlock},
+			idx:      0,
+			expRPCTx: txFromMsg,
+			expPass:  true,
 		},
 	}
 
@@ -440,19 +440,19 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockNumberAndIndex() {
 		expPass      bool
 	}{
 		{
-			"fail -  block not found return nil",
-			func() {
+			name: "fail -  block not found return nil",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterBlockError(client, 1)
 			},
-			0,
-			0,
-			nil,
-			true,
+			blockNum: 0,
+			idx:      0,
+			expRPCTx: nil,
+			expPass:  true,
 		},
 		{
-			"pass - returns the transaction identified by block number and index",
-			func() {
+			name: "pass - returns the transaction identified by block number and index",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				_, err := RegisterBlock(client, 1, bz)
@@ -464,10 +464,10 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockNumberAndIndex() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByBlockAndIndex(indexer, 1, 0)
 			},
-			0,
-			0,
-			txFromMsg,
-			true,
+			blockNum: 0,
+			idx:      0,
+			expRPCTx: txFromMsg,
+			expPass:  true,
 		},
 	}
 
@@ -497,15 +497,15 @@ func (suite *BackendTestSuite) TestGetTransactionByTxIndex() {
 		expPass      bool
 	}{
 		{
-			"fail - Ethereum tx with query not found",
-			func() {
+			name: "fail - Ethereum tx with query not found",
+			registerMock: func() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetByBlockAndIndexError(indexer, 1, 0)
 			},
-			1,
-			0,
-			&evertypes.TxResult{},
-			false,
+			height:      1,
+			index:       0,
+			expTxResult: &evertypes.TxResult{},
+			expPass:     false,
 		},
 	}
 

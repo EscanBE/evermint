@@ -210,7 +210,7 @@ func (suite *KeeperTestSuite) TestCheckSenderBalance() {
 	err := vmdb.Commit()
 	suite.Require().NoError(err, "Unexpected error while committing to vmdb: %d", err)
 
-	for i, tc := range testCases {
+	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			to := common.HexToAddress(tc.from)
 
@@ -253,9 +253,9 @@ func (suite *KeeperTestSuite) TestCheckSenderBalance() {
 			)
 
 			if tc.expectPass {
-				suite.Require().NoError(err, "valid test %d failed", i)
+				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err, "invalid test %d passed", i)
+				suite.Require().Error(err)
 			}
 		})
 	}
@@ -464,7 +464,7 @@ func (suite *KeeperTestSuite) TestVerifyFeeAndDeductTxCostsFromUserBalance() {
 		},
 	}
 
-	for i, tc := range testCases {
+	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.enableFeemarket = tc.enableFeemarket
 			suite.SetupTest()
@@ -500,7 +500,7 @@ func (suite *KeeperTestSuite) TestVerifyFeeAndDeductTxCostsFromUserBalance() {
 				suite.Require().Equal(balance, hundredInt.BigInt())
 			}
 			err := vmdb.Commit()
-			suite.Require().NoError(err, "Unexpected error while committing to vmdb: %d", err)
+			suite.Require().NoError(err)
 
 			ethTxParams := &evmtypes.EvmTxArgs{
 				From:      common.HexToAddress(tc.from),
@@ -525,7 +525,7 @@ func (suite *KeeperTestSuite) TestVerifyFeeAndDeductTxCostsFromUserBalance() {
 
 			fees, err := evmkeeper.VerifyFee(txData, evmtypes.DefaultEVMDenom, baseFee, false, false, suite.ctx.IsCheckTx())
 			if tc.expectPassVerify {
-				suite.Require().NoError(err, "valid test %d failed - '%s'", i, tc.name)
+				suite.Require().NoError(err)
 				if tc.enableFeemarket {
 					baseFee := suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx)
 					suite.Require().Equal(
@@ -533,7 +533,6 @@ func (suite *KeeperTestSuite) TestVerifyFeeAndDeductTxCostsFromUserBalance() {
 						sdk.NewCoins(
 							sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewIntFromBigInt(txData.EffectiveFee(baseFee))),
 						),
-						"valid test %d failed, fee value is wrong  - '%s'", i, tc.name,
 					)
 					suite.Require().Equal(int64(0), priority)
 				} else {
@@ -542,19 +541,18 @@ func (suite *KeeperTestSuite) TestVerifyFeeAndDeductTxCostsFromUserBalance() {
 						sdk.NewCoins(
 							sdk.NewCoin(evmtypes.DefaultEVMDenom, tc.gasPrice.Mul(sdkmath.NewIntFromUint64(tc.gasLimit))),
 						),
-						"valid test %d failed, fee value is wrong  - '%s'", i, tc.name,
 					)
 				}
 			} else {
-				suite.Require().Error(err, "invalid test %d passed - '%s'", i, tc.name)
-				suite.Require().Nil(fees, "invalid test %d passed. fees value must be nil - '%s'", i, tc.name)
+				suite.Require().Error(err)
+				suite.Require().Nil(fees)
 			}
 
 			err = suite.app.EvmKeeper.DeductTxCostsFromUserBalance(suite.ctx, fees, sdk.MustAccAddressFromBech32(tx.From))
 			if tc.expectPassDeduct {
-				suite.Require().NoError(err, "valid test %d failed - '%s'", i, tc.name)
+				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err, "invalid test %d passed - '%s'", i, tc.name)
+				suite.Require().Error(err)
 			}
 		})
 	}

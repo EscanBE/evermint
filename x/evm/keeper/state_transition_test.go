@@ -33,76 +33,78 @@ func (suite *KeeperTestSuite) TestGetHashFn() {
 	hash := h.Hash()
 
 	testCases := []struct {
-		msg      string
+		name     string
 		height   uint64
 		malleate func()
 		expHash  common.Hash
 	}{
 		{
-			"case 1.1: context hash cached",
-			uint64(suite.ctx.BlockHeight()),
-			func() {
+			name:   "case 1.1: context hash cached",
+			height: uint64(suite.ctx.BlockHeight()),
+			malleate: func() {
 				suite.ctx = suite.ctx.WithHeaderHash(tmhash.Sum([]byte("header")))
 			},
-			common.BytesToHash(tmhash.Sum([]byte("header"))),
+			expHash: common.BytesToHash(tmhash.Sum([]byte("header"))),
 		},
 		{
-			"case 1.2: failed to cast CometBFT header",
-			uint64(suite.ctx.BlockHeight()),
-			func() {
+			name:   "case 1.2: failed to cast CometBFT header",
+			height: uint64(suite.ctx.BlockHeight()),
+			malleate: func() {
 				header := tmproto.Header{}
 				header.Height = suite.ctx.BlockHeight()
 				suite.ctx = suite.ctx.WithBlockHeader(header)
 			},
-			common.Hash{},
+			expHash: common.Hash{},
 		},
 		{
-			"case 1.3: hash calculated from CometBFT header",
-			uint64(suite.ctx.BlockHeight()),
-			func() {
+			name:   "case 1.3: hash calculated from CometBFT header",
+			height: uint64(suite.ctx.BlockHeight()),
+			malleate: func() {
 				suite.ctx = suite.ctx.WithBlockHeader(header)
 			},
-			common.BytesToHash(hash),
+			expHash: common.BytesToHash(hash),
 		},
 		{
-			"case 2.1: height lower than current one, hist info not found",
-			1,
-			func() {
+			name:   "case 2.1: height lower than current one, hist info not found",
+			height: 1,
+			malleate: func() {
 				suite.ctx = suite.ctx.WithBlockHeight(10)
 			},
-			common.Hash{},
+			expHash: common.Hash{},
 		},
 		{
-			"case 2.2: height lower than current one, invalid hist info header",
-			1,
-			func() {
-				suite.app.StakingKeeper.SetHistoricalInfo(suite.ctx, 1, &stakingtypes.HistoricalInfo{})
+			name:   "case 2.2: height lower than current one, invalid hist info header",
+			height: 1,
+			malleate: func() {
+				err := suite.app.StakingKeeper.SetHistoricalInfo(suite.ctx, 1, &stakingtypes.HistoricalInfo{})
+				suite.Require().NoError(err)
 				suite.ctx = suite.ctx.WithBlockHeight(10)
 			},
-			common.Hash{},
+			expHash: common.Hash{},
 		},
 		{
-			"case 2.3: height lower than current one, calculated from hist info header",
-			1,
-			func() {
+			name:   "case 2.3: height lower than current one, calculated from hist info header",
+			height: 1,
+			malleate: func() {
 				histInfo := &stakingtypes.HistoricalInfo{
 					Header: header,
 				}
-				suite.app.StakingKeeper.SetHistoricalInfo(suite.ctx, 1, histInfo)
+				err := suite.app.StakingKeeper.SetHistoricalInfo(suite.ctx, 1, histInfo)
+				suite.Require().NoError(err)
 				suite.ctx = suite.ctx.WithBlockHeight(10)
 			},
-			common.BytesToHash(hash),
+			expHash: common.BytesToHash(hash),
 		},
 		{
-			"case 3: height greater than current one",
-			200,
-			func() {},
-			common.Hash{},
+			name:     "case 3: height greater than current one",
+			height:   200,
+			malleate: func() {},
+			expHash:  common.Hash{},
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
@@ -117,22 +119,22 @@ func (suite *KeeperTestSuite) TestGetCoinbaseAddress() {
 	valOpAddr := utiltx.GenerateAddress()
 
 	testCases := []struct {
-		msg      string
+		name     string
 		malleate func()
 		expPass  bool
 	}{
 		{
-			"validator not found",
-			func() {
+			name: "fail - validator not found",
+			malleate: func() {
 				header := suite.ctx.BlockHeader()
 				header.ProposerAddress = []byte{}
 				suite.ctx = suite.ctx.WithBlockHeader(header)
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"success",
-			func() {
+			name: "pass",
+			malleate: func() {
 				valConsAddr, privkey := utiltx.NewAddrKey()
 
 				pkAny, err := codectypes.NewAnyWithValue(privkey.PubKey())
@@ -143,7 +145,8 @@ func (suite *KeeperTestSuite) TestGetCoinbaseAddress() {
 					ConsensusPubkey: pkAny,
 				}
 
-				suite.app.StakingKeeper.SetValidator(suite.ctx, validator)
+				err = suite.app.StakingKeeper.SetValidator(suite.ctx, validator)
+				suite.Require().NoError(err)
 				err = suite.app.StakingKeeper.SetValidatorByConsAddr(suite.ctx, validator)
 				suite.Require().NoError(err)
 
@@ -156,17 +159,17 @@ func (suite *KeeperTestSuite) TestGetCoinbaseAddress() {
 
 				suite.Require().NotEmpty(suite.ctx.BlockHeader().ProposerAddress)
 			},
-			true,
+			expPass: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			proposerAddress := suite.ctx.BlockHeader().ProposerAddress
-			coinbase, err := suite.app.EvmKeeper.GetCoinbaseAddress(suite.ctx, sdk.ConsAddress(proposerAddress))
+			header := suite.ctx.BlockHeader()
+			coinbase, err := suite.app.EvmKeeper.GetCoinbaseAddress(suite.ctx, header.ProposerAddress)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(valOpAddr, coinbase)
@@ -188,76 +191,76 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 		expGas             uint64
 	}{
 		{
-			"no data, no accesslist, not contract creation, not homestead, not istanbul",
-			nil,
-			nil,
-			1,
-			false,
-			true,
-			ethparams.TxGas,
+			name:               "pass - no data, no accesslist, not contract creation, not homestead, not istanbul",
+			data:               nil,
+			accessList:         nil,
+			height:             1,
+			isContractCreation: false,
+			noError:            true,
+			expGas:             ethparams.TxGas,
 		},
 		{
-			"with one zero data, no accesslist, not contract creation, not homestead, not istanbul",
-			[]byte{0},
-			nil,
-			1,
-			false,
-			true,
-			ethparams.TxGas + ethparams.TxDataZeroGas*1,
+			name:               "pass - with one zero data, no accesslist, not contract creation, not homestead, not istanbul",
+			data:               []byte{0},
+			accessList:         nil,
+			height:             1,
+			isContractCreation: false,
+			noError:            true,
+			expGas:             ethparams.TxGas + ethparams.TxDataZeroGas*1,
 		},
 		{
-			"with one non zero data, no accesslist, not contract creation, not homestead, not istanbul",
-			[]byte{1},
-			nil,
-			1,
-			true,
-			true,
-			ethparams.TxGas + ethparams.TxDataNonZeroGasFrontier*1,
+			name:               "pass - with one non zero data, no accesslist, not contract creation, not homestead, not istanbul",
+			data:               []byte{1},
+			accessList:         nil,
+			height:             1,
+			isContractCreation: true,
+			noError:            true,
+			expGas:             ethparams.TxGas + ethparams.TxDataNonZeroGasFrontier*1,
 		},
 		{
-			"no data, one accesslist, not contract creation, not homestead, not istanbul",
-			nil,
-			[]ethtypes.AccessTuple{
+			name: "pass - no data, one accesslist, not contract creation, not homestead, not istanbul",
+			data: nil,
+			accessList: []ethtypes.AccessTuple{
 				{},
 			},
-			1,
-			false,
-			true,
-			ethparams.TxGas + ethparams.TxAccessListAddressGas,
+			height:             1,
+			isContractCreation: false,
+			noError:            true,
+			expGas:             ethparams.TxGas + ethparams.TxAccessListAddressGas,
 		},
 		{
-			"no data, one accesslist with one storageKey, not contract creation, not homestead, not istanbul",
-			nil,
-			[]ethtypes.AccessTuple{
+			name: "pass - no data, one accesslist with one storageKey, not contract creation, not homestead, not istanbul",
+			data: nil,
+			accessList: []ethtypes.AccessTuple{
 				{StorageKeys: make([]common.Hash, 1)},
 			},
-			1,
-			false,
-			true,
-			ethparams.TxGas + ethparams.TxAccessListAddressGas + ethparams.TxAccessListStorageKeyGas*1,
+			height:             1,
+			isContractCreation: false,
+			noError:            true,
+			expGas:             ethparams.TxGas + ethparams.TxAccessListAddressGas + ethparams.TxAccessListStorageKeyGas*1,
 		},
 		{
-			"no data, no accesslist, is contract creation, is homestead, not istanbul",
-			nil,
-			nil,
-			2,
-			true,
-			true,
-			ethparams.TxGasContractCreation,
+			name:               "pass - no data, no accesslist, is contract creation, is homestead, not istanbul",
+			data:               nil,
+			accessList:         nil,
+			height:             2,
+			isContractCreation: true,
+			noError:            true,
+			expGas:             ethparams.TxGasContractCreation,
 		},
 		{
-			"with one zero data, no accesslist, not contract creation, is homestead, is istanbul",
-			[]byte{1},
-			nil,
-			3,
-			false,
-			true,
-			ethparams.TxGas + ethparams.TxDataNonZeroGasEIP2028*1,
+			name:               "pass - with one zero data, no accesslist, not contract creation, is homestead, is istanbul",
+			data:               []byte{1},
+			accessList:         nil,
+			height:             3,
+			isContractCreation: false,
+			noError:            true,
+			expGas:             ethparams.TxGas + ethparams.TxDataNonZeroGasEIP2028*1,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			params := suite.app.EvmKeeper.GetParams(suite.ctx)
@@ -303,37 +306,37 @@ func (suite *KeeperTestSuite) TestGasToRefund() {
 		expPanic       bool
 	}{
 		{
-			"gas refund 5",
-			5,
-			1,
-			5,
-			false,
+			name:           "pass - gas refund 5",
+			gasconsumed:    5,
+			refundQuotient: 1,
+			expGasRefund:   5,
+			expPanic:       false,
 		},
 		{
-			"gas refund 10",
-			10,
-			1,
-			10,
-			false,
+			name:           "pass - gas refund 10",
+			gasconsumed:    10,
+			refundQuotient: 1,
+			expGasRefund:   10,
+			expPanic:       false,
 		},
 		{
-			"gas refund availableRefund",
-			11,
-			1,
-			10,
-			false,
+			name:           "pass - gas refund availableRefund",
+			gasconsumed:    11,
+			refundQuotient: 1,
+			expGasRefund:   10,
+			expPanic:       false,
 		},
 		{
-			"gas refund quotient 0",
-			11,
-			0,
-			0,
-			true,
+			name:           "fail - gas refund quotient 0",
+			gasconsumed:    11,
+			refundQuotient: 0,
+			expGasRefund:   0,
+			expPanic:       true,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.mintFeeCollector = true
 			suite.SetupTest() // reset
 			vmdb := suite.StateDB()
@@ -362,39 +365,39 @@ func (suite *KeeperTestSuite) TestResetGasMeterAndConsumeGas() {
 		expPanic    bool
 	}{
 		{
-			"gas consumed 5, used 5",
-			5,
-			5,
-			false,
+			name:        "pass - gas consumed 5, used 5",
+			gasConsumed: 5,
+			gasUsed:     5,
+			expPanic:    false,
 		},
 		{
-			"gas consumed 5, used 10",
-			5,
-			10,
-			false,
+			name:        "pass - gas consumed 5, used 10",
+			gasConsumed: 5,
+			gasUsed:     10,
+			expPanic:    false,
 		},
 		{
-			"gas consumed 10, used 10",
-			10,
-			10,
-			false,
+			name:        "pass - gas consumed 10, used 10",
+			gasConsumed: 10,
+			gasUsed:     10,
+			expPanic:    false,
 		},
 		{
-			"gas consumed 11, used 10, NegativeGasConsumed panic",
-			11,
-			10,
-			true,
+			name:        "fail - gas consumed 11, used 10, NegativeGasConsumed panic",
+			gasConsumed: 11,
+			gasUsed:     10,
+			expPanic:    true,
 		},
 		{
-			"gas consumed 1, used 10, overflow panic",
-			1,
-			math.MaxUint64,
-			true,
+			name:        "fail - gas consumed 1, used 10, overflow panic",
+			gasConsumed: 1,
+			gasUsed:     math.MaxUint64,
+			expPanic:    true,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			panicF := func() {
@@ -1148,28 +1151,28 @@ func (suite *KeeperTestSuite) TestGetProposerAddress() {
 	address := sdk.ConsAddress(suite.address.Bytes())
 	proposerAddress := sdk.ConsAddress(suite.ctx.BlockHeader().ProposerAddress)
 	testCases := []struct {
-		msg    string
+		name   string
 		adr    sdk.ConsAddress
 		expAdr sdk.ConsAddress
 	}{
 		{
-			"proposer address provided",
-			address,
-			address,
+			name:   "proposer address provided",
+			adr:    address,
+			expAdr: address,
 		},
 		{
-			"nil proposer address provided",
-			nil,
-			proposerAddress,
+			name:   "nil proposer address provided",
+			adr:    nil,
+			expAdr: proposerAddress,
 		},
 		{
-			"typed nil proposer address provided",
-			a,
-			proposerAddress,
+			name:   "typed nil proposer address provided",
+			adr:    a,
+			expAdr: proposerAddress,
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		suite.Run(tc.name, func() {
 			suite.Require().Equal(tc.expAdr, evmkeeper.GetProposerAddress(suite.ctx, tc.adr))
 		})
 	}

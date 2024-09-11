@@ -2,7 +2,6 @@ package backend
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
@@ -11,7 +10,7 @@ import (
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	"github.com/ethereum/go-ethereum/common"
+	common "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -48,19 +47,19 @@ func (suite *BackendTestSuite) TestResend() {
 		expPass      bool
 	}{
 		{
-			"fail - Missing transaction nonce",
-			func() {},
-			evmtypes.TransactionArgs{
+			name:         "fail - Missing transaction nonce",
+			registerMock: func() {},
+			args: evmtypes.TransactionArgs{
 				Nonce: nil,
 			},
-			nil,
-			nil,
-			common.Hash{},
-			false,
+			gasPrice: nil,
+			gasLimit: nil,
+			expHash:  common.Hash{},
+			expPass:  false,
 		},
 		{
-			"pass - Can't set Tx defaults BaseFee disabled",
-			func() {
+			name: "pass - Can't set Tx defaults BaseFee disabled",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				_, err := RegisterBlock(client, 1, nil)
@@ -72,18 +71,18 @@ func (suite *BackendTestSuite) TestResend() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
-			evmtypes.TransactionArgs{
+			args: evmtypes.TransactionArgs{
 				Nonce:   &txNonce,
 				ChainID: callArgs.ChainID,
 			},
-			nil,
-			nil,
-			common.Hash{},
-			true,
+			gasPrice: nil,
+			gasLimit: nil,
+			expHash:  common.Hash{},
+			expPass:  true,
 		},
 		{
-			"pass - Can't set Tx defaults",
-			func() {
+			name: "pass - Can't set Tx defaults",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				feeMarketClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
@@ -97,17 +96,17 @@ func (suite *BackendTestSuite) TestResend() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
-			evmtypes.TransactionArgs{
+			args: evmtypes.TransactionArgs{
 				Nonce: &txNonce,
 			},
-			nil,
-			nil,
-			common.Hash{},
-			true,
+			gasPrice: nil,
+			gasLimit: nil,
+			expHash:  common.Hash{},
+			expPass:  true,
 		},
 		{
-			"pass - MaxFeePerGas is nil",
-			func() {
+			name: "pass - MaxFeePerGas is nil",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				_, err := RegisterBlock(client, 1, nil)
@@ -119,51 +118,51 @@ func (suite *BackendTestSuite) TestResend() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
-			evmtypes.TransactionArgs{
+			args: evmtypes.TransactionArgs{
 				Nonce:                &txNonce,
 				MaxPriorityFeePerGas: nil,
 				GasPrice:             nil,
 				MaxFeePerGas:         nil,
 			},
-			nil,
-			nil,
-			common.Hash{},
-			true,
+			gasPrice: nil,
+			gasLimit: nil,
+			expHash:  common.Hash{},
+			expPass:  true,
 		},
 		{
-			"fail - GasPrice and (MaxFeePerGas or MaxPriorityPerGas specified)",
-			func() {},
-			evmtypes.TransactionArgs{
+			name:         "fail - GasPrice and (MaxFeePerGas or MaxPriorityPerGas specified)",
+			registerMock: func() {},
+			args: evmtypes.TransactionArgs{
 				Nonce:                &txNonce,
 				MaxPriorityFeePerGas: nil,
 				GasPrice:             gasPrice,
 				MaxFeePerGas:         gasPrice,
 			},
-			nil,
-			nil,
-			common.Hash{},
-			false,
+			gasPrice: nil,
+			gasLimit: nil,
+			expHash:  common.Hash{},
+			expPass:  false,
 		},
 		{
-			"fail - Block error",
-			func() {
+			name: "fail - Block error",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				RegisterBlockError(client, 1)
 
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
-			evmtypes.TransactionArgs{
+			args: evmtypes.TransactionArgs{
 				Nonce: &txNonce,
 			},
-			nil,
-			nil,
-			common.Hash{},
-			false,
+			gasPrice: nil,
+			gasLimit: nil,
+			expHash:  common.Hash{},
+			expPass:  false,
 		},
 		{
-			"pass - MaxFeePerGas is nil",
-			func() {
+			name: "pass - MaxFeePerGas is nil",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				_, err := RegisterBlock(client, 1, nil)
@@ -175,21 +174,21 @@ func (suite *BackendTestSuite) TestResend() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
-			evmtypes.TransactionArgs{
+			args: evmtypes.TransactionArgs{
 				Nonce:                &txNonce,
 				GasPrice:             nil,
 				MaxPriorityFeePerGas: gasPrice,
 				MaxFeePerGas:         gasPrice,
 				ChainID:              callArgs.ChainID,
 			},
-			nil,
-			nil,
-			common.Hash{},
-			true,
+			gasPrice: nil,
+			gasLimit: nil,
+			expHash:  common.Hash{},
+			expPass:  true,
 		},
 		{
-			"pass - Chain Id is nil",
-			func() {
+			name: "pass - Chain Id is nil",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				_, err := RegisterBlock(client, 1, nil)
@@ -201,19 +200,19 @@ func (suite *BackendTestSuite) TestResend() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
-			evmtypes.TransactionArgs{
+			args: evmtypes.TransactionArgs{
 				Nonce:                &txNonce,
 				MaxPriorityFeePerGas: gasPrice,
 				ChainID:              nil,
 			},
-			nil,
-			nil,
-			common.Hash{},
-			true,
+			gasPrice: nil,
+			gasLimit: nil,
+			expHash:  common.Hash{},
+			expPass:  true,
 		},
 		{
-			"fail - Pending transactions error",
-			func() {
+			name: "fail - Pending transactions error",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				_, err := RegisterBlock(client, 1, nil)
@@ -228,7 +227,7 @@ func (suite *BackendTestSuite) TestResend() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
-			evmtypes.TransactionArgs{
+			args: evmtypes.TransactionArgs{
 				Nonce:                &txNonce,
 				To:                   &toAddr,
 				MaxFeePerGas:         gasPrice,
@@ -237,14 +236,14 @@ func (suite *BackendTestSuite) TestResend() {
 				Gas:                  nil,
 				ChainID:              callArgs.ChainID,
 			},
-			gasPrice,
-			nil,
-			common.Hash{},
-			false,
+			gasPrice: gasPrice,
+			gasLimit: nil,
+			expHash:  common.Hash{},
+			expPass:  false,
 		},
 		{
-			"fail - Not Ethereum txs",
-			func() {
+			name: "fail - Not Ethereum txs",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				_, err := RegisterBlock(client, 1, nil)
@@ -259,7 +258,7 @@ func (suite *BackendTestSuite) TestResend() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
-			evmtypes.TransactionArgs{
+			args: evmtypes.TransactionArgs{
 				Nonce:                &txNonce,
 				To:                   &toAddr,
 				MaxFeePerGas:         gasPrice,
@@ -268,10 +267,10 @@ func (suite *BackendTestSuite) TestResend() {
 				Gas:                  nil,
 				ChainID:              callArgs.ChainID,
 			},
-			gasPrice,
-			nil,
-			common.Hash{},
-			false,
+			gasPrice: gasPrice,
+			gasLimit: nil,
+			expHash:  common.Hash{},
+			expPass:  false,
 		},
 		{
 			name: "fail - indexer returns error",
@@ -296,7 +295,7 @@ func (suite *BackendTestSuite) TestResend() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset test and queries
 			tc.registerMock()
 
@@ -333,71 +332,71 @@ func (suite *BackendTestSuite) TestSendRawTransaction() {
 		expPass      bool
 	}{
 		{
-			"fail - empty bytes",
-			func() {},
-			[]byte{},
-			common.Hash{},
-			false,
+			name:         "fail - empty bytes",
+			registerMock: func() {},
+			rawTx:        []byte{},
+			expHash:      common.Hash{},
+			expPass:      false,
 		},
 		{
-			"fail - no RLP encoded bytes",
-			func() {},
-			bz,
-			common.Hash{},
-			false,
+			name:         "fail - no RLP encoded bytes",
+			registerMock: func() {},
+			rawTx:        bz,
+			expHash:      common.Hash{},
+			expPass:      false,
 		},
 		{
-			"fail - unprotected transactions",
-			func() {
+			name: "fail - unprotected transactions",
+			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				suite.backend.AllowUnprotectedTxs(false)
 				RegisterParamsWithoutHeaderError(queryClient, 1)
 			},
-			rlpEncodedBz,
-			common.Hash{},
-			false,
+			rawTx:   rlpEncodedBz,
+			expHash: common.Hash{},
+			expPass: false,
 		},
 		{
-			"fail - failed to get evm params",
-			func() {
+			name: "fail - failed to get evm params",
+			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				suite.backend.AllowUnprotectedTxs(true)
 				RegisterParamsWithoutHeaderError(queryClient, 1)
 			},
-			rlpEncodedBz,
-			common.Hash{},
-			false,
+			rawTx:   rlpEncodedBz,
+			expHash: common.Hash{},
+			expPass: false,
 		},
 		{
-			"fail - failed to broadcast transaction",
-			func() {
+			name: "fail - failed to broadcast transaction",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				suite.backend.AllowUnprotectedTxs(true)
 				RegisterParamsWithoutHeader(queryClient, 1)
 				RegisterBroadcastTxError(client, txBytes)
 			},
-			rlpEncodedBz,
-			common.HexToHash(ethTx.Hash),
-			false,
+			rawTx:   rlpEncodedBz,
+			expHash: common.HexToHash(ethTx.Hash),
+			expPass: false,
 		},
 		{
-			"pass - Gets the correct transaction hash of the eth transaction",
-			func() {
+			name: "pass - Gets the correct transaction hash of the eth transaction",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				suite.backend.AllowUnprotectedTxs(true)
 				RegisterParamsWithoutHeader(queryClient, 1)
 				RegisterBroadcastTx(client, txBytes)
 			},
-			rlpEncodedBz,
-			common.HexToHash(ethTx.Hash),
-			true,
+			rawTx:   rlpEncodedBz,
+			expHash: common.HexToHash(ethTx.Hash),
+			expPass: true,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset test and queries
 			tc.registerMock()
 
@@ -442,37 +441,37 @@ func (suite *BackendTestSuite) TestDoCall() {
 		expPass      bool
 	}{
 		{
-			"fail - Invalid request",
-			func() {
+			name: "fail - Invalid request",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				_, err := RegisterBlock(client, 1, bz)
 				suite.Require().NoError(err)
 				RegisterEthCallError(queryClient, &evmtypes.EthCallRequest{Args: argsBz, ChainId: suite.backend.chainID.Int64()})
 			},
-			rpctypes.BlockNumber(1),
-			callArgs,
-			&evmtypes.MsgEthereumTxResponse{},
-			false,
+			blockNum: rpctypes.BlockNumber(1),
+			callArgs: callArgs,
+			expEthTx: &evmtypes.MsgEthereumTxResponse{},
+			expPass:  false,
 		},
 		{
-			"pass - Returned transaction response",
-			func() {
+			name: "pass - Returned transaction response",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				_, err := RegisterBlock(client, 1, bz)
 				suite.Require().NoError(err)
 				RegisterEthCall(queryClient, &evmtypes.EthCallRequest{Args: argsBz, ChainId: suite.backend.chainID.Int64()})
 			},
-			rpctypes.BlockNumber(1),
-			callArgs,
-			&evmtypes.MsgEthereumTxResponse{},
-			true,
+			blockNum: rpctypes.BlockNumber(1),
+			callArgs: callArgs,
+			expEthTx: &evmtypes.MsgEthereumTxResponse{},
+			expPass:  true,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset test and queries
 			tc.registerMock()
 
@@ -497,8 +496,8 @@ func (suite *BackendTestSuite) TestGasPrice() {
 		expPass      bool
 	}{
 		{
-			"pass - get the default gas price",
-			func() {
+			name: "pass - get the default gas price",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				feeMarketClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
@@ -512,12 +511,12 @@ func (suite *BackendTestSuite) TestGasPrice() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
-			defaultGasPrice,
-			true,
+			expGas:  defaultGasPrice,
+			expPass: true,
 		},
 		{
-			"fail - can't get gasFee, FeeMarketParams error",
-			func() {
+			name: "fail - can't get gasFee, FeeMarketParams error",
+			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				feeMarketClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
@@ -531,8 +530,8 @@ func (suite *BackendTestSuite) TestGasPrice() {
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
-			defaultGasPrice,
-			false,
+			expGas:  defaultGasPrice,
+			expPass: false,
 		},
 		{
 			name: "fail - indexer returns error",
@@ -546,7 +545,7 @@ func (suite *BackendTestSuite) TestGasPrice() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset test and queries
 			tc.registerMock()
 

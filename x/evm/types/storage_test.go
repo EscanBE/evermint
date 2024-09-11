@@ -14,37 +14,38 @@ func TestStorageValidate(t *testing.T) {
 		expPass bool
 	}{
 		{
-			"valid storage",
-			Storage{
+			name: "pass - valid storage",
+			storage: Storage{
 				NewState(common.BytesToHash([]byte{1, 2, 3}), common.BytesToHash([]byte{1, 2, 3})),
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"empty storage key bytes",
-			Storage{
+			name: "fail - empty storage key bytes",
+			storage: Storage{
 				{Key: ""},
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"duplicated storage key",
-			Storage{
+			name: "fail - duplicated storage key",
+			storage: Storage{
 				{Key: common.BytesToHash([]byte{1, 2, 3}).String()},
 				{Key: common.BytesToHash([]byte{1, 2, 3}).String()},
 			},
-			false,
+			expPass: false,
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		err := tc.storage.Validate()
-		if tc.expPass {
-			require.NoError(t, err, tc.name)
-		} else {
-			require.Error(t, err, tc.name)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.storage.Validate()
+			if tc.expPass {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		})
 	}
 }
 
@@ -54,26 +55,27 @@ func TestStorageCopy(t *testing.T) {
 		storage Storage
 	}{
 		{
-			"single storage",
-			Storage{
+			name: "single storage",
+			storage: Storage{
 				NewState(common.BytesToHash([]byte{1, 2, 3}), common.BytesToHash([]byte{1, 2, 3})),
 			},
 		},
 		{
-			"empty storage key value bytes",
-			Storage{
+			name: "empty storage key value bytes",
+			storage: Storage{
 				{Key: common.Hash{}.String(), Value: common.Hash{}.String()},
 			},
 		},
 		{
-			"empty storage",
-			Storage{},
+			name:    "empty storage",
+			storage: Storage{},
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		require.Equal(t, tc.storage, tc.storage.Copy(), tc.name)
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.storage, tc.storage.Copy())
+		})
 	}
 }
 

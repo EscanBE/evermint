@@ -277,20 +277,20 @@ func (suite *MsgsTestSuite) TestMsgUpdateValidateBasic() {
 		expPass   bool
 	}{
 		{
-			"fail - invalid authority address",
-			&erc20types.MsgUpdateParams{
+			name: "fail - invalid authority address",
+			msgUpdate: &erc20types.MsgUpdateParams{
 				Authority: "invalid",
 				Params:    erc20types.DefaultParams(),
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"pass - valid msg",
-			&erc20types.MsgUpdateParams{
+			name: "pass - valid msg",
+			msgUpdate: &erc20types.MsgUpdateParams{
 				Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 				Params:    erc20types.DefaultParams(),
 			},
-			true,
+			expPass: true,
 		},
 	}
 

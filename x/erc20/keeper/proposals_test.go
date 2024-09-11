@@ -134,32 +134,32 @@ func (suite KeeperTestSuite) TestRegisterCoin() { //nolint:govet // we can copy 
 		expPass  bool
 	}{
 		{
-			"conversion is disabled globally",
-			func() {
+			name: "fail - conversion is disabled globally",
+			malleate: func() {
 				params := erc20types.DefaultParams()
 				params.EnableErc20 = false
 				suite.app.Erc20Keeper.SetParams(suite.ctx, params) //nolint:errcheck
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"denom already registered",
-			func() {
+			name: "fail - denom already registered",
+			malleate: func() {
 				regPair := erc20types.NewTokenPair(utiltx.GenerateAddress(), metadata.Base, erc20types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, regPair.Denom, regPair.GetID())
 				suite.Commit()
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"token doesn't have supply",
-			func() {
+			name: "fail - token doesn't have supply",
+			malleate: func() {
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"metadata different that stored",
-			func() {
+			name: "fail - metadata different that stored",
+			malleate: func() {
 				metadata.Base = cosmosTokenBase
 				validMetadata := banktypes.Metadata{
 					Description: "description",
@@ -184,20 +184,20 @@ func (suite KeeperTestSuite) TestRegisterCoin() { //nolint:govet // we can copy 
 				suite.Require().NoError(err)
 				suite.app.BankKeeper.SetDenomMetaData(suite.ctx, validMetadata)
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"ok",
-			func() {
+			name: "pass",
+			malleate: func() {
 				metadata.Base = cosmosTokenBase
 				err := suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.Coins{sdk.NewInt64Coin(metadata.Base, 1)})
 				suite.Require().NoError(err)
 			},
-			true,
+			expPass: true,
 		},
 		{
-			"force fail evm",
-			func() {
+			name: "fail - force fail evm",
+			malleate: func() {
 				metadata.Base = cosmosTokenBase
 				err := suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.Coins{sdk.NewInt64Coin(metadata.Base, 1)})
 				suite.Require().NoError(err)
@@ -213,11 +213,11 @@ func (suite KeeperTestSuite) TestRegisterCoin() { //nolint:govet // we can copy 
 				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
 				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("forced ApplyMessage error"))
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"force delete module account evm",
-			func() {
+			name: "fail - force delete module account evm",
+			malleate: func() {
 				metadata.Base = cosmosTokenBase
 				err := suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.Coins{sdk.NewInt64Coin(metadata.Base, 1)})
 				suite.Require().NoError(err)
@@ -225,11 +225,11 @@ func (suite KeeperTestSuite) TestRegisterCoin() { //nolint:govet // we can copy 
 				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, erc20types.ModuleAddress.Bytes())
 				suite.app.AccountKeeper.RemoveAccount(suite.ctx, acc)
 			},
-			false,
+			expPass: false,
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
@@ -265,34 +265,34 @@ func (suite KeeperTestSuite) TestRegisterERC20() { //nolint:govet // we can copy
 		expPass  bool
 	}{
 		{
-			"token ERC20 already registered",
-			func() {
+			name: "fail - token ERC20 already registered",
+			malleate: func() {
 				suite.app.Erc20Keeper.SetERC20Map(suite.ctx, pair.GetERC20Contract(), pair.GetID())
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"denom already registered",
-			func() {
+			name: "fail - denom already registered",
+			malleate: func() {
 				suite.app.Erc20Keeper.SetDenomMap(suite.ctx, pair.Denom, pair.GetID())
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"meta data already stored",
-			func() {
+			name: "fail - meta data already stored",
+			malleate: func() {
 				suite.app.Erc20Keeper.CreateCoinMetadata(suite.ctx, contractAddr) //nolint:errcheck
 			},
-			false,
+			expPass: false,
 		},
 		{
-			"ok",
-			func() {},
-			true,
+			name:     "pass",
+			malleate: func() {},
+			expPass:  true,
 		},
 		{
-			"force fail evm",
-			func() {
+			name: "fail - force fail evm",
+			malleate: func() {
 				mockEVMKeeper := &MockEVMKeeper{}
 
 				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
@@ -304,11 +304,11 @@ func (suite KeeperTestSuite) TestRegisterERC20() { //nolint:govet // we can copy
 				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
 				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("forced ApplyMessage error"))
 			},
-			false,
+			expPass: false,
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			var err error
 			suite.SetupTest() // reset
 
@@ -358,52 +358,52 @@ func (suite KeeperTestSuite) TestToggleConverision() { //nolint:govet // we can 
 		conversionEnabled bool
 	}{
 		{
-			"token not registered",
-			func() {
+			name: "fail - token not registered",
+			malleate: func() {
 				contractAddr, err := suite.DeployContract(erc20Name, erc20Symbol, erc20Decimals)
 				suite.Require().NoError(err)
 				suite.Commit()
 				pair = erc20types.NewTokenPair(contractAddr, cosmosTokenBase, erc20types.OWNER_MODULE)
 			},
-			false,
-			false,
+			expPass:           false,
+			conversionEnabled: false,
 		},
 		{
-			"token not registered - pair not found",
-			func() {
+			name: "fail - token not registered - pair not found",
+			malleate: func() {
 				contractAddr, err := suite.DeployContract(erc20Name, erc20Symbol, erc20Decimals)
 				suite.Require().NoError(err)
 				suite.Commit()
 				pair = erc20types.NewTokenPair(contractAddr, cosmosTokenBase, erc20types.OWNER_MODULE)
 				suite.app.Erc20Keeper.SetERC20Map(suite.ctx, common.HexToAddress(pair.Erc20Address), pair.GetID())
 			},
-			false,
-			false,
+			expPass:           false,
+			conversionEnabled: false,
 		},
 		{
-			"disable conversion",
-			func() {
+			name: "pass - disable conversion",
+			malleate: func() {
 				contractAddr = suite.setupRegisterERC20Pair(contractMinterBurner)
 				id = suite.app.Erc20Keeper.GetTokenPairID(suite.ctx, contractAddr.String())
 				pair, _ = suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
 			},
-			true,
-			false,
+			expPass:           true,
+			conversionEnabled: false,
 		},
 		{
-			"disable and enable conversion",
-			func() {
+			name: "pass - disable and enable conversion",
+			malleate: func() {
 				contractAddr = suite.setupRegisterERC20Pair(contractMinterBurner)
 				id = suite.app.Erc20Keeper.GetTokenPairID(suite.ctx, contractAddr.String())
 				pair, _ = suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
 				pair, _ = suite.app.Erc20Keeper.ToggleConversion(suite.ctx, contractAddr.String())
 			},
-			true,
-			true,
+			expPass:           true,
+			conversionEnabled: true,
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()

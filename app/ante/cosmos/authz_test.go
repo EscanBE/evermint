@@ -1,7 +1,6 @@
 package cosmos_test
 
 import (
-	"fmt"
 	"math/big"
 	"testing"
 	"time"
@@ -54,36 +53,36 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 		expectedErr error
 	}{
 		{
-			"enabled msg - non blocked msg",
-			[]sdk.Msg{
+			name: "pass - enabled msg - non blocked msg",
+			msgs: []sdk.Msg{
 				banktypes.NewMsgSend(
 					testAddresses[0],
 					testAddresses[1],
 					sdk.NewCoins(sdk.NewInt64Coin(evmtypes.DefaultEVMDenom, 100e6)),
 				),
 			},
-			false,
-			nil,
+			checkTx:     false,
+			expectedErr: nil,
 		},
 		{
-			"enabled msg MsgEthereumTx - blocked msg not wrapped in MsgExec",
-			[]sdk.Msg{
+			name: "pass - enabled msg MsgEthereumTx - blocked msg not wrapped in MsgExec",
+			msgs: []sdk.Msg{
 				&evmtypes.MsgEthereumTx{},
 			},
-			false,
-			nil,
+			checkTx:     false,
+			expectedErr: nil,
 		},
 		{
-			"enabled msg - blocked msg not wrapped in MsgExec",
-			[]sdk.Msg{
+			name: "pass - enabled msg - blocked msg not wrapped in MsgExec",
+			msgs: []sdk.Msg{
 				&stakingtypes.MsgCancelUnbondingDelegation{},
 			},
-			false,
-			nil,
+			checkTx:     false,
+			expectedErr: nil,
 		},
 		{
-			"enabled msg - MsgGrant contains a non blocked msg",
-			[]sdk.Msg{
+			name: "pass - enabled msg - MsgGrant contains a non blocked msg",
+			msgs: []sdk.Msg{
 				newMsgGrant(
 					testAddresses[0],
 					testAddresses[1],
@@ -91,12 +90,12 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 					&distantFuture,
 				),
 			},
-			false,
-			nil,
+			checkTx:     false,
+			expectedErr: nil,
 		},
 		{
-			"enabled msg - MsgGrant contains a non blocked msg",
-			[]sdk.Msg{
+			name: "pass - enabled msg - MsgGrant contains a non blocked msg",
+			msgs: []sdk.Msg{
 				newMsgGrant(
 					testAddresses[0],
 					testAddresses[1],
@@ -104,12 +103,12 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 					&distantFuture,
 				),
 			},
-			false,
-			nil,
+			checkTx:     false,
+			expectedErr: nil,
 		},
 		{
-			"disabled msg - MsgGrant contains a blocked msg",
-			[]sdk.Msg{
+			name: "fail - disabled msg - MsgGrant contains a blocked msg",
+			msgs: []sdk.Msg{
 				newMsgGrant(
 					testAddresses[0],
 					testAddresses[1],
@@ -117,12 +116,12 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 					&distantFuture,
 				),
 			},
-			false,
-			sdkerrors.ErrUnauthorized,
+			checkTx:     false,
+			expectedErr: sdkerrors.ErrUnauthorized,
 		},
 		{
-			"disabled msg - MsgGrant contains a blocked msg",
-			[]sdk.Msg{
+			name: "fail - disabled msg - MsgGrant contains a blocked msg",
+			msgs: []sdk.Msg{
 				newMsgGrant(
 					testAddresses[0],
 					testAddresses[1],
@@ -130,12 +129,12 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 					&distantFuture,
 				),
 			},
-			false,
-			sdkerrors.ErrUnauthorized,
+			checkTx:     false,
+			expectedErr: sdkerrors.ErrUnauthorized,
 		},
 		{
-			"disabled msg - MsgGrant contains a blocked msg",
-			[]sdk.Msg{
+			name: "fail - disabled msg - MsgGrant contains a blocked msg",
+			msgs: []sdk.Msg{
 				newMsgGrant(
 					testAddresses[0],
 					testAddresses[1],
@@ -143,12 +142,12 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 					&distantFuture,
 				),
 			},
-			false,
-			sdkerrors.ErrUnauthorized,
+			checkTx:     false,
+			expectedErr: sdkerrors.ErrUnauthorized,
 		},
 		{
-			"allowed msg - when a MsgExec contains a non blocked msg",
-			[]sdk.Msg{
+			name: "pass - allowed msg - when a MsgExec contains a non blocked msg",
+			msgs: []sdk.Msg{
 				newMsgExec(
 					testAddresses[1],
 					[]sdk.Msg{banktypes.NewMsgSend(
@@ -157,12 +156,12 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 						sdk.NewCoins(sdk.NewInt64Coin(evmtypes.DefaultEVMDenom, 100e6)),
 					)}),
 			},
-			false,
-			nil,
+			checkTx:     false,
+			expectedErr: nil,
 		},
 		{
-			"disabled msg - MsgExec contains a blocked msg",
-			[]sdk.Msg{
+			name: "fail - disabled msg - MsgExec contains a blocked msg",
+			msgs: []sdk.Msg{
 				newMsgExec(
 					testAddresses[1],
 					[]sdk.Msg{
@@ -170,12 +169,12 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 					},
 				),
 			},
-			false,
-			sdkerrors.ErrUnauthorized,
+			checkTx:     false,
+			expectedErr: sdkerrors.ErrUnauthorized,
 		},
 		{
-			"disabled msg - surrounded by valid msgs",
-			[]sdk.Msg{
+			name: "fail - disabled msg - surrounded by valid msgs",
+			msgs: []sdk.Msg{
 				newMsgGrant(
 					testAddresses[0],
 					testAddresses[1],
@@ -194,12 +193,12 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 					},
 				),
 			},
-			false,
-			sdkerrors.ErrUnauthorized,
+			checkTx:     false,
+			expectedErr: sdkerrors.ErrUnauthorized,
 		},
 		{
-			"disabled msg - nested MsgExec containing a blocked msg",
-			[]sdk.Msg{
+			name: "fail - disabled msg - nested MsgExec containing a blocked msg",
+			msgs: []sdk.Msg{
 				createNestedMsgExec(
 					testAddresses[1],
 					2,
@@ -208,12 +207,12 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 					},
 				),
 			},
-			false,
-			sdkerrors.ErrUnauthorized,
+			checkTx:     false,
+			expectedErr: sdkerrors.ErrUnauthorized,
 		},
 		{
-			"disabled msg - nested MsgGrant containing a blocked msg",
-			[]sdk.Msg{
+			name: "fail - disabled msg - nested MsgGrant containing a blocked msg",
+			msgs: []sdk.Msg{
 				newMsgExec(
 					testAddresses[1],
 					[]sdk.Msg{
@@ -226,12 +225,12 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 					},
 				),
 			},
-			false,
-			sdkerrors.ErrUnauthorized,
+			checkTx:     false,
+			expectedErr: sdkerrors.ErrUnauthorized,
 		},
 		{
-			"disabled msg - nested MsgExec NOT containing a blocked msg but has more nesting levels than the allowed",
-			[]sdk.Msg{
+			name: "fail - disabled msg - nested MsgExec NOT containing a blocked msg but has more nesting levels than the allowed",
+			msgs: []sdk.Msg{
 				createNestedMsgExec(
 					testAddresses[1],
 					6,
@@ -244,12 +243,12 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 					},
 				),
 			},
-			false,
-			sdkerrors.ErrUnauthorized,
+			checkTx:     false,
+			expectedErr: sdkerrors.ErrUnauthorized,
 		},
 		{
-			"disabled msg - multiple two nested MsgExec messages NOT containing a blocked msg over the limit",
-			[]sdk.Msg{
+			name: "fail - disabled msg - multiple two nested MsgExec messages NOT containing a blocked msg over the limit",
+			msgs: []sdk.Msg{
 				createNestedMsgExec(
 					testAddresses[1],
 					5,
@@ -273,13 +272,13 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 					},
 				),
 			},
-			false,
-			sdkerrors.ErrUnauthorized,
+			checkTx:     false,
+			expectedErr: sdkerrors.ErrUnauthorized,
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("Case %s", tc.name), func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			ctx := sdk.Context{}.WithIsCheckTx(tc.checkTx)
 			tx, err := createTx(testPrivKeys[0], tc.msgs...)
 			require.NoError(t, err)
@@ -332,23 +331,23 @@ func (suite *AnteTestSuite) TestRejectMsgsInAuthz() {
 		isEIP712     bool
 	}{
 		{
-			name:         "a MsgGrant with MsgEthereumTx typeURL on the authorization field is blocked",
+			name:         "fail - a MsgGrant with MsgEthereumTx typeURL on the authorization field is blocked",
 			msgs:         []sdk.Msg{newMsgGrant(sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}))},
 			expectedCode: sdkerrors.ErrUnauthorized.ABCICode(),
 		},
 		{
-			name:         "a MsgGrant with MsgCreateVestingAccount typeURL on the authorization field is blocked",
+			name:         "fail - a MsgGrant with MsgCreateVestingAccount typeURL on the authorization field is blocked",
 			msgs:         []sdk.Msg{newMsgGrant(sdk.MsgTypeURL(&sdkvesting.MsgCreateVestingAccount{}))},
 			expectedCode: sdkerrors.ErrUnauthorized.ABCICode(),
 		},
 		{
-			name:         "a MsgGrant with MsgEthereumTx typeURL on the authorization field included on EIP712 tx is blocked",
+			name:         "fail - a MsgGrant with MsgEthereumTx typeURL on the authorization field included on EIP712 tx is blocked",
 			msgs:         []sdk.Msg{newMsgGrant(sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}))},
 			expectedCode: sdkerrors.ErrUnauthorized.ABCICode(),
 			isEIP712:     true,
 		},
 		{
-			name: "a MsgExec with nested messages (valid: MsgSend and invalid: MsgEthereumTx) is blocked",
+			name: "fail - a MsgExec with nested messages (valid: MsgSend and invalid: MsgEthereumTx) is blocked",
 			msgs: []sdk.Msg{
 				newMsgExec(
 					testAddresses[1],
@@ -365,7 +364,7 @@ func (suite *AnteTestSuite) TestRejectMsgsInAuthz() {
 			expectedCode: sdkerrors.ErrUnauthorized.ABCICode(),
 		},
 		{
-			name: "a MsgExec with nested MsgExec messages that has invalid messages is blocked",
+			name: "fail - a MsgExec with nested MsgExec messages that has invalid messages is blocked",
 			msgs: []sdk.Msg{
 				createNestedMsgExec(
 					testAddresses[1],
@@ -378,7 +377,7 @@ func (suite *AnteTestSuite) TestRejectMsgsInAuthz() {
 			expectedCode: sdkerrors.ErrUnauthorized.ABCICode(),
 		},
 		{
-			name: "a MsgExec with more nested MsgExec messages than allowed and with valid messages is blocked",
+			name: "fail - a MsgExec with more nested MsgExec messages than allowed and with valid messages is blocked",
 			msgs: []sdk.Msg{
 				createNestedMsgExec(
 					testAddresses[1],
@@ -395,7 +394,7 @@ func (suite *AnteTestSuite) TestRejectMsgsInAuthz() {
 			expectedCode: sdkerrors.ErrUnauthorized.ABCICode(),
 		},
 		{
-			name: "two MsgExec messages NOT containing a blocked msg but between the two have more nesting than the allowed. Then, is blocked",
+			name: "fail - two MsgExec messages NOT containing a blocked msg but between the two have more nesting than the allowed. Then, is blocked",
 			msgs: []sdk.Msg{
 				createNestedMsgExec(
 					testAddresses[1],
@@ -425,7 +424,7 @@ func (suite *AnteTestSuite) TestRejectMsgsInAuthz() {
 	}
 
 	for _, tc := range testcases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			var (
 				tx  sdk.Tx

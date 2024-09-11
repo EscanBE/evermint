@@ -26,34 +26,34 @@ func (suite *KeeperTestSuite) TestWithChainID() {
 		expPanic   bool
 	}{
 		{
-			"fail - chainID is empty",
-			"",
-			0,
-			true,
+			name:       "fail - chainID is empty",
+			chainID:    "",
+			expChainID: 0,
+			expPanic:   true,
 		},
 		{
-			"pass - other chainID",
-			"chain_7701-1",
-			7701,
-			false,
+			name:       "pass - other chainID",
+			chainID:    "chain_7701-1",
+			expChainID: 7701,
+			expPanic:   false,
 		},
 		{
-			"pass - Mainnet chain ID",
-			constants.MainnetFullChainId,
-			constants.MainnetEIP155ChainId,
-			false,
+			name:       "pass - Mainnet chain ID",
+			chainID:    constants.MainnetFullChainId,
+			expChainID: constants.MainnetEIP155ChainId,
+			expPanic:   false,
 		},
 		{
-			"pass - Testnet chain ID",
-			constants.TestnetFullChainId,
-			constants.TestnetEIP155ChainId,
-			false,
+			name:       "pass - Testnet chain ID",
+			chainID:    constants.TestnetFullChainId,
+			expChainID: constants.TestnetEIP155ChainId,
+			expPanic:   false,
 		},
 		{
-			"pass - Devnet chain ID",
-			constants.DevnetFullChainId,
-			constants.DevnetEIP155ChainId,
-			false,
+			name:       "pass - Devnet chain ID",
+			chainID:    constants.DevnetFullChainId,
+			expChainID: constants.DevnetEIP155ChainId,
+			expPanic:   false,
 		},
 	}
 
@@ -83,10 +83,30 @@ func (suite *KeeperTestSuite) TestBaseFee() {
 		enableFeemarket bool
 		expectBaseFee   *big.Int
 	}{
-		{"not enable london HF, not enable feemarket", false, false, nil},
-		{"enable london HF, not enable feemarket", true, false, big.NewInt(0)},
-		{"enable london HF, enable feemarket", true, true, big.NewInt(875000000)},
-		{"not enable london HF, enable feemarket", false, true, nil},
+		{
+			name:            "not enable london HF, not enable feemarket",
+			enableLondonHF:  false,
+			enableFeemarket: false,
+			expectBaseFee:   nil,
+		},
+		{
+			name:            "enable london HF, not enable feemarket",
+			enableLondonHF:  true,
+			enableFeemarket: false,
+			expectBaseFee:   big.NewInt(0),
+		},
+		{
+			name:            "enable london HF, enable feemarket",
+			enableLondonHF:  true,
+			enableFeemarket: true,
+			expectBaseFee:   big.NewInt(875000000),
+		},
+		{
+			name:            "not enable london HF, enable feemarket",
+			enableLondonHF:  false,
+			enableFeemarket: true,
+			expectBaseFee:   nil,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -172,14 +192,14 @@ func (suite *KeeperTestSuite) TestGetAccountOrEmpty() {
 		expEmpty bool
 	}{
 		{
-			"unexisting account - get empty",
-			common.Address{},
-			true,
+			name:     "unexisting account - get empty",
+			addr:     common.Address{},
+			expEmpty: true,
 		},
 		{
-			"existing contract account",
-			contractAddr,
-			false,
+			name:     "existing contract account",
+			addr:     contractAddr,
+			expEmpty: false,
 		},
 	}
 
