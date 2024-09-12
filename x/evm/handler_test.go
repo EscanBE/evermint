@@ -19,8 +19,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -55,8 +53,6 @@ type EvmTestSuite struct {
 	ethSigner ethtypes.Signer
 	from      common.Address
 	to        sdk.AccAddress
-
-	dynamicTxFee bool
 }
 
 // DoSetupTest setup test environment
@@ -75,10 +71,6 @@ func (suite *EvmTestSuite) DoSetupTest() {
 	consAddress := sdk.ConsAddress(priv.PubKey().Address())
 
 	suite.app = helpers.EthSetup(checkTx, func(chainApp *chainapp.Evermint, genesis chainapp.GenesisState) chainapp.GenesisState {
-		if suite.dynamicTxFee { // TODO ES: check this option
-			feemarketGenesis := feemarkettypes.DefaultGenesisState()
-			genesis[feemarkettypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(feemarketGenesis)
-		}
 		return genesis
 	})
 
