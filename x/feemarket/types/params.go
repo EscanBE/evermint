@@ -47,10 +47,9 @@ func NewParams(
 	baseFee uint64,
 	minGasPrice sdkmath.LegacyDec,
 ) Params {
-	baseFeeSdkInt := sdkmath.NewIntFromUint64(baseFee)
 	return Params{
 		NoBaseFee:   noBaseFee,
-		BaseFee:     &baseFeeSdkInt,
+		BaseFee:     sdkmath.NewIntFromUint64(baseFee),
 		MinGasPrice: minGasPrice,
 	}
 }
@@ -66,22 +65,12 @@ func DefaultParams() Params {
 
 // Validate performs basic validation on fee market parameters.
 func (p Params) Validate() error {
-	baseFeeIsNil := p.BaseFee == nil || p.BaseFee.IsNil()
-
-	if !p.NoBaseFee {
-		if baseFeeIsNil {
-			return fmt.Errorf("base fee cannot be nil when base fee enabled")
-		}
-	} else {
-		if !baseFeeIsNil {
-			return fmt.Errorf("base fee must be nil when base fee disabled")
-		}
+	if p.BaseFee.IsNil() {
+		return fmt.Errorf("base fee cannot be nil")
 	}
 
-	if !baseFeeIsNil {
-		if p.BaseFee.IsNegative() {
-			return fmt.Errorf("base fee cannot be negative: %s", p.BaseFee)
-		}
+	if p.BaseFee.IsNegative() {
+		return fmt.Errorf("base fee cannot be negative: %s", p.BaseFee)
 	}
 
 	return validateMinGasPrice(p.MinGasPrice)

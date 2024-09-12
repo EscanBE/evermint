@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 
 	storetypes "cosmossdk.io/store/types"
@@ -16,10 +17,10 @@ func (suite *KeeperTestSuite) TestEndBlock() {
 		expBaseFee *big.Int
 	}{
 		{
-			name:       "base fee should be nil if no base fee",
+			name:       "base fee should be zero if no base fee",
 			noBaseFee:  true,
 			malleate:   func() {},
-			expBaseFee: nil,
+			expBaseFee: common.Big0,
 		},
 		{
 			name: "base fee should be updated",

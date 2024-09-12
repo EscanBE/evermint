@@ -31,13 +31,14 @@ func (k Keeper) GetParams(ctx sdk.Context) (params feemarkettypes.Params) {
 // SetParams sets the fee market params in a single key
 func (k Keeper) SetParams(ctx sdk.Context, params feemarkettypes.Params) error {
 	store := ctx.KVStore(k.storeKey)
+
+	if err := params.Validate(); err != nil {
+		panic(err)
+	}
+
 	bz, err := k.cdc.Marshal(&params)
 	if err != nil {
 		return err
-	}
-
-	if params.NoBaseFee {
-		params.BaseFee = nil
 	}
 
 	store.Set(feemarkettypes.ParamsKey, bz)
@@ -57,25 +58,14 @@ func (k Keeper) GetBaseFeeEnabled(ctx sdk.Context) bool {
 
 // GetBaseFee gets the base fee from the store and returns as big.Int
 func (k Keeper) GetBaseFee(ctx sdk.Context) *big.Int {
-	params := k.GetParams(ctx)
-
-	baseFee := params.BaseFee
-	if baseFee == nil {
-		return nil
-	}
-
-	return baseFee.BigInt()
+	return k.GetParams(ctx).BaseFee.BigInt()
 }
 
 // SetBaseFee set's the base fee in the store
 func (k Keeper) SetBaseFee(ctx sdk.Context, baseFee *big.Int) {
 	params := k.GetParams(ctx)
-	if baseFee == nil {
-		params.BaseFee = nil
-	} else {
-		baseFeeSdkInt := sdkmath.NewIntFromBigInt(baseFee)
-		params.BaseFee = &baseFeeSdkInt
-	}
+	params.BaseFee = sdkmath.NewIntFromBigInt(baseFee)
+
 	err := k.SetParams(ctx, params)
 	if err != nil {
 		panic(err)

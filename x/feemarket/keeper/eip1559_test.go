@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 
 	storetypes "cosmossdk.io/store/types"
@@ -26,7 +27,7 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 			NoBaseFee:          true,
 			parentBlockGasUsed: 0,
 			minGasPrice:        sdkmath.LegacyZeroDec(),
-			expFee:             nil,
+			expFee:             common.Big0,
 		},
 		{
 			name:               "with BaseFee - initial EIP-1559 block",
@@ -101,11 +102,7 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 			suite.ctx.BlockGasMeter().ConsumeGas(tc.parentBlockGasUsed, "consume")
 
 			fee := suite.app.FeeMarketKeeper.CalculateBaseFee(suite.ctx)
-			if tc.NoBaseFee {
-				suite.Require().Nil(fee, tc.name)
-			} else {
-				suite.Require().Equal(tc.expFee, fee, tc.name)
-			}
+			suite.Require().Equal(tc.expFee, fee)
 		})
 	}
 }

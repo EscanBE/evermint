@@ -21,11 +21,10 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 
 	// Ignore the calculation if not enabled
 	if params.NoBaseFee {
-		return nil
+		return big.NewInt(0)
 	}
 
-	var gasLimit, baseFee *big.Int
-
+	var gasLimit *big.Int
 	// NOTE: a MaxGas equal to -1 means that block gas is unlimited
 	if consParams := ctx.ConsensusParams(); consParams.Block != nil && consParams.Block.MaxGas > -1 {
 		gasLimit = big.NewInt(consParams.Block.MaxGas)
@@ -33,9 +32,7 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 		gasLimit = new(big.Int).SetUint64(math.MaxUint64)
 	}
 
-	if params.BaseFee != nil {
-		baseFee = params.BaseFee.BigInt()
-	}
+	baseFee := params.BaseFee.BigInt()
 
 	nextBaseFee := misc.CalcBaseFee(k.evmKeeper.GetChainConfig(ctx), &ethtypes.Header{
 		Number:   big.NewInt(ctx.BlockHeight()),
