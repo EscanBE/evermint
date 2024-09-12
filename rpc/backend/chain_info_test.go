@@ -1,9 +1,10 @@
 package backend
 
 import (
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common"
 	ethparams "github.com/ethereum/go-ethereum/params"
-	"math/big"
 
 	sdkmath "cosmossdk.io/math"
 

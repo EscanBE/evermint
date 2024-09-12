@@ -33,9 +33,7 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 }
 
 func (suite *KeeperTestSuite) TestQueryBaseFee() {
-	var (
-		expRes *feemarkettypes.QueryBaseFeeResponse
-	)
+	var expRes *feemarkettypes.QueryBaseFeeResponse
 
 	testCases := []struct {
 		name     string

@@ -1,10 +1,11 @@
 package evm_test
 
 import (
-	ethparams "github.com/ethereum/go-ethereum/params"
 	"math"
 	"math/big"
 	"time"
+
+	ethparams "github.com/ethereum/go-ethereum/params"
 
 	storetypes "cosmossdk.io/store/types"
 

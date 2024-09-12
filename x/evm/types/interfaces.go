@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+
 	addresscodec "cosmossdk.io/core/address"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"

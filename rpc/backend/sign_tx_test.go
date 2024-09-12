@@ -1,8 +1,9 @@
 package backend
 
 import (
-	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"math/big"
+
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 
 	sdkmath "cosmossdk.io/math"
 
