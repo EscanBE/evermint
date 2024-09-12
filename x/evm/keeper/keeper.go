@@ -274,6 +274,7 @@ func (k Keeper) IsSenderNonceIncreasedByAnteHandle(ctx sdk.Context) bool {
 }
 
 // SetFlagEnableNoBaseFee sets the flag whether to enable no-base-fee of EVM config.
+// Go-Ethereum used this setting for `eth_call` and smt like that.
 func (k Keeper) SetFlagEnableNoBaseFee(ctx sdk.Context, enable bool) {
 	k.genericSetBoolFlagTransient(ctx, evmtypes.KeyTransientFlagNoBaseFee, enable)
 }

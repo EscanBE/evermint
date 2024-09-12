@@ -690,6 +690,8 @@ func (suite *EvmTestSuite) TestContractDeploymentRevert() {
 			suite.SetupTest()
 			k := suite.app.EvmKeeper
 
+			k.SetFlagEnableNoBaseFee(suite.ctx, true)
+
 			nonce := k.GetNonce(suite.ctx, suite.from)
 			ctorArgs, err := evmtypes.ERC20Contract.ABI.Pack("", suite.from, big.NewInt(0))
 			suite.Require().NoError(err)

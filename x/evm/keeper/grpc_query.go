@@ -225,6 +225,7 @@ func (k Keeper) EthCall(c context.Context, req *evmtypes.EthCallRequest) (*evmty
 
 	ctx := sdk.UnwrapSDKContext(c)
 	ctx = utils.UseZeroGasConfig(ctx)
+	k.SetFlagEnableNoBaseFee(ctx, true)
 
 	var args evmtypes.TransactionArgs
 	err := json.Unmarshal(req.Args, &args)
@@ -268,6 +269,8 @@ func (k Keeper) EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*e
 
 	ctx := sdk.UnwrapSDKContext(c)
 	ctx = utils.UseZeroGasConfig(ctx)
+	k.SetFlagEnableNoBaseFee(ctx, true)
+
 	chainID, err := getChainID(ctx, req.ChainId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -411,6 +414,7 @@ func (k Keeper) TraceTx(c context.Context, req *evmtypes.QueryTraceTxRequest) (*
 	ctx = ctx.WithBlockTime(req.BlockTime)
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 	ctx = utils.UseZeroGasConfig(ctx)
+	k.SetFlagEnableNoBaseFee(ctx, true)
 
 	// Only the block max gas from the consensus params is needed to calculate base fee
 	ctx = ctx.WithConsensusParams(tmproto.ConsensusParams{
@@ -509,6 +513,7 @@ func (k Keeper) TraceBlock(c context.Context, req *evmtypes.QueryTraceBlockReque
 	ctx = ctx.WithBlockTime(req.BlockTime)
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 	ctx = utils.UseZeroGasConfig(ctx)
+	k.SetFlagEnableNoBaseFee(ctx, true)
 
 	// Only the block max gas from the consensus params is needed to calculate base fee
 	ctx = ctx.WithConsensusParams(tmproto.ConsensusParams{
