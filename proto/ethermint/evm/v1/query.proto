@@ -68,8 +68,7 @@ service Query {
     option (google.api.http).get = "/evmos/evm/v1/trace_block";
   }
 
-  // BaseFee queries the base fee of the parent block of the current block,
-  // it's similar to x/feemarket module's method, but also checks london hardfork status.
+  // BaseFee queries the base fee of the current block.
   rpc BaseFee(QueryBaseFeeRequest) returns (QueryBaseFeeResponse) {
     option (google.api.http).get = "/evmos/evm/v1/base_fee";
   }
@@ -278,5 +277,5 @@ message QueryBaseFeeRequest {}
 // QueryBaseFeeResponse returns the EIP1559 base fee.
 message QueryBaseFeeResponse {
   // base_fee is the EIP1559 base fee
-  string base_fee = 1 [(gogoproto.customtype) = "cosmossdk.io/math.Int"];
+  string base_fee = 1 [(gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
 }

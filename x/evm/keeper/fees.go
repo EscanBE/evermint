@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"math/big"
-
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
@@ -66,8 +64,8 @@ func (k *Keeper) DeductTxCostsFromUserBalance(
 func VerifyFee(
 	txData evmtypes.TxData,
 	denom string,
-	baseFee *big.Int,
-	homestead, istanbul, isCheckTx bool,
+	baseFee sdkmath.Int,
+	isCheckTx bool,
 ) (sdk.Coins, error) {
 	isContractCreation := txData.GetTo() == nil
 
@@ -78,12 +76,13 @@ func VerifyFee(
 		accessList = txData.GetAccessList()
 	}
 
+	const homestead = true
+	const istanbul = true
 	intrinsicGas, err := core.IntrinsicGas(txData.GetData(), accessList, isContractCreation, homestead, istanbul)
 	if err != nil {
 		return nil, errorsmod.Wrapf(
 			err,
-			"failed to retrieve intrinsic gas, contract creation = %t; homestead = %t, istanbul = %t",
-			isContractCreation, homestead, istanbul,
+			"failed to retrieve intrinsic gas, contract creation = %t", isContractCreation,
 		)
 	}
 
@@ -95,14 +94,14 @@ func VerifyFee(
 		)
 	}
 
-	if baseFee != nil && txData.GetGasFeeCap().Cmp(baseFee) < 0 {
+	if txData.GetGasFeeCap().Cmp(baseFee.BigInt()) < 0 {
 		return nil, errorsmod.Wrapf(errortypes.ErrInsufficientFee,
 			"the tx gasfeecap is lower than the tx baseFee: %s (gasfeecap), %s (basefee) ",
 			txData.GetGasFeeCap(),
 			baseFee)
 	}
 
-	feeAmt := txData.EffectiveFee(baseFee)
+	feeAmt := txData.EffectiveFee(baseFee.BigInt())
 	if feeAmt.Sign() == 0 {
 		// zero fee, no need to deduct
 		return sdk.Coins{}, nil

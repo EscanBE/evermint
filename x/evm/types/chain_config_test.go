@@ -32,6 +32,7 @@ func TestChainConfigValidate(t *testing.T) {
 			config: ChainConfig{
 				HomesteadBlock:      newIntPtr(0),
 				DAOForkBlock:        newIntPtr(0),
+				DAOForkSupport:      true,
 				EIP150Block:         newIntPtr(0),
 				EIP150Hash:          defaultEIP150Hash,
 				EIP155Block:         newIntPtr(0),
@@ -43,13 +44,16 @@ func TestChainConfigValidate(t *testing.T) {
 				MuirGlacierBlock:    newIntPtr(0),
 				BerlinBlock:         newIntPtr(0),
 				LondonBlock:         newIntPtr(0),
-				CancunBlock:         newIntPtr(0),
+				ArrowGlacierBlock:   newIntPtr(0),
+				GrayGlacierBlock:    newIntPtr(0),
+				MergeNetsplitBlock:  newIntPtr(0),
 				ShanghaiBlock:       newIntPtr(0),
+				CancunBlock:         newIntPtr(0),
 			},
 			expError: false,
 		},
 		{
-			name: "pass - valid with nil values",
+			name: "fail - invalid with any nil values",
 			config: ChainConfig{
 				HomesteadBlock:      nil,
 				DAOForkBlock:        nil,
@@ -64,315 +68,20 @@ func TestChainConfigValidate(t *testing.T) {
 				MuirGlacierBlock:    nil,
 				BerlinBlock:         nil,
 				LondonBlock:         nil,
-				CancunBlock:         nil,
+				ArrowGlacierBlock:   nil,
+				GrayGlacierBlock:    nil,
+				MergeNetsplitBlock:  nil,
 				ShanghaiBlock:       nil,
+				CancunBlock:         nil,
 			},
-			expError: false,
+			expError: true,
 		},
 		{
-			name:     "pass - empty",
+			name:     "fail - empty",
 			config:   ChainConfig{},
-			expError: false,
-		},
-		{
-			name: "fail - invalid HomesteadBlock",
-			config: ChainConfig{
-				HomesteadBlock: newIntPtr(-1),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid DAOForkBlock",
-			config: ChainConfig{
-				HomesteadBlock: newIntPtr(0),
-				DAOForkBlock:   newIntPtr(-1),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid EIP150Block",
-			config: ChainConfig{
-				HomesteadBlock: newIntPtr(0),
-				DAOForkBlock:   newIntPtr(0),
-				EIP150Block:    newIntPtr(-1),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid EIP150Hash",
-			config: ChainConfig{
-				HomesteadBlock: newIntPtr(0),
-				DAOForkBlock:   newIntPtr(0),
-				EIP150Block:    newIntPtr(0),
-				EIP150Hash:     "  ",
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid EIP155Block",
-			config: ChainConfig{
-				HomesteadBlock: newIntPtr(0),
-				DAOForkBlock:   newIntPtr(0),
-				EIP150Block:    newIntPtr(0),
-				EIP150Hash:     defaultEIP150Hash,
-				EIP155Block:    newIntPtr(-1),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid EIP158Block",
-			config: ChainConfig{
-				HomesteadBlock: newIntPtr(0),
-				DAOForkBlock:   newIntPtr(0),
-				EIP150Block:    newIntPtr(0),
-				EIP150Hash:     defaultEIP150Hash,
-				EIP155Block:    newIntPtr(0),
-				EIP158Block:    newIntPtr(-1),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid ByzantiumBlock",
-			config: ChainConfig{
-				HomesteadBlock: newIntPtr(0),
-				DAOForkBlock:   newIntPtr(0),
-				EIP150Block:    newIntPtr(0),
-				EIP150Hash:     defaultEIP150Hash,
-				EIP155Block:    newIntPtr(0),
-				EIP158Block:    newIntPtr(0),
-				ByzantiumBlock: newIntPtr(-1),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid ConstantinopleBlock",
-			config: ChainConfig{
-				HomesteadBlock:      newIntPtr(0),
-				DAOForkBlock:        newIntPtr(0),
-				EIP150Block:         newIntPtr(0),
-				EIP150Hash:          defaultEIP150Hash,
-				EIP155Block:         newIntPtr(0),
-				EIP158Block:         newIntPtr(0),
-				ByzantiumBlock:      newIntPtr(0),
-				ConstantinopleBlock: newIntPtr(-1),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid PetersburgBlock",
-			config: ChainConfig{
-				HomesteadBlock:      newIntPtr(0),
-				DAOForkBlock:        newIntPtr(0),
-				EIP150Block:         newIntPtr(0),
-				EIP150Hash:          defaultEIP150Hash,
-				EIP155Block:         newIntPtr(0),
-				EIP158Block:         newIntPtr(0),
-				ByzantiumBlock:      newIntPtr(0),
-				ConstantinopleBlock: newIntPtr(0),
-				PetersburgBlock:     newIntPtr(-1),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid IstanbulBlock",
-			config: ChainConfig{
-				HomesteadBlock:      newIntPtr(0),
-				DAOForkBlock:        newIntPtr(0),
-				EIP150Block:         newIntPtr(0),
-				EIP150Hash:          defaultEIP150Hash,
-				EIP155Block:         newIntPtr(0),
-				EIP158Block:         newIntPtr(0),
-				ByzantiumBlock:      newIntPtr(0),
-				ConstantinopleBlock: newIntPtr(0),
-				PetersburgBlock:     newIntPtr(0),
-				IstanbulBlock:       newIntPtr(-1),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid MuirGlacierBlock",
-			config: ChainConfig{
-				HomesteadBlock:      newIntPtr(0),
-				DAOForkBlock:        newIntPtr(0),
-				EIP150Block:         newIntPtr(0),
-				EIP150Hash:          defaultEIP150Hash,
-				EIP155Block:         newIntPtr(0),
-				EIP158Block:         newIntPtr(0),
-				ByzantiumBlock:      newIntPtr(0),
-				ConstantinopleBlock: newIntPtr(0),
-				PetersburgBlock:     newIntPtr(0),
-				IstanbulBlock:       newIntPtr(0),
-				MuirGlacierBlock:    newIntPtr(-1),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid BerlinBlock",
-			config: ChainConfig{
-				HomesteadBlock:      newIntPtr(0),
-				DAOForkBlock:        newIntPtr(0),
-				EIP150Block:         newIntPtr(0),
-				EIP150Hash:          defaultEIP150Hash,
-				EIP155Block:         newIntPtr(0),
-				EIP158Block:         newIntPtr(0),
-				ByzantiumBlock:      newIntPtr(0),
-				ConstantinopleBlock: newIntPtr(0),
-				PetersburgBlock:     newIntPtr(0),
-				IstanbulBlock:       newIntPtr(0),
-				MuirGlacierBlock:    newIntPtr(0),
-				BerlinBlock:         newIntPtr(-1),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid LondonBlock",
-			config: ChainConfig{
-				HomesteadBlock:      newIntPtr(0),
-				DAOForkBlock:        newIntPtr(0),
-				EIP150Block:         newIntPtr(0),
-				EIP150Hash:          defaultEIP150Hash,
-				EIP155Block:         newIntPtr(0),
-				EIP158Block:         newIntPtr(0),
-				ByzantiumBlock:      newIntPtr(0),
-				ConstantinopleBlock: newIntPtr(0),
-				PetersburgBlock:     newIntPtr(0),
-				IstanbulBlock:       newIntPtr(0),
-				MuirGlacierBlock:    newIntPtr(0),
-				BerlinBlock:         newIntPtr(0),
-				LondonBlock:         newIntPtr(-1),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid ArrowGlacierBlock",
-			config: ChainConfig{
-				HomesteadBlock:      newIntPtr(0),
-				DAOForkBlock:        newIntPtr(0),
-				EIP150Block:         newIntPtr(0),
-				EIP150Hash:          defaultEIP150Hash,
-				EIP155Block:         newIntPtr(0),
-				EIP158Block:         newIntPtr(0),
-				ByzantiumBlock:      newIntPtr(0),
-				ConstantinopleBlock: newIntPtr(0),
-				PetersburgBlock:     newIntPtr(0),
-				IstanbulBlock:       newIntPtr(0),
-				MuirGlacierBlock:    newIntPtr(0),
-				BerlinBlock:         newIntPtr(0),
-				LondonBlock:         newIntPtr(0),
-				ArrowGlacierBlock:   newIntPtr(-1),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid GrayGlacierBlock",
-			config: ChainConfig{
-				HomesteadBlock:      newIntPtr(0),
-				DAOForkBlock:        newIntPtr(0),
-				EIP150Block:         newIntPtr(0),
-				EIP150Hash:          defaultEIP150Hash,
-				EIP155Block:         newIntPtr(0),
-				EIP158Block:         newIntPtr(0),
-				ByzantiumBlock:      newIntPtr(0),
-				ConstantinopleBlock: newIntPtr(0),
-				PetersburgBlock:     newIntPtr(0),
-				IstanbulBlock:       newIntPtr(0),
-				MuirGlacierBlock:    newIntPtr(0),
-				BerlinBlock:         newIntPtr(0),
-				LondonBlock:         newIntPtr(0),
-				ArrowGlacierBlock:   newIntPtr(0),
-				GrayGlacierBlock:    newIntPtr(-1),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid MergeNetsplitBlock",
-			config: ChainConfig{
-				HomesteadBlock:      newIntPtr(0),
-				DAOForkBlock:        newIntPtr(0),
-				EIP150Block:         newIntPtr(0),
-				EIP150Hash:          defaultEIP150Hash,
-				EIP155Block:         newIntPtr(0),
-				EIP158Block:         newIntPtr(0),
-				ByzantiumBlock:      newIntPtr(0),
-				ConstantinopleBlock: newIntPtr(0),
-				PetersburgBlock:     newIntPtr(0),
-				IstanbulBlock:       newIntPtr(0),
-				MuirGlacierBlock:    newIntPtr(0),
-				BerlinBlock:         newIntPtr(0),
-				LondonBlock:         newIntPtr(0),
-				ArrowGlacierBlock:   newIntPtr(0),
-				GrayGlacierBlock:    newIntPtr(0),
-				MergeNetsplitBlock:  newIntPtr(-1),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid fork order - skip HomesteadBlock",
-			config: ChainConfig{
-				DAOForkBlock:        newIntPtr(0),
-				EIP150Block:         newIntPtr(0),
-				EIP150Hash:          defaultEIP150Hash,
-				EIP155Block:         newIntPtr(0),
-				EIP158Block:         newIntPtr(0),
-				ByzantiumBlock:      newIntPtr(0),
-				ConstantinopleBlock: newIntPtr(0),
-				PetersburgBlock:     newIntPtr(0),
-				IstanbulBlock:       newIntPtr(0),
-				MuirGlacierBlock:    newIntPtr(0),
-				BerlinBlock:         newIntPtr(0),
-				LondonBlock:         newIntPtr(0),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid ShanghaiBlock",
-			config: ChainConfig{
-				HomesteadBlock:      newIntPtr(0),
-				DAOForkBlock:        newIntPtr(0),
-				EIP150Block:         newIntPtr(0),
-				EIP150Hash:          defaultEIP150Hash,
-				EIP155Block:         newIntPtr(0),
-				EIP158Block:         newIntPtr(0),
-				ByzantiumBlock:      newIntPtr(0),
-				ConstantinopleBlock: newIntPtr(0),
-				PetersburgBlock:     newIntPtr(0),
-				IstanbulBlock:       newIntPtr(0),
-				MuirGlacierBlock:    newIntPtr(0),
-				BerlinBlock:         newIntPtr(0),
-				LondonBlock:         newIntPtr(0),
-				ArrowGlacierBlock:   newIntPtr(0),
-				GrayGlacierBlock:    newIntPtr(0),
-				MergeNetsplitBlock:  newIntPtr(0),
-				ShanghaiBlock:       newIntPtr(-1),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - invalid CancunBlock",
-			config: ChainConfig{
-				HomesteadBlock:      newIntPtr(0),
-				DAOForkBlock:        newIntPtr(0),
-				EIP150Block:         newIntPtr(0),
-				EIP150Hash:          defaultEIP150Hash,
-				EIP155Block:         newIntPtr(0),
-				EIP158Block:         newIntPtr(0),
-				ByzantiumBlock:      newIntPtr(0),
-				ConstantinopleBlock: newIntPtr(0),
-				PetersburgBlock:     newIntPtr(0),
-				IstanbulBlock:       newIntPtr(0),
-				MuirGlacierBlock:    newIntPtr(0),
-				BerlinBlock:         newIntPtr(0),
-				LondonBlock:         newIntPtr(0),
-				ArrowGlacierBlock:   newIntPtr(0),
-				GrayGlacierBlock:    newIntPtr(0),
-				MergeNetsplitBlock:  newIntPtr(0),
-				ShanghaiBlock:       newIntPtr(0),
-				CancunBlock:         newIntPtr(-1),
-			},
 			expError: true,
 		},
 	}
-
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.config.Validate()
@@ -384,4 +93,108 @@ func TestChainConfigValidate(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("DAOForkSupport must be true", func(t *testing.T) {
+		cc := DefaultChainConfig()
+		cc.DAOForkSupport = false
+		err := cc.Validate()
+		require.ErrorContains(t, err, "daoForkSupport must be true")
+	})
+
+	t.Run("should reject any non-empty EIP 150 hash", func(t *testing.T) {
+		for _, hash := range []string{
+			"",
+			"0x",
+			common.BytesToHash([]byte("non-empty")).String(),
+		} {
+			cc := DefaultChainConfig()
+			cc.EIP150Hash = hash
+			err := cc.Validate()
+			require.ErrorContains(t, err, "EIP-150 hash must be empty hash")
+		}
+	})
+
+	t.Run("should reject any block value which not zero", func(t *testing.T) {
+		modifiers := []func(v *sdkmath.Int, cc ChainConfig) ChainConfig{
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.HomesteadBlock = v
+				return cc
+			},
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.DAOForkBlock = v
+				return cc
+			},
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.EIP150Block = v
+				return cc
+			},
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.EIP155Block = v
+				return cc
+			},
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.EIP158Block = v
+				return cc
+			},
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.ByzantiumBlock = v
+				return cc
+			},
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.ConstantinopleBlock = v
+				return cc
+			},
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.PetersburgBlock = v
+				return cc
+			},
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.IstanbulBlock = v
+				return cc
+			},
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.MuirGlacierBlock = v
+				return cc
+			},
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.BerlinBlock = v
+				return cc
+			},
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.LondonBlock = v
+				return cc
+			},
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.ArrowGlacierBlock = v
+				return cc
+			},
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.GrayGlacierBlock = v
+				return cc
+			},
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.MergeNetsplitBlock = v
+				return cc
+			},
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.ShanghaiBlock = v
+				return cc
+			},
+			func(v *sdkmath.Int, cc ChainConfig) ChainConfig {
+				cc.CancunBlock = v
+				return cc
+			},
+		}
+
+		minus1 := sdkmath.NewInt(-1)
+		one := sdkmath.NewInt(1)
+
+		for _, modifier := range modifiers {
+			for _, v := range []*sdkmath.Int{nil, &minus1, &one} {
+				cc := modifier(v, DefaultChainConfig())
+				err := cc.Validate()
+				require.ErrorContains(t, err, "block value must be zero")
+			}
+		}
+	})
 }

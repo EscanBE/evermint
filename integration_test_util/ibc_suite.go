@@ -4,7 +4,6 @@ package integration_test_util
 import (
 	"crypto/ed25519"
 	"fmt"
-	"math/big"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -60,12 +59,10 @@ func CreateChainsIbcIntegrationTestSuite(chain1, chain2 *ChainIntegrationTestSui
 	baseFeeChain2 := chain2.ChainApp.FeeMarketKeeper().GetBaseFee(chain2.CurrentContext)
 
 	zeroFee := func(c *ChainIntegrationTestSuite) {
-		zero := sdkmath.ZeroInt()
-
 		fmKeeper := c.ChainApp.FeeMarketKeeper()
 		fmParams := fmKeeper.GetParams(c.CurrentContext)
 		fmParams.MinGasPrice = sdkmath.LegacyZeroDec()
-		fmParams.BaseFee = &zero
+		fmParams.BaseFee = sdkmath.ZeroInt()
 		err := fmKeeper.SetParams(c.CurrentContext, fmParams)
 		c.Require().NoError(err)
 	}
@@ -217,8 +214,8 @@ func (suite *ChainsIbcIntegrationTestSuite) TemporarySetBaseFeeZero() (releaser 
 	baseFeeChain1 := chain1.ChainApp.FeeMarketKeeper().GetBaseFee(chain1.CurrentContext)
 	baseFeeChain2 := chain2.ChainApp.FeeMarketKeeper().GetBaseFee(chain2.CurrentContext)
 
-	chain1.ChainApp.FeeMarketKeeper().SetBaseFee(chain1.CurrentContext, big.NewInt(0))
-	chain2.ChainApp.FeeMarketKeeper().SetBaseFee(chain2.CurrentContext, big.NewInt(0))
+	chain1.ChainApp.FeeMarketKeeper().SetBaseFee(chain1.CurrentContext, sdkmath.NewInt(0))
+	chain2.ChainApp.FeeMarketKeeper().SetBaseFee(chain2.CurrentContext, sdkmath.NewInt(0))
 
 	suite.CommitAllChains()
 

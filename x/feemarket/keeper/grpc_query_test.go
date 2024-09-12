@@ -34,7 +34,6 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 
 func (suite *KeeperTestSuite) TestQueryBaseFee() {
 	var (
-		aux    sdkmath.Int
 		expRes *feemarkettypes.QueryBaseFeeResponse
 	)
 
@@ -46,19 +45,21 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 		{
 			name: "pass - default Base Fee",
 			malleate: func() {
-				initialBaseFee := sdkmath.NewInt(ethparams.InitialBaseFee)
-				expRes = &feemarkettypes.QueryBaseFeeResponse{BaseFee: &initialBaseFee}
+				expRes = &feemarkettypes.QueryBaseFeeResponse{
+					BaseFee: sdkmath.NewInt(ethparams.InitialBaseFee),
+				}
 			},
 			expPass: true,
 		},
 		{
 			name: "pass - non-nil Base Fee",
 			malleate: func() {
-				baseFee := sdkmath.OneInt().BigInt()
+				baseFee := sdkmath.OneInt()
 				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, baseFee)
 
-				aux = sdkmath.NewIntFromBigInt(baseFee)
-				expRes = &feemarkettypes.QueryBaseFeeResponse{BaseFee: &aux}
+				expRes = &feemarkettypes.QueryBaseFeeResponse{
+					BaseFee: baseFee,
+				}
 			},
 			expPass: true,
 		},

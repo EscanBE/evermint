@@ -736,11 +736,7 @@ paths:
         - Query
   /evmos/evm/v1/base_fee:
     get:
-      summary: >-
-        BaseFee queries the base fee of the parent block of the current block,
-
-        it's similar to x/feemarket module's method, but also checks london
-        hardfork status.
+      summary: BaseFee queries the base fee of the current block.
       operationId: BaseFee
       responses:
         '200':
@@ -1646,12 +1642,13 @@ paths:
               hash:
                 type: string
                 title: >-
-                  hash of the ethereum transaction in hex format. This hash
-                  differs from the
+                  hash of the ethereum transaction in hex format.
 
-                  Tendermint sha256 hash of the transaction bytes. See
+                  This hash differs from the CometBFT sha256 hash of the
+                  transaction bytes.
 
-                  https://github.com/cometbft/cometbft/issues/6539 for reference
+                  See https://github.com/tendermint/tendermint/issues/6539 for
+                  reference
               ret:
                 type: string
                 format: byte
@@ -45315,12 +45312,12 @@ definitions:
       hash:
         type: string
         title: >-
-          hash of the ethereum transaction in hex format. This hash differs from
-          the
+          hash of the ethereum transaction in hex format.
 
-          Tendermint sha256 hash of the transaction bytes. See
+          This hash differs from the CometBFT sha256 hash of the transaction
+          bytes.
 
-          https://github.com/cometbft/cometbft/issues/6539 for reference
+          See https://github.com/tendermint/tendermint/issues/6539 for reference
       ret:
         type: string
         format: byte

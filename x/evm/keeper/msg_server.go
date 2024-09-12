@@ -107,10 +107,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to unpack tx data")
 	}
-	var baseFee *big.Int
-	if tx.Type() == ethtypes.DynamicFeeTxType {
-		baseFee = utils.Coalesce(k.feeMarketKeeper.GetBaseFee(ctx), common.Big0)
-	}
+	baseFee := k.feeMarketKeeper.GetBaseFee(ctx).BigInt()
 
 	receipt := &ethtypes.Receipt{}
 	if err := receipt.UnmarshalBinary(response.MarshalledReceipt); err != nil {

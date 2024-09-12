@@ -24,9 +24,6 @@ func (k Keeper) updateBaseFeeForNextBlock(ctx sdk.Context) {
 
 	defer func() {
 		telemetry.SetGauge(func() float32 {
-			if baseFee == nil {
-				return 0.0
-			}
 			return float32(baseFee.Int64())
 		}(), "feemarket", "base_fee")
 	}()
@@ -35,12 +32,7 @@ func (k Keeper) updateBaseFeeForNextBlock(ctx sdk.Context) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			feemarkettypes.EventTypeFeeMarket,
-			sdk.NewAttribute(feemarkettypes.AttributeKeyBaseFee, func() string {
-				if baseFee == nil {
-					return "0"
-				}
-				return baseFee.String()
-			}()),
+			sdk.NewAttribute(feemarkettypes.AttributeKeyBaseFee, baseFee.String()),
 		),
 	})
 }

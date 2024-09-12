@@ -2,9 +2,8 @@ package types
 
 import (
 	"context"
-	"math/big"
-
 	addresscodec "cosmossdk.io/core/address"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -35,9 +34,8 @@ type StakingKeeper interface {
 
 // FeeMarketKeeper defines the expected x/feemarket keeper interface
 type FeeMarketKeeper interface {
-	GetBaseFee(ctx sdk.Context) *big.Int
+	GetBaseFee(ctx sdk.Context) sdkmath.Int
 	GetParams(ctx sdk.Context) feemarkettypes.Params
-	CalculateBaseFee(ctx sdk.Context) *big.Int
 }
 
 type (

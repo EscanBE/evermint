@@ -278,12 +278,10 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 
 	tx := evmtypes.NewTx(ethContractCreationTxParams)
 
-	ethCfg := suite.app.EvmKeeper.GetParams(suite.ctx).
-		ChainConfig.EthereumConfig(chainID)
-	baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx, ethCfg)
+	baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx)
 	suite.Require().Equal(int64(1000000000), baseFee.Int64())
 
-	gasPrice := new(big.Int).Add(baseFee, evmtypes.DefaultPriorityReduction.BigInt())
+	gasPrice := new(big.Int).Add(baseFee.BigInt(), evmtypes.DefaultPriorityReduction.BigInt())
 
 	tx2GasLimit := uint64(1000000)
 	eth2TxContractParams := &evmtypes.EvmTxArgs{
@@ -316,7 +314,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 		Nonce:     1,
 		Amount:    big.NewInt(10),
 		GasLimit:  tx2GasLimit,
-		GasFeeCap: new(big.Int).Add(baseFee, big.NewInt(evmtypes.DefaultPriorityReduction.Int64()*2)),
+		GasFeeCap: new(big.Int).Add(baseFee.BigInt(), big.NewInt(evmtypes.DefaultPriorityReduction.Int64()*2)),
 		GasTipCap: evmtypes.DefaultPriorityReduction.BigInt(),
 		Accesses:  &ethtypes.AccessList{{Address: addr, StorageKeys: nil}},
 	}
@@ -586,7 +584,7 @@ func (suite *AnteTestSuite) TestCanTransferDecorator() {
 
 	addr, privKey := testutiltx.NewAddrKey()
 
-	suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, big.NewInt(100))
+	suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, sdkmath.NewInt(100))
 	ethContractCreationTxParams := &evmtypes.EvmTxArgs{
 		From:      addr,
 		ChainID:   suite.app.EvmKeeper.ChainID(),

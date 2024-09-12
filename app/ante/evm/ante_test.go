@@ -39,7 +39,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		err := suite.app.EvmKeeper.SetBalance(suite.ctx, addr, big.NewInt(10000000000))
 		suite.Require().NoError(err)
 
-		suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, big.NewInt(100))
+		suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, sdkmath.NewInt(100))
 	}
 
 	ethContractCreationTxParams := &evmtypes.EvmTxArgs{
@@ -1136,12 +1136,11 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 	}
 
 	testCases := []struct {
-		name           string
-		txFn           func() sdk.Tx
-		enableLondonHF bool
-		checkTx        bool
-		reCheckTx      bool
-		expPass        bool
+		name      string
+		txFn      func() sdk.Tx
+		checkTx   bool
+		reCheckTx bool
+		expPass   bool
 	}{
 		{
 			name: "pass - DeliverTx (contract)",
@@ -1151,10 +1150,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
-			enableLondonHF: true,
-			checkTx:        false,
-			reCheckTx:      false,
-			expPass:        true,
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
 			name: "pass - CheckTx (contract)",
@@ -1164,10 +1162,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
-			enableLondonHF: true,
-			checkTx:        true,
-			reCheckTx:      false,
-			expPass:        true,
+			checkTx:   true,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
 			name: "pass - ReCheckTx (contract)",
@@ -1177,10 +1174,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
 				return tx
 			},
-			enableLondonHF: true,
-			checkTx:        false,
-			reCheckTx:      true,
-			expPass:        true,
+			checkTx:   false,
+			reCheckTx: true,
+			expPass:   true,
 		},
 		{
 			name: "pass - DeliverTx",
@@ -1190,10 +1186,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
-			enableLondonHF: true,
-			checkTx:        false,
-			reCheckTx:      false,
-			expPass:        true,
+			checkTx:   false,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
 			name: "pass - CheckTx",
@@ -1203,10 +1198,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
-			enableLondonHF: true,
-			checkTx:        true,
-			reCheckTx:      false,
-			expPass:        true,
+			checkTx:   true,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
 			name: "pass - ReCheckTx",
@@ -1216,10 +1210,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
-			enableLondonHF: true,
-			checkTx:        false,
-			reCheckTx:      true,
-			expPass:        true,
+			checkTx:   false,
+			reCheckTx: true,
+			expPass:   true,
 		},
 		{
 			name: "pass - CheckTx (cosmos tx not signed)",
@@ -1229,10 +1222,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
 				return tx
 			},
-			enableLondonHF: true,
-			checkTx:        false,
-			reCheckTx:      true,
-			expPass:        true,
+			checkTx:   false,
+			reCheckTx: true,
+			expPass:   true,
 		},
 		{
 			name: "fail - CheckTx (cosmos tx is not valid)",
@@ -1244,10 +1236,9 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				txBuilder.SetGasLimit(uint64(1 << 63))
 				return txBuilder.GetTx()
 			},
-			enableLondonHF: true,
-			checkTx:        true,
-			reCheckTx:      false,
-			expPass:        false,
+			checkTx:   true,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
 			name: "fail - CheckTx (memo too long)",
@@ -1258,30 +1249,15 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 				txBuilder.SetMemo(strings.Repeat("*", 257))
 				return txBuilder.GetTx()
 			},
-			enableLondonHF: true,
-			checkTx:        true,
-			reCheckTx:      false,
-			expPass:        false,
-		},
-		{
-			name: "fail - DynamicFeeTx without london hark fork",
-			txFn: func() sdk.Tx {
-				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
-
-				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
-				return tx
-			},
-			enableLondonHF: false,
-			checkTx:        false,
-			reCheckTx:      false,
-			expPass:        false,
+			checkTx:   true,
+			reCheckTx: false,
+			expPass:   false,
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.enableFeemarket = true
-			suite.enableLondonHF = tc.enableLondonHF
 			suite.SetupTest() // reset
 
 			acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
@@ -1301,7 +1277,6 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 		})
 	}
 	suite.enableFeemarket = false
-	suite.enableLondonHF = true
 }
 
 func (suite *AnteTestSuite) TestAnteHandlerWithParams() {

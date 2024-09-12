@@ -163,7 +163,7 @@ func RegisterEstimateGas(queryClient *mocks.EVMQueryClient, args evmtypes.Transa
 // BaseFee
 func RegisterBaseFee(queryClient *mocks.EVMQueryClient, baseFee sdkmath.Int) {
 	queryClient.On("BaseFee", rpc.ContextWithHeight(1), &evmtypes.QueryBaseFeeRequest{}).
-		Return(&evmtypes.QueryBaseFeeResponse{BaseFee: &baseFee}, nil)
+		Return(&evmtypes.QueryBaseFeeResponse{BaseFee: baseFee}, nil)
 }
 
 // Base fee returns error
@@ -175,7 +175,9 @@ func RegisterBaseFeeError(queryClient *mocks.EVMQueryClient) {
 // Base fee not enabled
 func RegisterBaseFeeDisabled(queryClient *mocks.EVMQueryClient) {
 	queryClient.On("BaseFee", rpc.ContextWithHeight(1), &evmtypes.QueryBaseFeeRequest{}).
-		Return(&evmtypes.QueryBaseFeeResponse{}, nil)
+		Return(&evmtypes.QueryBaseFeeResponse{
+			BaseFee: sdkmath.ZeroInt(),
+		}, nil)
 }
 
 func TestRegisterBaseFee(t *testing.T) {
@@ -183,7 +185,7 @@ func TestRegisterBaseFee(t *testing.T) {
 	queryClient := mocks.NewEVMQueryClient(t)
 	RegisterBaseFee(queryClient, baseFee)
 	res, err := queryClient.BaseFee(rpc.ContextWithHeight(1), &evmtypes.QueryBaseFeeRequest{})
-	require.Equal(t, &evmtypes.QueryBaseFeeResponse{BaseFee: &baseFee}, res)
+	require.Equal(t, &evmtypes.QueryBaseFeeResponse{BaseFee: baseFee}, res)
 	require.NoError(t, err)
 }
 
@@ -199,7 +201,8 @@ func TestRegisterBaseFeeDisabled(t *testing.T) {
 	queryClient := mocks.NewEVMQueryClient(t)
 	RegisterBaseFeeDisabled(queryClient)
 	res, err := queryClient.BaseFee(rpc.ContextWithHeight(1), &evmtypes.QueryBaseFeeRequest{})
-	require.Equal(t, &evmtypes.QueryBaseFeeResponse{}, res)
+	require.NotNil(t, res)
+	require.Equal(t, "0", res.BaseFee.String())
 	require.NoError(t, err)
 }
 

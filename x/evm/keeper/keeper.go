@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -356,23 +357,9 @@ func (k *Keeper) GetBalance(ctx sdk.Context, addr common.Address) *big.Int {
 	return coin.Amount.BigInt()
 }
 
-// GetBaseFee returns current base fee, return values:
-// - `nil`: london hardfork not enabled.
-// - `0`: london hardfork enabled but feemarket is not enabled.
-// - `n`: both london hardfork and feemarket are enabled.
-func (k Keeper) GetBaseFee(ctx sdk.Context, ethCfg *ethparams.ChainConfig) *big.Int {
-	isLondon := evmtypes.IsLondon(ethCfg, ctx.BlockHeight())
-	if !isLondon {
-		return nil
-	}
-
-	baseFee := k.feeMarketKeeper.GetBaseFee(ctx)
-	if baseFee == nil {
-		// return 0 if feemarket not enabled.
-		baseFee = big.NewInt(0)
-	}
-
-	return baseFee
+// GetBaseFee returns current base fee.
+func (k Keeper) GetBaseFee(ctx sdk.Context) sdkmath.Int {
+	return k.feeMarketKeeper.GetBaseFee(ctx)
 }
 
 // SetupExecutionContext setups the execution context for the EVM transaction execution:

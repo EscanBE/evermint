@@ -9,7 +9,8 @@ import (
 func (suite *KeeperTestSuite) TestGetParams() {
 	params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
 	suite.Require().NotNil(params.BaseFee)
-	suite.Require().NotNil(params.MinGasPrice)
+	suite.NotEqual(-1, params.BaseFee.Sign())
+	suite.NotNil(params.MinGasPrice)
 }
 
 func (suite *KeeperTestSuite) TestSetGetParams() {

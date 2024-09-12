@@ -19,7 +19,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -428,7 +427,7 @@ func (k Keeper) TraceTx(c context.Context, req *evmtypes.QueryTraceTxRequest) (*
 	}
 	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(ctx.BlockHeight()))
 
-	cfg.BaseFee = k.feeMarketKeeper.GetBaseFee(ctx)
+	cfg.BaseFee = k.feeMarketKeeper.GetBaseFee(ctx).BigInt()
 
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
 
@@ -527,7 +526,7 @@ func (k Keeper) TraceBlock(c context.Context, req *evmtypes.QueryTraceBlockReque
 	}
 	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(ctx.BlockHeight()))
 
-	cfg.BaseFee = k.feeMarketKeeper.GetBaseFee(ctx)
+	cfg.BaseFee = k.feeMarketKeeper.GetBaseFee(ctx).BigInt()
 
 	txsLength := len(req.Txs)
 	results := make([]*evmtypes.TxTraceResult, 0, txsLength)
@@ -658,18 +657,11 @@ func (k *Keeper) traceTx(
 // BaseFee implements the Query/BaseFee gRPC method
 func (k Keeper) BaseFee(c context.Context, _ *evmtypes.QueryBaseFeeRequest) (*evmtypes.QueryBaseFeeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
+	baseFee := k.GetBaseFee(ctx)
 
-	params := k.GetParams(ctx)
-	ethCfg := params.ChainConfig.EthereumConfig(k.eip155ChainID)
-	baseFee := k.GetBaseFee(ctx, ethCfg)
-
-	res := &evmtypes.QueryBaseFeeResponse{}
-	if baseFee != nil {
-		aux := sdkmath.NewIntFromBigInt(baseFee)
-		res.BaseFee = &aux
-	}
-
-	return res, nil
+	return &evmtypes.QueryBaseFeeResponse{
+		BaseFee: baseFee,
+	}, nil
 }
 
 // getChainID parse chainID from current context if not provided

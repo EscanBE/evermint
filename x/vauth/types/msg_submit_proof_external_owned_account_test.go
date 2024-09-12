@@ -108,6 +108,8 @@ func TestMsgSubmitProofExternalOwnedAccount_ValidateBasic(t *testing.T) {
 
 			err := m.ValidateBasic()
 			if tt.wantErr {
+				require.Error(t, err)
+				require.NotEmpty(t, tt.wantErrContains, err.Error())
 				require.ErrorContains(t, err, tt.wantErrContains)
 				return
 			}

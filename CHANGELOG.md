@@ -40,6 +40,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvement
 
 - (test) [#150](https://github.com/EscanBE/evermint/pull/150) Improve readability for test
+- (evm) [#154](https://github.com/EscanBE/evermint/pull/154) Simplify code, force all ETH hardfork enabled
 
 ### Bug Fixes
 

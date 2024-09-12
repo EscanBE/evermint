@@ -179,12 +179,29 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 	if head == nil {
 		return args, errors.New("latest header is nil")
 	}
+	if head.BaseFee == nil {
+		panic("header base fee is nil")
+	}
 
 	// If user specifies both maxPriorityfee and maxFee, then we do not
-	// need to consult the chain for defaults. It's definitely a London tx.
-	if args.MaxPriorityFeePerGas == nil || args.MaxFeePerGas == nil {
+	// need to consult the chain for defaults. It's definitely not a legacy tx.
+
+	checkRelationMaxPriorityFeePerGasAndMaxFeePerGas := func() error {
+		// Both maxPriorityfee and maxFee set by caller. Sanity-check their internal relation
+		if args.MaxFeePerGas.ToInt().Cmp(args.MaxPriorityFeePerGas.ToInt()) < 0 {
+			return fmt.Errorf("maxFeePerGas (%v) < maxPriorityFeePerGas (%v)", args.MaxFeePerGas, args.MaxPriorityFeePerGas)
+		}
+		return nil
+	}
+
+	// TODO ES: recheck this logic, look like something wrong, are both fields required to be Dynamic fee tx?
+	if args.MaxPriorityFeePerGas != nil && args.MaxFeePerGas != nil {
+		if err := checkRelationMaxPriorityFeePerGasAndMaxFeePerGas(); err != nil {
+			return args, err
+		}
+	} else {
 		// In this clause, user left some fields unspecified.
-		if head.BaseFee != nil && args.GasPrice == nil {
+		if args.GasPrice == nil {
 			if args.MaxPriorityFeePerGas == nil {
 				tip, err := b.SuggestGasTipCap(head.BaseFee)
 				if err != nil {
@@ -201,32 +218,21 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 				args.MaxFeePerGas = (*hexutil.Big)(gasFeeCap)
 			}
 
-			if args.MaxFeePerGas.ToInt().Cmp(args.MaxPriorityFeePerGas.ToInt()) < 0 {
-				return args, fmt.Errorf("maxFeePerGas (%v) < maxPriorityFeePerGas (%v)", args.MaxFeePerGas, args.MaxPriorityFeePerGas)
+			if err := checkRelationMaxPriorityFeePerGasAndMaxFeePerGas(); err != nil {
+				return args, err
 			}
 		} else {
-			if args.MaxFeePerGas != nil || args.MaxPriorityFeePerGas != nil {
-				return args, errors.New("maxFeePerGas or maxPriorityFeePerGas specified but london is not active yet")
+			price, err := b.SuggestGasTipCap(head.BaseFee)
+			if err != nil {
+				return args, err
 			}
 
-			if args.GasPrice == nil {
-				price, err := b.SuggestGasTipCap(head.BaseFee)
-				if err != nil {
-					return args, err
-				}
-				if head.BaseFee != nil {
-					// The legacy tx gas price suggestion should not add 2x base fee
-					// because all fees are consumed, so it would result in a spiral
-					// upwards.
-					price.Add(price, head.BaseFee)
-				}
-				args.GasPrice = (*hexutil.Big)(price)
-			}
-		}
-	} else {
-		// Both maxPriorityfee and maxFee set by caller. Sanity-check their internal relation
-		if args.MaxFeePerGas.ToInt().Cmp(args.MaxPriorityFeePerGas.ToInt()) < 0 {
-			return args, fmt.Errorf("maxFeePerGas (%v) < maxPriorityFeePerGas (%v)", args.MaxFeePerGas, args.MaxPriorityFeePerGas)
+			// The legacy tx gas price suggestion should not add 2x base fee
+			// because all fees are consumed, so it would result in a spiral
+			// upwards.
+			price.Add(price, head.BaseFee)
+
+			args.GasPrice = (*hexutil.Big)(price)
 		}
 	}
 

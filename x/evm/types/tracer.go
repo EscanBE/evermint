@@ -30,7 +30,8 @@ func NewTracer(tracer string, msg core.Message, cfg *ethparams.ChainConfig, heig
 
 	switch tracer {
 	case TracerAccessList:
-		preCompiles := vm.ActivePrecompiles(cfg.Rules(big.NewInt(height), cfg.MergeNetsplitBlock != nil))
+		const mergeNetsplit = true
+		preCompiles := vm.ActivePrecompiles(cfg.Rules(big.NewInt(height), mergeNetsplit))
 		return logger.NewAccessListTracer(msg.AccessList(), msg.From(), *msg.To(), preCompiles)
 	case TracerJSON:
 		return logger.NewJSONLogger(logCfg, os.Stderr)

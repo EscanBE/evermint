@@ -180,123 +180,6 @@ func (suite *KeeperTestSuite) TestGetCoinbaseAddress() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
-	testCases := []struct {
-		name               string
-		data               []byte
-		accessList         ethtypes.AccessList
-		height             int64
-		isContractCreation bool
-		noError            bool
-		expGas             uint64
-	}{
-		{
-			name:               "pass - no data, no accesslist, not contract creation, not homestead, not istanbul",
-			data:               nil,
-			accessList:         nil,
-			height:             1,
-			isContractCreation: false,
-			noError:            true,
-			expGas:             ethparams.TxGas,
-		},
-		{
-			name:               "pass - with one zero data, no accesslist, not contract creation, not homestead, not istanbul",
-			data:               []byte{0},
-			accessList:         nil,
-			height:             1,
-			isContractCreation: false,
-			noError:            true,
-			expGas:             ethparams.TxGas + ethparams.TxDataZeroGas*1,
-		},
-		{
-			name:               "pass - with one non zero data, no accesslist, not contract creation, not homestead, not istanbul",
-			data:               []byte{1},
-			accessList:         nil,
-			height:             1,
-			isContractCreation: true,
-			noError:            true,
-			expGas:             ethparams.TxGas + ethparams.TxDataNonZeroGasFrontier*1,
-		},
-		{
-			name: "pass - no data, one accesslist, not contract creation, not homestead, not istanbul",
-			data: nil,
-			accessList: []ethtypes.AccessTuple{
-				{},
-			},
-			height:             1,
-			isContractCreation: false,
-			noError:            true,
-			expGas:             ethparams.TxGas + ethparams.TxAccessListAddressGas,
-		},
-		{
-			name: "pass - no data, one accesslist with one storageKey, not contract creation, not homestead, not istanbul",
-			data: nil,
-			accessList: []ethtypes.AccessTuple{
-				{StorageKeys: make([]common.Hash, 1)},
-			},
-			height:             1,
-			isContractCreation: false,
-			noError:            true,
-			expGas:             ethparams.TxGas + ethparams.TxAccessListAddressGas + ethparams.TxAccessListStorageKeyGas*1,
-		},
-		{
-			name:               "pass - no data, no accesslist, is contract creation, is homestead, not istanbul",
-			data:               nil,
-			accessList:         nil,
-			height:             2,
-			isContractCreation: true,
-			noError:            true,
-			expGas:             ethparams.TxGasContractCreation,
-		},
-		{
-			name:               "pass - with one zero data, no accesslist, not contract creation, is homestead, is istanbul",
-			data:               []byte{1},
-			accessList:         nil,
-			height:             3,
-			isContractCreation: false,
-			noError:            true,
-			expGas:             ethparams.TxGas + ethparams.TxDataNonZeroGasEIP2028*1,
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-
-			params := suite.app.EvmKeeper.GetParams(suite.ctx)
-			ethCfg := params.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
-			ethCfg.HomesteadBlock = big.NewInt(2)
-			ethCfg.IstanbulBlock = big.NewInt(3)
-			signer := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
-
-			suite.ctx = suite.ctx.WithBlockHeight(tc.height)
-
-			nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
-			m, err := newNativeMessage(
-				nonce,
-				suite.ctx.BlockHeight(),
-				suite.address,
-				ethCfg,
-				suite.signer,
-				signer,
-				ethtypes.AccessListTxType,
-				tc.data,
-				tc.accessList,
-			)
-			suite.Require().NoError(err)
-
-			gas, err := suite.app.EvmKeeper.GetEthIntrinsicGas(suite.ctx, m, ethCfg, tc.isContractCreation)
-			if tc.noError {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-
-			suite.Require().Equal(tc.expGas, gas)
-		})
-	}
-}
-
 func (suite *KeeperTestSuite) TestGasToRefund() {
 	testCases := []struct {
 		name           string
@@ -421,7 +304,6 @@ func (suite *KeeperTestSuite) TestEVMConfig() {
 	cfg, err := suite.app.EvmKeeper.EVMConfig(suite.ctx, proposerAddress, big.NewInt(constants.TestnetEIP155ChainId))
 	suite.Require().NoError(err)
 	suite.Require().Equal(evmtypes.DefaultParams(), cfg.Params)
-	// london hardfork is enabled by default
 	suite.Require().Equal(big.NewInt(0), cfg.BaseFee)
 	suite.Require().Equal(suite.address, cfg.CoinBase)
 	suite.Require().Equal(evmtypes.DefaultParams().ChainConfig.EthereumConfig(big.NewInt(constants.TestnetEIP155ChainId)), cfg.ChainConfig)

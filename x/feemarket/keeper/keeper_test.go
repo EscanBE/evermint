@@ -1,24 +1,37 @@
 package keeper_test
 
 import (
-	_ "embed"
-	"math/big"
-
 	sdkmath "cosmossdk.io/math"
+	_ "embed"
+	ethparams "github.com/ethereum/go-ethereum/params"
 )
 
 func (suite *KeeperTestSuite) TestSetGetGasFee() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expFee   *big.Int
+		expFee   sdkmath.Int
 	}{
 		{
-			"with last block given",
-			func() {
-				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, sdkmath.LegacyOneDec().BigInt())
+			name: "one",
+			malleate: func() {
+				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, sdkmath.OneInt())
 			},
-			sdkmath.LegacyOneDec().BigInt(),
+			expFee: sdkmath.OneInt(),
+		},
+		{
+			name: "zero",
+			malleate: func() {
+				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, sdkmath.ZeroInt())
+			},
+			expFee: sdkmath.ZeroInt(),
+		},
+		{
+			name: "default",
+			malleate: func() {
+				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, sdkmath.NewInt(ethparams.InitialBaseFee))
+			},
+			expFee: sdkmath.NewInt(ethparams.InitialBaseFee),
 		},
 	}
 

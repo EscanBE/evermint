@@ -53,7 +53,7 @@ func (k *Keeper) NewEVM(
 	if tracer == nil {
 		tracer = k.Tracer(ctx, msg, cfg.ChainConfig)
 	}
-	vmConfig := k.VMConfig(ctx, msg, cfg, tracer)
+	vmConfig := k.VMConfig(cfg, tracer)
 	return vm.NewEVM(blockCtx, txCtx, stateDB, cfg.ChainConfig, vmConfig)
 }
 
@@ -247,9 +247,10 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 
 	sender := vm.AccountRef(msg.From())
 	contractCreation := msg.To() == nil
-	isLondon := cfg.ChainConfig.IsLondon(evm.Context.BlockNumber)
 
-	intrinsicGas, err := k.GetEthIntrinsicGas(ctx, msg, cfg.ChainConfig, contractCreation)
+	const homestead = true
+	const istanbul = true
+	intrinsicGas, err := core.IntrinsicGas(msg.Data(), msg.AccessList(), contractCreation, homestead, istanbul)
 	if err != nil {
 		// should have already been checked on Ante Handler
 		return nil, errorsmod.Wrap(err, "intrinsic gas failed")
@@ -264,9 +265,9 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 
 	// access list preparation is moved from ante handler to here, because it's needed when `ApplyMessage` is called
 	// under contexts where ante handlers are not run, for example `eth_call` and `eth_estimateGas`.
-	if rules := cfg.ChainConfig.Rules(big.NewInt(ctx.BlockHeight()), cfg.ChainConfig.MergeNetsplitBlock != nil); rules.IsBerlin {
-		stateDB.PrepareAccessList(msg.From(), msg.To(), vm.ActivePrecompiles(rules), msg.AccessList())
-	}
+	const mergeNetsplit = true
+	rules := cfg.ChainConfig.Rules(big.NewInt(ctx.BlockHeight()), mergeNetsplit)
+	stateDB.PrepareAccessList(msg.From(), msg.To(), vm.ActivePrecompiles(rules), msg.AccessList())
 
 	if contractCreation {
 		ret, _, leftoverGas, vmErr = evm.Create(sender, msg.Data(), leftoverGas, msg.Value())
@@ -275,12 +276,8 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		ret, leftoverGas, vmErr = evm.Call(sender, *msg.To(), msg.Data(), leftoverGas, msg.Value())
 	}
 
-	refundQuotient := ethparams.RefundQuotient
-
 	// After EIP-3529: refunds are capped to gasUsed / 5
-	if isLondon {
-		refundQuotient = ethparams.RefundQuotientEIP3529
-	}
+	const refundQuotient = ethparams.RefundQuotientEIP3529
 
 	// calculate gas refund
 	if msg.Gas() < leftoverGas {

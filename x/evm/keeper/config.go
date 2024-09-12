@@ -8,7 +8,6 @@ import (
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/vm"
 )
 
@@ -23,12 +22,12 @@ func (k *Keeper) EVMConfig(ctx sdk.Context, proposerAddress sdk.ConsAddress, cha
 		return nil, errorsmod.Wrap(err, "failed to obtain coinbase address")
 	}
 
-	baseFee := k.GetBaseFee(ctx, ethCfg)
+	baseFee := k.GetBaseFee(ctx)
 	return &statedb.EVMConfig{
 		Params:      params,
 		ChainConfig: ethCfg,
 		CoinBase:    coinbase,
-		BaseFee:     baseFee,
+		BaseFee:     baseFee.BigInt(),
 	}, nil
 }
 
@@ -44,11 +43,9 @@ func (k *Keeper) TxConfig(ctx sdk.Context, txHash common.Hash) statedb.TxConfig 
 
 // VMConfig creates an EVM configuration from the debug setting and the extra EIPs enabled on the
 // module parameters. The config generated uses the default JumpTable from the EVM.
-func (k Keeper) VMConfig(ctx sdk.Context, _ core.Message, cfg *statedb.EVMConfig, tracer vm.EVMLogger) vm.Config {
-	noBaseFee := true
-	if evmtypes.IsLondon(cfg.ChainConfig, ctx.BlockHeight()) {
-		noBaseFee = k.feeMarketKeeper.GetParams(ctx).NoBaseFee
-	}
+func (k Keeper) VMConfig(cfg *statedb.EVMConfig, tracer vm.EVMLogger) vm.Config {
+	// TODO ES: move NoBaseFee to pass by config
+	const noBaseFee = false
 
 	var debug bool
 	if _, ok := tracer.(evmtypes.NoOpTracer); !ok {

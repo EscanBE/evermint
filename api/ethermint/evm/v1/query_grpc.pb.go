@@ -60,8 +60,7 @@ type QueryClient interface {
 	TraceTx(ctx context.Context, in *QueryTraceTxRequest, opts ...grpc.CallOption) (*QueryTraceTxResponse, error)
 	// TraceBlock implements the `debug_traceBlockByNumber` and `debug_traceBlockByHash` rpc api
 	TraceBlock(ctx context.Context, in *QueryTraceBlockRequest, opts ...grpc.CallOption) (*QueryTraceBlockResponse, error)
-	// BaseFee queries the base fee of the parent block of the current block,
-	// it's similar to x/feemarket module's method, but also checks london hardfork status.
+	// BaseFee queries the base fee of the current block.
 	BaseFee(ctx context.Context, in *QueryBaseFeeRequest, opts ...grpc.CallOption) (*QueryBaseFeeResponse, error)
 }
 
@@ -208,8 +207,7 @@ type QueryServer interface {
 	TraceTx(context.Context, *QueryTraceTxRequest) (*QueryTraceTxResponse, error)
 	// TraceBlock implements the `debug_traceBlockByNumber` and `debug_traceBlockByHash` rpc api
 	TraceBlock(context.Context, *QueryTraceBlockRequest) (*QueryTraceBlockResponse, error)
-	// BaseFee queries the base fee of the parent block of the current block,
-	// it's similar to x/feemarket module's method, but also checks london hardfork status.
+	// BaseFee queries the base fee of the current block.
 	BaseFee(context.Context, *QueryBaseFeeRequest) (*QueryBaseFeeResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }

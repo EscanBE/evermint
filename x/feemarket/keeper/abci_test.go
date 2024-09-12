@@ -1,8 +1,7 @@
 package keeper_test
 
 import (
-	"math/big"
-
+	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 
 	ethparams "github.com/ethereum/go-ethereum/params"
@@ -13,22 +12,22 @@ func (suite *KeeperTestSuite) TestEndBlock() {
 		name       string
 		noBaseFee  bool
 		malleate   func()
-		expBaseFee *big.Int
+		expBaseFee sdkmath.Int
 	}{
 		{
-			name:       "base fee should be nil if no base fee",
+			name:       "base fee should be zero if no base fee",
 			noBaseFee:  true,
 			malleate:   func() {},
-			expBaseFee: nil,
+			expBaseFee: sdkmath.ZeroInt(),
 		},
 		{
 			name: "base fee should be updated",
 			malleate: func() {
-				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, big.NewInt(ethparams.InitialBaseFee))
+				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, sdkmath.NewInt(ethparams.InitialBaseFee))
 
 				suite.ctx.BlockGasMeter().ConsumeGas(2500000, "consume")
 			},
-			expBaseFee: big.NewInt(875000001),
+			expBaseFee: sdkmath.NewInt(875000001),
 		},
 	}
 	for _, tc := range testCases {
@@ -47,11 +46,7 @@ func (suite *KeeperTestSuite) TestEndBlock() {
 			suite.app.FeeMarketKeeper.EndBlock(suite.ctx)
 
 			baseFee := suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx)
-			if tc.expBaseFee == nil {
-				suite.Require().Nil(baseFee)
-			} else {
-				suite.Require().Equal(tc.expBaseFee, baseFee)
-			}
+			suite.Require().Equal(tc.expBaseFee, baseFee)
 		})
 	}
 }

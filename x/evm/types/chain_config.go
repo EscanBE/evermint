@@ -2,177 +2,151 @@ package types
 
 import (
 	"math/big"
-	"strings"
-
-	sdkmath "cosmossdk.io/math"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	"github.com/ethereum/go-ethereum/common"
 	ethparams "github.com/ethereum/go-ethereum/params"
 )
 
 // EthereumConfig returns an Ethereum ChainConfig for EVM state transitions.
 // All the negative or nil values are converted to nil
-func (cc ChainConfig) EthereumConfig(chainID *big.Int) *ethparams.ChainConfig {
-	return &ethparams.ChainConfig{
+func (m ChainConfig) EthereumConfig(chainID *big.Int) *ethparams.ChainConfig {
+	cc := &ethparams.ChainConfig{
 		ChainID:                 chainID,
-		HomesteadBlock:          getBlockValue(cc.HomesteadBlock),
-		DAOForkBlock:            getBlockValue(cc.DAOForkBlock),
-		DAOForkSupport:          cc.DAOForkSupport,
-		EIP150Block:             getBlockValue(cc.EIP150Block),
-		EIP150Hash:              common.HexToHash(cc.EIP150Hash),
-		EIP155Block:             getBlockValue(cc.EIP155Block),
-		EIP158Block:             getBlockValue(cc.EIP158Block),
-		ByzantiumBlock:          getBlockValue(cc.ByzantiumBlock),
-		ConstantinopleBlock:     getBlockValue(cc.ConstantinopleBlock),
-		PetersburgBlock:         getBlockValue(cc.PetersburgBlock),
-		IstanbulBlock:           getBlockValue(cc.IstanbulBlock),
-		MuirGlacierBlock:        getBlockValue(cc.MuirGlacierBlock),
-		BerlinBlock:             getBlockValue(cc.BerlinBlock),
-		LondonBlock:             getBlockValue(cc.LondonBlock),
-		ArrowGlacierBlock:       getBlockValue(cc.ArrowGlacierBlock),
-		GrayGlacierBlock:        getBlockValue(cc.GrayGlacierBlock),
-		MergeNetsplitBlock:      getBlockValue(cc.MergeNetsplitBlock),
-		ShanghaiBlock:           getBlockValue(cc.ShanghaiBlock),
-		CancunBlock:             getBlockValue(cc.CancunBlock),
+		HomesteadBlock:          m.HomesteadBlock.BigInt(),
+		DAOForkBlock:            m.DAOForkBlock.BigInt(),
+		DAOForkSupport:          m.DAOForkSupport,
+		EIP150Block:             m.EIP150Block.BigInt(),
+		EIP150Hash:              common.HexToHash(m.EIP150Hash),
+		EIP155Block:             m.EIP155Block.BigInt(),
+		EIP158Block:             m.EIP158Block.BigInt(),
+		ByzantiumBlock:          m.ByzantiumBlock.BigInt(),
+		ConstantinopleBlock:     m.ConstantinopleBlock.BigInt(),
+		PetersburgBlock:         m.PetersburgBlock.BigInt(),
+		IstanbulBlock:           m.IstanbulBlock.BigInt(),
+		MuirGlacierBlock:        m.MuirGlacierBlock.BigInt(),
+		BerlinBlock:             m.BerlinBlock.BigInt(),
+		LondonBlock:             m.LondonBlock.BigInt(),
+		ArrowGlacierBlock:       m.ArrowGlacierBlock.BigInt(),
+		GrayGlacierBlock:        m.GrayGlacierBlock.BigInt(),
+		MergeNetsplitBlock:      m.MergeNetsplitBlock.BigInt(),
+		ShanghaiBlock:           m.ShanghaiBlock.BigInt(),
+		CancunBlock:             m.CancunBlock.BigInt(),
 		TerminalTotalDifficulty: nil,
 		Ethash:                  nil,
 		Clique:                  nil,
 	}
+
+	if err := cc.CheckConfigForkOrder(); err != nil {
+		panic(err)
+	}
+
+	return cc
 }
 
 // DefaultChainConfig returns default evm parameters.
 func DefaultChainConfig() ChainConfig {
-	homesteadBlock := sdkmath.ZeroInt()
-	daoForkBlock := sdkmath.ZeroInt()
-	eip150Block := sdkmath.ZeroInt()
-	eip155Block := sdkmath.ZeroInt()
-	eip158Block := sdkmath.ZeroInt()
-	byzantiumBlock := sdkmath.ZeroInt()
-	constantinopleBlock := sdkmath.ZeroInt()
-	petersburgBlock := sdkmath.ZeroInt()
-	istanbulBlock := sdkmath.ZeroInt()
-	muirGlacierBlock := sdkmath.ZeroInt()
-	berlinBlock := sdkmath.ZeroInt()
-	londonBlock := sdkmath.ZeroInt()
-	arrowGlacierBlock := sdkmath.ZeroInt()
-	grayGlacierBlock := sdkmath.ZeroInt()
-	mergeNetsplitBlock := sdkmath.ZeroInt()
-	shanghaiBlock := sdkmath.ZeroInt()
-	cancunBlock := sdkmath.ZeroInt()
+	zeroInt := sdkmath.ZeroInt()
 
 	return ChainConfig{
-		HomesteadBlock:      &homesteadBlock,
-		DAOForkBlock:        &daoForkBlock,
+		HomesteadBlock:      &zeroInt,
+		DAOForkBlock:        &zeroInt,
 		DAOForkSupport:      true,
-		EIP150Block:         &eip150Block,
+		EIP150Block:         &zeroInt,
 		EIP150Hash:          common.Hash{}.String(),
-		EIP155Block:         &eip155Block,
-		EIP158Block:         &eip158Block,
-		ByzantiumBlock:      &byzantiumBlock,
-		ConstantinopleBlock: &constantinopleBlock,
-		PetersburgBlock:     &petersburgBlock,
-		IstanbulBlock:       &istanbulBlock,
-		MuirGlacierBlock:    &muirGlacierBlock,
-		BerlinBlock:         &berlinBlock,
-		LondonBlock:         &londonBlock,
-		ArrowGlacierBlock:   &arrowGlacierBlock,
-		GrayGlacierBlock:    &grayGlacierBlock,
-		MergeNetsplitBlock:  &mergeNetsplitBlock,
-		ShanghaiBlock:       &shanghaiBlock,
-		CancunBlock:         &cancunBlock,
+		EIP155Block:         &zeroInt,
+		EIP158Block:         &zeroInt,
+		ByzantiumBlock:      &zeroInt,
+		ConstantinopleBlock: &zeroInt,
+		PetersburgBlock:     &zeroInt,
+		IstanbulBlock:       &zeroInt,
+		MuirGlacierBlock:    &zeroInt,
+		BerlinBlock:         &zeroInt,
+		LondonBlock:         &zeroInt,
+		ArrowGlacierBlock:   &zeroInt,
+		GrayGlacierBlock:    &zeroInt,
+		MergeNetsplitBlock:  &zeroInt,
+		ShanghaiBlock:       &zeroInt,
+		CancunBlock:         &zeroInt,
 	}
-}
-
-func getBlockValue(block *sdkmath.Int) *big.Int {
-	if block == nil || block.IsNegative() {
-		return nil
-	}
-
-	return block.BigInt()
 }
 
 // Validate performs a basic validation of the ChainConfig params. The function will return an error
 // if any of the block values is uninitialized (i.e nil) or if the EIP150Hash is an invalid hash.
-func (cc ChainConfig) Validate() error {
-	if err := validateBlock(cc.HomesteadBlock); err != nil {
+func (m ChainConfig) Validate() error {
+	if err := validateBlock(m.HomesteadBlock); err != nil {
 		return errorsmod.Wrap(err, "homesteadBlock")
 	}
-	if err := validateBlock(cc.DAOForkBlock); err != nil {
+	if err := validateBlock(m.DAOForkBlock); err != nil {
 		return errorsmod.Wrap(err, "daoForkBlock")
 	}
-	if err := validateBlock(cc.EIP150Block); err != nil {
+	if m.DAOForkSupport != true {
+		return errorsmod.Wrapf(
+			ErrInvalidChainConfig, "daoForkSupport must be true",
+		)
+	}
+	if err := validateBlock(m.EIP150Block); err != nil {
 		return errorsmod.Wrap(err, "eip150Block")
 	}
-	if err := validateHash(cc.EIP150Hash); err != nil {
-		return err
+	if emptyHash := (common.Hash{}).String(); m.EIP150Hash != emptyHash {
+		return errorsmod.Wrapf(
+			ErrInvalidChainConfig, "EIP-150 hash must be empty hash, got %s, want %s", m.EIP150Hash, emptyHash,
+		)
 	}
-	if err := validateBlock(cc.EIP155Block); err != nil {
+	if err := validateBlock(m.EIP155Block); err != nil {
 		return errorsmod.Wrap(err, "eip155Block")
 	}
-	if err := validateBlock(cc.EIP158Block); err != nil {
+	if err := validateBlock(m.EIP158Block); err != nil {
 		return errorsmod.Wrap(err, "eip158Block")
 	}
-	if err := validateBlock(cc.ByzantiumBlock); err != nil {
+	if err := validateBlock(m.ByzantiumBlock); err != nil {
 		return errorsmod.Wrap(err, "byzantiumBlock")
 	}
-	if err := validateBlock(cc.ConstantinopleBlock); err != nil {
+	if err := validateBlock(m.ConstantinopleBlock); err != nil {
 		return errorsmod.Wrap(err, "constantinopleBlock")
 	}
-	if err := validateBlock(cc.PetersburgBlock); err != nil {
+	if err := validateBlock(m.PetersburgBlock); err != nil {
 		return errorsmod.Wrap(err, "petersburgBlock")
 	}
-	if err := validateBlock(cc.IstanbulBlock); err != nil {
+	if err := validateBlock(m.IstanbulBlock); err != nil {
 		return errorsmod.Wrap(err, "istanbulBlock")
 	}
-	if err := validateBlock(cc.MuirGlacierBlock); err != nil {
+	if err := validateBlock(m.MuirGlacierBlock); err != nil {
 		return errorsmod.Wrap(err, "muirGlacierBlock")
 	}
-	if err := validateBlock(cc.BerlinBlock); err != nil {
+	if err := validateBlock(m.BerlinBlock); err != nil {
 		return errorsmod.Wrap(err, "berlinBlock")
 	}
-	if err := validateBlock(cc.LondonBlock); err != nil {
+	if err := validateBlock(m.LondonBlock); err != nil {
 		return errorsmod.Wrap(err, "londonBlock")
 	}
-	if err := validateBlock(cc.ArrowGlacierBlock); err != nil {
+	if err := validateBlock(m.ArrowGlacierBlock); err != nil {
 		return errorsmod.Wrap(err, "arrowGlacierBlock")
 	}
-	if err := validateBlock(cc.GrayGlacierBlock); err != nil {
+	if err := validateBlock(m.GrayGlacierBlock); err != nil {
 		return errorsmod.Wrap(err, "GrayGlacierBlock")
 	}
-	if err := validateBlock(cc.MergeNetsplitBlock); err != nil {
+	if err := validateBlock(m.MergeNetsplitBlock); err != nil {
 		return errorsmod.Wrap(err, "MergeNetsplitBlock")
 	}
-	if err := validateBlock(cc.ShanghaiBlock); err != nil {
+	if err := validateBlock(m.ShanghaiBlock); err != nil {
 		return errorsmod.Wrap(err, "ShanghaiBlock")
 	}
-	if err := validateBlock(cc.CancunBlock); err != nil {
+	if err := validateBlock(m.CancunBlock); err != nil {
 		return errorsmod.Wrap(err, "CancunBlock")
 	}
 	// NOTE: chain ID is not needed to check config order
-	if err := cc.EthereumConfig(nil).CheckConfigForkOrder(); err != nil {
+	if err := m.EthereumConfig(nil).CheckConfigForkOrder(); err != nil {
 		return errorsmod.Wrap(err, "invalid config fork order")
 	}
 	return nil
 }
 
-func validateHash(hex string) error {
-	if hex != "" && strings.TrimSpace(hex) == "" {
-		return errorsmod.Wrap(ErrInvalidChainConfig, "hash cannot be blank")
-	}
-
-	return nil
-}
-
 func validateBlock(block *sdkmath.Int) error {
-	// nil value means that the fork has not yet been applied
-	if block == nil {
-		return nil
-	}
-
-	if block.IsNegative() {
+	if block == nil || !block.IsZero() {
 		return errorsmod.Wrapf(
-			ErrInvalidChainConfig, "block value cannot be negative: %s", block,
+			ErrInvalidChainConfig, "block value must be zero",
 		)
 	}
 

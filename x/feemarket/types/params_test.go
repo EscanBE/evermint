@@ -16,94 +16,73 @@ func TestParamsTestSuite(t *testing.T) {
 }
 
 func (suite *ParamsTestSuite) TestParamsValidate() {
-	one := sdkmath.OneInt()
-	minus1 := sdkmath.NewInt(-1)
-
 	testCases := []struct {
 		name     string
 		params   Params
 		expError bool
 	}{
 		{
-			name:     "default",
+			name:     "pass - default",
 			params:   DefaultParams(),
 			expError: false,
 		},
 		{
-			name:     "valid",
+			name:     "pass - valid",
 			params:   NewParams(false, 2000000000, sdkmath.LegacyNewDecWithPrec(20, 4)),
 			expError: false,
 		},
 		{
-			name:     "empty",
+			name:     "fail - empty",
 			params:   Params{},
 			expError: true,
 		},
 		{
-			name: "base fee can be nil when base fee disabled",
+			name: "fail - base fee can not be nil when base fee disabled",
 			params: Params{
 				NoBaseFee:   true,
-				BaseFee:     nil,
+				BaseFee:     sdkmath.Int{},
+				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
+			},
+			expError: true,
+		},
+		{
+			name: "fail - base fee cannot be nil when base fee enabled",
+			params: Params{
+				NoBaseFee:   false,
+				BaseFee:     sdkmath.Int{},
+				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
+			},
+			expError: true,
+		},
+		{
+			name: "fail - base fee cannot be negative",
+			params: Params{
+				NoBaseFee:   false,
+				BaseFee:     sdkmath.NewInt(-1),
+				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
+			},
+			expError: true,
+		},
+		{
+			name: "fail - base fee cannot be negative",
+			params: Params{
+				NoBaseFee:   true,
+				BaseFee:     sdkmath.NewInt(-1),
+				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
+			},
+			expError: true,
+		},
+		{
+			name: "pass - base fee positive when base fee disabled",
+			params: Params{
+				NoBaseFee:   true,
+				BaseFee:     sdkmath.OneInt(),
 				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
 			},
 			expError: false,
 		},
 		{
-			name: "base fee can be nil when base fee disabled",
-			params: Params{
-				NoBaseFee:   true,
-				BaseFee:     &sdkmath.Int{},
-				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
-			},
-			expError: false,
-		},
-		{
-			name: "base fee cannot be nil when base fee enabled",
-			params: Params{
-				NoBaseFee:   false,
-				BaseFee:     nil,
-				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
-			},
-			expError: true,
-		},
-		{
-			name: "base fee cannot be nil when base fee enabled",
-			params: Params{
-				NoBaseFee:   false,
-				BaseFee:     &sdkmath.Int{},
-				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
-			},
-			expError: true,
-		},
-		{
-			name: "base fee cannot be negative",
-			params: Params{
-				NoBaseFee:   false,
-				BaseFee:     &minus1,
-				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
-			},
-			expError: true,
-		},
-		{
-			name: "base fee cannot be negative",
-			params: Params{
-				NoBaseFee:   true,
-				BaseFee:     &minus1,
-				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
-			},
-			expError: true,
-		},
-		{
-			name: "base fee must be nil when base fee disabled",
-			params: Params{
-				NoBaseFee:   true,
-				BaseFee:     &one,
-				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
-			},
-			expError: true,
-		},
-		{
-			name:     "invalid: min gas price negative",
+			name:     "fail - invalid: min gas price negative",
 			params:   NewParams(true, 2000000000, sdkmath.LegacyNewDecFromInt(sdkmath.NewInt(-1))),
 			expError: true,
 		},

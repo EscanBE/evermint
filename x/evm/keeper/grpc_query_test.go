@@ -1228,84 +1228,68 @@ func (suite *KeeperTestSuite) TestNonceInQuery() {
 }
 
 func (suite *KeeperTestSuite) TestQueryBaseFee() {
-	var (
-		aux    sdkmath.Int
-		expRes *evmtypes.QueryBaseFeeResponse
-	)
+	var expRes *evmtypes.QueryBaseFeeResponse
 
 	testCases := []struct {
 		name            string
 		malleate        func()
 		expPass         bool
 		enableFeeMarket bool
-		enableLondonHF  bool
 	}{
 		{
 			name: "pass - default Base Fee",
 			malleate: func() {
 				initialBaseFee := sdkmath.NewInt(ethparams.InitialBaseFee)
-				expRes = &evmtypes.QueryBaseFeeResponse{BaseFee: &initialBaseFee}
+				expRes = &evmtypes.QueryBaseFeeResponse{BaseFee: initialBaseFee}
 			},
 			expPass:         true,
 			enableFeeMarket: true,
-			enableLondonHF:  true,
 		},
 		{
 			name: "pass - non-nil Base Fee",
 			malleate: func() {
-				baseFee := sdkmath.OneInt().BigInt()
+				baseFee := sdkmath.OneInt()
 				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, baseFee)
 
-				aux = sdkmath.NewIntFromBigInt(baseFee)
-				expRes = &evmtypes.QueryBaseFeeResponse{BaseFee: &aux}
+				expRes = &evmtypes.QueryBaseFeeResponse{BaseFee: baseFee}
 			},
 			expPass:         true,
 			enableFeeMarket: true,
-			enableLondonHF:  true,
 		},
 		{
-			name: "pass - nil Base Fee when london hardfork not activated",
+			name: "pass - exact Base Fee",
 			malleate: func() {
-				baseFee := sdkmath.OneInt().BigInt()
-				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, baseFee)
+				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, sdkmath.OneInt())
 
-				expRes = &evmtypes.QueryBaseFeeResponse{}
+				expRes = &evmtypes.QueryBaseFeeResponse{
+					BaseFee: sdkmath.OneInt(),
+				}
 			},
 			expPass:         true,
 			enableFeeMarket: true,
-			enableLondonHF:  false,
 		},
 		{
 			name: "pass - zero Base Fee when feemarket not activated",
 			malleate: func() {
-				baseFee := sdkmath.ZeroInt()
-				expRes = &evmtypes.QueryBaseFeeResponse{BaseFee: &baseFee}
+				expRes = &evmtypes.QueryBaseFeeResponse{
+					BaseFee: sdkmath.ZeroInt(),
+				}
 			},
 			expPass:         true,
 			enableFeeMarket: false,
-			enableLondonHF:  true,
 		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.enableFeemarket = tc.enableFeeMarket
-			suite.enableLondonHF = tc.enableLondonHF
 			suite.SetupTest()
 
 			tc.malleate()
 
 			res, err := suite.queryClient.BaseFee(suite.ctx.Context(), &evmtypes.QueryBaseFeeRequest{})
 			if tc.expPass {
-				str := func(num *sdkmath.Int) string {
-					if res != nil && res.BaseFee != nil && !res.BaseFee.IsNil() {
-						return res.BaseFee.String()
-					} else {
-						return "nil"
-					}
-				}
-
 				suite.Require().NotNil(res)
-				suite.Require().Equal(str(expRes.BaseFee), str(res.BaseFee))
+				suite.Require().Equal(expRes.BaseFee.String(), res.BaseFee.String())
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -1313,7 +1297,6 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 		})
 	}
 	suite.enableFeemarket = false
-	suite.enableLondonHF = true
 }
 
 func (suite *KeeperTestSuite) TestEthCall() {

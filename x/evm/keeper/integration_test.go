@@ -141,7 +141,7 @@ func setupTestWithContext(valMinGasPrice string, minGasPrice sdkmath.LegacyDec, 
 	params.MinGasPrice = minGasPrice
 	err := s.app.FeeMarketKeeper.SetParams(s.ctx, params)
 	s.Require().NoError(err)
-	s.app.FeeMarketKeeper.SetBaseFee(s.ctx, baseFee.BigInt())
+	s.app.FeeMarketKeeper.SetBaseFee(s.ctx, baseFee)
 	s.Commit()
 
 	return privKey, msg

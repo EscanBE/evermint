@@ -1,18 +1,17 @@
 package evm
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"math/big"
 
+	"github.com/EscanBE/evermint/v12/x/evm/statedb"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdktxtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/vm"
-	ethparams "github.com/ethereum/go-ethereum/params"
-
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 )
 
 // EVMKeeper defines the expected keeper interface used on the AnteHandler
@@ -39,7 +38,7 @@ type FeeMarketKeeper interface {
 type DynamicFeeEVMKeeper interface {
 	ChainID() *big.Int
 	GetParams(ctx sdk.Context) evmtypes.Params
-	GetBaseFee(ctx sdk.Context, ethCfg *ethparams.ChainConfig) *big.Int
+	GetBaseFee(ctx sdk.Context) sdkmath.Int
 }
 
 type protoTxProvider interface {

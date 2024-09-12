@@ -26,7 +26,7 @@ type EvmTxArgs struct {
 	Accesses  *ethtypes.AccessList
 }
 
-// GetTxPriority returns the priority of a given Ethereum tx. It relies of the
+// GetTxPriority returns the priority of a given Ethereum tx. It relies on the
 // priority reduction global variable to calculate the tx priority given the tx
 // tip price:
 //
@@ -34,8 +34,8 @@ type EvmTxArgs struct {
 func GetTxPriority(txData TxData, baseFee *big.Int) (priority int64) {
 	// calculate priority based on effective gas price
 	tipPrice := txData.EffectiveGasPrice(baseFee)
-	// if london hardfork is not enabled, tipPrice is the gasPrice
-	if baseFee != nil {
+
+	if txData.TxType() != ethtypes.LegacyTxType {
 		tipPrice = new(big.Int).Sub(tipPrice, baseFee)
 	}
 
