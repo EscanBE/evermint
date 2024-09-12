@@ -34,7 +34,7 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 		ethCfg := params.ChainConfig.EthereumConfig(k.ChainID())
 
 		baseFee := k.GetBaseFee(ctx, ethCfg)
-		if baseFee == nil || baseFee.Sign() != 1 {
+		if baseFee.Sign() != 1 {
 			// fallback to min-gas-prices logic
 			return checkTxFeeWithValidatorMinGasPrices(ctx, feeTx)
 		}
@@ -62,14 +62,13 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 		fee := feeCoins.AmountOfNoDenomValidation(denom)
 
 		feeCap := fee.Quo(sdkmath.NewIntFromUint64(gas))
-		baseFeeInt := sdkmath.NewIntFromBigInt(baseFee)
 
-		if feeCap.LT(baseFeeInt) {
-			return nil, 0, errorsmod.Wrapf(errortypes.ErrInsufficientFee, "gas prices too low, got: %s%s required: %s%s. Please retry using a higher gas price or a higher fee", feeCap, denom, baseFeeInt, denom)
+		if feeCap.LT(baseFee) {
+			return nil, 0, errorsmod.Wrapf(errortypes.ErrInsufficientFee, "gas prices too low, got: %s%s required: %s%s. Please retry using a higher gas price or a higher fee", feeCap, denom, baseFee, denom)
 		}
 
 		// calculate the effective gas price using the EIP-1559 logic.
-		effectivePrice := sdkmath.NewIntFromBigInt(evmtypes.EffectiveGasPrice(baseFeeInt.BigInt(), feeCap.BigInt(), maxPriorityPrice.BigInt()))
+		effectivePrice := sdkmath.NewIntFromBigInt(evmtypes.EffectiveGasPrice(baseFee.BigInt(), feeCap.BigInt(), maxPriorityPrice.BigInt()))
 
 		// NOTE: create a new coins slice without having to validate the denom
 		effectiveFee := sdk.Coins{
@@ -79,7 +78,7 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 			},
 		}
 
-		bigPriority := effectivePrice.Sub(baseFeeInt).Quo(evmtypes.DefaultPriorityReduction)
+		bigPriority := effectivePrice.Sub(baseFee).Quo(evmtypes.DefaultPriorityReduction)
 		priority := int64(math.MaxInt64)
 
 		if bigPriority.IsInt64() {

@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"math/big"
-
 	sdkmath "cosmossdk.io/math"
 
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
@@ -33,7 +31,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params feemarkettypes.Params) error {
 	store := ctx.KVStore(k.storeKey)
 
 	if err := params.Validate(); err != nil {
-		panic(err)
+		return err
 	}
 
 	bz, err := k.cdc.Marshal(&params)
@@ -57,14 +55,14 @@ func (k Keeper) GetBaseFeeEnabled(ctx sdk.Context) bool {
 }
 
 // GetBaseFee gets the base fee from the store and returns as big.Int
-func (k Keeper) GetBaseFee(ctx sdk.Context) *big.Int {
-	return k.GetParams(ctx).BaseFee.BigInt()
+func (k Keeper) GetBaseFee(ctx sdk.Context) sdkmath.Int {
+	return k.GetParams(ctx).BaseFee
 }
 
 // SetBaseFee set's the base fee in the store
-func (k Keeper) SetBaseFee(ctx sdk.Context, baseFee *big.Int) {
+func (k Keeper) SetBaseFee(ctx sdk.Context, baseFee sdkmath.Int) {
 	params := k.GetParams(ctx)
-	params.BaseFee = sdkmath.NewIntFromBigInt(baseFee)
+	params.BaseFee = baseFee
 
 	err := k.SetParams(ctx, params)
 	if err != nil {

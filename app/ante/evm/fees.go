@@ -23,28 +23,10 @@ type EthMinGasPriceDecorator struct {
 	evmKeeper  EVMKeeper
 }
 
-// EthMempoolFeeDecorator will check if the transaction's effective fee is at least as large
-// as the local validator's minimum gasFee (defined in validator config).
-// If fee is too low, decorator returns error and tx is rejected from mempool.
-// Note this only applies when ctx.CheckTx = true
-// If fee is high enough or not CheckTx, then call next AnteHandler
-// CONTRACT: Tx must implement FeeTx to use MempoolFeeDecorator
-type EthMempoolFeeDecorator struct {
-	evmKeeper EVMKeeper
-}
-
 // NewEthMinGasPriceDecorator creates a new MinGasPriceDecorator instance used only for
 // Ethereum transactions.
 func NewEthMinGasPriceDecorator(fk FeeMarketKeeper, ek EVMKeeper) EthMinGasPriceDecorator {
 	return EthMinGasPriceDecorator{feesKeeper: fk, evmKeeper: ek}
-}
-
-// NewEthMempoolFeeDecorator creates a new NewEthMempoolFeeDecorator instance used only for
-// Ethereum transactions.
-func NewEthMempoolFeeDecorator(ek EVMKeeper) EthMempoolFeeDecorator {
-	return EthMempoolFeeDecorator{
-		evmKeeper: ek,
-	}
 }
 
 // AnteHandle ensures that the effective fee from the transaction is greater than the
@@ -82,7 +64,7 @@ func (empd EthMinGasPriceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 		}
 
 		if txData.TxType() != ethtypes.LegacyTxType {
-			feeAmt = msgEthTx.GetEffectiveFee(baseFee)
+			feeAmt = msgEthTx.GetEffectiveFee(baseFee.BigInt())
 		}
 
 		gasLimit := sdkmath.LegacyNewDecFromBigInt(new(big.Int).SetUint64(msgEthTx.GetGas()))
@@ -102,40 +84,50 @@ func (empd EthMinGasPriceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 	return next(ctx, tx, simulate)
 }
 
+// EthMempoolFeeDecorator will check if the transaction's effective fee is at least as large
+// as the local validator's minimum gasFee (defined in validator config).
+// If fee is too low, decorator returns error and tx is rejected from mempool.
+// Note this only applies when ctx.CheckTx = true
+// If fee is high enough or not CheckTx, then call next AnteHandler
+// CONTRACT: Tx must implement FeeTx to use MempoolFeeDecorator
+type EthMempoolFeeDecorator struct {
+	evmKeeper EVMKeeper
+}
+
+// NewEthMempoolFeeDecorator creates a new NewEthMempoolFeeDecorator instance used only for
+// Ethereum transactions.
+func NewEthMempoolFeeDecorator(ek EVMKeeper) EthMempoolFeeDecorator {
+	return EthMempoolFeeDecorator{
+		evmKeeper: ek,
+	}
+}
+
 // AnteHandle ensures that the provided fees meet a minimum threshold for the validator.
 // This check only for local mempool purposes, and thus it is only run on (Re)CheckTx.
 // The logic is also skipped if the London hard fork and EIP-1559 are enabled.
+// TODO: remove the duplicated logic in the DynamicFeeCheck
 func (mfd EthMempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	if !ctx.IsCheckTx() || simulate {
 		return next(ctx, tx, simulate)
 	}
+
 	evmParams := mfd.evmKeeper.GetParams(ctx)
-	chainCfg := evmParams.GetChainConfig()
-	ethCfg := chainCfg.EthereumConfig(mfd.evmKeeper.ChainID())
-
-	baseFee := mfd.evmKeeper.GetBaseFee(ctx, ethCfg)
-	// skip check as the London hard fork and EIP-1559 are enabled
-	if baseFee != nil {
-		return next(ctx, tx, simulate)
-	}
-
 	evmDenom := evmParams.GetEvmDenom()
 	minGasPrice := ctx.MinGasPrices().AmountOf(evmDenom)
 
-	{
-		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+	msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
-		fee := sdkmath.LegacyNewDecFromBigInt(msgEthTx.GetFee())
-		gasLimit := sdkmath.LegacyNewDecFromBigInt(new(big.Int).SetUint64(msgEthTx.GetGas()))
-		requiredFee := minGasPrice.Mul(gasLimit)
+	fee := sdkmath.LegacyNewDecFromBigInt(msgEthTx.GetFee())
 
-		if fee.LT(requiredFee) {
-			return ctx, errorsmod.Wrapf(
-				errortypes.ErrInsufficientFee,
-				"insufficient fee; got: %s required: %s",
-				fee, requiredFee,
-			)
-		}
+	gasLimit := sdkmath.LegacyNewDecFromBigInt(new(big.Int).SetUint64(msgEthTx.GetGas()))
+	requiredFee := minGasPrice.Mul(gasLimit)
+
+	if fee.LT(requiredFee) {
+		return ctx, errorsmod.Wrapf(
+			errortypes.ErrInsufficientFee,
+			"insufficient fee; got: %s required: %s",
+			fee, requiredFee,
+		)
 	}
 
 	return next(ctx, tx, simulate)

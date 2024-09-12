@@ -28,7 +28,7 @@ func (k *Keeper) EVMConfig(ctx sdk.Context, proposerAddress sdk.ConsAddress, cha
 		Params:      params,
 		ChainConfig: ethCfg,
 		CoinBase:    coinbase,
-		BaseFee:     baseFee,
+		BaseFee:     baseFee.BigInt(),
 	}, nil
 }
 

@@ -14,7 +14,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // EthSetupContextDecorator is adapted from SetUpContextDecorator from cosmos-sdk, it ignores gas consumption
@@ -176,10 +175,6 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 	txGasLimit := uint64(0)
 
 	evmParams := vbd.evmKeeper.GetParams(ctx)
-	chainCfg := evmParams.GetChainConfig()
-	chainID := vbd.evmKeeper.ChainID()
-	ethCfg := chainCfg.EthereumConfig(chainID)
-	baseFee := vbd.evmKeeper.GetBaseFee(ctx, ethCfg)
 	enableCreate := evmParams.GetEnableCreate()
 	enableCall := evmParams.GetEnableCall()
 	evmDenom := evmParams.GetEvmDenom()
@@ -203,10 +198,6 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 			return ctx, errorsmod.Wrap(evmtypes.ErrCreateDisabled, "failed to create new contract")
 		} else if !enableCall && txData.GetTo() != nil {
 			return ctx, errorsmod.Wrap(evmtypes.ErrCallDisabled, "failed to call contract")
-		}
-
-		if baseFee == nil && txData.TxType() == ethtypes.DynamicFeeTxType {
-			return ctx, errorsmod.Wrap(ethtypes.ErrTxTypeNotSupported, "dynamic fee tx not supported")
 		}
 
 		txFee = txFee.Add(sdk.Coin{Denom: evmDenom, Amount: sdkmath.NewIntFromBigInt(txData.Fee())})

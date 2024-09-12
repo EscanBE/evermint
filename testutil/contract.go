@@ -50,7 +50,7 @@ func DeployContract(
 		ChainID:   chainID,
 		Nonce:     nonce,
 		GasLimit:  gas,
-		GasFeeCap: chainApp.FeeMarketKeeper.GetBaseFee(ctx),
+		GasFeeCap: chainApp.FeeMarketKeeper.GetBaseFee(ctx).BigInt(),
 		GasTipCap: big.NewInt(1),
 		Input:     data,
 		Accesses:  &ethtypes.AccessList{},

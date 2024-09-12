@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"math/big"
-
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
@@ -66,7 +64,7 @@ func (k *Keeper) DeductTxCostsFromUserBalance(
 func VerifyFee(
 	txData evmtypes.TxData,
 	denom string,
-	baseFee *big.Int,
+	baseFee sdkmath.Int,
 	homestead, istanbul, isCheckTx bool,
 ) (sdk.Coins, error) {
 	isContractCreation := txData.GetTo() == nil
@@ -95,14 +93,14 @@ func VerifyFee(
 		)
 	}
 
-	if baseFee != nil && txData.GetGasFeeCap().Cmp(baseFee) < 0 {
+	if txData.GetGasFeeCap().Cmp(baseFee.BigInt()) < 0 {
 		return nil, errorsmod.Wrapf(errortypes.ErrInsufficientFee,
 			"the tx gasfeecap is lower than the tx baseFee: %s (gasfeecap), %s (basefee) ",
 			txData.GetGasFeeCap(),
 			baseFee)
 	}
 
-	feeAmt := txData.EffectiveFee(baseFee)
+	feeAmt := txData.EffectiveFee(baseFee.BigInt())
 	if feeAmt.Sign() == 0 {
 		// zero fee, no need to deduct
 		return sdk.Coins{}, nil

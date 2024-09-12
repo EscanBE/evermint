@@ -112,7 +112,7 @@ func (suite *KeeperTestSuite) SetupAppWithT(checkTx bool, t require.TestingT) {
 			feemarketGenesis.Params.NoBaseFee = false
 		} else {
 			feemarketGenesis.Params.NoBaseFee = true
-			feemarketGenesis.Params.BaseFee = nil
+			feemarketGenesis.Params.BaseFee = sdkmath.ZeroInt()
 		}
 		genesis[feemarkettypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(feemarketGenesis)
 		if !suite.enableLondonHF {

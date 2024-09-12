@@ -163,7 +163,7 @@ func RegisterEstimateGas(queryClient *mocks.EVMQueryClient, args evmtypes.Transa
 // BaseFee
 func RegisterBaseFee(queryClient *mocks.EVMQueryClient, baseFee sdkmath.Int) {
 	queryClient.On("BaseFee", rpc.ContextWithHeight(1), &evmtypes.QueryBaseFeeRequest{}).
-		Return(&evmtypes.QueryBaseFeeResponse{BaseFee: &baseFee}, nil)
+		Return(&evmtypes.QueryBaseFeeResponse{BaseFee: baseFee}, nil)
 }
 
 // Base fee returns error
@@ -183,7 +183,7 @@ func TestRegisterBaseFee(t *testing.T) {
 	queryClient := mocks.NewEVMQueryClient(t)
 	RegisterBaseFee(queryClient, baseFee)
 	res, err := queryClient.BaseFee(rpc.ContextWithHeight(1), &evmtypes.QueryBaseFeeRequest{})
-	require.Equal(t, &evmtypes.QueryBaseFeeResponse{BaseFee: &baseFee}, res)
+	require.Equal(t, &evmtypes.QueryBaseFeeResponse{BaseFee: baseFee}, res)
 	require.NoError(t, err)
 }
 

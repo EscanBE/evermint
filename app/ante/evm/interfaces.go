@@ -1,6 +1,7 @@
 package evm
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -39,7 +40,7 @@ type FeeMarketKeeper interface {
 type DynamicFeeEVMKeeper interface {
 	ChainID() *big.Int
 	GetParams(ctx sdk.Context) evmtypes.Params
-	GetBaseFee(ctx sdk.Context, ethCfg *ethparams.ChainConfig) *big.Int
+	GetBaseFee(ctx sdk.Context, ethCfg *ethparams.ChainConfig) sdkmath.Int
 }
 
 type protoTxProvider interface {

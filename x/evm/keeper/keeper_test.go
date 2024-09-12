@@ -121,7 +121,7 @@ func (suite *KeeperTestSuite) TestBaseFee() {
 			params := suite.app.EvmKeeper.GetParams(suite.ctx)
 			ethCfg := params.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
 			baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx, ethCfg)
-			suite.Require().Equal(tc.expectBaseFee, baseFee)
+			suite.Require().Equal(tc.expectBaseFee, baseFee.BigInt())
 		})
 	}
 	suite.enableFeemarket = false

@@ -217,7 +217,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 			),
 		)
 
-		priority := evmtypes.GetTxPriority(txData, baseFee)
+		priority := evmtypes.GetTxPriority(txData, baseFee.BigInt())
 
 		if priority < minPriority {
 			minPriority = priority
@@ -281,7 +281,7 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 
 		baseFee := ctd.evmKeeper.GetBaseFee(ctx, ethCfg)
 
-		coreMsg, err := msgEthTx.AsMessage(signer, baseFee)
+		coreMsg, err := msgEthTx.AsMessage(signer, baseFee.BigInt())
 		if err != nil {
 			return ctx, errorsmod.Wrapf(
 				err,
@@ -290,13 +290,7 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 		}
 
 		if evmtypes.IsLondon(ethCfg, ctx.BlockHeight()) {
-			if baseFee == nil {
-				return ctx, errorsmod.Wrap(
-					evmtypes.ErrInvalidBaseFee,
-					"base fee is supported but evm block context value is nil",
-				)
-			}
-			if coreMsg.GasFeeCap().Cmp(baseFee) < 0 {
+			if coreMsg.GasFeeCap().Cmp(baseFee.BigInt()) < 0 {
 				return ctx, errorsmod.Wrapf(
 					errortypes.ErrInsufficientFee,
 					"max fee per gas less than block base fee (%s < %s)",
@@ -310,7 +304,7 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 			ChainConfig: ethCfg,
 			Params:      params,
 			CoinBase:    common.Address{},
-			BaseFee:     baseFee,
+			BaseFee:     baseFee.BigInt(),
 		}
 
 		stateDB := statedb.New(ctx, ctd.evmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash())))

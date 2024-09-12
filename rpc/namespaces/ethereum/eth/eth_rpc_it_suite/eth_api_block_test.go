@@ -418,7 +418,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 			ChainID:   evmKeeper.ChainID(),
 			Nonce:     nonceSender,
 			GasLimit:  300_000,
-			GasFeeCap: suite.App().FeeMarketKeeper().GetBaseFee(suite.Ctx()),
+			GasFeeCap: suite.App().FeeMarketKeeper().GetBaseFee(suite.Ctx()).BigInt(),
 			GasTipCap: big.NewInt(1),
 			To: func() *common.Address {
 				ethAddr := receiver.GetEthAddress()

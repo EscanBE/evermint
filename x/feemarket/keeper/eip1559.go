@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/consensus/misc"
@@ -13,15 +14,15 @@ import (
 
 // CalculateBaseFee calculates the base fee for the next block based on current block.
 // This is only calculated once per block during EndBlock.
-// If the NoBaseFee parameter is enabled, this function returns nil.
+// If the NoBaseFee parameter is enabled, this function returns zero.
 // NOTE: This code is inspired from the go-ethereum EIP1559 implementation and adapted to Cosmos SDK-based
 // chains. For the canonical code refer to: https://github.com/ethereum/go-ethereum/blob/v1.10.26/consensus/misc/eip1559.go
-func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
+func (k Keeper) CalculateBaseFee(ctx sdk.Context) sdkmath.Int {
 	params := k.GetParams(ctx)
 
 	// Ignore the calculation if not enabled
 	if params.NoBaseFee {
-		return big.NewInt(0)
+		return sdkmath.ZeroInt()
 	}
 
 	var gasLimit *big.Int
@@ -32,17 +33,15 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 		gasLimit = new(big.Int).SetUint64(math.MaxUint64)
 	}
 
-	baseFee := params.BaseFee.BigInt()
-
 	nextBaseFee := misc.CalcBaseFee(k.evmKeeper.GetChainConfig(ctx), &ethtypes.Header{
 		Number:   big.NewInt(ctx.BlockHeight()),
 		GasLimit: gasLimit.Uint64(),
 		GasUsed:  ctx.BlockGasMeter().GasConsumedToLimit(),
-		BaseFee:  baseFee,
+		BaseFee:  params.BaseFee.BigInt(),
 	})
 
 	// Set global min gas price as lower bound of the base fee, transactions below
 	// the min gas price don't even reach the mempool.
 	minGasPrice := params.MinGasPrice.TruncateInt().BigInt()
-	return math.BigMax(nextBaseFee, minGasPrice)
+	return sdkmath.NewIntFromBigInt(math.BigMax(nextBaseFee, minGasPrice))
 }

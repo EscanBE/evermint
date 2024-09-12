@@ -54,11 +54,11 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 		{
 			name: "pass - non-nil Base Fee",
 			malleate: func() {
-				baseFee := sdkmath.OneInt().BigInt()
+				baseFee := sdkmath.OneInt()
 				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, baseFee)
 
 				expRes = &feemarkettypes.QueryBaseFeeResponse{
-					BaseFee: sdkmath.NewIntFromBigInt(baseFee),
+					BaseFee: baseFee,
 				}
 			},
 			expPass: true,

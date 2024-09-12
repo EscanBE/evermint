@@ -60,18 +60,10 @@ func (b *Backend) GlobalMinGasPrice() (sdkmath.LegacyDec, error) {
 }
 
 // BaseFee returns the base fee tracked by the Fee Market module.
-// If the base fee is not enabled globally, the query returns nil.
-// If the London hard fork is not activated at the current height, the query will
-// return nil.
 func (b *Backend) BaseFee(blockRes *cmtrpctypes.ResultBlockResults) (*big.Int, error) {
-	// return BaseFee if London hard fork is activated and feemarket is enabled
 	res, err := b.queryClient.BaseFee(rpctypes.ContextWithHeight(blockRes.Height), &evmtypes.QueryBaseFeeRequest{})
 	if err != nil {
 		return nil, err
-	}
-
-	if res.BaseFee == nil {
-		return nil, nil
 	}
 
 	return res.BaseFee.BigInt(), nil

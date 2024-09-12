@@ -763,7 +763,7 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 
 		baseFee := suite.App().FeeMarketKeeper().GetBaseFee(suite.Ctx())
 		gasTipCap := big.NewInt(10000)
-		gasFeeCap := new(big.Int).Mul(baseFee, gasTipCap)
+		gasFeeCap := new(big.Int).Mul(baseFee.BigInt(), gasTipCap)
 		evmTxArgs := &evmtypes.EvmTxArgs{
 			From:      sender.GetEthAddress(),
 			Nonce:     suite.App().EvmKeeper().GetNonce(suite.Ctx(), sender.GetEthAddress()),
@@ -793,7 +793,7 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 			GasLimit:  21000,
 			Input:     nil,
 			GasFeeCap: nil,
-			GasPrice:  baseFee,
+			GasPrice:  baseFee.BigInt(),
 			ChainID:   suite.App().EvmKeeper().ChainID(),
 			Amount:    big.NewInt(1),
 			GasTipCap: nil,
@@ -962,7 +962,7 @@ func (suite *EthRpcTestSuite) Test_SendTransaction() {
 			From:       &fromAddr,
 			To:         &toAddr,
 			Gas:        (*hexutil.Uint64)(&gas),
-			GasPrice:   (*hexutil.Big)(gasPrice),
+			GasPrice:   (*hexutil.Big)(gasPrice.BigInt()),
 			Value:      (*hexutil.Big)(big.NewInt(1)),
 			Nonce:      &nonce,
 			Data:       nil,

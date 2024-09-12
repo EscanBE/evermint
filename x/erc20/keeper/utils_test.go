@@ -275,7 +275,7 @@ func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transfer
 		Nonce:     nonce,
 		To:        &contractAddr,
 		GasLimit:  res.Gas,
-		GasFeeCap: suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx),
+		GasFeeCap: suite.app.FeeMarketKeeper.GetBaseFee(suite.ctx).BigInt(),
 		GasTipCap: big.NewInt(1),
 		Input:     transferData,
 		Accesses:  &ethtypes.AccessList{},

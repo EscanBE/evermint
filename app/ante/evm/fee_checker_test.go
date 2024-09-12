@@ -25,15 +25,15 @@ import (
 var _ evmante.DynamicFeeEVMKeeper = MockEVMKeeper{}
 
 type MockEVMKeeper struct {
-	BaseFee        *big.Int
+	BaseFee        sdkmath.Int
 	EnableLondonHF bool
 }
 
-func (m MockEVMKeeper) GetBaseFee(_ sdk.Context, _ *ethparams.ChainConfig) *big.Int {
+func (m MockEVMKeeper) GetBaseFee(_ sdk.Context, _ *ethparams.ChainConfig) sdkmath.Int {
 	if m.EnableLondonHF {
 		return m.BaseFee
 	}
-	return nil
+	return sdkmath.ZeroInt()
 }
 
 func (m MockEVMKeeper) GetParams(_ sdk.Context) evmtypes.Params {
@@ -121,7 +121,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 			name: "fail - dynamic fee",
 			ctx:  deliverTxCtx,
 			keeper: MockEVMKeeper{
-				EnableLondonHF: true, BaseFee: big.NewInt(1),
+				EnableLondonHF: true, BaseFee: sdkmath.OneInt(),
 			},
 			buildTx: func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder()
@@ -136,7 +136,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 			name: "pass - dynamic fee",
 			ctx:  deliverTxCtx,
 			keeper: MockEVMKeeper{
-				EnableLondonHF: true, BaseFee: big.NewInt(10),
+				EnableLondonHF: true, BaseFee: sdkmath.NewInt(10),
 			},
 			buildTx: func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder()
@@ -152,7 +152,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 			name: "pass - dynamic fee priority",
 			ctx:  deliverTxCtx,
 			keeper: MockEVMKeeper{
-				EnableLondonHF: true, BaseFee: big.NewInt(10),
+				EnableLondonHF: true, BaseFee: sdkmath.NewInt(10),
 			},
 			buildTx: func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder()
@@ -168,7 +168,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 			name: "pass - dynamic fee empty tipFeeCap",
 			ctx:  deliverTxCtx,
 			keeper: MockEVMKeeper{
-				EnableLondonHF: true, BaseFee: big.NewInt(10),
+				EnableLondonHF: true, BaseFee: sdkmath.NewInt(10),
 			},
 			buildTx: func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder().(authtx.ExtensionOptionsTxBuilder)
@@ -188,7 +188,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 			name: "pass - dynamic fee tipFeeCap",
 			ctx:  deliverTxCtx,
 			keeper: MockEVMKeeper{
-				EnableLondonHF: true, BaseFee: big.NewInt(10),
+				EnableLondonHF: true, BaseFee: sdkmath.NewInt(10),
 			},
 			buildTx: func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder().(authtx.ExtensionOptionsTxBuilder)
@@ -210,7 +210,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 			name: "fail - negative dynamic fee tipFeeCap",
 			ctx:  deliverTxCtx,
 			keeper: MockEVMKeeper{
-				EnableLondonHF: true, BaseFee: big.NewInt(10),
+				EnableLondonHF: true, BaseFee: sdkmath.NewInt(10),
 			},
 			buildTx: func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder().(authtx.ExtensionOptionsTxBuilder)
@@ -235,7 +235,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 				WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(1e9)))),
 			keeper: MockEVMKeeper{
 				EnableLondonHF: true,
-				BaseFee:        big.NewInt(1),
+				BaseFee:        sdkmath.NewInt(1),
 			},
 			buildTx: func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder().(authtx.ExtensionOptionsTxBuilder)

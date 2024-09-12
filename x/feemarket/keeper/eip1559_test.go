@@ -1,9 +1,6 @@
 package keeper_test
 
 import (
-	"github.com/ethereum/go-ethereum/common"
-	"math/big"
-
 	storetypes "cosmossdk.io/store/types"
 
 	sdkmath "cosmossdk.io/math"
@@ -20,21 +17,21 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 		NoBaseFee          bool
 		parentBlockGasUsed uint64
 		minGasPrice        sdkmath.LegacyDec
-		expFee             *big.Int
+		expFee             sdkmath.Int
 	}{
 		{
 			name:               "without BaseFee",
 			NoBaseFee:          true,
 			parentBlockGasUsed: 0,
 			minGasPrice:        sdkmath.LegacyZeroDec(),
-			expFee:             common.Big0,
+			expFee:             sdkmath.ZeroInt(),
 		},
 		{
 			name:               "with BaseFee - initial EIP-1559 block",
 			NoBaseFee:          false,
 			parentBlockGasUsed: 0,
 			minGasPrice:        sdkmath.LegacyZeroDec(),
-			expFee:             big.NewInt(875000000),
+			expFee:             sdkmath.NewInt(875000000),
 		},
 		{
 			name:               "with BaseFee - parent block used the same gas as its target (ElasticityMultiplier = 2)",
@@ -48,35 +45,35 @@ func (suite *KeeperTestSuite) TestCalculateBaseFee() {
 			NoBaseFee:          false,
 			parentBlockGasUsed: blockGasLimit / ethparams.ElasticityMultiplier,
 			minGasPrice:        sdkmath.LegacyNewDec(1500000000),
-			expFee:             big.NewInt(1500000000),
+			expFee:             sdkmath.NewInt(1500000000),
 		},
 		{
 			name:               "with BaseFee - parent block used more gas than its target (ElasticityMultiplier = 2)",
 			NoBaseFee:          false,
 			parentBlockGasUsed: blockGasLimit,
 			minGasPrice:        sdkmath.LegacyZeroDec(),
-			expFee:             big.NewInt(1125000000),
+			expFee:             sdkmath.NewInt(1125000000),
 		},
 		{
 			name:               "with BaseFee - parent block used more gas than its target, with higher min gas price (ElasticityMultiplier = 2)",
 			NoBaseFee:          false,
 			parentBlockGasUsed: blockGasLimit,
 			minGasPrice:        sdkmath.LegacyNewDec(1500000000),
-			expFee:             big.NewInt(1500000000),
+			expFee:             sdkmath.NewInt(1500000000),
 		},
 		{
 			name:               "with BaseFee - Parent gas used smaller than parent gas target (ElasticityMultiplier = 2)",
 			NoBaseFee:          false,
 			parentBlockGasUsed: blockGasLimit / ethparams.ElasticityMultiplier / 2,
 			minGasPrice:        sdkmath.LegacyZeroDec(),
-			expFee:             big.NewInt(937500000),
+			expFee:             sdkmath.NewInt(937500000),
 		},
 		{
 			name:               "with BaseFee - Parent gas used smaller than parent gas target, with higher min gas price (ElasticityMultiplier = 2)",
 			NoBaseFee:          false,
 			parentBlockGasUsed: blockGasLimit / ethparams.ElasticityMultiplier / 2,
 			minGasPrice:        sdkmath.LegacyNewDec(1500000000),
-			expFee:             big.NewInt(1500000000),
+			expFee:             sdkmath.NewInt(1500000000),
 		},
 	}
 	for _, tc := range testCases {

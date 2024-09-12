@@ -108,7 +108,7 @@ func CreateEthTx(
 		To:        &toAddr,
 		Amount:    amount,
 		GasLimit:  100000,
-		GasFeeCap: chainApp.FeeMarketKeeper.GetBaseFee(ctx),
+		GasFeeCap: chainApp.FeeMarketKeeper.GetBaseFee(ctx).BigInt(),
 		GasTipCap: big.NewInt(1),
 		Accesses:  &ethtypes.AccessList{},
 	}
