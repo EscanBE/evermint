@@ -20,12 +20,13 @@ package keeper
 
 import (
 	"fmt"
+	"math/big"
+
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/params"
-	"math/big"
 )
 
 /*
