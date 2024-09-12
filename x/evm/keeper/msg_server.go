@@ -35,6 +35,25 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 
 	senderAccAddr := sdk.MustAccAddressFromBech32(msg.From)
 	tx := msg.AsTransaction()
+
+	{
+		// restore nonce which increased by ante handle
+		if k.IsSenderNonceIncreasedByAnteHandle(ctx) {
+			acc := k.accountKeeper.GetAccount(ctx, senderAccAddr)
+			if acc == nil {
+				panic(fmt.Sprintf("account %s not found", senderAccAddr))
+			}
+			if acc.GetSequence() != tx.Nonce()+1 {
+				panic(fmt.Sprintf("expected account nonce increased by 1 at this point, got %d, expected %d", acc.GetSequence(), tx.Nonce()+1))
+			}
+			if err := acc.SetSequence(acc.GetSequence() - 1); err != nil {
+				panic(fmt.Sprintf("failed to set account sequence: %v", err))
+			}
+			k.accountKeeper.SetAccount(ctx, acc)
+			k.SetFlagSenderNonceIncreasedByAnteHandle(ctx, false) // immediately remove flag once used
+		}
+	}
+
 	txIndex := k.GetTxCountTransient(ctx) - 1
 
 	labels := []metrics.Label{

@@ -677,9 +677,9 @@ func (suite *EvmTestSuite) TestERC20TransferReverted() {
 			// tx fee should be 100% consumed
 			suite.Require().Equal(new(big.Int).Sub(before, fees[0].Amount.BigInt()), after)
 
-			// nonce should not be increased.
-			nonce2 := k.GetNonce(suite.ctx, suite.from)
-			suite.Require().Equal(nonce, nonce2)
+			// nonce should be increased.
+			nonceLater := k.GetNonce(suite.ctx, suite.from)
+			suite.Require().Equal(nonce+1, nonceLater)
 		})
 	}
 }
@@ -714,10 +714,11 @@ func (suite *EvmTestSuite) TestContractDeploymentRevert() {
 			tx := evmtypes.NewTx(ethTxParams)
 			suite.SignTx(tx)
 
-			// simulate nonce increment in ante handler
+			// simulate nonce increment and flag set in ante handler
 			db := suite.StateDB()
 			db.SetNonce(suite.from, nonce+1)
 			suite.Require().NoError(db.Commit())
+			suite.app.EvmKeeper.SetFlagSenderNonceIncreasedByAnteHandle(suite.ctx, true)
 
 			rsp, err := k.EthereumTx(suite.ctx, tx)
 			suite.Require().NoError(err)

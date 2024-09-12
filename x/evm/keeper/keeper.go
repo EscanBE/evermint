@@ -261,6 +261,23 @@ func (k Keeper) GetTxReceiptsTransient(ctx sdk.Context) (receipts ethtypes.Recei
 	return
 }
 
+// SetFlagSenderNonceIncreasedByAnteHandle sets the flag whether the sender nonce has been increased by AnteHandler.
+func (k Keeper) SetFlagSenderNonceIncreasedByAnteHandle(ctx sdk.Context, increased bool) {
+	store := ctx.TransientStore(k.transientKey)
+	if increased {
+		store.Set(evmtypes.KeyTransientFlagIncreasedSenderNonce, []byte{1})
+	} else {
+		store.Delete(evmtypes.KeyTransientFlagIncreasedSenderNonce)
+	}
+}
+
+// IsSenderNonceIncreasedByAnteHandle returns the flag whether the sender nonce has been increased by AnteHandler.
+func (k Keeper) IsSenderNonceIncreasedByAnteHandle(ctx sdk.Context) bool {
+	store := ctx.TransientStore(k.transientKey)
+	bz := store.Get(evmtypes.KeyTransientFlagIncreasedSenderNonce)
+	return len(bz) > 0 && bz[0] == 1
+}
+
 // ----------------------------------------------------------------------------
 // Storage
 // ----------------------------------------------------------------------------

@@ -168,7 +168,7 @@ func (suite *AnteTestSuite) TestNewExternalOwnedAccountVerificationDecorator() {
 
 func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
 	suite.SetupTest()
-	dec := ethante.NewEthIncrementSenderSequenceDecorator(suite.app.AccountKeeper)
+	dec := ethante.NewEthIncrementSenderSequenceDecorator(suite.app.AccountKeeper, suite.app.EvmKeeper)
 
 	addr := testutiltx.GenerateAddress()
 
@@ -192,7 +192,7 @@ func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
 		expPanic  bool
 	}{
 		{
-			name:      "ReCheckTx",
+			name:      "fail - ReCheckTx",
 			tx:        &testutiltx.InvalidTx{},
 			malleate:  func() {},
 			reCheckTx: true,
@@ -200,7 +200,7 @@ func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
 			expPanic:  true,
 		},
 		{
-			name:      "invalid transaction type",
+			name:      "fail - invalid transaction type",
 			tx:        &testutiltx.InvalidTx{},
 			malleate:  func() {},
 			reCheckTx: false,
@@ -208,14 +208,14 @@ func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
 			expPanic:  true,
 		},
 		{
-			name:      "sender account not found",
+			name:      "fail - sender account not found",
 			tx:        tx,
 			malleate:  func() {},
 			reCheckTx: false,
 			expPass:   false,
 		},
 		{
-			name: "sender nonce missmatch",
+			name: "fail - sender nonce missmatch",
 			tx:   tx,
 			malleate: func() {
 				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
@@ -225,7 +225,7 @@ func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
 			expPass:   false,
 		},
 		{
-			name: "success",
+			name: "pass",
 			tx:   tx,
 			malleate: func() {
 				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
@@ -677,7 +677,7 @@ func (suite *AnteTestSuite) TestCanTransferDecorator() {
 }
 
 func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
-	dec := ethante.NewEthIncrementSenderSequenceDecorator(suite.app.AccountKeeper)
+	dec := ethante.NewEthIncrementSenderSequenceDecorator(suite.app.AccountKeeper, suite.app.EvmKeeper)
 	addr, privKey := testutiltx.NewAddrKey()
 
 	ethTxContractParamsNonce0 := &evmtypes.EvmTxArgs{
@@ -717,6 +717,19 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 	}
 	tx2 := evmtypes.NewTx(ethTxParamsNonce1)
 	err = tx2.Sign(suite.ethSigner, testutiltx.NewSigner(privKey))
+	suite.Require().NoError(err)
+
+	ethTxParamsNonce2 := &evmtypes.EvmTxArgs{
+		From:     addr,
+		ChainID:  suite.app.EvmKeeper.ChainID(),
+		Nonce:    2,
+		To:       &to,
+		Amount:   big.NewInt(10),
+		GasLimit: 1000,
+		GasPrice: big.NewInt(1),
+	}
+	tx3 := evmtypes.NewTx(ethTxParamsNonce2)
+	err = tx3.Sign(suite.ethSigner, testutiltx.NewSigner(privKey))
 	suite.Require().NoError(err)
 
 	testCases := []struct {
@@ -768,6 +781,15 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 			expPass:  true,
 			expPanic: false,
 		},
+		{
+			name: "pass - flag sender nonce increased should be set",
+			tx:   tx3,
+			malleate: func() {
+				suite.app.EvmKeeper.SetFlagSenderNonceIncreasedByAnteHandle(suite.ctx, false)
+			},
+			expPass:  true,
+			expPanic: false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -791,7 +813,8 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 				suite.Require().NoError(err)
 
 				nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, addr)
-				suite.Require().Equal(txData.GetNonce()+1, nonce)
+				suite.Equal(txData.GetNonce()+1, nonce)
+				suite.True(suite.app.EvmKeeper.IsSenderNonceIncreasedByAnteHandle(suite.ctx), "flag must be set")
 			} else {
 				suite.Require().Error(err)
 			}

@@ -170,7 +170,7 @@ func (suite *KeeperTestSuite) TestCallEVMWithData() {
 				contract, err := suite.DeployContract("coin", "token", erc20Decimals)
 				suite.Require().NoError(err)
 				account := utiltx.GenerateAddress()
-				data, _ := erc20.Pack("", account)
+				data, _ := erc20.Pack("unknown", account)
 				return data, &contract
 			},
 			expPass: false,
@@ -238,12 +238,12 @@ func (suite *KeeperTestSuite) TestCallEVMWithData() {
 
 			data, contract := tc.malleate()
 
-			res, err := suite.app.Erc20Keeper.CallEVMWithData(suite.ctx, tc.from, contract, data, true)
+			res, err := suite.app.Erc20Keeper.CallEVMWithData(suite.ctx, tc.from, contract, data, false)
 			if tc.expPass {
-				suite.Require().IsTypef(&evmtypes.MsgEthereumTxResponse{}, res, tc.name)
+				suite.Require().NotNil(res)
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().Errorf(err, "result: %v", res)
 			}
 		})
 	}
