@@ -358,8 +358,7 @@ func (k *Keeper) GetBalance(ctx sdk.Context, addr common.Address) *big.Int {
 }
 
 // GetBaseFee returns current base fee.
-// TODO ES: cleanup this method
-func (k Keeper) GetBaseFee(ctx sdk.Context, _ *ethparams.ChainConfig) sdkmath.Int {
+func (k Keeper) GetBaseFee(ctx sdk.Context) sdkmath.Int {
 	return k.feeMarketKeeper.GetBaseFee(ctx)
 }
 

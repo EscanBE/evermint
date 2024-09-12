@@ -39,10 +39,7 @@ func (empd EthMinGasPriceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 		return next(ctx, tx, simulate)
 	}
 
-	evmParams := empd.evmKeeper.GetParams(ctx)
-	chainCfg := evmParams.GetChainConfig()
-	ethCfg := chainCfg.EthereumConfig(empd.evmKeeper.ChainID())
-	baseFee := empd.evmKeeper.GetBaseFee(ctx, ethCfg)
+	baseFee := empd.evmKeeper.GetBaseFee(ctx)
 
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)

@@ -518,9 +518,7 @@ func (suite *KeeperTestSuite) TestVerifyFeeAndDeductTxCostsFromUserBalance() {
 
 			txData, _ := evmtypes.UnpackTxData(tx.Data)
 
-			evmParams := suite.app.EvmKeeper.GetParams(suite.ctx)
-			ethCfg := evmParams.GetChainConfig().EthereumConfig(nil)
-			baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx, ethCfg)
+			baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx)
 			priority := evmtypes.GetTxPriority(txData, baseFee.BigInt())
 
 			fees, err := evmkeeper.VerifyFee(txData, evmtypes.DefaultEVMDenom, baseFee, false, false, suite.ctx.IsCheckTx())

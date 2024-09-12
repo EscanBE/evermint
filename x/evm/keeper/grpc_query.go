@@ -657,10 +657,7 @@ func (k *Keeper) traceTx(
 // BaseFee implements the Query/BaseFee gRPC method
 func (k Keeper) BaseFee(c context.Context, _ *evmtypes.QueryBaseFeeRequest) (*evmtypes.QueryBaseFeeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-
-	params := k.GetParams(ctx)
-	ethCfg := params.ChainConfig.EthereumConfig(k.eip155ChainID)
-	baseFee := k.GetBaseFee(ctx, ethCfg)
+	baseFee := k.GetBaseFee(ctx)
 
 	return &evmtypes.QueryBaseFeeResponse{
 		BaseFee: baseFee,

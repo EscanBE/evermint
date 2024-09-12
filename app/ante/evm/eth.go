@@ -179,7 +179,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 
 	// Use the lowest priority of all the messages as the final one.
 	minPriority := int64(math.MaxInt64)
-	baseFee := egcd.evmKeeper.GetBaseFee(ctx, ethCfg)
+	baseFee := egcd.evmKeeper.GetBaseFee(ctx)
 
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
@@ -279,7 +279,7 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
-		baseFee := ctd.evmKeeper.GetBaseFee(ctx, ethCfg)
+		baseFee := ctd.evmKeeper.GetBaseFee(ctx)
 
 		coreMsg, err := msgEthTx.AsMessage(signer, baseFee.BigInt())
 		if err != nil {
@@ -289,14 +289,12 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 			)
 		}
 
-		if evmtypes.IsLondon(ethCfg, ctx.BlockHeight()) {
-			if coreMsg.GasFeeCap().Cmp(baseFee.BigInt()) < 0 {
-				return ctx, errorsmod.Wrapf(
-					errortypes.ErrInsufficientFee,
-					"max fee per gas less than block base fee (%s < %s)",
-					coreMsg.GasFeeCap(), baseFee,
-				)
-			}
+		if coreMsg.GasFeeCap().Cmp(baseFee.BigInt()) < 0 {
+			return ctx, errorsmod.Wrapf(
+				errortypes.ErrInsufficientFee,
+				"max fee per gas less than block base fee (%s < %s)",
+				coreMsg.GasFeeCap(), baseFee,
+			)
 		}
 
 		// NOTE: pass in an empty coinbase address and nil tracer as we don't need them for the check below

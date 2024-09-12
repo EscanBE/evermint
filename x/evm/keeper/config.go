@@ -23,7 +23,7 @@ func (k *Keeper) EVMConfig(ctx sdk.Context, proposerAddress sdk.ConsAddress, cha
 		return nil, errorsmod.Wrap(err, "failed to obtain coinbase address")
 	}
 
-	baseFee := k.GetBaseFee(ctx, ethCfg)
+	baseFee := k.GetBaseFee(ctx)
 	return &statedb.EVMConfig{
 		Params:      params,
 		ChainConfig: ethCfg,

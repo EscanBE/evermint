@@ -118,9 +118,7 @@ func (suite *KeeperTestSuite) TestBaseFee() {
 			suite.ctx = suite.ctx.WithBlockGasMeter(storetypes.NewGasMeter(100_000))
 
 			suite.app.FeeMarketKeeper.EndBlock(suite.ctx)
-			params := suite.app.EvmKeeper.GetParams(suite.ctx)
-			ethCfg := params.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
-			baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx, ethCfg)
+			baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx)
 			suite.Require().Equal(tc.expectBaseFee, baseFee.BigInt())
 		})
 	}

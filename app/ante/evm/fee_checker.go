@@ -31,9 +31,8 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 
 		params := k.GetParams(ctx)
 		denom := params.EvmDenom
-		ethCfg := params.ChainConfig.EthereumConfig(k.ChainID())
 
-		baseFee := k.GetBaseFee(ctx, ethCfg)
+		baseFee := k.GetBaseFee(ctx)
 		if baseFee.Sign() != 1 {
 			// fallback to min-gas-prices logic
 			return checkTxFeeWithValidatorMinGasPrices(ctx, feeTx)

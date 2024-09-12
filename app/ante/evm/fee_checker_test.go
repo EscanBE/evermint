@@ -19,7 +19,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	ethparams "github.com/ethereum/go-ethereum/params"
 )
 
 var _ evmante.DynamicFeeEVMKeeper = MockEVMKeeper{}
@@ -29,7 +28,7 @@ type MockEVMKeeper struct {
 	EnableLondonHF bool
 }
 
-func (m MockEVMKeeper) GetBaseFee(_ sdk.Context, _ *ethparams.ChainConfig) sdkmath.Int {
+func (m MockEVMKeeper) GetBaseFee(_ sdk.Context) sdkmath.Int {
 	if m.EnableLondonHF {
 		return m.BaseFee
 	}

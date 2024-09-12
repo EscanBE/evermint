@@ -278,9 +278,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 
 	tx := evmtypes.NewTx(ethContractCreationTxParams)
 
-	ethCfg := suite.app.EvmKeeper.GetParams(suite.ctx).
-		ChainConfig.EthereumConfig(chainID)
-	baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx, ethCfg)
+	baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx)
 	suite.Require().Equal(int64(1000000000), baseFee.Int64())
 
 	gasPrice := new(big.Int).Add(baseFee.BigInt(), evmtypes.DefaultPriorityReduction.BigInt())
