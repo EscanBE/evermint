@@ -1,6 +1,7 @@
 package evm_test
 
 import (
+	ethparams "github.com/ethereum/go-ethereum/params"
 	"math"
 	"math/big"
 	"time"
@@ -260,6 +261,9 @@ func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
 }
 
 func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
+	suite.enableFeemarket = true
+	suite.SetupTest()
+
 	chainID := suite.app.EvmKeeper.ChainID()
 	dec := ethante.NewEthGasConsumeDecorator(suite.app.BankKeeper, suite.app.DistrKeeper, suite.app.EvmKeeper, *suite.app.StakingKeeper, config.DefaultMaxTxGasWanted)
 
@@ -279,7 +283,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 	tx := evmtypes.NewTx(ethContractCreationTxParams)
 
 	baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx)
-	suite.Require().Equal(int64(1000000000), baseFee.Int64())
+	suite.Require().Equal(int64(ethparams.InitialBaseFee), baseFee.Int64())
 
 	gasPrice := new(big.Int).Add(baseFee.BigInt(), evmtypes.DefaultPriorityReduction.BigInt())
 

@@ -84,9 +84,6 @@ func (suite *BackendTestSuite) TestSendTransaction() {
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterParamsWithoutHeader(queryClient, 1)
 
-				fmtQueryClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
-				RegisterFeeMarketParamsWithBaseFeeValue(fmtQueryClient, 1, baseFee)
-
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
@@ -114,9 +111,6 @@ func (suite *BackendTestSuite) TestSendTransaction() {
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterParamsWithoutHeader(queryClient, 1)
 
-				fmtQueryClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
-				RegisterFeeMarketParamsWithBaseFeeValue(fmtQueryClient, 1, baseFee)
-
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 
@@ -140,9 +134,6 @@ func (suite *BackendTestSuite) TestSendTransaction() {
 				suite.Require().NoError(err)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterParamsWithoutHeader(queryClient, 1)
-
-				fmtQueryClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
-				RegisterFeeMarketParamsWithBaseFeeValue(fmtQueryClient, 1, baseFee)
 
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
