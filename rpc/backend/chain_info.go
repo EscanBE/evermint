@@ -225,15 +225,6 @@ func (b *Backend) FeeHistory(
 // Although we don't support tx prioritization yet, but we return a positive value to help client to
 // mitigate the base fee changes.
 func (b *Backend) SuggestGasTipCap(baseFee *big.Int) (*big.Int, error) {
-	params, err := b.queryClient.FeeMarket.Params(b.ctx, &feemarkettypes.QueryParamsRequest{})
-	if err != nil {
-		return nil, err
-	}
-	if params.Params.NoBaseFee {
-		// feemarket not enabled
-		return big.NewInt(0), nil
-	}
-
 	// calculate the maximum base fee delta in current block, assuming all block gas limit is consumed
 	// ```
 	// GasTarget = GasLimit / ElasticityMultiplier

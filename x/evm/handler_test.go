@@ -75,9 +75,8 @@ func (suite *EvmTestSuite) DoSetupTest() {
 	consAddress := sdk.ConsAddress(priv.PubKey().Address())
 
 	suite.app = helpers.EthSetup(checkTx, func(chainApp *chainapp.Evermint, genesis chainapp.GenesisState) chainapp.GenesisState {
-		if suite.dynamicTxFee {
+		if suite.dynamicTxFee { // TODO ES: check this option
 			feemarketGenesis := feemarkettypes.DefaultGenesisState()
-			feemarketGenesis.Params.NoBaseFee = false
 			genesis[feemarkettypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(feemarketGenesis)
 		}
 		return genesis

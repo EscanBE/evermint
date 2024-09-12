@@ -14,16 +14,10 @@ import (
 
 // CalculateBaseFee calculates the base fee for the next block based on current block.
 // This is only calculated once per block during EndBlock.
-// If the NoBaseFee parameter is enabled, this function returns zero.
 // NOTE: This code is inspired from the go-ethereum EIP1559 implementation and adapted to Cosmos SDK-based
 // chains. For the canonical code refer to: https://github.com/ethereum/go-ethereum/blob/v1.10.26/consensus/misc/eip1559.go
 func (k Keeper) CalculateBaseFee(ctx sdk.Context) sdkmath.Int {
 	params := k.GetParams(ctx)
-
-	// Ignore the calculation if not enabled
-	if params.NoBaseFee {
-		return sdkmath.ZeroInt()
-	}
 
 	var gasLimit *big.Int
 	// NOTE: a MaxGas equal to -1 means that block gas is unlimited

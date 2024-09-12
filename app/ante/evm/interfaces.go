@@ -31,7 +31,6 @@ type EVMKeeper interface { //nolint: revive
 
 type FeeMarketKeeper interface {
 	GetParams(ctx sdk.Context) (params feemarkettypes.Params)
-	GetBaseFeeEnabled(ctx sdk.Context) bool
 }
 
 // DynamicFeeEVMKeeper is a subset of EVMKeeper interface that supports dynamic fee checker

@@ -18,10 +18,10 @@ func (suite *KeeperTestSuite) TestSetGetParams() {
 	err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
 	suite.Require().NoError(err)
 	testCases := []struct {
-		name      string
-		paramsFun func() interface{}
-		getFun    func() interface{}
-		expected  bool
+		name       string
+		paramsFun  func() interface{}
+		getFun     func() interface{}
+		wantEquals bool
 	}{
 		{
 			name: "pass - Checks if the default params are set correctly",
@@ -31,39 +31,23 @@ func (suite *KeeperTestSuite) TestSetGetParams() {
 			getFun: func() interface{} {
 				return suite.app.FeeMarketKeeper.GetParams(suite.ctx)
 			},
-			expected: true,
+			wantEquals: true,
 		},
 		{
-			name: "pass - Check BaseFeeEnabled is computed with its default params and can be retrieved correctly",
+			name: "pass - Checks if the default params are set correctly",
 			paramsFun: func() interface{} {
-				params.NoBaseFee = false
-				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
-				suite.Require().NoError(err)
-				return true
+				return feemarkettypes.DefaultParams().BaseFee
 			},
 			getFun: func() interface{} {
-				return suite.app.FeeMarketKeeper.GetBaseFeeEnabled(suite.ctx)
+				return suite.app.FeeMarketKeeper.GetParams(suite.ctx).BaseFee
 			},
-			expected: true,
-		},
-		{
-			name: "pass - Check BaseFeeEnabled is computed with alternate params and can be retrieved correctly",
-			paramsFun: func() interface{} {
-				params.NoBaseFee = true
-				err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
-				suite.Require().NoError(err)
-				return true
-			},
-			getFun: func() interface{} {
-				return suite.app.FeeMarketKeeper.GetBaseFeeEnabled(suite.ctx)
-			},
-			expected: false,
+			wantEquals: true,
 		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			outcome := reflect.DeepEqual(tc.paramsFun(), tc.getFun())
-			suite.Require().Equal(tc.expected, outcome)
+			suite.Require().Equal(tc.wantEquals, outcome)
 		})
 	}
 }

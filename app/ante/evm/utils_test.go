@@ -617,18 +617,10 @@ func (suite *AnteTestSuite) CreateTestSingleSignedTx(privKey cryptotypes.PrivKey
 	return txBuilder
 }
 
-// disableBaseFee updates x/feemarket params to disable base fee
-func (suite *AnteTestSuite) disableBaseFee(ctx sdk.Context) {
+// zeroBaseFeeAndMinGasPrice updates x/feemarket params to disable base fee
+func (suite *AnteTestSuite) zeroBaseFeeAndMinGasPrice(ctx sdk.Context) {
 	params := suite.app.FeeMarketKeeper.GetParams(ctx)
-	params.NoBaseFee = true
 	params.BaseFee = sdkmath.ZeroInt()
-	err := suite.app.FeeMarketKeeper.SetParams(ctx, params)
-	suite.Require().NoError(err)
-}
-
-// disableBaseFee updates x/feemarket params to set min gas price to 0
-func (suite *AnteTestSuite) disableMinGasPrice(ctx sdk.Context) {
-	params := suite.app.FeeMarketKeeper.GetParams(ctx)
 	params.MinGasPrice = sdkmath.LegacyZeroDec()
 	err := suite.app.FeeMarketKeeper.SetParams(ctx, params)
 	suite.Require().NoError(err)

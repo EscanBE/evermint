@@ -518,8 +518,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 			tx:       zeroFeeAccessListTx,
 			gasLimit: zeroFeeAccessListTx.GetGas(),
 			malleate: func(ctx sdk.Context) sdk.Context {
-				suite.disableBaseFee(ctx)
-				suite.disableMinGasPrice(ctx)
+				suite.zeroBaseFeeAndMinGasPrice(ctx)
 				return ctx
 			},
 			expPass:     true,
@@ -535,8 +534,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 			tx:       zeroFeeLegacyTx,
 			gasLimit: zeroFeeLegacyTx.GetGas(),
 			malleate: func(ctx sdk.Context) sdk.Context {
-				suite.disableBaseFee(ctx)
-				suite.disableMinGasPrice(ctx)
+				suite.zeroBaseFeeAndMinGasPrice(ctx)
 				return ctx
 			},
 			expPass:     true,

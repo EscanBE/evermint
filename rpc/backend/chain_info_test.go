@@ -245,14 +245,14 @@ func (suite *BackendTestSuite) TestSuggestGasTipCap() {
 		expPass      bool
 	}{
 		{
-			name: "pass - feemarket disabled",
+			name: "pass - when base fee is zero",
 			registerMock: func() {
 				feeMarketParams := feemarkettypes.DefaultParams()
-				feeMarketParams.NoBaseFee = true
+				feeMarketParams.BaseFee = sdkmath.ZeroInt()
 				feeMarketClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
 				RegisterFeeMarketParamsWithValue(feeMarketClient, 1, feeMarketParams)
 			},
-			baseFee:      sdkmath.NewInt(1),
+			baseFee:      sdkmath.ZeroInt(),
 			expGasTipCap: big.NewInt(0),
 			expPass:      true,
 		},
