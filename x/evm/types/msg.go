@@ -31,6 +31,7 @@ var (
 	_ sdk.HasValidateBasic = &MsgEthereumTx{}
 	_ ante.GasTx           = &MsgEthereumTx{}
 	_ sdk.Msg              = &MsgUpdateParams{}
+	// TODO ES: check relates logic, because MsgEthereumTx is not a FeeTx
 
 	_ codectypes.UnpackInterfacesMessage = MsgEthereumTx{}
 )
