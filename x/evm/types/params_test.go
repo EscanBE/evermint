@@ -3,8 +3,6 @@ package types
 import (
 	"testing"
 
-	ethparams "github.com/ethereum/go-ethereum/params"
-
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/stretchr/testify/require"
@@ -105,37 +103,6 @@ func TestValidateChainConfig(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
-		})
-	}
-}
-
-func TestIsLondon(t *testing.T) {
-	testCases := []struct {
-		name   string
-		height int64
-		result bool
-	}{
-		{
-			name:   "Before london block",
-			height: 5,
-			result: false,
-		},
-		{
-			name:   "After london block",
-			height: 12_965_001,
-			result: true,
-		},
-		{
-			name:   "london block",
-			height: 12_965_000,
-			result: true,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			ethConfig := ethparams.MainnetChainConfig
-			require.Equal(t, IsLondon(ethConfig, tc.height), tc.result)
 		})
 	}
 }

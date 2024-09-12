@@ -14,9 +14,9 @@ import (
 )
 
 // EthMinGasPriceDecorator will check if the transaction's fee is at least as large
-// as the MinGasPrices param. If fee is too low, decorator returns error and tx
-// is rejected. This applies to both CheckTx and DeliverTx and regardless
-// if London hard fork or fee market params (EIP-1559) are enabled.
+// as the MinGasPrices param. If fee is too low, decorator returns error and tx is rejected.
+// This applies to both CheckTx and DeliverTx and regardless
+// fee market params (EIP-1559) are enabled.
 // If fee is high enough, then call next AnteHandler
 type EthMinGasPriceDecorator struct {
 	feesKeeper FeeMarketKeeper
@@ -101,7 +101,6 @@ func NewEthMempoolFeeDecorator(ek EVMKeeper) EthMempoolFeeDecorator {
 
 // AnteHandle ensures that the provided fees meet a minimum threshold for the validator.
 // This check only for local mempool purposes, and thus it is only run on (Re)CheckTx.
-// The logic is also skipped if the London hard fork and EIP-1559 are enabled.
 // TODO: remove the duplicated logic in the DynamicFeeCheck
 func (mfd EthMempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	if !ctx.IsCheckTx() || simulate {

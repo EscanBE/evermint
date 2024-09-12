@@ -1,7 +1,6 @@
 package evm_test
 
 import (
-	"math"
 	"testing"
 	"time"
 
@@ -35,7 +34,6 @@ type AnteTestSuite struct {
 	anteHandler              sdk.AnteHandler
 	ethSigner                types.Signer
 	enableFeemarket          bool
-	enableLondonHF           bool
 	evmParamsOption          func(*evmtypes.Params)
 	useLegacyEIP712Extension bool
 	useLegacyEIP712TypedData bool
@@ -58,15 +56,6 @@ func (suite *AnteTestSuite) SetupTest() {
 		}
 		evmGenesis := evmtypes.DefaultGenesisState()
 		evmGenesis.Params.AllowUnprotectedTxs = false
-		if !suite.enableLondonHF {
-			maxInt := sdkmath.NewInt(math.MaxInt64)
-			evmGenesis.Params.ChainConfig.LondonBlock = &maxInt
-			evmGenesis.Params.ChainConfig.ArrowGlacierBlock = &maxInt
-			evmGenesis.Params.ChainConfig.GrayGlacierBlock = &maxInt
-			evmGenesis.Params.ChainConfig.MergeNetsplitBlock = &maxInt
-			evmGenesis.Params.ChainConfig.ShanghaiBlock = &maxInt
-			evmGenesis.Params.ChainConfig.CancunBlock = &maxInt
-		}
 		if suite.evmParamsOption != nil {
 			suite.evmParamsOption(&evmGenesis.Params)
 		}
@@ -121,20 +110,16 @@ func (suite *AnteTestSuite) SetupTest() {
 }
 
 func TestAnteTestSuite(t *testing.T) {
-	suite.Run(t, &AnteTestSuite{
-		enableLondonHF: true,
-	})
+	suite.Run(t, &AnteTestSuite{})
 
 	// Re-run the tests with EIP-712 Legacy encodings to ensure backwards compatibility.
 	// LegacyEIP712Extension should not be run with current TypedData encodings, since they are not compatible.
 	suite.Run(t, &AnteTestSuite{
-		enableLondonHF:           true,
 		useLegacyEIP712Extension: true,
 		useLegacyEIP712TypedData: true,
 	})
 
 	suite.Run(t, &AnteTestSuite{
-		enableLondonHF:           true,
 		useLegacyEIP712Extension: false,
 		useLegacyEIP712TypedData: true,
 	})

@@ -79,40 +79,24 @@ func (suite *KeeperTestSuite) TestWithChainID() {
 func (suite *KeeperTestSuite) TestBaseFee() {
 	testCases := []struct {
 		name            string
-		enableLondonHF  bool
 		enableFeemarket bool
 		expectBaseFee   *big.Int
 	}{
 		{
-			name:            "not enable london HF, not enable feemarket",
-			enableLondonHF:  false,
-			enableFeemarket: false,
-			expectBaseFee:   nil,
-		},
-		{
-			name:            "enable london HF, not enable feemarket",
-			enableLondonHF:  true,
+			name:            "not enable feemarket",
 			enableFeemarket: false,
 			expectBaseFee:   big.NewInt(0),
 		},
 		{
-			name:            "enable london HF, enable feemarket",
-			enableLondonHF:  true,
+			name:            "enable feemarket",
 			enableFeemarket: true,
 			expectBaseFee:   big.NewInt(875000000),
-		},
-		{
-			name:            "not enable london HF, enable feemarket",
-			enableLondonHF:  false,
-			enableFeemarket: true,
-			expectBaseFee:   nil,
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.enableFeemarket = tc.enableFeemarket
-			suite.enableLondonHF = tc.enableLondonHF
 			suite.SetupTest()
 
 			suite.ctx = suite.ctx.WithBlockGasMeter(storetypes.NewGasMeter(100_000))
@@ -123,7 +107,6 @@ func (suite *KeeperTestSuite) TestBaseFee() {
 		})
 	}
 	suite.enableFeemarket = false
-	suite.enableLondonHF = true
 }
 
 func (suite *KeeperTestSuite) TestGetAccountStorage() {

@@ -247,7 +247,6 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 
 	sender := vm.AccountRef(msg.From())
 	contractCreation := msg.To() == nil
-	isLondon := cfg.ChainConfig.IsLondon(evm.Context.BlockNumber)
 
 	intrinsicGas, err := k.GetEthIntrinsicGas(ctx, msg, cfg.ChainConfig, contractCreation)
 	if err != nil {
@@ -275,12 +274,8 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		ret, leftoverGas, vmErr = evm.Call(sender, *msg.To(), msg.Data(), leftoverGas, msg.Value())
 	}
 
-	refundQuotient := ethparams.RefundQuotient
-
 	// After EIP-3529: refunds are capped to gasUsed / 5
-	if isLondon {
-		refundQuotient = ethparams.RefundQuotientEIP3529
-	}
+	const refundQuotient = ethparams.RefundQuotientEIP3529
 
 	// calculate gas refund
 	if msg.Gas() < leftoverGas {

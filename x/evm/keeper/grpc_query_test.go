@@ -1235,7 +1235,6 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 		malleate        func()
 		expPass         bool
 		enableFeeMarket bool
-		enableLondonHF  bool
 	}{
 		{
 			name: "pass - default Base Fee",
@@ -1245,7 +1244,6 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 			},
 			expPass:         true,
 			enableFeeMarket: true,
-			enableLondonHF:  true,
 		},
 		{
 			name: "pass - non-nil Base Fee",
@@ -1257,10 +1255,9 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 			},
 			expPass:         true,
 			enableFeeMarket: true,
-			enableLondonHF:  true,
 		},
 		{
-			name: "pass - exact Base Fee when london hardfork not activated",
+			name: "pass - exact Base Fee",
 			malleate: func() {
 				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, sdkmath.OneInt())
 
@@ -1270,7 +1267,6 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 			},
 			expPass:         true,
 			enableFeeMarket: true,
-			enableLondonHF:  false,
 		},
 		{
 			name: "pass - zero Base Fee when feemarket not activated",
@@ -1281,13 +1277,11 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 			},
 			expPass:         true,
 			enableFeeMarket: false,
-			enableLondonHF:  true,
 		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.enableFeemarket = tc.enableFeeMarket
-			suite.enableLondonHF = tc.enableLondonHF
 			suite.SetupTest()
 
 			tc.malleate()
@@ -1303,7 +1297,6 @@ func (suite *KeeperTestSuite) TestQueryBaseFee() {
 		})
 	}
 	suite.enableFeemarket = false
-	suite.enableLondonHF = true
 }
 
 func (suite *KeeperTestSuite) TestEthCall() {

@@ -421,7 +421,6 @@ func (suite *KeeperTestSuite) TestEVMConfig() {
 	cfg, err := suite.app.EvmKeeper.EVMConfig(suite.ctx, proposerAddress, big.NewInt(constants.TestnetEIP155ChainId))
 	suite.Require().NoError(err)
 	suite.Require().Equal(evmtypes.DefaultParams(), cfg.Params)
-	// london hardfork is enabled by default
 	suite.Require().Equal(big.NewInt(0), cfg.BaseFee)
 	suite.Require().Equal(suite.address, cfg.CoinBase)
 	suite.Require().Equal(evmtypes.DefaultParams().ChainConfig.EthereumConfig(big.NewInt(constants.TestnetEIP155ChainId)), cfg.ChainConfig)

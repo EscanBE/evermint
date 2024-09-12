@@ -2,6 +2,7 @@ package backend
 
 import (
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
+	"math/big"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -19,7 +20,7 @@ import (
 )
 
 func (suite *BackendTestSuite) TestSendTransaction() {
-	gasPrice := new(hexutil.Big)
+	gasPrice := (*hexutil.Big)(big.NewInt(1))
 	gas := hexutil.Uint64(21000)
 	zeroGas := hexutil.Uint64(0)
 	toAddr := utiltx.GenerateAddress()
@@ -38,11 +39,12 @@ func (suite *BackendTestSuite) TestSendTransaction() {
 	hash := common.Hash{}
 
 	testCases := []struct {
-		name         string
-		registerMock func()
-		args         evmtypes.TransactionArgs
-		expHash      common.Hash
-		expPass      bool
+		name           string
+		registerMock   func()
+		args           evmtypes.TransactionArgs
+		expHash        common.Hash
+		expPass        bool
+		expErrContains string
 	}{
 		{
 			name:         "fail - Can't find account in Keyring",
@@ -82,6 +84,9 @@ func (suite *BackendTestSuite) TestSendTransaction() {
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterParamsWithoutHeader(queryClient, 1)
 
+				fmtQueryClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
+				RegisterFeeMarketParamsWithBaseFeeValue(fmtQueryClient, 1, baseFee)
+
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 			},
@@ -109,6 +114,9 @@ func (suite *BackendTestSuite) TestSendTransaction() {
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterParamsWithoutHeader(queryClient, 1)
 
+				fmtQueryClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
+				RegisterFeeMarketParamsWithBaseFeeValue(fmtQueryClient, 1, baseFee)
+
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
 
@@ -132,6 +140,9 @@ func (suite *BackendTestSuite) TestSendTransaction() {
 				suite.Require().NoError(err)
 				RegisterBaseFee(queryClient, baseFee)
 				RegisterParamsWithoutHeader(queryClient, 1)
+
+				fmtQueryClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
+				RegisterFeeMarketParamsWithBaseFeeValue(fmtQueryClient, 1, baseFee)
 
 				indexer := suite.backend.indexer.(*mocks.EVMTxIndexer)
 				RegisterIndexerGetLastRequestIndexedBlock(indexer, 1)
@@ -182,7 +193,7 @@ func (suite *BackendTestSuite) TestSendTransaction() {
 				suite.Require().NoError(err)
 				suite.Require().Equal(tc.expHash, responseHash)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.expErrContains)
 			}
 		})
 	}

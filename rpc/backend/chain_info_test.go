@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
@@ -97,13 +98,13 @@ func (suite *BackendTestSuite) TestBaseFee() {
 			expPass:    false,
 		},
 		{
-			name:     "fail - base fee or london fork not enabled",
+			name:     "fail - base fee not enabled",
 			blockRes: &cmtrpctypes.ResultBlockResults{Height: 1},
 			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterBaseFeeDisabled(queryClient)
 			},
-			expBaseFee: nil,
+			expBaseFee: common.Big0,
 			expPass:    true,
 		},
 		{
@@ -239,33 +240,29 @@ func (suite *BackendTestSuite) TestSuggestGasTipCap() {
 	testCases := []struct {
 		name         string
 		registerMock func()
-		baseFee      *big.Int
+		baseFee      sdkmath.Int
 		expGasTipCap *big.Int
 		expPass      bool
 	}{
 		{
-			name:         "pass - London hardfork not enabled or feemarket not enabled ",
-			registerMock: func() {},
-			baseFee:      nil,
-			expGasTipCap: big.NewInt(0),
-			expPass:      true,
-		},
-		{
-			name: "pass - London hardfork enabled but feemarket disabled",
+			name: "pass - feemarket disabled",
 			registerMock: func() {
 				feeMarketParams := feemarkettypes.DefaultParams()
 				feeMarketParams.NoBaseFee = true
 				feeMarketClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
 				RegisterFeeMarketParamsWithValue(feeMarketClient, 1, feeMarketParams)
 			},
-			baseFee:      big.NewInt(1),
+			baseFee:      sdkmath.NewInt(1),
 			expGasTipCap: big.NewInt(0),
 			expPass:      true,
 		},
 		{
-			name:         "pass - Gets the suggest gas tip cap ",
-			registerMock: func() {},
-			baseFee:      nil,
+			name: "pass - Gets the suggest gas tip cap ",
+			registerMock: func() {
+				fmtQueryClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
+				RegisterFeeMarketParamsWithBaseFeeValue(fmtQueryClient, 1, sdkmath.ZeroInt())
+			},
+			baseFee:      sdkmath.ZeroInt(),
 			expGasTipCap: big.NewInt(0),
 			expPass:      true,
 		},
@@ -276,7 +273,7 @@ func (suite *BackendTestSuite) TestSuggestGasTipCap() {
 			suite.SetupTest() // reset test and queries
 			tc.registerMock()
 
-			maxDelta, err := suite.backend.SuggestGasTipCap(tc.baseFee)
+			maxDelta, err := suite.backend.SuggestGasTipCap(tc.baseFee.BigInt())
 
 			if tc.expPass {
 				suite.Require().Equal(tc.expGasTipCap, maxDelta)

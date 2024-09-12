@@ -795,86 +795,110 @@ func (suite *MsgsTestSuite) TestFromEthereumTx() {
 
 	testCases := []struct {
 		msg        string
-		expectPass bool
 		buildTx    func() *ethtypes.Transaction
+		expectPass bool
 	}{
-		{"success, normal tx", true, func() *ethtypes.Transaction {
-			tx := ethtypes.NewTx(&ethtypes.AccessListTx{
-				Nonce:    0,
-				Data:     nil,
-				To:       &suite.to,
-				Value:    big.NewInt(10),
-				GasPrice: big.NewInt(1),
-				Gas:      21000,
-			})
-			tx, err := ethtypes.SignTx(tx, ethtypes.NewEIP2930Signer(suite.chainID), ethPriv)
-			suite.Require().NoError(err)
-			return tx
-		}},
-		{"success, DynamicFeeTx", true, func() *ethtypes.Transaction {
-			tx := ethtypes.NewTx(&ethtypes.DynamicFeeTx{
-				Nonce: 0,
-				Data:  nil,
-				To:    &suite.to,
-				Value: big.NewInt(10),
-				Gas:   21000,
-			})
-			tx, err := ethtypes.SignTx(tx, ethtypes.NewLondonSigner(suite.chainID), ethPriv)
-			suite.Require().NoError(err)
-			return tx
-		}},
-		{"fail, value bigger than 256bits - AccessListTx", false, func() *ethtypes.Transaction {
-			tx := ethtypes.NewTx(&ethtypes.AccessListTx{
-				Nonce:    0,
-				Data:     nil,
-				To:       &suite.to,
-				Value:    exp_10_80,
-				GasPrice: big.NewInt(1),
-				Gas:      21000,
-			})
-			tx, err := ethtypes.SignTx(tx, ethtypes.NewEIP2930Signer(suite.chainID), ethPriv)
-			suite.Require().NoError(err)
-			return tx
-		}},
-		{"fail, gas price bigger than 256bits - AccessListTx", false, func() *ethtypes.Transaction {
-			tx := ethtypes.NewTx(&ethtypes.AccessListTx{
-				Nonce:    0,
-				Data:     nil,
-				To:       &suite.to,
-				Value:    big.NewInt(1),
-				GasPrice: exp_10_80,
-				Gas:      21000,
-			})
-			tx, err := ethtypes.SignTx(tx, ethtypes.NewEIP2930Signer(suite.chainID), ethPriv)
-			suite.Require().NoError(err)
-			return tx
-		}},
-		{"fail, value bigger than 256bits - LegacyTx", false, func() *ethtypes.Transaction {
-			tx := ethtypes.NewTx(&ethtypes.LegacyTx{
-				Nonce:    0,
-				Data:     nil,
-				To:       &suite.to,
-				Value:    exp_10_80,
-				GasPrice: big.NewInt(1),
-				Gas:      21000,
-			})
-			tx, err := ethtypes.SignTx(tx, ethtypes.NewEIP2930Signer(suite.chainID), ethPriv)
-			suite.Require().NoError(err)
-			return tx
-		}},
-		{"fail, gas price bigger than 256bits - LegacyTx", false, func() *ethtypes.Transaction {
-			tx := ethtypes.NewTx(&ethtypes.LegacyTx{
-				Nonce:    0,
-				Data:     nil,
-				To:       &suite.to,
-				Value:    big.NewInt(1),
-				GasPrice: exp_10_80,
-				Gas:      21000,
-			})
-			tx, err := ethtypes.SignTx(tx, ethtypes.NewEIP2930Signer(suite.chainID), ethPriv)
-			suite.Require().NoError(err)
-			return tx
-		}},
+		{
+			msg: "success, normal tx",
+			buildTx: func() *ethtypes.Transaction {
+				tx := ethtypes.NewTx(&ethtypes.AccessListTx{
+					Nonce:    0,
+					Data:     nil,
+					To:       &suite.to,
+					Value:    big.NewInt(10),
+					GasPrice: big.NewInt(1),
+					Gas:      21000,
+				})
+				tx, err := ethtypes.SignTx(tx, ethtypes.NewEIP2930Signer(suite.chainID), ethPriv)
+				suite.Require().NoError(err)
+				return tx
+			},
+			expectPass: true,
+		},
+		{
+			msg: "success, DynamicFeeTx",
+			buildTx: func() *ethtypes.Transaction {
+				tx := ethtypes.NewTx(&ethtypes.DynamicFeeTx{
+					Nonce: 0,
+					Data:  nil,
+					To:    &suite.to,
+					Value: big.NewInt(10),
+					Gas:   21000,
+				})
+				tx, err := ethtypes.SignTx(tx, ethtypes.LatestSignerForChainID(suite.chainID), ethPriv)
+				suite.Require().NoError(err)
+				return tx
+			},
+			expectPass: true,
+		},
+		{
+			msg: "fail, value bigger than 256bits - AccessListTx",
+			buildTx: func() *ethtypes.Transaction {
+				tx := ethtypes.NewTx(&ethtypes.AccessListTx{
+					Nonce:    0,
+					Data:     nil,
+					To:       &suite.to,
+					Value:    exp_10_80,
+					GasPrice: big.NewInt(1),
+					Gas:      21000,
+				})
+				tx, err := ethtypes.SignTx(tx, ethtypes.NewEIP2930Signer(suite.chainID), ethPriv)
+				suite.Require().NoError(err)
+				return tx
+			},
+			expectPass: false,
+		},
+		{
+			msg: "fail, gas price bigger than 256bits - AccessListTx",
+			buildTx: func() *ethtypes.Transaction {
+				tx := ethtypes.NewTx(&ethtypes.AccessListTx{
+					Nonce:    0,
+					Data:     nil,
+					To:       &suite.to,
+					Value:    big.NewInt(1),
+					GasPrice: exp_10_80,
+					Gas:      21000,
+				})
+				tx, err := ethtypes.SignTx(tx, ethtypes.NewEIP2930Signer(suite.chainID), ethPriv)
+				suite.Require().NoError(err)
+				return tx
+			},
+			expectPass: false,
+		},
+		{
+			msg: "fail, value bigger than 256bits - LegacyTx",
+			buildTx: func() *ethtypes.Transaction {
+				tx := ethtypes.NewTx(&ethtypes.LegacyTx{
+					Nonce:    0,
+					Data:     nil,
+					To:       &suite.to,
+					Value:    exp_10_80,
+					GasPrice: big.NewInt(1),
+					Gas:      21000,
+				})
+				tx, err := ethtypes.SignTx(tx, ethtypes.NewEIP2930Signer(suite.chainID), ethPriv)
+				suite.Require().NoError(err)
+				return tx
+			},
+			expectPass: false,
+		},
+		{
+			msg: "fail, gas price bigger than 256bits - LegacyTx",
+			buildTx: func() *ethtypes.Transaction {
+				tx := ethtypes.NewTx(&ethtypes.LegacyTx{
+					Nonce:    0,
+					Data:     nil,
+					To:       &suite.to,
+					Value:    big.NewInt(1),
+					GasPrice: exp_10_80,
+					Gas:      21000,
+				})
+				tx, err := ethtypes.SignTx(tx, ethtypes.NewEIP2930Signer(suite.chainID), ethPriv)
+				suite.Require().NoError(err)
+				return tx
+			},
+			expectPass: false,
+		},
 	}
 
 	for _, tc := range testCases {

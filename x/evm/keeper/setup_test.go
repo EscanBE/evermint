@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"math"
 	"testing"
 	"time"
 
@@ -54,7 +53,6 @@ type KeeperTestSuite struct {
 	signer   keyring.Signer
 
 	enableFeemarket  bool
-	enableLondonHF   bool
 	mintFeeCollector bool
 	denom            string
 }
@@ -64,7 +62,6 @@ var s *KeeperTestSuite
 func TestKeeperTestSuite(t *testing.T) {
 	s = new(KeeperTestSuite)
 	s.enableFeemarket = false
-	s.enableLondonHF = true
 	suite.Run(t, s)
 
 	// Run Ginkgo integration tests
@@ -115,17 +112,6 @@ func (suite *KeeperTestSuite) SetupAppWithT(checkTx bool, t require.TestingT) {
 			feemarketGenesis.Params.BaseFee = sdkmath.ZeroInt()
 		}
 		genesis[feemarkettypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(feemarketGenesis)
-		if !suite.enableLondonHF {
-			evmGenesis := evmtypes.DefaultGenesisState()
-			maxInt := sdkmath.NewInt(math.MaxInt64)
-			evmGenesis.Params.ChainConfig.LondonBlock = &maxInt
-			evmGenesis.Params.ChainConfig.ArrowGlacierBlock = &maxInt
-			evmGenesis.Params.ChainConfig.GrayGlacierBlock = &maxInt
-			evmGenesis.Params.ChainConfig.MergeNetsplitBlock = &maxInt
-			evmGenesis.Params.ChainConfig.ShanghaiBlock = &maxInt
-			evmGenesis.Params.ChainConfig.CancunBlock = &maxInt
-			genesis[evmtypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(evmGenesis)
-		}
 		return genesis
 	})
 
