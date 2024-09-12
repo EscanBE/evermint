@@ -41,7 +41,6 @@ const (
 	prefixTransientTxLogCount
 	prefixTransientTxReceipt
 	prefixTransientFlagIncreasedSenderNonce
-	prefixTransientFlagDeductedGasFee
 )
 
 // KVStore key prefixes
@@ -63,7 +62,6 @@ var (
 var (
 	KeyTransientTxCount                  = []byte{prefixTransientTxCount}
 	KeyTransientFlagIncreasedSenderNonce = []byte{prefixTransientFlagIncreasedSenderNonce}
-	KeyTransientFlagDeductedGasFee       = []byte{prefixTransientFlagDeductedGasFee}
 )
 
 // AddressStoragePrefix returns a prefix to iterate over a given account storage.

@@ -28,7 +28,6 @@ type EVMKeeper interface { //nolint: revive
 	GetParams(ctx sdk.Context) evmtypes.Params
 
 	SetFlagSenderNonceIncreasedByAnteHandle(ctx sdk.Context, increased bool)
-	SetEthTxFeeDeductedByAnteHandle(ctx sdk.Context, coins sdk.Coins)
 }
 
 type FeeMarketKeeper interface {

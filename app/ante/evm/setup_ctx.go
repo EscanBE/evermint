@@ -42,7 +42,6 @@ func (esc EthSetupContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 
 	// reset previous run
 	esc.evmKeeper.SetFlagSenderNonceIncreasedByAnteHandle(newCtx, false)
-	esc.evmKeeper.SetEthTxFeeDeductedByAnteHandle(newCtx, nil)
 
 	return next(newCtx, tx, simulate)
 }

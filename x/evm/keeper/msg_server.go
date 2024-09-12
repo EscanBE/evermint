@@ -54,27 +54,6 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 		}
 	}
 
-	/* TODO ES: re-enable this, currently disabled because there was no place buy gas
-	{
-		// TODO ES: add test
-		// restore funds spent for buying gas
-		if deductedFees := k.GetEthTxFeeDeductedByAnteHandle(ctx); !deductedFees.IsZero() {
-			evmDenom := k.GetParams(ctx).EvmDenom
-			coinAmount := deductedFees.AmountOf(k.GetParams(ctx).EvmDenom)
-			if !coinAmount.IsZero() {
-				err := k.bankKeeper.SendCoinsFromModuleToAccount(
-					ctx,
-					authtypes.FeeCollectorName, senderAccAddr,
-					sdk.Coins{sdk.NewCoin(evmDenom, coinAmount)},
-				)
-				if err != nil {
-					panic(errorsmod.Wrapf(err, "failed to restore funds spent for buying gas: %v", err))
-				}
-			}
-		}
-	}
-	*/
-
 	txIndex := k.GetTxCountTransient(ctx) - 1
 
 	labels := []metrics.Label{

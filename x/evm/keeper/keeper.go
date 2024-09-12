@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"math/big"
 
@@ -277,46 +276,6 @@ func (k Keeper) IsSenderNonceIncreasedByAnteHandle(ctx sdk.Context) bool {
 	store := ctx.TransientStore(k.transientKey)
 	bz := store.Get(evmtypes.KeyTransientFlagIncreasedSenderNonce)
 	return len(bz) > 0 && bz[0] == 1
-}
-
-// SetEthTxFeeDeductedByAnteHandle set the amount of gas fee deducted by AnteHandler.
-func (k Keeper) SetEthTxFeeDeductedByAnteHandle(ctx sdk.Context, coins sdk.Coins) {
-	store := ctx.TransientStore(k.transientKey)
-
-	if coins == nil || coins.IsZero() {
-		store.Delete(evmtypes.KeyTransientFlagDeductedGasFee)
-		return
-	}
-
-	if !coins.IsValid() {
-		panic(fmt.Sprintf("invalid coins: %s", coins))
-	}
-
-	bz, err := coins.MarshalJSON()
-	if err != nil {
-		panic(errorsmod.Wrap(err, "failed to marshal coins"))
-	}
-	store.Set(evmtypes.KeyTransientFlagDeductedGasFee, bz)
-}
-
-// GetEthTxFeeDeductedByAnteHandle returns the amount of gas fee deducted by AnteHandler.
-func (k Keeper) GetEthTxFeeDeductedByAnteHandle(ctx sdk.Context) sdk.Coins {
-	transientStore := ctx.TransientStore(k.transientKey)
-
-	bz := transientStore.Get(evmtypes.KeyTransientFlagDeductedGasFee)
-	if len(bz) == 0 {
-		return nil
-	}
-
-	var coins sdk.Coins
-	if err := json.Unmarshal(bz, &coins); err != nil {
-		panic(errorsmod.Wrap(err, "failed to unmarshal coins"))
-	}
-	if coins.IsZero() || len(coins) != 1 || !coins.IsValid() {
-		panic(fmt.Sprintf("invalid coins: %s", coins))
-	}
-
-	return coins
 }
 
 // ----------------------------------------------------------------------------
