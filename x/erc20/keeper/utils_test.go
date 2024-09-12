@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"bytes"
 	"encoding/json"
-	"math"
 	"math/big"
 	"strconv"
 	"time"
@@ -115,7 +114,7 @@ func (suite *KeeperTestSuite) DoSetupTest() {
 	suite.Require().NoError(err)
 
 	// fund signer acc to pay for tx fees
-	amt := sdkmath.NewInt(int64(math.Pow10(18) * 2))
+	amt := sdkmath.NewInt(2e18)
 	err = testutil.FundAccount(
 		suite.ctx,
 		suite.app.BankKeeper,
@@ -327,6 +326,10 @@ func (suite *KeeperTestSuite) DeployContract(name, symbol string, decimals uint8
 	)
 	suite.ctx = newCtx
 	suite.Commit()
+	if err != nil {
+		suite.NotEqual(common.Address{}, addr)
+		suite.Require().NotNil(suite.app.AccountKeeper.GetAccount(suite.ctx, addr.Bytes()))
+	}
 	return addr, err
 }
 

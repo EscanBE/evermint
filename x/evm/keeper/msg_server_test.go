@@ -55,6 +55,37 @@ func (suite *KeeperTestSuite) TestEthereumTx() {
 			},
 			expErr: false,
 		},
+		{
+			name: "pass - reset nonce and clear flag of sender nonce increased by AnteHandle",
+			malleate: func() {
+				// don't use vmdb in this setup because it will cache the account
+
+				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, suite.address.Bytes())
+				suite.Require().NotNil(acc)
+
+				originalNonce := acc.GetSequence()
+
+				{
+					// simulate increased by Ante Handle
+					suite.Require().NoError(acc.SetSequence(originalNonce + 1))
+					suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
+					suite.app.EvmKeeper.SetFlagSenderNonceIncreasedByAnteHandle(suite.ctx, true)
+				}
+
+				msg, _, err = newEthMsgTx(
+					originalNonce,
+					suite.address,
+					suite.signer,
+					signer,
+					ethtypes.AccessListTxType,
+					nil,
+					nil,
+				)
+				suite.Require().NoError(err)
+				expectedGasUsed = ethparams.TxGas
+			},
+			expErr: false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -72,6 +103,7 @@ func (suite *KeeperTestSuite) TestEthereumTx() {
 			suite.Require().NoError(err)
 			suite.Require().Equal(expectedGasUsed, res.GasUsed)
 			suite.Require().False(res.Failed())
+			suite.False(suite.app.EvmKeeper.IsSenderNonceIncreasedByAnteHandle(suite.ctx), "flag must be cleared")
 		})
 	}
 }

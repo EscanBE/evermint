@@ -334,12 +334,14 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 // EthIncrementSenderSequenceDecorator increments the sequence of the signers.
 type EthIncrementSenderSequenceDecorator struct {
 	ak authkeeper.AccountKeeperI
+	ek EVMKeeper
 }
 
 // NewEthIncrementSenderSequenceDecorator creates a new EthIncrementSenderSequenceDecorator.
-func NewEthIncrementSenderSequenceDecorator(ak authkeeper.AccountKeeperI) EthIncrementSenderSequenceDecorator {
+func NewEthIncrementSenderSequenceDecorator(ak authkeeper.AccountKeeperI, ek EVMKeeper) EthIncrementSenderSequenceDecorator {
 	return EthIncrementSenderSequenceDecorator{
 		ak: ak,
+		ek: ek,
 	}
 }
 
@@ -379,6 +381,7 @@ func (issd EthIncrementSenderSequenceDecorator) AnteHandle(ctx sdk.Context, tx s
 		}
 
 		issd.ak.SetAccount(ctx, acc)
+		issd.ek.SetFlagSenderNonceIncreasedByAnteHandle(ctx, true)
 	}
 
 	return next(ctx, tx, simulate)

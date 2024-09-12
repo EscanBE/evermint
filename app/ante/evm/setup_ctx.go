@@ -40,6 +40,10 @@ func (esc EthSetupContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 	newCtx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 	newCtx = utils.UseZeroGasConfig(newCtx)
 
+	// reset previous run
+	esc.evmKeeper.SetFlagSenderNonceIncreasedByAnteHandle(newCtx, false)
+	esc.evmKeeper.SetEthTxFeeDeductedByAnteHandle(newCtx, nil)
+
 	return next(newCtx, tx, simulate)
 }
 

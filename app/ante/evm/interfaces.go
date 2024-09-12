@@ -26,6 +26,9 @@ type EVMKeeper interface { //nolint: revive
 	SetupExecutionContext(ctx sdk.Context, txGas uint64, txType uint8) sdk.Context
 	GetTxCountTransient(ctx sdk.Context) uint64
 	GetParams(ctx sdk.Context) evmtypes.Params
+
+	SetFlagSenderNonceIncreasedByAnteHandle(ctx sdk.Context, increased bool)
+	SetEthTxFeeDeductedByAnteHandle(ctx sdk.Context, coins sdk.Coins)
 }
 
 type FeeMarketKeeper interface {
