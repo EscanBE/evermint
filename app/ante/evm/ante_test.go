@@ -1263,19 +1263,6 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			reCheckTx:      false,
 			expPass:        false,
 		},
-		{
-			name: "fail - DynamicFeeTx without london hark fork",
-			txFn: func() sdk.Tx {
-				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
-
-				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
-				return tx
-			},
-			enableLondonHF: false,
-			checkTx:        false,
-			reCheckTx:      false,
-			expPass:        false,
-		},
 	}
 
 	for _, tc := range testCases {

@@ -229,6 +229,30 @@ func TestSDKTxFeeChecker(t *testing.T) {
 			expPriority: 0,
 			expSuccess:  false,
 		},
+		{
+			name: "fail - low fee txs will not reach mempool due to min-gas-prices by validator",
+			ctx: sdk.NewContext(nil, tmproto.Header{Height: 1}, true, log.NewNopLogger()).
+				WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(1e9)))),
+			keeper: MockEVMKeeper{
+				EnableLondonHF: true,
+				BaseFee:        big.NewInt(1),
+			},
+			buildTx: func() sdk.FeeTx {
+				txBuilder := encodingConfig.TxConfig.NewTxBuilder().(authtx.ExtensionOptionsTxBuilder)
+				txBuilder.SetGasLimit(1)
+				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(10).Mul(evmtypes.DefaultPriorityReduction).Add(sdkmath.NewInt(10)))))
+
+				option, err := codectypes.NewAnyWithValue(&evertypes.ExtensionOptionDynamicFeeTx{
+					MaxPriorityPrice: sdkmath.NewInt(5).Mul(evmtypes.DefaultPriorityReduction),
+				})
+				require.NoError(t, err)
+				txBuilder.SetExtensionOptions(option)
+				return txBuilder.GetTx()
+			},
+			expFees:     "",
+			expPriority: 0,
+			expSuccess:  false,
+		},
 	}
 
 	for _, tc := range testCases {

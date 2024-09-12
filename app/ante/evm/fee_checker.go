@@ -20,8 +20,8 @@ import (
 // a) feeCap = tx.fees / tx.gas
 // b) tipFeeCap = tx.MaxPriorityPrice (default) or MaxInt64
 // - when `ExtensionOptionDynamicFeeTx` is omitted, `tipFeeCap` defaults to `MaxInt64`.
-// - when london hardfork is not enabled, it falls back to SDK default behavior (validator min-gas-prices).
 // - Tx priority is set to `effectiveGasPrice / DefaultPriorityReduction`.
+// - When `x/feemarket` was disabled, it falls back to SDK default behavior (validator min-gas-prices).
 func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 	return func(ctx sdk.Context, feeTx sdk.FeeTx) (sdk.Coins, int64, error) {
 		if ctx.BlockHeight() == 0 {
@@ -34,8 +34,8 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 		ethCfg := params.ChainConfig.EthereumConfig(k.ChainID())
 
 		baseFee := k.GetBaseFee(ctx, ethCfg)
-		if baseFee == nil {
-			// london hardfork is not enabled: fallback to min-gas-prices logic
+		if baseFee == nil || baseFee.Sign() != 1 {
+			// fallback to min-gas-prices logic
 			return checkTxFeeWithValidatorMinGasPrices(ctx, feeTx)
 		}
 
@@ -84,6 +84,16 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 
 		if bigPriority.IsInt64() {
 			priority = bigPriority.Int64()
+		}
+
+		if ctx.IsCheckTx() {
+			// There is case that base fee is too low,
+			// so during check tx, double check with validator min-gas-config
+			// to ensure mempool will not be filled up with low fee txs
+			if _, _, err := checkTxFeeWithValidatorMinGasPrices(ctx, feeTx); err != nil {
+				// does not pass
+				return nil, 0, err
+			}
 		}
 
 		return effectiveFee, priority, nil
