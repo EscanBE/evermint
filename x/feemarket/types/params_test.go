@@ -28,7 +28,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		},
 		{
 			name:     "pass - valid",
-			params:   NewParams(false, 2000000000, sdkmath.LegacyNewDecWithPrec(20, 4)),
+			params:   NewParams(2000000000, sdkmath.LegacyNewDecWithPrec(20, 4)),
 			expError: false,
 		},
 		{
@@ -62,7 +62,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		},
 		{
 			name:     "fail - invalid: min gas price negative",
-			params:   NewParams(false, 2000000000, sdkmath.LegacyNewDecFromInt(sdkmath.NewInt(-1))),
+			params:   NewParams(2000000000, sdkmath.LegacyNewDecFromInt(sdkmath.NewInt(-1))),
 			expError: true,
 		},
 	}

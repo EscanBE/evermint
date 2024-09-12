@@ -40,9 +40,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 }
 
 // NewParams creates a new Params instance
-// TODO ES: cleanup this method
 func NewParams(
-	noBaseFee bool,
 	baseFee uint64,
 	minGasPrice sdkmath.LegacyDec,
 ) Params {
@@ -55,7 +53,6 @@ func NewParams(
 // DefaultParams returns default evm parameters
 func DefaultParams() Params {
 	return NewParams(
-		false,
 		DefaultBaseFee,
 		DefaultMinGasPrice,
 	)
