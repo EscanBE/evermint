@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	"github.com/EscanBE/evermint/v12/constants"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 

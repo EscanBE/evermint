@@ -49,11 +49,6 @@ func (k Keeper) SetParams(ctx sdk.Context, params feemarkettypes.Params) error {
 // Required by EIP1559 base fee calculation.
 // ----------------------------------------------------------------------------
 
-// GetBaseFeeEnabled returns true if base fee is enabled
-func (k Keeper) GetBaseFeeEnabled(ctx sdk.Context) bool {
-	return !k.GetParams(ctx).NoBaseFee
-}
-
 // GetBaseFee gets the base fee from the store and returns as big.Int
 func (k Keeper) GetBaseFee(ctx sdk.Context) sdkmath.Int {
 	return k.GetParams(ctx).BaseFee

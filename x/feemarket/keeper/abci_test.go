@@ -10,34 +10,33 @@ import (
 func (suite *KeeperTestSuite) TestEndBlock() {
 	testCases := []struct {
 		name       string
-		noBaseFee  bool
 		malleate   func()
 		expBaseFee sdkmath.Int
 	}{
 		{
-			name:       "base fee should be zero if no base fee",
-			noBaseFee:  true,
-			malleate:   func() {},
-			expBaseFee: sdkmath.ZeroInt(),
-		},
-		{
 			name: "base fee should be updated",
 			malleate: func() {
 				suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, sdkmath.NewInt(ethparams.InitialBaseFee))
-
 				suite.ctx.BlockGasMeter().ConsumeGas(2500000, "consume")
 			},
 			expBaseFee: sdkmath.NewInt(875000001),
+		},
+		{
+			name: "base fee should be auto-correct to min-gas-prices",
+			malleate: func() {
+				fmParams := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
+				fmParams.BaseFee = sdkmath.NewInt(2)
+				fmParams.MinGasPrice = sdkmath.LegacyNewDec(9)
+				suite.Require().NoError(suite.app.FeeMarketKeeper.SetParams(suite.ctx, fmParams))
+
+				suite.ctx.BlockGasMeter().ConsumeGas(2500000, "consume")
+			},
+			expBaseFee: sdkmath.NewInt(9),
 		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-
-			params := suite.app.FeeMarketKeeper.GetParams(suite.ctx)
-			params.NoBaseFee = tc.noBaseFee
-			err := suite.app.FeeMarketKeeper.SetParams(suite.ctx, params)
-			suite.Require().NoError(err)
 
 			meter := storetypes.NewGasMeter(uint64(1000000000))
 			suite.ctx = suite.ctx.WithBlockGasMeter(meter)

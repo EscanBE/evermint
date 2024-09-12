@@ -45,21 +45,27 @@ func (suite *AnteTestSuite) SetupTest() {
 	checkTx := false
 
 	suite.app = helpers.EthSetup(checkTx, func(chainApp *chainapp.Evermint, genesis chainapp.GenesisState) chainapp.GenesisState {
-		if suite.enableFeemarket {
-			// setup feemarketGenesis params
+		{
+			// setup x/feemarket genesis params
 			feemarketGenesis := feemarkettypes.DefaultGenesisState()
-			feemarketGenesis.Params.NoBaseFee = false
-			// Verify feeMarket genesis
+			if !suite.enableFeemarket {
+				feemarketGenesis.Params.BaseFee = sdkmath.ZeroInt()
+				feemarketGenesis.Params.MinGasPrice = sdkmath.LegacyZeroDec()
+			}
 			err := feemarketGenesis.Validate()
 			suite.Require().NoError(err)
 			genesis[feemarkettypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(feemarketGenesis)
 		}
-		evmGenesis := evmtypes.DefaultGenesisState()
-		evmGenesis.Params.AllowUnprotectedTxs = false
-		if suite.evmParamsOption != nil {
-			suite.evmParamsOption(&evmGenesis.Params)
+
+		{
+			// setup x/evm genesis params
+			evmGenesis := evmtypes.DefaultGenesisState()
+			evmGenesis.Params.AllowUnprotectedTxs = false
+			if suite.evmParamsOption != nil {
+				suite.evmParamsOption(&evmGenesis.Params)
+			}
+			genesis[evmtypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(evmGenesis)
 		}
-		genesis[evmtypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(evmGenesis)
 		return genesis
 	})
 
@@ -110,16 +116,20 @@ func (suite *AnteTestSuite) SetupTest() {
 }
 
 func TestAnteTestSuite(t *testing.T) {
-	suite.Run(t, &AnteTestSuite{})
+	suite.Run(t, &AnteTestSuite{
+		enableFeemarket: true,
+	})
 
 	// Re-run the tests with EIP-712 Legacy encodings to ensure backwards compatibility.
 	// LegacyEIP712Extension should not be run with current TypedData encodings, since they are not compatible.
 	suite.Run(t, &AnteTestSuite{
+		enableFeemarket:          true,
 		useLegacyEIP712Extension: true,
 		useLegacyEIP712TypedData: true,
 	})
 
 	suite.Run(t, &AnteTestSuite{
+		enableFeemarket:          true,
 		useLegacyEIP712Extension: false,
 		useLegacyEIP712TypedData: true,
 	})

@@ -105,11 +105,9 @@ func (suite *KeeperTestSuite) SetupAppWithT(checkTx bool, t require.TestingT) {
 
 	suite.app = helpers.EthSetup(checkTx, func(chainApp *chainapp.Evermint, genesis chainapp.GenesisState) chainapp.GenesisState {
 		feemarketGenesis := feemarkettypes.DefaultGenesisState()
-		if suite.enableFeemarket {
-			feemarketGenesis.Params.NoBaseFee = false
-		} else {
-			feemarketGenesis.Params.NoBaseFee = true
+		if !suite.enableFeemarket {
 			feemarketGenesis.Params.BaseFee = sdkmath.ZeroInt()
+			feemarketGenesis.Params.MinGasPrice = sdkmath.LegacyZeroDec()
 		}
 		genesis[feemarkettypes.ModuleName] = chainApp.AppCodec().MustMarshalJSON(feemarketGenesis)
 		return genesis

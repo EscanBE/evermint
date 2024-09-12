@@ -1,8 +1,10 @@
 package backend
 
 import (
-	"github.com/ethereum/go-ethereum/common"
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/common"
+	ethparams "github.com/ethereum/go-ethereum/params"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -245,25 +247,19 @@ func (suite *BackendTestSuite) TestSuggestGasTipCap() {
 		expPass      bool
 	}{
 		{
-			name: "pass - feemarket disabled",
+			name: "pass - when base fee is zero",
 			registerMock: func() {
-				feeMarketParams := feemarkettypes.DefaultParams()
-				feeMarketParams.NoBaseFee = true
-				feeMarketClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
-				RegisterFeeMarketParamsWithValue(feeMarketClient, 1, feeMarketParams)
 			},
-			baseFee:      sdkmath.NewInt(1),
+			baseFee:      sdkmath.ZeroInt(),
 			expGasTipCap: big.NewInt(0),
 			expPass:      true,
 		},
 		{
-			name: "pass - Gets the suggest gas tip cap ",
+			name: "pass - Gets the suggest gas tip cap",
 			registerMock: func() {
-				fmtQueryClient := suite.backend.queryClient.FeeMarket.(*mocks.FeeMarketQueryClient)
-				RegisterFeeMarketParamsWithBaseFeeValue(fmtQueryClient, 1, sdkmath.ZeroInt())
 			},
-			baseFee:      sdkmath.ZeroInt(),
-			expGasTipCap: big.NewInt(0),
+			baseFee:      sdkmath.NewInt(ethparams.InitialBaseFee),
+			expGasTipCap: big.NewInt(125_000_000),
 			expPass:      true,
 		},
 	}

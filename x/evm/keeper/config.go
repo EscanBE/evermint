@@ -44,18 +44,17 @@ func (k *Keeper) TxConfig(ctx sdk.Context, txHash common.Hash) statedb.TxConfig 
 // VMConfig creates an EVM configuration from the debug setting and the extra EIPs enabled on the
 // module parameters. The config generated uses the default JumpTable from the EVM.
 func (k Keeper) VMConfig(cfg *statedb.EVMConfig, tracer vm.EVMLogger) vm.Config {
-	// TODO ES: move NoBaseFee to pass by config
-	const noBaseFee = false
-
 	var debug bool
-	if _, ok := tracer.(evmtypes.NoOpTracer); !ok {
-		debug = true
+	if tracer != nil {
+		if _, ok := tracer.(evmtypes.NoOpTracer); !ok {
+			debug = true
+		}
 	}
 
 	return vm.Config{
 		Debug:     debug,
 		Tracer:    tracer,
-		NoBaseFee: noBaseFee,
+		NoBaseFee: cfg.NoBaseFee,
 		ExtraEips: cfg.Params.EIPs(),
 	}
 }

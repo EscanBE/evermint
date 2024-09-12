@@ -28,7 +28,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		},
 		{
 			name:     "pass - valid",
-			params:   NewParams(false, 2000000000, sdkmath.LegacyNewDecWithPrec(20, 4)),
+			params:   NewParams(2000000000, sdkmath.LegacyNewDecWithPrec(20, 4)),
 			expError: false,
 		},
 		{
@@ -37,18 +37,8 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			expError: true,
 		},
 		{
-			name: "fail - base fee can not be nil when base fee disabled",
+			name: "fail - base fee cannot be nil",
 			params: Params{
-				NoBaseFee:   true,
-				BaseFee:     sdkmath.Int{},
-				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
-			},
-			expError: true,
-		},
-		{
-			name: "fail - base fee cannot be nil when base fee enabled",
-			params: Params{
-				NoBaseFee:   false,
 				BaseFee:     sdkmath.Int{},
 				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
 			},
@@ -57,25 +47,14 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		{
 			name: "fail - base fee cannot be negative",
 			params: Params{
-				NoBaseFee:   false,
 				BaseFee:     sdkmath.NewInt(-1),
 				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
 			},
 			expError: true,
 		},
 		{
-			name: "fail - base fee cannot be negative",
+			name: "pass - base fee positive",
 			params: Params{
-				NoBaseFee:   true,
-				BaseFee:     sdkmath.NewInt(-1),
-				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
-			},
-			expError: true,
-		},
-		{
-			name: "pass - base fee positive when base fee disabled",
-			params: Params{
-				NoBaseFee:   true,
 				BaseFee:     sdkmath.OneInt(),
 				MinGasPrice: sdkmath.LegacyNewDecWithPrec(20, 4),
 			},
@@ -83,7 +62,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		},
 		{
 			name:     "fail - invalid: min gas price negative",
-			params:   NewParams(true, 2000000000, sdkmath.LegacyNewDecFromInt(sdkmath.NewInt(-1))),
+			params:   NewParams(2000000000, sdkmath.LegacyNewDecFromInt(sdkmath.NewInt(-1))),
 			expError: true,
 		},
 	}
@@ -102,8 +81,6 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 }
 
 func (suite *ParamsTestSuite) TestParamsValidatePriv() {
-	suite.Require().Error(validateBool(2))
-	suite.Require().NoError(validateBool(true))
 	suite.Require().Error(validateBaseFee(""))
 	suite.Require().Error(validateBaseFee(int64(2000000000)))
 	suite.Require().Error(validateBaseFee(sdkmath.NewInt(-2000000000)))

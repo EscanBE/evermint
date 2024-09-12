@@ -9,7 +9,6 @@ import (
 )
 
 func (suite *AnteTestSuite) TestSignatures() {
-	suite.enableFeemarket = false
 	suite.SetupTest() // reset
 
 	addr, privKey := utiltx.NewAddrKey()

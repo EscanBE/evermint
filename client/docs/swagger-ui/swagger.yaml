@@ -3711,11 +3711,6 @@ paths:
                 description: params define the evm module parameters.
                 type: object
                 properties:
-                  no_base_fee:
-                    type: boolean
-                    title: >-
-                      no_base_fee forces the EIP-1559 base fee to 0 (needed for
-                      0 price calls)
                   base_fee:
                     type: string
                     description: base_fee for EIP-1559 blocks.
@@ -45849,11 +45844,6 @@ definitions:
   ethermint.feemarket.v1.Params:
     type: object
     properties:
-      no_base_fee:
-        type: boolean
-        title: >-
-          no_base_fee forces the EIP-1559 base fee to 0 (needed for 0 price
-          calls)
       base_fee:
         type: string
         description: base_fee for EIP-1559 blocks.
@@ -45877,11 +45867,6 @@ definitions:
         description: params define the evm module parameters.
         type: object
         properties:
-          no_base_fee:
-            type: boolean
-            title: >-
-              no_base_fee forces the EIP-1559 base fee to 0 (needed for 0 price
-              calls)
           base_fee:
             type: string
             description: base_fee for EIP-1559 blocks.

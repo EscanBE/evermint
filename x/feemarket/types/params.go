@@ -19,7 +19,6 @@ var (
 // Parameter keys
 var (
 	ParamsKey                = []byte("Params")
-	ParamStoreKeyNoBaseFee   = []byte("NoBaseFee")
 	ParamStoreKeyBaseFee     = []byte("BaseFee")
 	ParamStoreKeyMinGasPrice = []byte("MinGasPrice")
 )
@@ -35,7 +34,6 @@ func ParamKeyTable() paramtypes.KeyTable {
 // ParamSetPairs returns the parameter set pairs.
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(ParamStoreKeyNoBaseFee, &p.NoBaseFee, validateBool),
 		paramtypes.NewParamSetPair(ParamStoreKeyBaseFee, p.BaseFee, validateBaseFee),
 		paramtypes.NewParamSetPair(ParamStoreKeyMinGasPrice, &p.MinGasPrice, validateMinGasPrice),
 	}
@@ -43,12 +41,10 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // NewParams creates a new Params instance
 func NewParams(
-	noBaseFee bool,
 	baseFee uint64,
 	minGasPrice sdkmath.LegacyDec,
 ) Params {
 	return Params{
-		NoBaseFee:   noBaseFee,
 		BaseFee:     sdkmath.NewIntFromUint64(baseFee),
 		MinGasPrice: minGasPrice,
 	}
@@ -57,7 +53,6 @@ func NewParams(
 // DefaultParams returns default evm parameters
 func DefaultParams() Params {
 	return NewParams(
-		false,
 		DefaultBaseFee,
 		DefaultMinGasPrice,
 	)
@@ -74,14 +69,6 @@ func (p Params) Validate() error {
 	}
 
 	return validateMinGasPrice(p.MinGasPrice)
-}
-
-func validateBool(i interface{}) error {
-	_, ok := i.(bool)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	return nil
 }
 
 func validateMinGasPrice(i interface{}) error {

@@ -1,8 +1,10 @@
 package keeper_test
 
 import (
-	sdkmath "cosmossdk.io/math"
 	_ "embed"
+
+	sdkmath "cosmossdk.io/math"
+
 	ethparams "github.com/ethereum/go-ethereum/params"
 )
 

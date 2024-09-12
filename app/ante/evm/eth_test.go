@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"time"
 
+	ethparams "github.com/ethereum/go-ethereum/params"
+
 	storetypes "cosmossdk.io/store/types"
 
 	sdkmath "cosmossdk.io/math"
@@ -260,6 +262,9 @@ func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
 }
 
 func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
+	suite.enableFeemarket = true
+	suite.SetupTest()
+
 	chainID := suite.app.EvmKeeper.ChainID()
 	dec := ethante.NewEthGasConsumeDecorator(suite.app.BankKeeper, suite.app.DistrKeeper, suite.app.EvmKeeper, *suite.app.StakingKeeper, config.DefaultMaxTxGasWanted)
 
@@ -279,7 +284,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 	tx := evmtypes.NewTx(ethContractCreationTxParams)
 
 	baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx)
-	suite.Require().Equal(int64(1000000000), baseFee.Int64())
+	suite.Require().Equal(int64(ethparams.InitialBaseFee), baseFee.Int64())
 
 	gasPrice := new(big.Int).Add(baseFee.BigInt(), evmtypes.DefaultPriorityReduction.BigInt())
 
@@ -518,8 +523,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 			tx:       zeroFeeAccessListTx,
 			gasLimit: zeroFeeAccessListTx.GetGas(),
 			malleate: func(ctx sdk.Context) sdk.Context {
-				suite.disableBaseFee(ctx)
-				suite.disableMinGasPrice(ctx)
+				suite.zeroBaseFeeAndMinGasPrice(ctx)
 				return ctx
 			},
 			expPass:     true,
@@ -535,8 +539,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 			tx:       zeroFeeLegacyTx,
 			gasLimit: zeroFeeLegacyTx.GetGas(),
 			malleate: func(ctx sdk.Context) sdk.Context {
-				suite.disableBaseFee(ctx)
-				suite.disableMinGasPrice(ctx)
+				suite.zeroBaseFeeAndMinGasPrice(ctx)
 				return ctx
 			},
 			expPass:     true,
