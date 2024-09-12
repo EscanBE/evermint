@@ -169,12 +169,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 
 	evmParams := egcd.evmKeeper.GetParams(ctx)
 	evmDenom := evmParams.GetEvmDenom()
-	chainCfg := evmParams.GetChainConfig()
-	ethCfg := chainCfg.EthereumConfig(egcd.evmKeeper.ChainID())
 
-	blockHeight := big.NewInt(ctx.BlockHeight())
-	homestead := ethCfg.IsHomestead(blockHeight)
-	istanbul := ethCfg.IsIstanbul(blockHeight)
 	var events sdk.Events
 
 	// Use the lowest priority of all the messages as the final one.
@@ -200,7 +195,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 			gasWanted += txData.GetGas()
 		}
 
-		fees, err := evmkeeper.VerifyFee(txData, evmDenom, baseFee, homestead, istanbul, ctx.IsCheckTx())
+		fees, err := evmkeeper.VerifyFee(txData, evmDenom, baseFee, ctx.IsCheckTx())
 		if err != nil {
 			return ctx, errorsmod.Wrapf(err, "failed to verify the fees")
 		}

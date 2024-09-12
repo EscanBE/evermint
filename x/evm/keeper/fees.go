@@ -61,12 +61,11 @@ func (k *Keeper) DeductTxCostsFromUserBalance(
 // VerifyFee is used to return the fee for the given transaction data in sdk.Coins. It checks that the
 // gas limit is not reached, the gas limit is higher than the intrinsic gas and that the
 // base fee is higher than the gas fee cap.
-// TODO ES: cleanup this method
 func VerifyFee(
 	txData evmtypes.TxData,
 	denom string,
 	baseFee sdkmath.Int,
-	homestead, istanbul, isCheckTx bool,
+	isCheckTx bool,
 ) (sdk.Coins, error) {
 	isContractCreation := txData.GetTo() == nil
 
@@ -77,12 +76,13 @@ func VerifyFee(
 		accessList = txData.GetAccessList()
 	}
 
+	const homestead = true
+	const istanbul = true
 	intrinsicGas, err := core.IntrinsicGas(txData.GetData(), accessList, isContractCreation, homestead, istanbul)
 	if err != nil {
 		return nil, errorsmod.Wrapf(
 			err,
-			"failed to retrieve intrinsic gas, contract creation = %t; homestead = %t, istanbul = %t",
-			isContractCreation, homestead, istanbul,
+			"failed to retrieve intrinsic gas, contract creation = %t", isContractCreation,
 		)
 	}
 

@@ -521,7 +521,7 @@ func (suite *KeeperTestSuite) TestVerifyFeeAndDeductTxCostsFromUserBalance() {
 			baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx)
 			priority := evmtypes.GetTxPriority(txData, baseFee.BigInt())
 
-			fees, err := evmkeeper.VerifyFee(txData, evmtypes.DefaultEVMDenom, baseFee, false, false, suite.ctx.IsCheckTx())
+			fees, err := evmkeeper.VerifyFee(txData, evmtypes.DefaultEVMDenom, baseFee, suite.ctx.IsCheckTx())
 			if tc.expectPassVerify {
 				suite.Require().NoError(err)
 				if tc.enableFeemarket {
