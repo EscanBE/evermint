@@ -1,22 +1,8 @@
 package keeper
 
 import (
-	"math/big"
-
-	"github.com/ethereum/go-ethereum/core"
-	ethparams "github.com/ethereum/go-ethereum/params"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
-
-// GetEthIntrinsicGas returns the intrinsic gas cost for the transaction
-func (k *Keeper) GetEthIntrinsicGas(ctx sdk.Context, msg core.Message, cfg *ethparams.ChainConfig, isContractCreation bool) (uint64, error) {
-	height := big.NewInt(ctx.BlockHeight())
-	homestead := cfg.IsHomestead(height)
-	istanbul := cfg.IsIstanbul(height)
-
-	return core.IntrinsicGas(msg.Data(), msg.AccessList(), isContractCreation, homestead, istanbul)
-}
 
 // ResetGasMeterAndConsumeGas reset first the gas meter consumed value to zero and set it back to the new value
 // 'gasUsed'
