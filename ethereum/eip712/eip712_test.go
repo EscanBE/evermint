@@ -50,6 +50,8 @@ import (
 
 const (
 	msgsFieldName = "msgs"
+
+	chainID = constants.TestnetFullChainId
 )
 
 func init() {
@@ -396,9 +398,9 @@ func (suite *EIP712TestSuite) TestEIP712() {
 				err = txBuilder.SetSignatures([]signing.SignatureV2{txSig}...)
 				suite.Require().NoError(err)
 
-				chainID := constants.TestnetFullChainId
+				customChainId := chainID
 				if tc.chainID != "" {
-					chainID = tc.chainID
+					customChainId = tc.chainID
 				}
 
 				if tc.timeoutHeight != 0 {
@@ -406,7 +408,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 				}
 
 				signerData := authsigning.SignerData{
-					ChainID:       chainID,
+					ChainID:       customChainId,
 					AccountNumber: testParams.accountNumber,
 					Sequence:      testParams.sequence,
 					PubKey:        pubKey,
