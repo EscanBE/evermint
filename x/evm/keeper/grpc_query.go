@@ -225,7 +225,6 @@ func (k Keeper) EthCall(c context.Context, req *evmtypes.EthCallRequest) (*evmty
 
 	ctx := sdk.UnwrapSDKContext(c)
 	ctx = utils.UseZeroGasConfig(ctx)
-	k.SetFlagEnableNoBaseFee(ctx, true)
 
 	var args evmtypes.TransactionArgs
 	err := json.Unmarshal(req.Args, &args)
@@ -240,6 +239,7 @@ func (k Keeper) EthCall(c context.Context, req *evmtypes.EthCallRequest) (*evmty
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+	cfg.NoBaseFee = true
 
 	// ApplyMessageWithConfig expect correct nonce set in msg
 	nonce := k.GetNonce(ctx, args.GetFrom())
@@ -269,7 +269,6 @@ func (k Keeper) EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*e
 
 	ctx := sdk.UnwrapSDKContext(c)
 	ctx = utils.UseZeroGasConfig(ctx)
-	k.SetFlagEnableNoBaseFee(ctx, true)
 
 	chainID, err := getChainID(ctx, req.ChainId)
 	if err != nil {
@@ -318,6 +317,7 @@ func (k Keeper) EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*e
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to load evm config")
 	}
+	cfg.NoBaseFee = true
 
 	// ApplyMessageWithConfig expect correct nonce set in msg
 	nonce := k.GetNonce(ctx, args.GetFrom())
@@ -414,7 +414,6 @@ func (k Keeper) TraceTx(c context.Context, req *evmtypes.QueryTraceTxRequest) (*
 	ctx = ctx.WithBlockTime(req.BlockTime)
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 	ctx = utils.UseZeroGasConfig(ctx)
-	k.SetFlagEnableNoBaseFee(ctx, true)
 
 	// Only the block max gas from the consensus params is needed to calculate base fee
 	ctx = ctx.WithConsensusParams(tmproto.ConsensusParams{
@@ -429,6 +428,8 @@ func (k Keeper) TraceTx(c context.Context, req *evmtypes.QueryTraceTxRequest) (*
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to load evm config: %s", err.Error())
 	}
+	cfg.NoBaseFee = true
+
 	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(ctx.BlockHeight()))
 
 	cfg.BaseFee = k.feeMarketKeeper.GetBaseFee(ctx).BigInt()
@@ -513,7 +514,6 @@ func (k Keeper) TraceBlock(c context.Context, req *evmtypes.QueryTraceBlockReque
 	ctx = ctx.WithBlockTime(req.BlockTime)
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 	ctx = utils.UseZeroGasConfig(ctx)
-	k.SetFlagEnableNoBaseFee(ctx, true)
 
 	// Only the block max gas from the consensus params is needed to calculate base fee
 	ctx = ctx.WithConsensusParams(tmproto.ConsensusParams{
@@ -529,6 +529,8 @@ func (k Keeper) TraceBlock(c context.Context, req *evmtypes.QueryTraceBlockReque
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to load evm config")
 	}
+	cfg.NoBaseFee = true
+
 	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(ctx.BlockHeight()))
 
 	cfg.BaseFee = k.feeMarketKeeper.GetBaseFee(ctx).BigInt()

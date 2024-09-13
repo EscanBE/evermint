@@ -240,13 +240,16 @@ func (suite *KeeperTestSuite) TestResetGasMeterAndConsumeGas() {
 }
 
 func (suite *KeeperTestSuite) TestEVMConfig() {
+	suite.app.EvmKeeper.SetFlagEnableNoBaseFee(suite.ctx, true)
+
 	proposerAddress := suite.ctx.BlockHeader().ProposerAddress
 	cfg, err := suite.app.EvmKeeper.EVMConfig(suite.ctx, proposerAddress, big.NewInt(constants.TestnetEIP155ChainId))
 	suite.Require().NoError(err)
-	suite.Require().Equal(evmtypes.DefaultParams(), cfg.Params)
-	suite.Require().Equal(big.NewInt(0), cfg.BaseFee)
-	suite.Require().Equal(suite.address, cfg.CoinBase)
-	suite.Require().Equal(evmtypes.DefaultParams().ChainConfig.EthereumConfig(big.NewInt(constants.TestnetEIP155ChainId)), cfg.ChainConfig)
+	suite.Equal(evmtypes.DefaultParams(), cfg.Params)
+	suite.Equal(big.NewInt(0), cfg.BaseFee)
+	suite.Equal(suite.address, cfg.CoinBase)
+	suite.Equal(evmtypes.DefaultParams().ChainConfig.EthereumConfig(big.NewInt(constants.TestnetEIP155ChainId)), cfg.ChainConfig)
+	suite.True(cfg.NoBaseFee)
 }
 
 func (suite *KeeperTestSuite) TestContractDeployment() {
