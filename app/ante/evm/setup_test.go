@@ -35,7 +35,6 @@ type AnteTestSuite struct {
 	ethSigner                types.Signer
 	enableFeemarket          bool
 	evmParamsOption          func(*evmtypes.Params)
-	useLegacyEIP712Extension bool
 	useLegacyEIP712TypedData bool
 }
 
@@ -120,17 +119,8 @@ func TestAnteTestSuite(t *testing.T) {
 		enableFeemarket: true,
 	})
 
-	// Re-run the tests with EIP-712 Legacy encodings to ensure backwards compatibility.
-	// LegacyEIP712Extension should not be run with current TypedData encodings, since they are not compatible.
 	suite.Run(t, &AnteTestSuite{
 		enableFeemarket:          true,
-		useLegacyEIP712Extension: true,
-		useLegacyEIP712TypedData: true,
-	})
-
-	suite.Run(t, &AnteTestSuite{
-		enableFeemarket:          true,
-		useLegacyEIP712Extension: false,
 		useLegacyEIP712TypedData: true,
 	})
 }

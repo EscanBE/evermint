@@ -24,7 +24,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	cosmosante "github.com/EscanBE/evermint/v12/app/ante/cosmos"
-	testutil "github.com/EscanBE/evermint/v12/testutil"
+	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
@@ -448,7 +448,6 @@ func (suite *AnteTestSuite) TestRejectMsgsInAuthz() {
 					suite.app,
 					utiltx.EIP712TxArgs{
 						CosmosTxArgs:       cosmosTxArgs,
-						UseLegacyExtension: true,
 						UseLegacyTypedData: true,
 					},
 				)

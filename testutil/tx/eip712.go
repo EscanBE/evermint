@@ -23,7 +23,6 @@ import (
 
 type EIP712TxArgs struct {
 	CosmosTxArgs       CosmosTxArgs
-	UseLegacyExtension bool // TODO ES: remove
 	UseLegacyTypedData bool
 }
 
@@ -38,12 +37,6 @@ type signatureV2Args struct {
 	pubKey    cryptotypes.PubKey
 	signature []byte
 	nonce     uint64
-}
-
-type legacyWeb3ExtensionArgs struct {
-	feePayer  string
-	chainID   uint64
-	signature []byte
 }
 
 // CreateEIP712CosmosTx creates a cosmos tx for typed data according to EIP712.
@@ -173,7 +166,6 @@ func signCosmosEIP712Tx(
 			signature: signature,
 			nonce:     nonce,
 		},
-		args.UseLegacyExtension,
 	)
 
 	err = builder.SetSignatures(sigsV2)
@@ -211,19 +203,11 @@ func createTypedData(args typedDataArgs, useLegacy bool) (apitypes.TypedData, er
 
 // getTxSignatureV2 returns the SignatureV2 object corresponding to
 // the arguments, using the legacy implementation as needed.
-func getTxSignatureV2(args signatureV2Args, useLegacyExtension bool) signing.SignatureV2 {
-	if useLegacyExtension {
-		return signing.SignatureV2{
-			PubKey: args.pubKey,
-			Data: &signing.SingleSignatureData{
-				SignMode: signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
-			},
-			Sequence: args.nonce,
-		}
-	}
-
-	// Must use SIGN_MODE_DIRECT, since Amino has some trouble parsing certain Any values from a SignDoc
-	// with the Legacy EIP-712 TypedData encodings. This is not an issue with the latest encoding.
+func getTxSignatureV2(args signatureV2Args) signing.SignatureV2 {
+	// Must use SIGN_MODE_DIRECT,
+	// since Amino has some trouble parsing certain Any values
+	// from a SignDoc with the Legacy EIP-712 TypedData encodings.
+	// This is not an issue with the latest encoding.
 	return signing.SignatureV2{
 		PubKey: args.pubKey,
 		Data: &signing.SingleSignatureData{
