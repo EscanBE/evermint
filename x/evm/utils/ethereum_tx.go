@@ -33,25 +33,16 @@ func EthTxEffectiveFee(tx *ethtypes.Transaction, baseFee sdkmath.Int) *big.Int {
 	return mul(EthTxEffectiveGasPrice(tx, baseFee), new(big.Int).SetUint64(tx.Gas()))
 }
 
-var priorityReduction = big.NewInt(1e18)
-
 // EthTxPriority returns the priority of a given Ethereum tx.
-// It relies on the priority reduction global variable to calculate the tx priority given the tx tip price:
-// > tx_priority = tip_price / priority_reduction
-func EthTxPriority(tx *ethtypes.Transaction, baseFee sdkmath.Int) (priority int64) {
-	// calculate priority based on effective gas price
-	effectiveGasPrice := EthTxEffectiveGasPrice(tx, baseFee)
-
-	if tx.Type() == ethtypes.DynamicFeeTxType {
-		effectiveGasPrice = new(big.Int).Sub(effectiveGasPrice, baseFee.BigInt())
-	}
+// TODO ES: cleanup
+func EthTxPriority(tx *ethtypes.Transaction, _ sdkmath.Int) (priority int64) {
+	gasPrice := EthTxGasPrice(tx)
 
 	priority = math.MaxInt64
-	priorityBig := new(big.Int).Quo(effectiveGasPrice, priorityReduction)
 
 	// safety check
-	if priorityBig.IsInt64() {
-		priority = priorityBig.Int64()
+	if gasPrice.IsInt64() {
+		priority = gasPrice.Int64()
 	}
 
 	return priority
