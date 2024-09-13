@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"math/big"
 
@@ -528,6 +529,7 @@ func (suite *KeeperTestSuite) TestVerifyFeeAndDeductTxCostsFromUserBalance() {
 
 			baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx)
 			priority := evmutils.EthTxPriority(ethTx, baseFee)
+			suite.Require().Equal(evmutils.EthTxGasPrice(ethTx).String(), fmt.Sprintf("%d", priority))
 
 			fees, err := evmkeeper.VerifyFee(ethTx, evmtypes.DefaultEVMDenom, baseFee, suite.ctx.IsCheckTx())
 			if tc.expectPassVerify {
@@ -540,7 +542,6 @@ func (suite *KeeperTestSuite) TestVerifyFeeAndDeductTxCostsFromUserBalance() {
 							sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewIntFromBigInt(evmutils.EthTxEffectiveFee(ethTx, baseFee))),
 						),
 					)
-					suite.Require().Equal(int64(0), priority)
 				} else {
 					suite.Require().Equal(
 						fees,

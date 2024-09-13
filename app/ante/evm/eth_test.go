@@ -841,10 +841,11 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 	}
 
 	testCases := []struct {
-		name     string
-		tx       func() sdk.Tx
-		expPass  bool
-		expPanic bool
+		name        string
+		tx          func() sdk.Tx
+		expPass     bool
+		expPanic    bool
+		postRunFunc func(sdk.Tx)
 	}{
 		{
 			name: "fail - invalid transaction type",
@@ -900,7 +901,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.Amount = new(big.Int).SetBytes(bz)
 				})
 			},
-			expPanic: true,
+			expPass: false,
 		},
 		{
 			name: "pass - accept positive gas price",
@@ -941,15 +942,20 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			expPanic: true,
 		},
 		{
-			name: "fail - reject gas price which more than 256 bits",
+			name: "pass - auto-correct gas price which more than 256 bits",
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
-					bz := make([]byte, 257)
+					bz := make([]byte, 33)
 					bz[0] = 0xFF
 					args.GasPrice = new(big.Int).SetBytes(bz)
+					suite.Require().Less(256, args.GasPrice.BitLen())
 				})
 			},
-			expPanic: true,
+			expPass: true,
+			postRunFunc: func(tx sdk.Tx) {
+				ethTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+				suite.Require().GreaterOrEqual(256, ethTx.AsTransaction().GasPrice().BitLen())
+			},
 		},
 		{
 			name: "pass - accept positive gas fee cap",
@@ -1006,7 +1012,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasFeeCap = new(big.Int).SetBytes(bz)
 				})
 			},
-			expPanic: true,
+			expPass: false,
 		},
 		{
 			name: "pass - accept positive gas tip cap",
@@ -1063,7 +1069,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasTipCap = new(big.Int).SetBytes(bz)
 				})
 			},
-			expPanic: true,
+			expPass: false,
 		},
 	}
 
@@ -1076,7 +1082,13 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 				return
 			}
 
-			_, err := dec.AnteHandle(suite.ctx, tc.tx(), false, testutil.NextFn)
+			tx := tc.tx()
+			_, err := dec.AnteHandle(suite.ctx, tx, false, testutil.NextFn)
+			defer func() {
+				if tc.postRunFunc != nil {
+					tc.postRunFunc(tx)
+				}
+			}()
 
 			if tc.expPass {
 				suite.Require().NoError(err)

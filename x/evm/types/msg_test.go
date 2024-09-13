@@ -321,7 +321,7 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasic() {
 			postRunFunc: func(tx *evmtypes.MsgEthereumTx) {
 				ethTx := tx.AsTransaction()
 				suite.Require().Zero(ethTx.GasPrice().Sign())
-				suite.Require().Equal(ethtypes.LegacyTxType, ethTx.Type())
+				suite.Require().Equal(ethtypes.LegacyTxType, int(ethTx.Type()))
 			},
 		},
 		{
@@ -488,7 +488,7 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasic() {
 			errMsg:     "invalid from address",
 		},
 		{
-			name:       "fail - chain ID not set on AccessListTx",
+			name:       "pass - chain ID not set on AccessListTx will becomes zero",
 			to:         suite.to.Hex(),
 			from:       sdk.AccAddress(suite.from.Bytes()).String(),
 			amount:     hundredInt,
@@ -498,8 +498,10 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasic() {
 			gasTipCap:  nil,
 			accessList: &ethtypes.AccessList{},
 			chainID:    nil,
-			expectPass: false,
-			errMsg:     "chain ID must be present",
+			expectPass: true,
+			postRunFunc: func(tx *evmtypes.MsgEthereumTx) {
+				suite.Require().Zero(tx.AsTransaction().ChainId().Sign())
+			},
 		},
 		{
 			name:                  "fail - nil tx.MarshalledBinary - AccessList Tx",
@@ -550,6 +552,12 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasic() {
 			if tc.emptyMarshalledBinary {
 				tx.MarshalledTx = nil
 			}
+
+			defer func() {
+				if tc.postRunFunc != nil {
+					tc.postRunFunc(tx)
+				}
+			}()
 
 			// for legacy_Tx need to sign tx because the chainID is derived
 			// from signature
