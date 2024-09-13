@@ -206,7 +206,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 			cosmosBalance := suite.app.BankKeeper.GetBalance(suite.ctx, sender, metadataCoin.Base)
 
 			if tc.expPass {
-				suite.Require().NoError(err, tc.name)
+				suite.Require().NoError(err)
 
 				acc := suite.app.EvmKeeper.GetAccountWithoutBalance(suite.ctx, erc20)
 				if tc.selfdestructed {
@@ -225,7 +225,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 					suite.Require().Equal(balance.(*big.Int).Int64(), big.NewInt(tc.burn).Int64())
 				}
 			} else {
-				suite.Require().Error(err, tc.name)
+				suite.Require().Error(err)
 			}
 		})
 	}
