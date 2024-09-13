@@ -21,6 +21,7 @@ var _ erc20types.EVMKeeper = &MockEVMKeeper{}
 
 type MockEVMKeeper struct {
 	mock.Mock
+	noBaseFee bool
 }
 
 func (m *MockEVMKeeper) GetParams(_ sdk.Context) evmtypes.Params {
@@ -51,6 +52,14 @@ func (m *MockEVMKeeper) ApplyMessage(_ sdk.Context, _ core.Message, _ vm.EVMLogg
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*evmtypes.MsgEthereumTxResponse), args.Error(1)
+}
+
+func (m *MockEVMKeeper) SetFlagEnableNoBaseFee(_ sdk.Context, enable bool) {
+	m.noBaseFee = enable
+}
+
+func (m *MockEVMKeeper) IsNoBaseFeeEnabled(_ sdk.Context) bool {
+	return m.noBaseFee
 }
 
 var _ bankkeeper.Keeper = &MockBankKeeper{}

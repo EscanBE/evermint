@@ -180,66 +180,6 @@ func (suite *KeeperTestSuite) TestGetCoinbaseAddress() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGasToRefund() {
-	testCases := []struct {
-		name           string
-		gasconsumed    uint64
-		refundQuotient uint64
-		expGasRefund   uint64
-		expPanic       bool
-	}{
-		{
-			name:           "pass - gas refund 5",
-			gasconsumed:    5,
-			refundQuotient: 1,
-			expGasRefund:   5,
-			expPanic:       false,
-		},
-		{
-			name:           "pass - gas refund 10",
-			gasconsumed:    10,
-			refundQuotient: 1,
-			expGasRefund:   10,
-			expPanic:       false,
-		},
-		{
-			name:           "pass - gas refund availableRefund",
-			gasconsumed:    11,
-			refundQuotient: 1,
-			expGasRefund:   10,
-			expPanic:       false,
-		},
-		{
-			name:           "fail - gas refund quotient 0",
-			gasconsumed:    11,
-			refundQuotient: 0,
-			expGasRefund:   0,
-			expPanic:       true,
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.mintFeeCollector = true
-			suite.SetupTest() // reset
-			vmdb := suite.StateDB()
-			vmdb.AddRefund(10)
-
-			if tc.expPanic {
-				//nolint:all
-				panicF := func() {
-					evmkeeper.GasToRefund(vmdb.GetRefund(), tc.gasconsumed, tc.refundQuotient)
-				}
-				suite.Require().Panics(panicF)
-			} else {
-				gr := evmkeeper.GasToRefund(vmdb.GetRefund(), tc.gasconsumed, tc.refundQuotient)
-				suite.Require().Equal(tc.expGasRefund, gr)
-			}
-		})
-	}
-	suite.mintFeeCollector = false
-}
-
 func (suite *KeeperTestSuite) TestResetGasMeterAndConsumeGas() {
 	testCases := []struct {
 		name        string
@@ -300,13 +240,16 @@ func (suite *KeeperTestSuite) TestResetGasMeterAndConsumeGas() {
 }
 
 func (suite *KeeperTestSuite) TestEVMConfig() {
+	suite.app.EvmKeeper.SetFlagEnableNoBaseFee(suite.ctx, true)
+
 	proposerAddress := suite.ctx.BlockHeader().ProposerAddress
 	cfg, err := suite.app.EvmKeeper.EVMConfig(suite.ctx, proposerAddress, big.NewInt(constants.TestnetEIP155ChainId))
 	suite.Require().NoError(err)
-	suite.Require().Equal(evmtypes.DefaultParams(), cfg.Params)
-	suite.Require().Equal(big.NewInt(0), cfg.BaseFee)
-	suite.Require().Equal(suite.address, cfg.CoinBase)
-	suite.Require().Equal(evmtypes.DefaultParams().ChainConfig.EthereumConfig(big.NewInt(constants.TestnetEIP155ChainId)), cfg.ChainConfig)
+	suite.Equal(evmtypes.DefaultParams(), cfg.Params)
+	suite.Equal(big.NewInt(0), cfg.BaseFee)
+	suite.Equal(suite.address, cfg.CoinBase)
+	suite.Equal(evmtypes.DefaultParams().ChainConfig.EthereumConfig(big.NewInt(constants.TestnetEIP155ChainId)), cfg.ChainConfig)
+	suite.True(cfg.NoBaseFee)
 }
 
 func (suite *KeeperTestSuite) TestContractDeployment() {

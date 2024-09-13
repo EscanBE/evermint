@@ -240,8 +240,8 @@ func (suite *KeeperTestSuite) TestCallEVMWithData() {
 
 			res, err := suite.app.Erc20Keeper.CallEVMWithData(suite.ctx, tc.from, contract, data, false)
 			if tc.expPass {
-				suite.Require().NotNil(res)
 				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
 			} else {
 				suite.Require().Errorf(err, "result: %v", res)
 			}

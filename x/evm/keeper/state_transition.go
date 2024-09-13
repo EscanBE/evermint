@@ -17,7 +17,6 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
-	ethparams "github.com/ethereum/go-ethereum/params"
 )
 
 // NewEVM generates a go-ethereum VM from the provided Message fields and the chain parameters
@@ -53,7 +52,7 @@ func (k *Keeper) NewEVM(
 	if tracer == nil {
 		tracer = k.Tracer(ctx, msg, cfg.ChainConfig)
 	}
-	vmConfig := k.VMConfig(cfg, tracer)
+	vmConfig := k.VMConfig(ctx, cfg, tracer)
 	return vm.NewEVM(blockCtx, txCtx, stateDB, cfg.ChainConfig, vmConfig)
 }
 
@@ -219,11 +218,6 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 	cfg *statedb.EVMConfig,
 	txConfig statedb.TxConfig,
 ) (*evmtypes.MsgEthereumTxResponse, error) {
-	var (
-		ret   []byte // return bytes from evm execution
-		vmErr error  // vm errors do not effect consensus and are therefore not assigned to err
-	)
-
 	// return error if contract creation or call are disabled through governance
 	if !cfg.Params.EnableCreate && msg.To() == nil {
 		return nil, errorsmod.Wrap(evmtypes.ErrCreateDisabled, "failed to create new contract")
@@ -234,70 +228,22 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 	stateDB := statedb.New(ctx, k, txConfig)
 	evm := k.NewEVM(ctx, msg, cfg, tracer, stateDB)
 
-	leftoverGas := msg.Gas()
-
-	// Allow the tracer captures the tx level events, mainly the gas consumption.
-	vmCfg := evm.Config
-	if vmCfg.Debug {
-		vmCfg.Tracer.CaptureTxStart(leftoverGas)
-		defer func() {
-			vmCfg.Tracer.CaptureTxEnd(leftoverGas)
-		}()
+	var gasPool core.GasPool
+	{
+		// in geth, gas pool is block gas, but here we capped it to the gas limit of the message
+		gasPool = core.GasPool(msg.Gas())
 	}
 
-	sender := vm.AccountRef(msg.From())
-	contractCreation := msg.To() == nil
-
-	const homestead = true
-	const istanbul = true
-	intrinsicGas, err := core.IntrinsicGas(msg.Data(), msg.AccessList(), contractCreation, homestead, istanbul)
+	execResult, err := ApplyMessage(evm, msg, &gasPool)
 	if err != nil {
-		// should have already been checked on Ante Handler
-		return nil, errorsmod.Wrap(err, "intrinsic gas failed")
+		return nil, err
 	}
+	gasUsed := execResult.UsedGas
 
-	// Should check again even if it is checked on Ante Handler, because eth_call don't go through Ante Handler.
-	if leftoverGas < intrinsicGas {
-		// eth_estimateGas will check for this exact error
-		return nil, errorsmod.Wrap(core.ErrIntrinsicGas, "apply message")
-	}
-	leftoverGas -= intrinsicGas
-
-	// access list preparation is moved from ante handler to here, because it's needed when `ApplyMessage` is called
-	// under contexts where ante handlers are not run, for example `eth_call` and `eth_estimateGas`.
-	const mergeNetsplit = true
-	rules := cfg.ChainConfig.Rules(big.NewInt(ctx.BlockHeight()), mergeNetsplit)
-	stateDB.PrepareAccessList(msg.From(), msg.To(), vm.ActivePrecompiles(rules), msg.AccessList())
-
-	if contractCreation {
-		ret, _, leftoverGas, vmErr = evm.Create(sender, msg.Data(), leftoverGas, msg.Value())
-	} else {
-		stateDB.SetNonce(sender.Address(), msg.Nonce()+1)
-		ret, leftoverGas, vmErr = evm.Call(sender, *msg.To(), msg.Data(), leftoverGas, msg.Value())
-	}
-
-	// After EIP-3529: refunds are capped to gasUsed / 5
-	const refundQuotient = ethparams.RefundQuotientEIP3529
-
-	// calculate gas refund
-	if msg.Gas() < leftoverGas {
-		return nil, errorsmod.Wrap(evmtypes.ErrGasOverflow, "apply message")
-	}
-	// refund gas
-	gasUsed := msg.Gas() - leftoverGas
-	refund := GasToRefund(stateDB.GetRefund(), gasUsed, refundQuotient)
-
-	// update leftoverGas and temporaryGasUsed with refund amount
-	leftoverGas += refund
-	gasUsed -= refund
-
-	var success bool
-	// EVM execution error needs to be available for the JSON-RPC client
-	var vmError string
-	if vmErr != nil {
-		vmError = vmErr.Error()
-	} else {
-		success = true
+	cumulativeGasUsed := gasUsed
+	var prevTxIdx uint64
+	for prevTxIdx = 0; prevTxIdx < uint64(txConfig.TxIndex); prevTxIdx++ {
+		cumulativeGasUsed += k.GetGasUsedForTdxIndexTransient(ctx, prevTxIdx)
 	}
 
 	var txType uint8
@@ -305,12 +251,6 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		panic("require tx type set")
 	} else {
 		txType = uint8(txConfig.TxType)
-	}
-
-	cumulativeGasUsed := gasUsed
-	var prevTxIdx uint64
-	for prevTxIdx = 0; prevTxIdx < uint64(txConfig.TxIndex); prevTxIdx++ {
-		cumulativeGasUsed += k.GetGasUsedForTdxIndexTransient(ctx, prevTxIdx)
 	}
 
 	receipt := ethtypes.Receipt{
@@ -322,7 +262,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		Bloom:             ethtypes.Bloom{}, // compute bellow
 		Logs:              stateDB.Logs(),
 	}
-	if success {
+	if execResult.Err == nil {
 		receipt.Status = ethtypes.ReceiptStatusSuccessful
 	} else {
 		receipt.Status = ethtypes.ReceiptStatusFailed
@@ -345,10 +285,16 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 	k.SetGasUsedForCurrentTxTransient(ctx, gasUsed)
 	k.SetTxReceiptForCurrentTxTransient(ctx, bzReceipt)
 
+	// EVM execution error needs to be available for the JSON-RPC client
+	var vmError string
+	if execResult.Err != nil {
+		vmError = execResult.Err.Error()
+	}
+
 	return &evmtypes.MsgEthereumTxResponse{
 		GasUsed:           gasUsed,
 		VmError:           vmError,
-		Ret:               ret,
+		Ret:               execResult.ReturnData,
 		Hash:              txConfig.TxHash.Hex(),
 		MarshalledReceipt: bzReceipt,
 	}, nil

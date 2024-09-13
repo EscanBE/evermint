@@ -61,5 +61,5 @@ type EVMConfig struct {
 	ChainConfig *ethparams.ChainConfig
 	CoinBase    common.Address
 	BaseFee     *big.Int
-	NoBaseFee   bool // TODO ES: use this
+	NoBaseFee   bool
 }

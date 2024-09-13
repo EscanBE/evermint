@@ -265,18 +265,37 @@ func (k Keeper) GetTxReceiptsTransient(ctx sdk.Context) (receipts ethtypes.Recei
 
 // SetFlagSenderNonceIncreasedByAnteHandle sets the flag whether the sender nonce has been increased by AnteHandler.
 func (k Keeper) SetFlagSenderNonceIncreasedByAnteHandle(ctx sdk.Context, increased bool) {
-	store := ctx.TransientStore(k.transientKey)
-	if increased {
-		store.Set(evmtypes.KeyTransientFlagIncreasedSenderNonce, []byte{1})
-	} else {
-		store.Delete(evmtypes.KeyTransientFlagIncreasedSenderNonce)
-	}
+	k.genericSetBoolFlagTransient(ctx, evmtypes.KeyTransientFlagIncreasedSenderNonce, increased)
 }
 
 // IsSenderNonceIncreasedByAnteHandle returns the flag whether the sender nonce has been increased by AnteHandler.
 func (k Keeper) IsSenderNonceIncreasedByAnteHandle(ctx sdk.Context) bool {
+	return k.genericGetBoolFlagTransient(ctx, evmtypes.KeyTransientFlagIncreasedSenderNonce)
+}
+
+// SetFlagEnableNoBaseFee sets the flag whether to enable no-base-fee of EVM config.
+// Go-Ethereum used this setting for `eth_call` and smt like that.
+func (k Keeper) SetFlagEnableNoBaseFee(ctx sdk.Context, enable bool) {
+	k.genericSetBoolFlagTransient(ctx, evmtypes.KeyTransientFlagNoBaseFee, enable)
+}
+
+// IsNoBaseFeeEnabled returns the flag if no-base-fee enabled and should be used by EVM config.
+func (k Keeper) IsNoBaseFeeEnabled(ctx sdk.Context) bool {
+	return k.genericGetBoolFlagTransient(ctx, evmtypes.KeyTransientFlagNoBaseFee)
+}
+
+func (k Keeper) genericSetBoolFlagTransient(ctx sdk.Context, key []byte, value bool) {
 	store := ctx.TransientStore(k.transientKey)
-	bz := store.Get(evmtypes.KeyTransientFlagIncreasedSenderNonce)
+	if value {
+		store.Set(key, []byte{1})
+	} else {
+		store.Delete(key)
+	}
+}
+
+func (k Keeper) genericGetBoolFlagTransient(ctx sdk.Context, key []byte) bool {
+	store := ctx.TransientStore(k.transientKey)
+	bz := store.Get(key)
 	return len(bz) > 0 && bz[0] == 1
 }
 

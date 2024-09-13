@@ -239,6 +239,7 @@ func (k Keeper) EthCall(c context.Context, req *evmtypes.EthCallRequest) (*evmty
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+	cfg.NoBaseFee = true
 
 	// ApplyMessageWithConfig expect correct nonce set in msg
 	nonce := k.GetNonce(ctx, args.GetFrom())
@@ -268,6 +269,7 @@ func (k Keeper) EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*e
 
 	ctx := sdk.UnwrapSDKContext(c)
 	ctx = utils.UseZeroGasConfig(ctx)
+
 	chainID, err := getChainID(ctx, req.ChainId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -315,6 +317,7 @@ func (k Keeper) EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*e
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to load evm config")
 	}
+	cfg.NoBaseFee = true
 
 	// ApplyMessageWithConfig expect correct nonce set in msg
 	nonce := k.GetNonce(ctx, args.GetFrom())
@@ -425,6 +428,8 @@ func (k Keeper) TraceTx(c context.Context, req *evmtypes.QueryTraceTxRequest) (*
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to load evm config: %s", err.Error())
 	}
+	cfg.NoBaseFee = true
+
 	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(ctx.BlockHeight()))
 
 	cfg.BaseFee = k.feeMarketKeeper.GetBaseFee(ctx).BigInt()
@@ -524,6 +529,8 @@ func (k Keeper) TraceBlock(c context.Context, req *evmtypes.QueryTraceBlockReque
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to load evm config")
 	}
+	cfg.NoBaseFee = true
+
 	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(ctx.BlockHeight()))
 
 	cfg.BaseFee = k.feeMarketKeeper.GetBaseFee(ctx).BigInt()
