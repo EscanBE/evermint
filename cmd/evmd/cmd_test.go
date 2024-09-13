@@ -51,7 +51,7 @@ func TestFlagGasAdjustment(t *testing.T) {
 			args: []string{"ca", "0x830bb7a3c4c664e1c611d16dba1ef4067c697bd7"},
 		},
 		{
-			args: []string{"tx", "bank", "send", "dev0", "dev1", "1" + constants.BaseDenom},
+			args: []string{"tx", "bank", "send", "dev0", "dev1", "1" + constants.BaseDenom, "--keyring-backend", "test"},
 		},
 	}
 	for _, tt := range tests {
