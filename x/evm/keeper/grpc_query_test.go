@@ -774,10 +774,12 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 func (suite *KeeperTestSuite) TestTraceTx() {
 	// TODO deploy contract that triggers internal transactions
 	var (
-		txMsg        *evmtypes.MsgEthereumTx
-		traceConfig  *evmtypes.TraceConfig
-		predecessors []*evmtypes.MsgEthereumTx
-		chainID      *sdkmath.Int
+		txMsg             *evmtypes.MsgEthereumTx
+		traceConfig       *evmtypes.TraceConfig
+		predecessors      []*evmtypes.MsgEthereumTx
+		chainID           *sdkmath.Int
+		backupCtx         sdk.Context
+		backupQueryClient evmtypes.QueryClient
 	)
 
 	testCases := []struct {
@@ -861,6 +863,9 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 
 				contractAddr := suite.DeployTestContract(suite.T(), suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
 				suite.Commit()
+
+				backupCtx, backupQueryClient = suite.CreateBackupCtxAndEvmQueryClient()
+
 				// Generate token transfer transaction
 				firstTx := suite.TransferERC20Token(suite.T(), contractAddr, suite.address, common.HexToAddress("0x378c50D9264C63F3F92B806d4ee56E9D86FfB3Ec"), sdkmath.NewIntWithDecimal(1, 18).BigInt())
 				txMsg = suite.TransferERC20Token(suite.T(), contractAddr, suite.address, common.HexToAddress("0x378c50D9264C63F3F92B806d4ee56E9D86FfB3Ec"), sdkmath.NewIntWithDecimal(1, 18).BigInt())
@@ -972,6 +977,9 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 			// Deploy contract
 			contractAddr := suite.DeployTestContract(suite.T(), suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
 			suite.Commit()
+
+			backupCtx, backupQueryClient = suite.CreateBackupCtxAndEvmQueryClient()
+
 			// Generate token transfer transaction
 			txMsg = suite.TransferERC20Token(suite.T(), contractAddr, suite.address, common.HexToAddress("0x378c50D9264C63F3F92B806d4ee56E9D86FfB3Ec"), sdkmath.NewIntWithDecimal(1, 18).BigInt())
 			suite.Commit()
@@ -986,7 +994,7 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 			if chainID != nil {
 				traceReq.ChainId = chainID.Int64()
 			}
-			res, err := suite.queryClient.TraceTx(suite.ctx, &traceReq)
+			res, err := backupQueryClient.TraceTx(backupCtx, &traceReq)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -1014,9 +1022,11 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 
 func (suite *KeeperTestSuite) TestTraceBlock() {
 	var (
-		txs         []*evmtypes.MsgEthereumTx
-		traceConfig *evmtypes.TraceConfig
-		chainID     *sdkmath.Int
+		txs               []*evmtypes.MsgEthereumTx
+		traceConfig       *evmtypes.TraceConfig
+		chainID           *sdkmath.Int
+		backupCtx         sdk.Context
+		backupQueryClient evmtypes.QueryClient
 	)
 
 	testCases := []struct {
@@ -1095,6 +1105,9 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 
 				contractAddr := suite.DeployTestContract(suite.T(), suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
 				suite.Commit()
+
+				backupCtx, backupQueryClient = suite.CreateBackupCtxAndEvmQueryClient()
+
 				// create multiple transactions in the same block
 				firstTx := suite.TransferERC20Token(suite.T(), contractAddr, suite.address, common.HexToAddress("0x378c50D9264C63F3F92B806d4ee56E9D86FfB3Ec"), sdkmath.NewIntWithDecimal(1, 18).BigInt())
 				secondTx := suite.TransferERC20Token(suite.T(), contractAddr, suite.address, common.HexToAddress("0x378c50D9264C63F3F92B806d4ee56E9D86FfB3Ec"), sdkmath.NewIntWithDecimal(1, 18).BigInt())
@@ -1155,6 +1168,9 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 			// Deploy contract
 			contractAddr := suite.DeployTestContract(suite.T(), suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
 			suite.Commit()
+
+			backupCtx, backupQueryClient = suite.CreateBackupCtxAndEvmQueryClient()
+
 			// Generate token transfer transaction
 			txMsg := suite.TransferERC20Token(suite.T(), contractAddr, suite.address, common.HexToAddress("0x378c50D9264C63F3F92B806d4ee56E9D86FfB3Ec"), sdkmath.NewIntWithDecimal(1, 18).BigInt())
 			suite.Commit()
@@ -1162,6 +1178,7 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 			txs = append(txs, txMsg)
 
 			tc.malleate()
+
 			traceReq := evmtypes.QueryTraceBlockRequest{
 				Txs:         txs,
 				TraceConfig: traceConfig,
@@ -1171,7 +1188,7 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 				traceReq.ChainId = chainID.Int64()
 			}
 
-			res, err := suite.queryClient.TraceBlock(suite.ctx, &traceReq)
+			res, err := backupQueryClient.TraceBlock(backupCtx, &traceReq)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

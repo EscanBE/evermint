@@ -207,3 +207,18 @@ func (suite *KeeperTestSuite) FundDefaultAddress(amount int64) {
 	)
 	suite.Require().NoError(err)
 }
+
+// CreateBackupCtxAndEvmQueryClient creates backup sdk.Context and x/evm Query Client, for tracing simulation purpose.
+func (suite *KeeperTestSuite) CreateBackupCtxAndEvmQueryClient() (sdk.Context, evmtypes.QueryClient) {
+	backupCtx, _ := suite.ctx.CacheContext()
+	queryHelper := baseapp.NewQueryServerTestHelper(backupCtx, suite.app.InterfaceRegistry())
+	evmtypes.RegisterQueryServer(queryHelper, suite.app.EvmKeeper)
+	backupQueryClient := evmtypes.NewQueryClient(queryHelper)
+
+	// warm up
+	_, _ = backupQueryClient.Account(backupCtx, &evmtypes.QueryAccountRequest{
+		Address: suite.address.Hex(),
+	})
+
+	return backupCtx, backupQueryClient
+}
