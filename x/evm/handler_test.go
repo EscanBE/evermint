@@ -2,11 +2,12 @@ package evm_test
 
 import (
 	"fmt"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"math/big"
 	"testing"
 	"time"
+
+	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	storetypes "cosmossdk.io/store/types"
 

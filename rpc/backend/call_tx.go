@@ -194,7 +194,6 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 		return nil
 	}
 
-	// TODO ES: recheck this logic, look like something wrong, are both fields required to be Dynamic fee tx?
 	if args.MaxPriorityFeePerGas != nil && args.MaxFeePerGas != nil {
 		if err := checkRelationMaxPriorityFeePerGasAndMaxFeePerGas(); err != nil {
 			return args, err

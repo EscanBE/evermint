@@ -1,8 +1,11 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"encoding/json"
+	"math/big"
+
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/EscanBE/evermint/v12/server/config"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,7 +16,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"math/big"
 
 	"github.com/EscanBE/evermint/v12/contracts"
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
