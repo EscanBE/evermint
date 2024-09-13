@@ -28,14 +28,13 @@ import (
 type AnteTestSuite struct {
 	suite.Suite
 
-	ctx                      sdk.Context
-	app                      *chainapp.Evermint
-	clientCtx                client.Context
-	anteHandler              sdk.AnteHandler
-	ethSigner                types.Signer
-	enableFeemarket          bool
-	evmParamsOption          func(*evmtypes.Params)
-	useLegacyEIP712TypedData bool
+	ctx             sdk.Context
+	app             *chainapp.Evermint
+	clientCtx       client.Context
+	anteHandler     sdk.AnteHandler
+	ethSigner       types.Signer
+	enableFeemarket bool
+	evmParamsOption func(*evmtypes.Params)
 }
 
 const TestGasLimit uint64 = 100000
@@ -117,10 +116,5 @@ func (suite *AnteTestSuite) SetupTest() {
 func TestAnteTestSuite(t *testing.T) {
 	suite.Run(t, &AnteTestSuite{
 		enableFeemarket: true,
-	})
-
-	suite.Run(t, &AnteTestSuite{
-		enableFeemarket:          true,
-		useLegacyEIP712TypedData: true,
 	})
 }

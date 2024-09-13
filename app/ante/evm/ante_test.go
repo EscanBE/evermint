@@ -538,12 +538,12 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				amount := sdk.NewCoins(coinAmount)
 				gas := uint64(200000)
 				txBuilder, err := suite.CreateTestEIP712MultipleDifferentMsgs(from, privKey, suite.ctx.ChainID(), gas, amount)
-				suite.RequireErrorForLegacyTypedData(err)
-				return suite.TxForLegacyTypedData(txBuilder)
+				suite.Require().NoError(err)
+				return suite.TxForTypedData(txBuilder)
 			},
 			checkTx:   false,
 			reCheckTx: false,
-			expPass:   !suite.useLegacyEIP712TypedData,
+			expPass:   true,
 		},
 		{
 			name: "success- DeliverTx EIP712 Same Msgs, Different Schemas",
@@ -553,12 +553,12 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				amount := sdk.NewCoins(coinAmount)
 				gas := uint64(200000)
 				txBuilder, err := suite.CreateTestEIP712SameMsgDifferentSchemas(from, privKey, suite.ctx.ChainID(), gas, amount)
-				suite.RequireErrorForLegacyTypedData(err)
-				return suite.TxForLegacyTypedData(txBuilder)
+				suite.Require().NoError(err)
+				return suite.TxForTypedData(txBuilder)
 			},
 			checkTx:   false,
 			reCheckTx: false,
-			expPass:   !suite.useLegacyEIP712TypedData,
+			expPass:   true,
 		},
 		{
 			name: "success- DeliverTx EIP712 Zero Value Array (Should Not Omit Field)",
@@ -568,12 +568,12 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				amount := sdk.NewCoins(coinAmount)
 				gas := uint64(200000)
 				txBuilder, err := suite.CreateTestEIP712ZeroValueArray(from, privKey, suite.ctx.ChainID(), gas, amount)
-				suite.RequireErrorForLegacyTypedData(err)
-				return suite.TxForLegacyTypedData(txBuilder)
+				suite.Require().NoError(err)
+				return suite.TxForTypedData(txBuilder)
 			},
 			checkTx:   false,
 			reCheckTx: false,
-			expPass:   !suite.useLegacyEIP712TypedData,
+			expPass:   true,
 		},
 		{
 			name: "success- DeliverTx EIP712 Zero Value Number (Should Not Omit Field)",
@@ -583,12 +583,12 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				amount := sdk.NewCoins(coinAmount)
 				gas := uint64(200000)
 				txBuilder, err := suite.CreateTestEIP712ZeroValueNumber(from, privKey, suite.ctx.ChainID(), gas, amount)
-				suite.RequireErrorForLegacyTypedData(err)
-				return suite.TxForLegacyTypedData(txBuilder)
+				suite.Require().NoError(err)
+				return suite.TxForTypedData(txBuilder)
 			},
 			checkTx:   false,
 			reCheckTx: false,
-			expPass:   !suite.useLegacyEIP712TypedData,
+			expPass:   true,
 		},
 		{
 			name: "success- DeliverTx EIP712 MsgTransfer",
