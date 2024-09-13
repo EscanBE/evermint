@@ -29,8 +29,9 @@ message MsgEthereumTx {
   // data is inner transaction data of the Ethereum transaction
   google.protobuf.Any data = 1;
 
-  // size is the encoded storage size of the transaction (DEPRECATED)
-  double size = 2 [(gogoproto.jsontag) = "-"];
+  // DEPRECATED: size is the encoded storage size of the transaction (DEPRECATED)
+  reserved 2;
+  reserved "size";
   // hash of the transaction in hex format
   string hash = 3 [(gogoproto.moretags) = "rlp:\"-\""];
   // from is the ethereum signer address in bech32 format. This address value is checked

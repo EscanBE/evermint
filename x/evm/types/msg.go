@@ -157,11 +157,6 @@ func (msg MsgEthereumTx) ValidateBasic() error {
 		return errorsmod.Wrap(err, "invalid from address")
 	}
 
-	// Validate Size_ field, should be kept empty
-	if msg.Size_ != 0 {
-		return errorsmod.Wrapf(errortypes.ErrInvalidRequest, "tx size is deprecated")
-	}
-
 	txData, err := UnpackTxData(msg.Data)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to unpack tx data")

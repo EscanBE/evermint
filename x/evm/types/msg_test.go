@@ -562,15 +562,6 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasicAdvanced() {
 			},
 			expectPass: false,
 		},
-		{
-			name: "fail - invalid size",
-			msgBuilder: func() *evmtypes.MsgEthereumTx {
-				msg := evmtypes.NewTx(evmTx)
-				msg.Size_ = 1
-				return msg
-			},
-			expectPass: false,
-		},
 	}
 
 	for _, tc := range testCases {
