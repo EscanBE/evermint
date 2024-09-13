@@ -19,7 +19,7 @@ import (
 // Secp256k1DerivationFn defines the derivation function used on the Cosmos SDK Keyring.
 type Secp256k1DerivationFn func() (sdkledger.SECP256K1, error)
 
-func EvermintLedgerDerivation() Secp256k1DerivationFn {
+func EvmosLedgerDerivation() Secp256k1DerivationFn {
 	SECP256K1 := new(EvmosSECP256K1)
 
 	return func() (sdkledger.SECP256K1, error) {

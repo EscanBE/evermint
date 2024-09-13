@@ -3,7 +3,7 @@ package hd
 import (
 	"github.com/btcsuite/btcd/btcutil/hdkeychain"
 	"github.com/btcsuite/btcd/chaincfg"
-	bip39 "github.com/tyler-smith/go-bip39"
+	"github.com/tyler-smith/go-bip39"
 
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -31,9 +31,9 @@ var (
 	SupportedAlgorithmsLedger = keyring.SigningAlgoList{EthSecp256k1, hd.Secp256k1}
 )
 
-// EthSecp256k1Option defines a function keys options for the ethereum Secp256k1 curve.
-// It supports eth_secp256k1 and secp256k1 keys for accounts.
-func EthSecp256k1Option() keyring.Option {
+// MultiSecp256k1Option defines a function keys options for both of the
+// Ethereum Secp256k1 curve and Cosmos Secp256k1 keys for accounts.
+func MultiSecp256k1Option() keyring.Option {
 	return func(options *keyring.Options) {
 		options.SupportedAlgos = SupportedAlgorithms
 		options.SupportedAlgosLedger = SupportedAlgorithmsLedger
@@ -97,7 +97,7 @@ func (s ethSecp256k1Algo) Derive() hd.DeriveFn {
 	}
 }
 
-// Generate generates a eth_secp256k1 private key from the given bytes.
+// Generate generates an eth_secp256k1 private key from the given bytes.
 func (s ethSecp256k1Algo) Generate() hd.GenerateFn {
 	return func(bz []byte) cryptotypes.PrivKey {
 		bzArr := make([]byte, ethsecp256k1.PrivKeySize)

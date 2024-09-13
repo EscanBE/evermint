@@ -88,7 +88,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithBroadcastMode(flags.FlagBroadcastMode).
 		WithHomeDir(chainapp.DefaultNodeHome).
-		WithKeyringOptions(appkeyring.Option()).
+		WithKeyringOptions(appkeyring.EthSecp256k1KeyringOption()).
 		WithViper(ViperEnvPrefix).
 		WithLedgerHasProtobuf(true)
 

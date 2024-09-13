@@ -43,7 +43,7 @@ func (suite *LedgerTestSuite) TestEvermintLedgerDerivation() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			derivationFunc := ledger.EvermintLedgerDerivation()
+			derivationFunc := ledger.EvmosLedgerDerivation()
 			_, err := derivationFunc()
 			if tc.expPass {
 				suite.Require().NoError(err)

@@ -184,7 +184,7 @@ func createTestReceipt(root []byte, resBlock *cmtrpctypes.ResultBlock, tx *evmty
 func (suite *BackendTestSuite) generateTestKeyring(clientDir string) (keyring.Keyring, error) {
 	buf := bufio.NewReader(os.Stdin)
 	encodingConfig := chainapp.RegisterEncodingConfig()
-	return keyring.New(sdk.KeyringServiceName(), keyring.BackendTest, clientDir, buf, encodingConfig.Codec, []keyring.Option{hd.EthSecp256k1Option()}...)
+	return keyring.New(sdk.KeyringServiceName(), keyring.BackendTest, clientDir, buf, encodingConfig.Codec, []keyring.Option{hd.MultiSecp256k1Option()}...)
 }
 
 func (suite *BackendTestSuite) signAndEncodeEthTx(msgEthereumTx *evmtypes.MsgEthereumTx) []byte {

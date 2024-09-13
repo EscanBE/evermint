@@ -158,7 +158,7 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
-		WithKeyringOptions(etherminthd.EthSecp256k1Option())
+		WithKeyringOptions(etherminthd.MultiSecp256k1Option())
 
 	tempHolder := itutiltypes.NewTemporaryHolder()
 
@@ -440,7 +440,7 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 		WithInterfaceRegistry(suite.EncodingConfig.InterfaceRegistry).
 		WithTxConfig(suite.EncodingConfig.TxConfig).
 		WithLegacyAmino(suite.EncodingConfig.Amino).
-		WithKeyringOptions(etherminthd.EthSecp256k1Option()).
+		WithKeyringOptions(etherminthd.MultiSecp256k1Option()).
 		WithAccountRetriever(authtypes.AccountRetriever{})
 
 	if suite.useKeyring {
