@@ -26,7 +26,7 @@ import (
 	sdkante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	authz "github.com/cosmos/cosmos-sdk/x/authz"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	ibctypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 
@@ -427,7 +427,6 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 		suite.app,
 		utiltx.EIP712TxArgs{
 			CosmosTxArgs:       cosmosTxArgs,
-			UseLegacyExtension: suite.useLegacyEIP712Extension,
 			UseLegacyTypedData: suite.useLegacyEIP712TypedData,
 		},
 	)
