@@ -32,8 +32,9 @@ message MsgEthereumTx {
   // DEPRECATED: size is the encoded storage size of the transaction (DEPRECATED)
   reserved 2;
   reserved "size";
-  // hash of the transaction in hex format
-  string hash = 3 [(gogoproto.moretags) = "rlp:\"-\""];
+  // DEPRECATED: hash of the transaction in hex format
+  reserved 3;
+  reserved "hash";
   // from is the ethereum signer address in bech32 format. This address value is checked
   // against the address derived from the signature (V, R, S) using the
   // secp256k1 elliptic curve
