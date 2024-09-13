@@ -28,7 +28,7 @@ type EVMKeeper interface {
 	EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*evmtypes.EstimateGasResponse, error)
 	ApplyMessage(ctx sdk.Context, msg core.Message, tracer vm.EVMLogger, commit bool) (*evmtypes.MsgEthereumTxResponse, error)
 	SetFlagEnableNoBaseFee(ctx sdk.Context, enable bool)
-	ShouldEnableNoBaseFee(ctx sdk.Context) bool
+	IsNoBaseFeeEnabled(ctx sdk.Context) bool
 }
 
 type (

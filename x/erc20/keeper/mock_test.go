@@ -58,7 +58,7 @@ func (m *MockEVMKeeper) SetFlagEnableNoBaseFee(_ sdk.Context, enable bool) {
 	m.noBaseFee = enable
 }
 
-func (m *MockEVMKeeper) ShouldEnableNoBaseFee(_ sdk.Context) bool {
+func (m *MockEVMKeeper) IsNoBaseFeeEnabled(_ sdk.Context) bool {
 	return m.noBaseFee
 }
 

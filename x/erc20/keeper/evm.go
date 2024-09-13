@@ -207,7 +207,7 @@ func (k Keeper) CallEVMWithData(
 	)
 
 	// enable NoBaseFee for system call
-	enabled := k.evmKeeper.ShouldEnableNoBaseFee(ctx)
+	enabled := k.evmKeeper.IsNoBaseFeeEnabled(ctx)
 	if !enabled {
 		// enable and restore
 		k.evmKeeper.SetFlagEnableNoBaseFee(ctx, true)

@@ -54,7 +54,7 @@ func (k Keeper) VMConfig(ctx sdk.Context, cfg *statedb.EVMConfig, tracer vm.EVML
 	return vm.Config{
 		Debug:     debug,
 		Tracer:    tracer,
-		NoBaseFee: cfg.NoBaseFee || k.ShouldEnableNoBaseFee(ctx),
+		NoBaseFee: cfg.NoBaseFee || k.IsNoBaseFeeEnabled(ctx),
 		ExtraEips: cfg.Params.EIPs(),
 	}
 }

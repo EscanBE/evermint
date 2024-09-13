@@ -279,8 +279,8 @@ func (k Keeper) SetFlagEnableNoBaseFee(ctx sdk.Context, enable bool) {
 	k.genericSetBoolFlagTransient(ctx, evmtypes.KeyTransientFlagNoBaseFee, enable)
 }
 
-// ShouldEnableNoBaseFee returns the flag should enable no-base-fee of EVM config.
-func (k Keeper) ShouldEnableNoBaseFee(ctx sdk.Context) bool {
+// IsNoBaseFeeEnabled returns the flag if no-base-fee enabled and should be used by EVM config.
+func (k Keeper) IsNoBaseFeeEnabled(ctx sdk.Context) bool {
 	return k.genericGetBoolFlagTransient(ctx, evmtypes.KeyTransientFlagNoBaseFee)
 }
 
