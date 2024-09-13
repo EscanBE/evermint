@@ -39,6 +39,9 @@ message MsgEthereumTx {
   // against the address derived from the signature (V, R, S) using the
   // secp256k1 elliptic curve
   string from = 4;
+
+  // marshalled_tx is the binary of the Ethereum tx.
+  bytes marshalled_tx = 5;
 }
 
 // LegacyTx is the transaction data of regular Ethereum transactions.
