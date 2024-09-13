@@ -150,7 +150,6 @@ func (args *TransactionArgs) ToTransaction() *MsgEthereumTx {
 		Data: anyData,
 		From: from,
 	}
-	msg.Hash = msg.AsTransaction().Hash().Hex()
 	return &msg
 }
 

@@ -655,7 +655,7 @@ func (api *pubSubAPI) subscribePendingTransactions(wsConn *wsConn, subID rpc.ID)
 						Method:  "eth_subscription",
 						Params: &SubscriptionResult{
 							Subscription: subID,
-							Result:       ethTx.Hash,
+							Result:       ethTx.HashStr(),
 						},
 					}
 

@@ -18,7 +18,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
@@ -121,7 +120,6 @@ func NewTx(
 	}
 
 	msg := MsgEthereumTx{Data: dataAny}
-	msg.Hash = msg.AsTransaction().Hash().Hex()
 	msg.From = sdk.AccAddress(tx.From.Bytes()).String()
 
 	return &msg
@@ -140,7 +138,6 @@ func (msg *MsgEthereumTx) FromEthereumTx(tx *ethtypes.Transaction) error {
 	}
 
 	msg.Data = anyTxData
-	msg.Hash = tx.Hash().Hex()
 	return nil
 }
 
@@ -176,12 +173,6 @@ func (msg MsgEthereumTx) ValidateBasic() error {
 
 	if err := txData.Validate(); err != nil {
 		return err
-	}
-
-	// Validate Hash field after validated txData to avoid panic
-	txHash := msg.AsTransaction().Hash().Hex()
-	if msg.Hash != txHash {
-		return errorsmod.Wrapf(errortypes.ErrInvalidRequest, "invalid tx hash %s, expected: %s", msg.Hash, txHash)
 	}
 
 	return nil

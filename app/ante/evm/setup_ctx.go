@@ -89,7 +89,7 @@ func (eeed EthEmitEventDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 		// it's emitted in ante handler, so we can query failed transaction (out of block gas limit).
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			evmtypes.EventTypeEthereumTx,
-			sdk.NewAttribute(evmtypes.AttributeKeyEthereumTxHash, msgEthTx.Hash),
+			sdk.NewAttribute(evmtypes.AttributeKeyEthereumTxHash, msgEthTx.HashStr()),
 			sdk.NewAttribute(evmtypes.AttributeKeyTxIndex, strconv.FormatUint(txIndex, 10)), // #nosec G701
 		))
 	}

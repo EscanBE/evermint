@@ -57,7 +57,7 @@ func (empd EthMinGasPriceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 
 		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
 		if err != nil {
-			return ctx, errorsmod.Wrapf(err, "failed to unpack tx data %s", msgEthTx.Hash)
+			return ctx, errorsmod.Wrapf(err, "failed to unpack tx data: %v", msgEthTx.Data.Value)
 		}
 
 		if txData.TxType() != ethtypes.LegacyTxType {

@@ -98,7 +98,7 @@ func (kv *KVIndexer) IndexBlock(block *cmttypes.Block, txResults []*abci.ExecTxR
 
 		{
 			ethMsg := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
-			txHash := common.HexToHash(ethMsg.Hash)
+			txHash := common.HexToHash(ethMsg.HashStr())
 
 			txResult := evertypes.TxResult{
 				Height:     height,

@@ -137,7 +137,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 			msgEthereumTx, err := suite.CITS.TxSendViaEVMAsync(senderEvmTxs[num-1], receiver, 1)
 			suite.Require().NoError(err, "failed to send tx to create test data")
 
-			msgEvmTxs[msgEthereumTx.Hash] = msgEthereumTx
+			msgEvmTxs[msgEthereumTx.HashStr()] = msgEthereumTx
 		}
 
 		for num := 1; num <= nonEvmTxsCount; num++ {
@@ -724,7 +724,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockTransactionCountByNumberAndHash() {
 		msgEthereumTx, err := suite.CITS.TxSendViaEVMAsync(senderEvmTxs[num-1], receiver, 1)
 		suite.Require().NoError(err, "failed to send tx to create test data")
 
-		msgEvmTxs[msgEthereumTx.Hash] = msgEthereumTx
+		msgEvmTxs[msgEthereumTx.HashStr()] = msgEthereumTx
 	}
 
 	for num := 1; num <= nonEvmTxsCount; num++ {

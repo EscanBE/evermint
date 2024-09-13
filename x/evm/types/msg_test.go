@@ -553,46 +553,6 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasic() {
 	}
 }
 
-func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasicAdvanced() {
-	hundredInt := big.NewInt(100)
-	evmTx := &evmtypes.EvmTxArgs{
-		From:      utiltx.GenerateAddress(),
-		ChainID:   hundredInt,
-		Nonce:     1,
-		Amount:    big.NewInt(10),
-		GasLimit:  100000,
-		GasPrice:  big.NewInt(150),
-		GasFeeCap: big.NewInt(200),
-	}
-
-	testCases := []struct {
-		name       string
-		msgBuilder func() *evmtypes.MsgEthereumTx
-		expectPass bool
-	}{
-		{
-			name: "fail - invalid tx hash",
-			msgBuilder: func() *evmtypes.MsgEthereumTx {
-				msg := evmtypes.NewTx(evmTx)
-				msg.Hash = "0x00"
-				return msg
-			},
-			expectPass: false,
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			err := tc.msgBuilder().ValidateBasic()
-			if tc.expectPass {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
-	}
-}
-
 func (suite *MsgsTestSuite) TestMsgEthereumTx_Sign() {
 	testCases := []struct {
 		name       string
