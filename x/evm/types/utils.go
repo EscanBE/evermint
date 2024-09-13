@@ -83,6 +83,7 @@ func BinSearch(lo, hi uint64, executable func(uint64) (bool, *MsgEthereumTxRespo
 
 // EffectiveGasPrice compute the effective gas price based on eip-1159 rules
 // `effectiveGasPrice = min(baseFee + tipCap, feeCap)`
+// TODO ES: remove or move to utils?
 func EffectiveGasPrice(baseFee, feeCap, tipCap *big.Int) *big.Int {
 	return math.BigMin(new(big.Int).Add(tipCap, baseFee), feeCap)
 }

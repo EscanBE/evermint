@@ -1,6 +1,7 @@
 package evm
 
 import (
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
@@ -10,7 +11,6 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // EthMinGasPriceDecorator will check if the transaction's fee is at least as large
@@ -44,8 +44,6 @@ func (empd EthMinGasPriceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
-		feeAmt := msgEthTx.GetFee()
-
 		// For dynamic transactions, GetFee() uses the GasFeeCap value, which
 		// is the maximum gas price that the signer can pay. In practice, the
 		// signer can pay less, if the block's BaseFee is lower. So, in this case,
@@ -55,14 +53,8 @@ func (empd EthMinGasPriceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 		// Transactions with MinGasPrices * gasUsed < tx fees < EffectiveFee are rejected
 		// by the feemarket AnteHandle
 
-		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
-		if err != nil {
-			return ctx, errorsmod.Wrapf(err, "failed to unpack tx data: %v", msgEthTx.Data.Value)
-		}
-
-		if txData.TxType() != ethtypes.LegacyTxType {
-			feeAmt = msgEthTx.GetEffectiveFee(baseFee.BigInt())
-		}
+		ethTx := msgEthTx.AsTransaction()
+		feeAmt := evmutils.EthTxEffectiveFee(ethTx, baseFee)
 
 		gasLimit := sdkmath.LegacyNewDecFromBigInt(new(big.Int).SetUint64(msgEthTx.GetGas()))
 

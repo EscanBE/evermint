@@ -8,17 +8,15 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	"github.com/EscanBE/evermint/v12/utils"
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
 	cmttypes "github.com/cometbft/cometbft/types"
-	"github.com/ethereum/go-ethereum/trie"
-	"github.com/pkg/errors"
-
-	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/ethereum/go-ethereum/trie"
 
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
@@ -265,10 +263,7 @@ func NewRPCReceiptFromReceipt(
 	effectiveGasPrice *big.Int,
 ) (receipt *RPCReceipt, err error) {
 	from := common.BytesToAddress(sdk.MustAccAddressFromBech32(ethMsg.From))
-	txData, err := evmtypes.UnpackTxData(ethMsg.Data)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to unpack tx data")
-	}
+	ethTx := ethMsg.AsTransaction()
 
 	rpcReceipt := RPCReceipt{
 		Status:            hexutil.Uint(ethReceipt.Status),
@@ -282,7 +277,7 @@ func NewRPCReceiptFromReceipt(
 		TransactionIndex:  hexutil.Uint64(ethReceipt.TransactionIndex),
 		Type:              hexutil.Uint(ethReceipt.Type),
 		From:              from,
-		To:                txData.GetTo(),
+		To:                ethTx.To(),
 		EffectiveGasPrice: utils.Ptr(hexutil.Big(*effectiveGasPrice)),
 	}
 

@@ -1,11 +1,11 @@
 package backend
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"math"
 	"math/big"
-
-	errorsmod "cosmossdk.io/errors"
 
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evertypes "github.com/EscanBE/evermint/v12/types"
@@ -193,11 +193,6 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 		// in this case, we craft the receipt manually
 		ethTx := ethMsg.AsTransaction()
 
-		txData, err := evmtypes.UnpackTxData(ethMsg.Data)
-		if err != nil {
-			return nil, errorsmod.Wrap(err, "failed to unpack tx data")
-		}
-
 		// compute cumulative gas used
 		cumulativeGasUsed := ethTx.Gas()
 		if res.EthTxIndex > 0 {
@@ -257,7 +252,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 				}
 			}
 		}
-		effectiveGasPrice = txData.EffectiveGasPrice(baseFee)
+		effectiveGasPrice = evmutils.EthTxEffectiveGasPrice(ethTx, sdkmath.NewIntFromBigInt(baseFee))
 	}
 
 	return rpctypes.NewRPCReceiptFromReceipt(

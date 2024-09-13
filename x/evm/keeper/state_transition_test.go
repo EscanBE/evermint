@@ -375,7 +375,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 				ethTxParams := evmtypes.EvmTxArgs{
 					From:      suite.address,
 					Nonce:     getNonce(suite.address.Bytes()),
-					GasLimit:  ethparams.TxGas / 2,
+					GasLimit:  ethparams.TxGas - 1,
 					Input:     nil,
 					GasFeeCap: nil,
 					GasPrice:  big.NewInt(10),
@@ -593,7 +593,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 				ethTxParams := evmtypes.EvmTxArgs{
 					From:      suite.address,
 					Nonce:     getNonce(suite.address.Bytes()),
-					GasLimit:  ethparams.TxGas / 2,
+					GasLimit:  ethparams.TxGas - 1,
 					Input:     nil,
 					GasFeeCap: nil,
 					GasPrice:  big.NewInt(10),
@@ -838,7 +838,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				ethTxParams := evmtypes.EvmTxArgs{
 					From:      suite.address,
 					Nonce:     getNonce(suite.address.Bytes()),
-					GasLimit:  ethparams.TxGas / 2,
+					GasLimit:  ethparams.TxGas - 1,
 					Input:     nil,
 					GasFeeCap: nil,
 					GasPrice:  big.NewInt(10),

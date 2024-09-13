@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"math/big"
 	"testing"
 
@@ -63,11 +64,9 @@ func DoBenchmark(b *testing.B, txBuilder TxBuilder) {
 	for i := 0; i < b.N; i++ {
 		ctx, _ := suite.ctx.CacheContext()
 
-		// deduct fee first
-		txData, err := evmtypes.UnpackTxData(msg.Data)
-		require.NoError(b, err)
+		ethTx := msg.AsTransaction()
 
-		fees := sdk.Coins{sdk.NewCoin(suite.EvmDenom(), sdkmath.NewIntFromBigInt(txData.Fee()))}
+		fees := sdk.Coins{sdk.NewCoin(suite.EvmDenom(), sdkmath.NewIntFromBigInt(evmutils.EthTxFee(ethTx)))}
 		err = authante.DeductFees(suite.app.BankKeeper, suite.ctx, suite.app.AccountKeeper.GetAccount(ctx, msg.GetFrom()), fees)
 		require.NoError(b, err)
 
@@ -180,10 +179,9 @@ func BenchmarkMessageCall(b *testing.B) {
 		ctx, _ := suite.ctx.CacheContext()
 
 		// deduct fee first
-		txData, err := evmtypes.UnpackTxData(msg.Data)
-		require.NoError(b, err)
+		ethTx := msg.AsTransaction()
 
-		fees := sdk.Coins{sdk.NewCoin(suite.EvmDenom(), sdkmath.NewIntFromBigInt(txData.Fee()))}
+		fees := sdk.Coins{sdk.NewCoin(suite.EvmDenom(), sdkmath.NewIntFromBigInt(evmutils.EthTxFee(ethTx)))}
 		err = authante.DeductFees(suite.app.BankKeeper, suite.ctx, suite.app.AccountKeeper.GetAccount(ctx, msg.GetFrom()), fees)
 		require.NoError(b, err)
 

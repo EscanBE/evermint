@@ -299,7 +299,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 		Accesses: &ethtypes.AccessList{{Address: addr, StorageKeys: nil}},
 	}
 	tx2 := evmtypes.NewTx(eth2TxContractParams)
-	tx2Priority := int64(1)
+	tx2Priority := gasPrice.Int64()
 
 	tx3GasLimit := evertypes.BlockGasLimit(suite.ctx) + uint64(1)
 	eth3TxContractParams := &evmtypes.EvmTxArgs{
@@ -324,7 +324,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 		Accesses:  &ethtypes.AccessList{{Address: addr, StorageKeys: nil}},
 	}
 	dynamicFeeTx := evmtypes.NewTx(dynamicTxContractParams)
-	dynamicFeeTxPriority := int64(1)
+	dynamicFeeTxPriority := dynamicTxContractParams.GasFeeCap.Int64()
 
 	zeroBalanceAddr := testutiltx.GenerateAddress()
 	zeroBalanceAcc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, zeroBalanceAddr.Bytes())
@@ -593,10 +593,10 @@ func (suite *AnteTestSuite) TestCanTransferDecorator() {
 		ChainID:   suite.app.EvmKeeper.ChainID(),
 		Nonce:     1,
 		Amount:    big.NewInt(10),
-		GasLimit:  1000,
+		GasLimit:  21000,
 		GasPrice:  big.NewInt(1),
-		GasFeeCap: big.NewInt(150),
-		GasTipCap: big.NewInt(200),
+		GasFeeCap: big.NewInt(200),
+		GasTipCap: big.NewInt(150),
 		Accesses:  &ethtypes.AccessList{},
 	}
 
@@ -686,7 +686,7 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		ChainID:  suite.app.EvmKeeper.ChainID(),
 		Nonce:    0,
 		Amount:   big.NewInt(10),
-		GasLimit: 1000,
+		GasLimit: 21000,
 		GasPrice: big.NewInt(1),
 	}
 	contract := evmtypes.NewTx(ethTxContractParamsNonce0)
@@ -700,7 +700,7 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		Nonce:    0,
 		To:       &to,
 		Amount:   big.NewInt(10),
-		GasLimit: 1000,
+		GasLimit: 21000,
 		GasPrice: big.NewInt(1),
 	}
 	tx := evmtypes.NewTx(ethTxParamsNonce0)
@@ -713,7 +713,7 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		Nonce:    1,
 		To:       &to,
 		Amount:   big.NewInt(10),
-		GasLimit: 1000,
+		GasLimit: 21000,
 		GasPrice: big.NewInt(1),
 	}
 	tx2 := evmtypes.NewTx(ethTxParamsNonce1)
@@ -726,7 +726,7 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		Nonce:    2,
 		To:       &to,
 		Amount:   big.NewInt(10),
-		GasLimit: 1000,
+		GasLimit: 21000,
 		GasPrice: big.NewInt(1),
 	}
 	tx3 := evmtypes.NewTx(ethTxParamsNonce2)
@@ -809,12 +809,10 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				msg := tc.tx.(*evmtypes.MsgEthereumTx)
-
-				txData, err := evmtypes.UnpackTxData(msg.Data)
-				suite.Require().NoError(err)
+				ethTx := msg.AsTransaction()
 
 				nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, addr)
-				suite.Equal(txData.GetNonce()+1, nonce)
+				suite.Equal(ethTx.Nonce()+1, nonce)
 				suite.True(suite.app.EvmKeeper.IsSenderNonceIncreasedByAnteHandle(suite.ctx), "flag must be set")
 			} else {
 				suite.Require().Error(err)
@@ -890,7 +888,8 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.Amount = big.NewInt(-10)
 				})
 			},
-			expPass: false,
+			expPass:  false,
+			expPanic: true,
 		},
 		{
 			name: "fail - reject value which more than 256 bits",
@@ -939,7 +938,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasTipCap = nil
 				})
 			},
-			expPass: false,
+			expPanic: true,
 		},
 		{
 			name: "fail - reject gas price which more than 256 bits",
@@ -994,7 +993,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasFeeCap = big.NewInt(-10)
 				})
 			},
-			expPass: false,
+			expPanic: true,
 		},
 		{
 			name: "fail - reject gas fee cap which more than 256 bits",
@@ -1051,7 +1050,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasTipCap = big.NewInt(-10)
 				})
 			},
-			expPass: false,
+			expPanic: true,
 		},
 		{
 			name: "fail - reject gas tip cap which more than 256 bits",

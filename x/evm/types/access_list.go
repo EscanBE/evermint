@@ -11,6 +11,7 @@ type AccessList []AccessTuple
 
 // NewAccessList creates a new protobuf-compatible AccessList from an ethereum
 // core AccessList type
+// TODO ES: remove
 func NewAccessList(ethAccessList *ethtypes.AccessList) AccessList {
 	if ethAccessList == nil {
 		return nil

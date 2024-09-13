@@ -2,6 +2,7 @@ package evm
 
 import (
 	"errors"
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"strconv"
 
 	storetypes "cosmossdk.io/store/types"
@@ -186,21 +187,20 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 			return ctx, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "invalid From %s, expect bech32 address", msgEthTx.From)
 		}
 
-		txGasLimit += msgEthTx.GetGas()
+		ethTx := msgEthTx.AsTransaction()
 
-		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
-		if err != nil {
-			return ctx, errorsmod.Wrap(err, "failed to unpack MsgEthereumTx Data")
-		}
+		txGasLimit += ethTx.Gas()
 
 		// return error if contract creation or call are disabled through governance
-		if !enableCreate && txData.GetTo() == nil {
+		if !enableCreate && ethTx.To() == nil {
 			return ctx, errorsmod.Wrap(evmtypes.ErrCreateDisabled, "failed to create new contract")
-		} else if !enableCall && txData.GetTo() != nil {
+		} else if !enableCall && ethTx.To() != nil {
 			return ctx, errorsmod.Wrap(evmtypes.ErrCallDisabled, "failed to call contract")
 		}
 
-		txFee = txFee.Add(sdk.Coin{Denom: evmDenom, Amount: sdkmath.NewIntFromBigInt(txData.Fee())})
+		txFee = txFee.Add(
+			sdk.NewCoin(evmDenom, sdkmath.NewIntFromBigInt(evmutils.EthTxFee(ethTx))),
+		)
 	}
 
 	if !authInfo.Fee.Amount.Equal(txFee) {
