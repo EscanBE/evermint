@@ -291,6 +291,11 @@ func (msg MsgEthereumTx) AsMessage(signer ethtypes.Signer, baseFee *big.Int) (co
 	return msg.AsTransaction().AsMessage(signer, baseFee)
 }
 
+// HashStr returns transaction hash
+func (msg *MsgEthereumTx) HashStr() string {
+	return msg.AsTransaction().Hash().Hex()
+}
+
 // UnpackInterfaces implements UnpackInterfacesMesssage.UnpackInterfaces
 func (msg MsgEthereumTx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	return unpacker.UnpackAny(msg.Data, new(TxData))

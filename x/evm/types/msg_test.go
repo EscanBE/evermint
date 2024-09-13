@@ -139,6 +139,23 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_BuildTx() {
 	}
 }
 
+func (suite *MsgsTestSuite) TestMsgEthereumTx_HashStr() {
+	to := common.BytesToAddress([]byte("bob"))
+	ethTx := ethtypes.NewTx(&ethtypes.LegacyTx{
+		Nonce:    1,
+		GasPrice: common.Big2,
+		Gas:      3,
+		To:       &to,
+		Value:    common.Big32,
+	})
+
+	ethMsg := &evmtypes.MsgEthereumTx{}
+	err := ethMsg.FromEthereumTx(ethTx)
+	suite.Require().NoError(err)
+
+	suite.Require().Equal(ethTx.Hash().Hex(), ethMsg.HashStr())
+}
+
 func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasic() {
 	var (
 		hundredInt   = big.NewInt(100)
