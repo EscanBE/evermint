@@ -206,7 +206,7 @@ func (suite *LedgerTestSuite) addKeyCmd() *cobra.Command {
 	cmd.Flags().AddFlagSet(keys.Commands().PersistentFlags())
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
-		clientCtx := client.GetClientContextFromCmd(cmd).WithKeyringOptions(hd.EthSecp256k1Option())
+		clientCtx := client.GetClientContextFromCmd(cmd).WithKeyringOptions(hd.MultiSecp256k1Option())
 		clientCtx, err := client.ReadPersistentCommandFlags(clientCtx, cmd.Flags())
 		if err != nil {
 			return err
@@ -223,7 +223,7 @@ func (suite *LedgerTestSuite) MockKeyringOption() keyring.Option {
 		options.SupportedAlgosLedger = appkeyring.SupportedAlgorithmsLedger
 		options.LedgerDerivation = func() (cosmosledger.SECP256K1, error) { return suite.ledger, nil }
 		options.LedgerCreateKey = appkeyring.CreatePubkey
-		options.LedgerAppName = appkeyring.AppName
+		options.LedgerAppName = appkeyring.LedgerAppName
 		options.LedgerSigSkipDERConv = appkeyring.SkipDERConversion
 	}
 }

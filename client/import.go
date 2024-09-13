@@ -26,7 +26,7 @@ func UnsafeImportKeyCommand() *cobra.Command {
 }
 
 func runImportCmd(cmd *cobra.Command, args []string) error {
-	clientCtx := client.GetClientContextFromCmd(cmd).WithKeyringOptions(hd.EthSecp256k1Option())
+	clientCtx := client.GetClientContextFromCmd(cmd).WithKeyringOptions(hd.MultiSecp256k1Option())
 	clientCtx, err := client.ReadPersistentCommandFlags(clientCtx, cmd.Flags())
 	if err != nil {
 		return err

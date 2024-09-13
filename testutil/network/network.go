@@ -119,7 +119,7 @@ func DefaultConfig() Config {
 		PruningStrategy:   pruningtypes.PruningOptionNothing,
 		CleanupDir:        true,
 		SigningAlgo:       string(hd.EthSecp256k1Type),
-		KeyringOptions:    []keyring.Option{hd.EthSecp256k1Option()},
+		KeyringOptions:    []keyring.Option{hd.MultiSecp256k1Option()},
 		PrintMnemonic:     false,
 	}
 }
