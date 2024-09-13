@@ -26,9 +26,6 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 				case constants.EthermintExtensionOptionsEthereumTx:
 					// handle as *evmtypes.MsgEthereumTx
 					anteHandler = newEVMAnteHandler(options)
-				//case constants.EthermintExtensionOptionsWeb3Tx:
-				//	// handle as normal Cosmos SDK tx, except signature is checked for EIP712 representation
-				//	anteHandler = newLegacyCosmosAnteHandlerEip712(options)
 				case constants.EthermintExtensionOptionDynamicFeeTx:
 					// cosmos-sdk tx with dynamic fee extension
 					anteHandler = newCosmosAnteHandler(options)
