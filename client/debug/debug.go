@@ -33,7 +33,7 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(PubkeyCmd())
 	cmd.AddCommand(AddrCmd())
 	cmd.AddCommand(RawBytesCmd())
-	cmd.AddCommand(LegacyEIP712Cmd())
+	cmd.AddCommand(EIP712Cmd())
 
 	return cmd
 }
@@ -132,12 +132,12 @@ func RawBytesCmd() *cobra.Command {
 	}
 }
 
-// LegacyEIP712Cmd outputs types of legacy EIP712 typed data
-func LegacyEIP712Cmd() *cobra.Command {
+// EIP712Cmd outputs types of EIP-712 typed data
+func EIP712Cmd() *cobra.Command {
 	return &cobra.Command{
-		Use:     "legacy-eip712 [file]",
-		Short:   "Output types of legacy eip712 typed data according to the given transaction",
-		Example: fmt.Sprintf(`$ %s debug legacy-eip712 tx.json --chain-id %s`, version.AppName, constants.TestnetFullChainId),
+		Use:     "eip712 [file]",
+		Short:   "Output types of EIP-712 typed data according to the given transaction",
+		Example: fmt.Sprintf(`$ %s debug eip712 tx.json --chain-id %s`, version.AppName, constants.TestnetFullChainId),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -160,7 +160,7 @@ func LegacyEIP712Cmd() *cobra.Command {
 				return errors.Wrap(err, "invalid chain ID passed as argument")
 			}
 
-			td, err := eip712.LegacyWrapTxToTypedData(clientCtx.Codec, chainID.Uint64(), stdTx.GetMsgs()[0], txBytes, nil)
+			td, err := eip712.WrapTxToTypedData(chainID.Uint64(), txBytes)
 			if err != nil {
 				return errors.Wrap(err, "wrap tx to typed data")
 			}
