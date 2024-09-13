@@ -1,10 +1,8 @@
 package keeper
 
 import (
-	"encoding/json"
-	"math/big"
-
 	errorsmod "cosmossdk.io/errors"
+	"encoding/json"
 	"github.com/EscanBE/evermint/v12/server/config"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"math/big"
 
 	"github.com/EscanBE/evermint/v12/contracts"
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
@@ -206,6 +205,16 @@ func (k Keeper) CallEVMWithData(
 		ethtypes.AccessList{}, // AccessList
 		!commit,               // isFake
 	)
+
+	// enable NoBaseFee for system call
+	enabled := k.evmKeeper.ShouldEnableNoBaseFee(ctx)
+	if !enabled {
+		// enable and restore
+		k.evmKeeper.SetFlagEnableNoBaseFee(ctx, true)
+		defer func() {
+			k.evmKeeper.SetFlagEnableNoBaseFee(ctx, false)
+		}()
+	}
 
 	res, err := k.evmKeeper.ApplyMessage(ctx, msg, evmtypes.NewNoOpTracer(), commit)
 	if err != nil {
