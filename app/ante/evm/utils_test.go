@@ -159,22 +159,7 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 	return txBuilder
 }
 
-func (suite *AnteTestSuite) RequireErrorForLegacyTypedData(err error) {
-	if suite.useLegacyEIP712TypedData {
-		suite.Require().Error(err)
-	} else {
-		suite.Require().NoError(err)
-	}
-}
-
-func (suite *AnteTestSuite) TxForLegacyTypedData(txBuilder client.TxBuilder) sdk.Tx {
-	if suite.useLegacyEIP712TypedData {
-		// Since the TxBuilder will be nil on failure,
-		// we return an empty Tx to avoid panics.
-		emptyTxBuilder := suite.clientCtx.TxConfig.NewTxBuilder()
-		return emptyTxBuilder.GetTx()
-	}
-
+func (suite *AnteTestSuite) TxForTypedData(txBuilder client.TxBuilder) sdk.Tx {
 	return txBuilder.GetTx()
 }
 
@@ -426,8 +411,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 		suite.ctx,
 		suite.app,
 		utiltx.EIP712TxArgs{
-			CosmosTxArgs:       cosmosTxArgs,
-			UseLegacyTypedData: suite.useLegacyEIP712TypedData,
+			CosmosTxArgs: cosmosTxArgs,
 		},
 	)
 }

@@ -79,11 +79,6 @@ type EIP712TestParams struct {
 
 func TestEIP712TestSuite(t *testing.T) {
 	suite.Run(t, &EIP712TestSuite{})
-	// Note that we don't test the Legacy EIP-712 Extension, since that case
-	// is sufficiently covered by the AnteHandler tests.
-	suite.Run(t, &EIP712TestSuite{
-		useLegacyEIP712TypedData: true,
-	})
 }
 
 func (suite *EIP712TestSuite) SetupTest() {
@@ -282,7 +277,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					suite.makeCoins(suite.denom, sdkmath.NewInt(50)),
 				),
 			},
-			wantSuccess: !suite.useLegacyEIP712TypedData,
+			wantSuccess: true,
 		},
 		{
 			name: "pass - Single-Signer 2x MsgVoteV1 with Different Schemas",
@@ -300,7 +295,7 @@ func (suite *EIP712TestSuite) TestEIP712() {
 					"Has Metadata",
 				),
 			},
-			wantSuccess: !suite.useLegacyEIP712TypedData,
+			wantSuccess: true,
 		},
 		{
 			name: "fail - Multiple messages with Different Signers (MsgVote x/gov)",
@@ -453,10 +448,6 @@ func (suite *EIP712TestSuite) TestEIP712() {
 // verifyEIP712SignatureVerification verifies that the payload passes signature verification if signed as its EIP-712 representation.
 func (suite *EIP712TestSuite) verifyEIP712SignatureVerification(expectedSuccess bool, privKey ethsecp256k1.PrivKey, pubKey ethsecp256k1.PubKey, signBytes []byte) {
 	eip712Bytes, err := eip712.GetEIP712BytesForMsg(signBytes)
-
-	if suite.useLegacyEIP712TypedData {
-		eip712Bytes, err = eip712.LegacyGetEIP712BytesForMsg(signBytes)
-	}
 
 	if !expectedSuccess {
 		suite.Require().Error(err)

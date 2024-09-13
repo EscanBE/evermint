@@ -4,8 +4,6 @@ import (
 	"errors"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
@@ -15,22 +13,13 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
-	cryptocodec "github.com/EscanBE/evermint/v12/crypto/codec"
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 )
 
 type EIP712TxArgs struct {
-	CosmosTxArgs       CosmosTxArgs
-	UseLegacyTypedData bool
-}
-
-type typedDataArgs struct {
-	chainID        uint64
-	data           []byte
-	legacyFeePayer sdk.AccAddress
-	legacyMsg      sdk.Msg
+	CosmosTxArgs CosmosTxArgs
 }
 
 type signatureV2Args struct {
@@ -92,13 +81,7 @@ func PrepareEIP712CosmosTx(
 		"",
 	)
 
-	typedDataArgs := typedDataArgs{
-		chainID:        chainIDNum,
-		data:           data,
-		legacyFeePayer: from,
-		legacyMsg:      msgs[0],
-	}
-	typedData, err := createTypedData(typedDataArgs, args.UseLegacyTypedData)
+	typedData, err := eip712.WrapTxToTypedData(chainIDNum, data)
 	if err != nil {
 		return nil, err
 	}
@@ -174,31 +157,6 @@ func signCosmosEIP712Tx(
 	}
 
 	return builder, nil
-}
-
-// createTypedData creates the TypedData object corresponding to
-// the arguments, using the legacy implementation as specified.
-func createTypedData(args typedDataArgs, useLegacy bool) (apitypes.TypedData, error) {
-	if useLegacy {
-		registry := codectypes.NewInterfaceRegistry()
-		evertypes.RegisterInterfaces(registry)
-		cryptocodec.RegisterInterfaces(registry)
-		appCodec := codec.NewProtoCodec(registry)
-
-		feeDelegation := &eip712.FeeDelegationOptions{
-			FeePayer: args.legacyFeePayer,
-		}
-
-		return eip712.LegacyWrapTxToTypedData(
-			appCodec,
-			args.chainID,
-			args.legacyMsg,
-			args.data,
-			feeDelegation,
-		)
-	}
-
-	return eip712.WrapTxToTypedData(args.chainID, args.data)
 }
 
 // getTxSignatureV2 returns the SignatureV2 object corresponding to

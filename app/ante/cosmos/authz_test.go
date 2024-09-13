@@ -447,8 +447,7 @@ func (suite *AnteTestSuite) TestRejectMsgsInAuthz() {
 					suite.ctx,
 					suite.app,
 					utiltx.EIP712TxArgs{
-						CosmosTxArgs:       cosmosTxArgs,
-						UseLegacyTypedData: true,
+						CosmosTxArgs: cosmosTxArgs,
 					},
 				)
 			} else {
