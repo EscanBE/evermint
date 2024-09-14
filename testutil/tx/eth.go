@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"math/big"
 
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
+
 	"github.com/EscanBE/evermint/v12/constants"
 
 	errorsmod "cosmossdk.io/errors"
@@ -35,25 +37,25 @@ func PrepareEthTx(
 
 	signer := ethtypes.LatestSignerForChainID(chainApp.EvmKeeper.ChainID())
 	txFee := sdk.Coins{}
-	txGasLimit := uint64(0)
 
 	// Sign messages and compute gas/fees.
-	{
-		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
-		if !ok {
-			return nil, errorsmod.Wrapf(errorsmod.Error{}, "cannot mix Ethereum and Cosmos messages in one Tx")
-		}
-
-		if priv != nil {
-			err := msgEthTx.Sign(signer, NewSigner(priv))
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		txGasLimit += msgEthTx.GetGas()
-		txFee = txFee.Add(sdk.Coin{Denom: constants.BaseDenom, Amount: sdkmath.NewIntFromBigInt(msgEthTx.GetFee())})
+	msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
+	if !ok {
+		return nil, errorsmod.Wrapf(errorsmod.Error{}, "cannot mix Ethereum and Cosmos messages in one Tx")
 	}
+
+	if priv != nil {
+		err := msgEthTx.Sign(signer, NewSigner(priv))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	ethTx := msgEthTx.AsTransaction()
+	txFee = txFee.Add(sdk.NewCoin(
+		constants.BaseDenom,
+		sdkmath.NewIntFromBigInt(evmutils.EthTxFee(ethTx)),
+	))
 
 	if err := txBuilder.SetMsgs(msg); err != nil {
 		return nil, err
@@ -73,7 +75,7 @@ func PrepareEthTx(
 
 	builder.SetExtensionOptions(option)
 
-	txBuilder.SetGasLimit(txGasLimit)
+	txBuilder.SetGasLimit(ethTx.Gas())
 	txBuilder.SetFeeAmount(txFee)
 
 	return txBuilder.GetTx(), nil

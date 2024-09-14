@@ -27,15 +27,16 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByHash() {
 		sender := suite.CITS.WalletAccounts.Number(1)
 		receiver := suite.CITS.WalletAccounts.Number(2)
 
-		sentEvmTx, err := suite.CITS.TxSendViaEVM(sender, receiver, 1)
+		sentEthMsg, err := suite.CITS.TxSendViaEVM(sender, receiver, 1)
 		suite.Require().NoError(err)
+		sentEthTx := sentEthMsg.AsTransaction()
 
 		suite.CITS.Commit() // commit to passive trigger EVM Tx indexer
 
 		balance := suite.CITS.QueryBalance(0, receiver.GetCosmosAddress().String())
 		suite.Require().False(balance.IsZero(), "receiver must received some balance")
 
-		sentTxHash := sentEvmTx.AsTransaction().Hash()
+		sentTxHash := sentEthTx.Hash()
 		gotTx, err := suite.GetEthPublicAPI().GetTransactionByHash(sentTxHash)
 		suite.Require().NoError(err)
 		suite.Require().NotNil(gotTx)
@@ -47,7 +48,7 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByHash() {
 			suite.Equal(1, gotTx.BlockNumber.ToInt().Sign())
 		}
 		suite.Equal(sender.GetEthAddress(), gotTx.From)
-		suite.Equal(hexutil.Uint64(sentEvmTx.GetGas()), gotTx.Gas)
+		suite.Equal(hexutil.Uint64(sentEthTx.Gas()), gotTx.Gas)
 		if suite.NotNil(gotTx.GasPrice) {
 			suite.Equal(1, gotTx.GasPrice.ToInt().Sign()) // positive
 		}
@@ -62,12 +63,12 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByHash() {
 		if suite.NotNil(gotTx.Value) {
 			suite.Equal(suite.CITS.NewBaseCoin(1).Amount.Int64(), gotTx.Value.ToInt().Int64())
 		}
-		suite.Equal(hexutil.Uint64(sentEvmTx.AsTransaction().Type()), gotTx.Type)
+		suite.Equal(hexutil.Uint64(sentEthTx.Type()), gotTx.Type)
 		suite.Empty(gotTx.Accesses)
 		if suite.NotNil(gotTx.ChainID) {
 			suite.Equal(((*hexutil.Big)(suite.App().EvmKeeper().ChainID())).String(), gotTx.ChainID.String())
 		}
-		v, r, s := sentEvmTx.AsTransaction().RawSignatureValues()
+		v, r, s := sentEthMsg.AsTransaction().RawSignatureValues()
 		if suite.NotNil(gotTx.V) {
 			suite.Equal(hexutil.Big(*v), *gotTx.V)
 		}
@@ -126,8 +127,9 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByHash() {
 		var uniqueBlockNumber int64
 		txIndexTracker := make([]bool, len(msgEvmTxs))
 
-		for i, sentEvmTx := range msgEvmTxs {
-			sentTxHash := sentEvmTx.AsTransaction().Hash()
+		for i, sentEthMsg := range msgEvmTxs {
+			sentEthTx := sentEthMsg.AsTransaction()
+			sentTxHash := sentEthTx.Hash()
 			gotTx, err := suite.GetEthPublicAPI().GetTransactionByHash(sentTxHash)
 			suite.Require().NoError(err)
 			suite.Require().NotNil(gotTx)
@@ -146,7 +148,7 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByHash() {
 				}
 			}
 			suite.Equal(evmTxSender[i].GetEthAddress(), gotTx.From)
-			suite.Equal(hexutil.Uint64(sentEvmTx.GetGas()), gotTx.Gas)
+			suite.Equal(hexutil.Uint64(sentEthTx.Gas()), gotTx.Gas)
 			if suite.NotNil(gotTx.GasPrice) {
 				suite.Equal(1, gotTx.GasPrice.ToInt().Sign()) // positive
 			}
@@ -167,12 +169,12 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByHash() {
 			if suite.NotNil(gotTx.Value) {
 				suite.Equal(suite.CITS.NewBaseCoin(1).Amount.Int64(), gotTx.Value.ToInt().Int64())
 			}
-			suite.Equal(hexutil.Uint64(sentEvmTx.AsTransaction().Type()), gotTx.Type)
+			suite.Equal(hexutil.Uint64(sentEthTx.Type()), gotTx.Type)
 			suite.Empty(gotTx.Accesses)
 			if suite.NotNil(gotTx.ChainID) {
 				suite.Equal(((*hexutil.Big)(suite.App().EvmKeeper().ChainID())).String(), gotTx.ChainID.String())
 			}
-			v, r, s := sentEvmTx.AsTransaction().RawSignatureValues()
+			v, r, s := sentEthTx.RawSignatureValues()
 			if suite.NotNil(gotTx.V) {
 				suite.Equal(hexutil.Big(*v), *gotTx.V)
 			}
@@ -195,12 +197,13 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByHash() {
 		deployer := suite.CITS.WalletAccounts.Number(1)
 		deployerNonce := suite.App().EvmKeeper().GetNonce(suite.Ctx(), deployer.GetEthAddress())
 
-		_, sentEvmTx, _, err := suite.CITS.TxDeploy1StorageContract(deployer)
+		_, sentEthMsg, _, err := suite.CITS.TxDeploy1StorageContract(deployer)
 		suite.Require().NoError(err)
+		sentEthTx := sentEthMsg.AsTransaction()
 
 		suite.CITS.Commit() // commit to passive trigger EVM Tx indexer
 
-		sentTxHash := sentEvmTx.AsTransaction().Hash()
+		sentTxHash := sentEthTx.Hash()
 		gotTx, err := suite.GetEthPublicAPI().GetTransactionByHash(sentTxHash)
 		suite.Require().NoError(err)
 		suite.Require().NotNil(gotTx)
@@ -212,12 +215,12 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByHash() {
 			suite.Equal(1, gotTx.BlockNumber.ToInt().Sign())
 		}
 		suite.Equal(deployer.GetEthAddress(), gotTx.From)
-		suite.Equal(hexutil.Uint64(sentEvmTx.GetGas()), gotTx.Gas)
+		suite.Equal(hexutil.Uint64(sentEthTx.Gas()), gotTx.Gas)
 		if suite.NotNil(gotTx.GasPrice) {
 			suite.Equal(1, gotTx.GasPrice.ToInt().Sign()) // positive
 		}
 		suite.Nil(gotTx.To)
-		suite.Equal(hexutil.Bytes(sentEvmTx.AsTransaction().Data()), gotTx.Input)
+		suite.Equal(hexutil.Bytes(sentEthTx.Data()), gotTx.Input)
 		suite.Equal(hexutil.Uint64(deployerNonce), gotTx.Nonce)
 		if suite.NotNil(gotTx.TransactionIndex) {
 			suite.Equal(hexutil.Uint64(0), *gotTx.TransactionIndex)
@@ -225,12 +228,12 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByHash() {
 		if gotTx.Value != nil {
 			suite.Zero(gotTx.Value.ToInt().Sign())
 		}
-		suite.Equal(hexutil.Uint64(sentEvmTx.AsTransaction().Type()), gotTx.Type)
+		suite.Equal(hexutil.Uint64(sentEthTx.Type()), gotTx.Type)
 		suite.Empty(gotTx.Accesses)
 		if suite.NotNil(gotTx.ChainID) {
 			suite.Equal(((*hexutil.Big)(suite.App().EvmKeeper().ChainID())).String(), gotTx.ChainID.String())
 		}
-		v, r, s := sentEvmTx.AsTransaction().RawSignatureValues()
+		v, r, s := sentEthTx.RawSignatureValues()
 		if suite.NotNil(gotTx.V) {
 			suite.Equal(hexutil.Big(*v), *gotTx.V)
 		}

@@ -19,7 +19,7 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 		ChainID:  suite.app.EvmKeeper.ChainID(),
 		Nonce:    1,
 		Amount:   big.NewInt(10),
-		GasLimit: 1000,
+		GasLimit: 21000,
 		GasPrice: big.NewInt(1),
 	}
 	signedTx := evmtypes.NewTx(ethContractCreationTxParams)
@@ -30,7 +30,7 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 		From:     addr,
 		Nonce:    1,
 		Amount:   big.NewInt(10),
-		GasLimit: 1000,
+		GasLimit: 21000,
 		GasPrice: big.NewInt(1),
 	}
 	unprotectedTx := evmtypes.NewTx(uprotectedEthTxParams)
@@ -67,7 +67,7 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 				To:       &addr,
 				Nonce:    1,
 				Amount:   big.NewInt(10),
-				GasLimit: 1000,
+				GasLimit: 21000,
 				GasPrice: big.NewInt(1),
 			}),
 			allowUnprotectedTxs: true,

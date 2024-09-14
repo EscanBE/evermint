@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
@@ -36,23 +39,27 @@ func NewRawTxCmd() *cobra.Command {
 		Short: "Build cosmos transaction from raw ethereum transaction",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			data, err := hexutil.Decode(args[0])
-			if err != nil {
-				return errors.Wrap(err, "failed to decode ethereum tx hex bytes")
-			}
-
-			msg := &evmtypes.MsgEthereumTx{}
-			if err := msg.UnmarshalBinary(data); err != nil {
-				return err
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
+			}
+
+			msg := &evmtypes.MsgEthereumTx{}
+			{ // construct msg
+				data, err := hexutil.Decode(args[0])
+				if err != nil {
+					return errors.Wrap(err, "failed to decode Ethereum tx hex bytes")
+				}
+				ethTx := &ethtypes.Transaction{}
+				if err := ethTx.UnmarshalBinary(data); err != nil {
+					return errors.Wrap(err, "failed to unmarshal Ethereum tx binary")
+				}
+				if err := msg.FromEthereumTx(ethTx, common.BytesToAddress(clientCtx.GetFromAddress())); err != nil {
+					return errors.Wrapf(err, "failed to cast Ethereum tx into %T", (*evmtypes.MsgEthereumTx)(nil))
+				}
+				if err := msg.ValidateBasic(); err != nil {
+					return errors.Wrapf(err, "failed to validate %T", (*evmtypes.MsgEthereumTx)(nil))
+				}
 			}
 
 			rsp, err := rpctypes.NewQueryClient(clientCtx).Params(cmd.Context(), &evmtypes.QueryParamsRequest{})

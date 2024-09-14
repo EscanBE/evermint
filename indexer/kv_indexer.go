@@ -98,7 +98,6 @@ func (kv *KVIndexer) IndexBlock(block *cmttypes.Block, txResults []*abci.ExecTxR
 
 		{
 			ethMsg := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
-			txHash := common.HexToHash(ethMsg.Hash)
 
 			txResult := evertypes.TxResult{
 				Height:     height,
@@ -110,6 +109,7 @@ func (kv *KVIndexer) IndexBlock(block *cmttypes.Block, txResults []*abci.ExecTxR
 				var noPersist bool
 				defer func() {
 					if !noPersist {
+						txHash := ethMsg.AsTransaction().Hash()
 						resErr = saveTxResult(kv.clientCtx.Codec, batch, txHash, &txResult)
 					}
 				}()

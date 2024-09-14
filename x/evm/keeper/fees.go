@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"math/big"
+
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
@@ -9,17 +12,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
-
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
 // CheckSenderBalance validates that the tx cost value is positive and that the
 // sender has enough funds to pay for the fees and value of the transaction.
 func CheckSenderBalance(
 	balance sdkmath.Int,
-	txData evmtypes.TxData,
+	ethTx *ethtypes.Transaction,
 ) error {
-	cost := txData.Cost()
+	cost := new(big.Int).Add(evmutils.EthTxFee(ethTx), ethTx.Value())
 
 	if cost.Sign() < 0 {
 		return errorsmod.Wrapf(
@@ -31,7 +32,7 @@ func CheckSenderBalance(
 	if balance.IsNegative() || balance.BigInt().Cmp(cost) < 0 {
 		return errorsmod.Wrapf(
 			errortypes.ErrInsufficientFunds,
-			"sender balance < tx cost (%s < %s)", balance, txData.Cost(),
+			"sender balance < tx cost (%s < %s)", balance, cost,
 		)
 	}
 	return nil
@@ -62,23 +63,23 @@ func (k *Keeper) DeductTxCostsFromUserBalance(
 // gas limit is not reached, the gas limit is higher than the intrinsic gas and that the
 // base fee is higher than the gas fee cap.
 func VerifyFee(
-	txData evmtypes.TxData,
+	ethTx *ethtypes.Transaction,
 	denom string,
 	baseFee sdkmath.Int,
 	isCheckTx bool,
 ) (sdk.Coins, error) {
-	isContractCreation := txData.GetTo() == nil
+	isContractCreation := ethTx.To() == nil
 
-	gasLimit := txData.GetGas()
+	gasLimit := ethTx.Gas()
 
 	var accessList ethtypes.AccessList
-	if txData.GetAccessList() != nil {
-		accessList = txData.GetAccessList()
+	if ethTx.AccessList() != nil {
+		accessList = ethTx.AccessList()
 	}
 
 	const homestead = true
 	const istanbul = true
-	intrinsicGas, err := core.IntrinsicGas(txData.GetData(), accessList, isContractCreation, homestead, istanbul)
+	intrinsicGas, err := core.IntrinsicGas(ethTx.Data(), accessList, isContractCreation, homestead, istanbul)
 	if err != nil {
 		return nil, errorsmod.Wrapf(
 			err,
@@ -94,14 +95,14 @@ func VerifyFee(
 		)
 	}
 
-	if txData.GetGasFeeCap().Cmp(baseFee.BigInt()) < 0 {
+	if ethTx.GasFeeCap().Cmp(baseFee.BigInt()) < 0 {
 		return nil, errorsmod.Wrapf(errortypes.ErrInsufficientFee,
 			"the tx gasfeecap is lower than the tx baseFee: %s (gasfeecap), %s (basefee) ",
-			txData.GetGasFeeCap(),
+			ethTx.GasFeeCap(),
 			baseFee)
 	}
 
-	feeAmt := txData.EffectiveFee(baseFee.BigInt())
+	feeAmt := evmutils.EthTxEffectiveFee(ethTx, baseFee)
 	if feeAmt.Sign() == 0 {
 		// zero fee, no need to deduct
 		return sdk.Coins{}, nil

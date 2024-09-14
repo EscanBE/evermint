@@ -1,7 +1,10 @@
 package keeper_test
 
 import (
+	"fmt"
 	"math/big"
+
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 
 	sdkmath "cosmossdk.io/math"
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
@@ -31,6 +34,7 @@ func (suite *KeeperTestSuite) TestCheckSenderBalance() {
 		from            string
 		accessList      *ethtypes.AccessList
 		expectPass      bool
+		expectPanic     bool
 		enableFeemarket bool
 	}{
 		{
@@ -54,14 +58,14 @@ func (suite *KeeperTestSuite) TestCheckSenderBalance() {
 			expectPass: true,
 		},
 		{
-			name:       "negative cost",
-			to:         suite.address.String(),
-			gasLimit:   1,
-			gasPrice:   &oneInt,
-			cost:       &negInt,
-			from:       suite.address.String(),
-			accessList: &ethtypes.AccessList{},
-			expectPass: false,
+			name:        "negative cost",
+			to:          suite.address.String(),
+			gasLimit:    1,
+			gasPrice:    &oneInt,
+			cost:        &negInt,
+			from:        suite.address.String(),
+			accessList:  &ethtypes.AccessList{},
+			expectPanic: true,
 		},
 		{
 			name:       "Higher gas limit, not enough balance",
@@ -143,7 +147,7 @@ func (suite *KeeperTestSuite) TestCheckSenderBalance() {
 			cost:            &negInt,
 			from:            suite.address.String(),
 			accessList:      &ethtypes.AccessList{},
-			expectPass:      false,
+			expectPanic:     true,
 			enableFeemarket: true,
 		},
 		{
@@ -242,14 +246,21 @@ func (suite *KeeperTestSuite) TestCheckSenderBalance() {
 				GasTipCap: gasTipCap,
 				Accesses:  tc.accessList,
 			}
-			tx := evmtypes.NewTx(ethTxParams)
 
-			txData, _ := evmtypes.UnpackTxData(tx.Data)
+			if tc.expectPanic {
+				suite.Require().Panics(func() {
+					_ = evmtypes.NewTx(ethTxParams)
+				})
+				return
+			}
+
+			tx := evmtypes.NewTx(ethTxParams)
+			ethTx := tx.AsTransaction()
 
 			acct := suite.app.EvmKeeper.GetAccountOrEmpty(suite.ctx, suite.address)
 			err := evmkeeper.CheckSenderBalance(
 				sdkmath.NewIntFromBigInt(acct.Balance),
-				txData,
+				ethTx,
 			)
 
 			if tc.expectPass {
@@ -515,13 +526,13 @@ func (suite *KeeperTestSuite) TestVerifyFeeAndDeductTxCostsFromUserBalance() {
 				Accesses:  tc.accessList,
 			}
 			tx := evmtypes.NewTx(ethTxParams)
+			ethTx := tx.AsTransaction()
 
-			txData, _ := evmtypes.UnpackTxData(tx.Data)
+			priority := evmutils.EthTxPriority(ethTx)
+			suite.Require().Equal(evmutils.EthTxGasPrice(ethTx).String(), fmt.Sprintf("%d", priority))
 
 			baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx)
-			priority := evmtypes.GetTxPriority(txData, baseFee.BigInt())
-
-			fees, err := evmkeeper.VerifyFee(txData, evmtypes.DefaultEVMDenom, baseFee, suite.ctx.IsCheckTx())
+			fees, err := evmkeeper.VerifyFee(ethTx, evmtypes.DefaultEVMDenom, baseFee, suite.ctx.IsCheckTx())
 			if tc.expectPassVerify {
 				suite.Require().NoError(err)
 				if tc.enableFeemarket {
@@ -529,10 +540,9 @@ func (suite *KeeperTestSuite) TestVerifyFeeAndDeductTxCostsFromUserBalance() {
 					suite.Require().Equal(
 						fees,
 						sdk.NewCoins(
-							sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewIntFromBigInt(txData.EffectiveFee(baseFee.BigInt()))),
+							sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewIntFromBigInt(evmutils.EthTxEffectiveFee(ethTx, baseFee))),
 						),
 					)
-					suite.Require().Equal(int64(0), priority)
 				} else {
 					suite.Require().Equal(
 						fees,

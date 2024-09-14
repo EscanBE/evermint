@@ -4,6 +4,8 @@ import (
 	"math"
 	"math/big"
 
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
+
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
@@ -61,11 +63,6 @@ func (avd ExternalOwnedAccountVerificationDecorator) AnteHandle(
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
-		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
-		if err != nil {
-			return ctx, errorsmod.Wrap(err, "failed to unpack tx data any for tx")
-		}
-
 		// sender address should be in the tx cache from the previous AnteHandle call
 		from := msgEthTx.GetFrom()
 		if from.Empty() {
@@ -103,7 +100,8 @@ func (avd ExternalOwnedAccountVerificationDecorator) AnteHandle(
 			spendableBalance = acct.Balance
 		}
 
-		if err := evmkeeper.CheckSenderBalance(sdkmath.NewIntFromBigInt(spendableBalance), txData); err != nil {
+		ethTx := msgEthTx.AsTransaction()
+		if err := evmkeeper.CheckSenderBalance(sdkmath.NewIntFromBigInt(spendableBalance), ethTx); err != nil {
 			return ctx, errorsmod.Wrap(err, "failed to check sender balance")
 		}
 	}
@@ -178,24 +176,20 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
-
-		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
-		if err != nil {
-			return ctx, errorsmod.Wrap(err, "failed to unpack tx data")
-		}
+		ethTx := msgEthTx.AsTransaction()
 
 		if ctx.IsCheckTx() && egcd.maxGasWanted != 0 {
 			// We can't trust the tx gas limit, because we'll refund the unused gas.
-			if txData.GetGas() > egcd.maxGasWanted {
+			if ethTx.Gas() > egcd.maxGasWanted {
 				gasWanted += egcd.maxGasWanted
 			} else {
-				gasWanted += txData.GetGas()
+				gasWanted += ethTx.Gas()
 			}
 		} else {
-			gasWanted += txData.GetGas()
+			gasWanted += ethTx.Gas()
 		}
 
-		fees, err := evmkeeper.VerifyFee(txData, evmDenom, baseFee, ctx.IsCheckTx())
+		fees, err := evmkeeper.VerifyFee(ethTx, evmDenom, baseFee, ctx.IsCheckTx())
 		if err != nil {
 			return ctx, errorsmod.Wrapf(err, "failed to verify the fees")
 		}
@@ -212,7 +206,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 			),
 		)
 
-		priority := evmtypes.GetTxPriority(txData, baseFee.BigInt())
+		priority := evmutils.EthTxPriority(ethTx)
 
 		if priority < minPriority {
 			minPriority = priority
@@ -338,11 +332,7 @@ func NewEthIncrementSenderSequenceDecorator(ak authkeeper.AccountKeeperI, ek EVM
 func (issd EthIncrementSenderSequenceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
-
-		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
-		if err != nil {
-			return ctx, errorsmod.Wrap(err, "failed to unpack tx data")
-		}
+		ethTx := msgEthTx.AsTransaction()
 
 		// increase sequence of sender
 		acc := issd.ak.GetAccount(ctx, msgEthTx.GetFrom())
@@ -356,10 +346,10 @@ func (issd EthIncrementSenderSequenceDecorator) AnteHandle(ctx sdk.Context, tx s
 
 		// we merged the nonce verification to nonce increment, so when tx includes multiple messages
 		// with same sender, they'll be accepted.
-		if txData.GetNonce() != nonce {
+		if ethTx.Nonce() != nonce {
 			return ctx, errorsmod.Wrapf(
 				errortypes.ErrInvalidSequence,
-				"invalid nonce; got %d, expected %d", txData.GetNonce(), nonce,
+				"invalid nonce; got %d, expected %d", ethTx.Nonce(), nonce,
 			)
 		}
 
@@ -388,14 +378,9 @@ func NewEthBasicValidationDecorator() EthBasicValidationDecorator {
 func (bvd EthBasicValidationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+		ethTx := msgEthTx.AsTransaction()
 
-		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
-		if err != nil {
-			return ctx, errorsmod.Wrap(err, "failed to unpack tx data")
-		}
-
-		value := txData.GetValue()
-		if value != nil {
+		if value := ethTx.Value(); value != nil {
 			if value.Sign() < 0 {
 				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidAmount, "tx value cannot be negative")
 			} else if value.BitLen() > 256 {
@@ -403,30 +388,27 @@ func (bvd EthBasicValidationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, si
 			}
 		}
 
-		gasPrice := txData.GetGasPrice()
-		if gasPrice != nil {
+		if gasPrice := ethTx.GasPrice(); gasPrice != nil {
 			if gasPrice.Sign() < 0 {
 				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidGasPrice, "gas price cannot be negative")
 			} else if gasPrice.BitLen() > 256 {
 				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidGasPrice, "gas price excess 256 bits")
-			} else if new(big.Int).Mul(gasPrice, new(big.Int).SetUint64(txData.GetGas())).BitLen() > 256 {
+			} else if new(big.Int).Mul(gasPrice, new(big.Int).SetUint64(ethTx.Gas())).BitLen() > 256 {
 				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidGasPrice, "gas * gas price exceeds 256 bits")
 			}
 		}
 
-		gasFeeCap := txData.GetGasFeeCap()
-		if gasFeeCap != nil {
+		if gasFeeCap := ethTx.GasFeeCap(); gasFeeCap != nil {
 			if gasFeeCap.Sign() < 0 {
 				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidGasFee, "gas fee cap cannot be negative")
 			} else if gasFeeCap.BitLen() > 256 {
 				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidGasFee, "gas fee cap excess 256 bits")
-			} else if new(big.Int).Mul(gasFeeCap, new(big.Int).SetUint64(txData.GetGas())).BitLen() > 256 {
+			} else if new(big.Int).Mul(gasFeeCap, new(big.Int).SetUint64(ethTx.Gas())).BitLen() > 256 {
 				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidGasFee, "gas * gas fee cap exceeds 256 bits")
 			}
 		}
 
-		gasTipCap := txData.GetGasTipCap()
-		if gasTipCap != nil {
+		if gasTipCap := ethTx.GasTipCap(); gasTipCap != nil {
 			if gasTipCap.Sign() < 0 {
 				return ctx, errorsmod.Wrap(evmtypes.ErrInvalidGasFee, "gas tip cap cannot be negative")
 			} else if gasTipCap.BitLen() > 256 {

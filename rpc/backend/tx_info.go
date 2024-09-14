@@ -5,7 +5,9 @@ import (
 	"math"
 	"math/big"
 
-	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
+
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evertypes "github.com/EscanBE/evermint/v12/types"
@@ -53,7 +55,7 @@ func (b *Backend) GetTransactionByHash(txHash common.Hash) (*rpctypes.RPCTransac
 		// Fallback to find tx index by iterating all valid eth transactions
 		msgs := b.EthMsgsFromCometBFTBlock(block, blockRes)
 		for i := range msgs {
-			if msgs[i].Hash == hexTx {
+			if msgs[i].HashStr() == hexTx {
 				if i > math.MaxInt32 {
 					return nil, errors.New("tx index overflow")
 				}
@@ -101,7 +103,7 @@ func (b *Backend) getTransactionByHashPending(txHash common.Hash) (*rpctypes.RPC
 			continue
 		}
 
-		if msg.Hash == hexTx {
+		if msg.HashStr() == hexTx {
 			// use zero block values since it's not included in a block yet
 			rpctx, err := rpctypes.NewTransactionFromMsg(
 				msg,
@@ -149,7 +151,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 		// Fallback to find tx index by iterating all valid eth transactions
 		msgs := b.EthMsgsFromCometBFTBlock(resBlock, blockRes)
 		for i := range msgs {
-			if msgs[i].Hash == hexTx {
+			if msgs[i].HashStr() == hexTx {
 				res.EthTxIndex = int32(i) // #nosec G701
 				break
 			}
@@ -193,11 +195,6 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 		// in this case, we craft the receipt manually
 		ethTx := ethMsg.AsTransaction()
 
-		txData, err := evmtypes.UnpackTxData(ethMsg.Data)
-		if err != nil {
-			return nil, errorsmod.Wrap(err, "failed to unpack tx data")
-		}
-
 		// compute cumulative gas used
 		cumulativeGasUsed := ethTx.Gas()
 		if res.EthTxIndex > 0 {
@@ -218,7 +215,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 				}
 				prevReceipt, err := TxReceiptFromEvent(blockRes.TxsResults[txIdx].Events)
 				if err != nil {
-					b.logger.Debug("failed to parse receipt from events", "tx-hash", prevEthMsg.Hash, "error", err.Error())
+					b.logger.Debug("failed to parse receipt from events", "tx-hash", prevEthMsg.HashStr(), "error", err.Error())
 					continue
 				}
 				if prevReceipt == nil {
@@ -257,7 +254,7 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (*rpctypes.RPCReceipt,
 				}
 			}
 		}
-		effectiveGasPrice = txData.EffectiveGasPrice(baseFee)
+		effectiveGasPrice = evmutils.EthTxEffectiveGasPrice(ethTx, sdkmath.NewIntFromBigInt(baseFee))
 	}
 
 	return rpctypes.NewRPCReceiptFromReceipt(

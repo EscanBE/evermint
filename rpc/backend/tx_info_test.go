@@ -124,7 +124,7 @@ func (suite *BackendTestSuite) TestGetTransactionByHash() {
 			suite.Require().NoError(err)
 			suite.backend.indexer.Ready()
 
-			rpcTx, err := suite.backend.GetTransactionByHash(common.HexToHash(tc.tx.Hash))
+			rpcTx, err := suite.backend.GetTransactionByHash(common.HexToHash(tc.tx.HashStr()))
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -184,7 +184,7 @@ func (suite *BackendTestSuite) TestGetTransactionsByHashPending() {
 			suite.SetupTest() // reset
 			tc.registerMock()
 
-			rpcTx, err := suite.backend.getTransactionByHashPending(common.HexToHash(tc.tx.Hash))
+			rpcTx, err := suite.backend.getTransactionByHashPending(common.HexToHash(tc.tx.HashStr()))
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -224,7 +224,7 @@ func (suite *BackendTestSuite) TestGetTxByEthHash() {
 			suite.SetupTest() // reset
 			tc.registerMock()
 
-			rpcTx, err := suite.backend.GetTxByEthHash(common.HexToHash(tc.tx.Hash))
+			rpcTx, err := suite.backend.GetTxByEthHash(common.HexToHash(tc.tx.HashStr()))
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -299,14 +299,14 @@ func (suite *BackendTestSuite) TestGetTransactionByBlockAndIndex() {
 				{
 					Type: evmtypes.EventTypeEthereumTx,
 					Attributes: []abci.EventAttribute{
-						{Key: evmtypes.AttributeKeyEthereumTxHash, Value: common.HexToHash(msgEthTx.Hash).Hex()},
+						{Key: evmtypes.AttributeKeyEthereumTxHash, Value: common.HexToHash(msgEthTx.HashStr()).Hex()},
 						{Key: evmtypes.AttributeKeyTxIndex, Value: "0"},
 					},
 				},
 				{
 					Type: evmtypes.EventTypeTxReceipt,
 					Attributes: []abci.EventAttribute{
-						{Key: evmtypes.AttributeKeyReceiptEvmTxHash, Value: common.HexToHash(msgEthTx.Hash).Hex()},
+						{Key: evmtypes.AttributeKeyReceiptEvmTxHash, Value: common.HexToHash(msgEthTx.HashStr()).Hex()},
 						{Key: evmtypes.AttributeKeyReceiptTxIndex, Value: "0"},
 						{Key: evmtypes.AttributeKeyReceiptCometBFTTxHash, Value: ""},
 					},
@@ -603,7 +603,7 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 			suite.Require().NoError(err)
 			suite.backend.indexer.Ready()
 
-			txReceipt, err := suite.backend.GetTransactionReceipt(common.HexToHash(tc.tx.Hash))
+			txReceipt, err := suite.backend.GetTransactionReceipt(common.HexToHash(tc.tx.HashStr()))
 			if tc.expPass {
 				suite.Require().NoError(err)
 				equals, diff := tc.expTxReceipt.Compare(txReceipt)
@@ -634,7 +634,7 @@ func (suite *BackendTestSuite) TestGetTransactionReceipt() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			signedTxHash := common.HexToHash(tc.tx.Hash)
+			signedTxHash := common.HexToHash(tc.tx.HashStr())
 			tc.registerMock(signedTxHash)
 
 			receipt, err := suite.backend.GetTransactionReceipt(signedTxHash)

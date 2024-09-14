@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/big"
 
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
+
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/EscanBE/evermint/v12/utils"
@@ -34,7 +36,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	senderAccAddr := sdk.MustAccAddressFromBech32(msg.From)
-	tx := msg.AsTransaction()
+	ethTx := msg.AsTransaction()
 
 	{
 		// restore nonce which increased by ante handle
@@ -43,8 +45,8 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 			if acc == nil {
 				panic(fmt.Sprintf("account %s not found", senderAccAddr))
 			}
-			if acc.GetSequence() != tx.Nonce()+1 {
-				panic(fmt.Sprintf("expected account nonce increased by 1 at this point, got %d, expected %d", acc.GetSequence(), tx.Nonce()+1))
+			if acc.GetSequence() != ethTx.Nonce()+1 {
+				panic(fmt.Sprintf("expected account nonce increased by 1 at this point, got %d, expected %d", acc.GetSequence(), ethTx.Nonce()+1))
 			}
 			if err := acc.SetSequence(acc.GetSequence() - 1); err != nil {
 				panic(fmt.Sprintf("failed to set account sequence: %v", err))
@@ -57,15 +59,15 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 	txIndex := k.GetTxCountTransient(ctx) - 1
 
 	labels := []metrics.Label{
-		telemetry.NewLabel("tx_type", fmt.Sprintf("%d", tx.Type())),
+		telemetry.NewLabel("tx_type", fmt.Sprintf("%d", ethTx.Type())),
 	}
-	if tx.To() == nil {
+	if ethTx.To() == nil {
 		labels = append(labels, telemetry.NewLabel("execution", "create"))
 	} else {
 		labels = append(labels, telemetry.NewLabel("execution", "call"))
 	}
 
-	response, err := k.ApplyTransaction(ctx, tx)
+	response, err := k.ApplyTransaction(ctx, ethTx)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to apply transaction")
 	}
@@ -86,7 +88,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 
 			// Observe which users define a gas limit >> gas used. Note, that
 			// gas_limit and gas_used are always > 0
-			gasLimit := sdkmath.LegacyNewDec(int64(tx.Gas()))
+			gasLimit := sdkmath.LegacyNewDec(int64(ethTx.Gas()))
 			gasRatio, err := gasLimit.QuoInt64(int64(response.GasUsed)).Float64()
 			if err == nil {
 				telemetry.SetGaugeWithLabels(
@@ -103,11 +105,7 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 		cometTxHash = utils.Ptr[cmtbytes.HexBytes](cmttypes.Tx(ctx.TxBytes()).Hash())
 	}
 
-	txData, err := evmtypes.UnpackTxData(msg.Data)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "failed to unpack tx data")
-	}
-	baseFee := k.feeMarketKeeper.GetBaseFee(ctx).BigInt()
+	baseFee := k.feeMarketKeeper.GetBaseFee(ctx)
 
 	receipt := &ethtypes.Receipt{}
 	if err := receipt.UnmarshalBinary(response.MarshalledReceipt); err != nil {
@@ -115,16 +113,16 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) 
 	}
 	// supply the fields those are used in sdk event construction
 	receipt.TxHash = common.HexToHash(response.Hash)
-	if tx.To() == nil && !response.Failed() {
-		receipt.ContractAddress = crypto.CreateAddress(common.BytesToAddress(senderAccAddr), tx.Nonce())
+	if ethTx.To() == nil && !response.Failed() {
+		receipt.ContractAddress = crypto.CreateAddress(common.BytesToAddress(senderAccAddr), ethTx.Nonce())
 	}
 	receipt.GasUsed = response.GasUsed
 	receipt.BlockNumber = big.NewInt(ctx.BlockHeight())
 	receipt.TransactionIndex = uint(txIndex)
 
 	receiptSdkEvent, err := evmtypes.GetSdkEventForReceipt(
-		receipt,                           // receipt
-		txData.EffectiveGasPrice(baseFee), // effective gas price
+		receipt, // receipt
+		evmutils.EthTxEffectiveGasPrice(ethTx, baseFee), // effective gas price
 		func() error { // vm error
 			if response.Failed() {
 				return fmt.Errorf(response.VmError)

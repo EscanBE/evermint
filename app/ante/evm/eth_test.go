@@ -286,7 +286,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 	baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx)
 	suite.Require().Equal(int64(ethparams.InitialBaseFee), baseFee.Int64())
 
-	gasPrice := new(big.Int).Add(baseFee.BigInt(), evmtypes.DefaultPriorityReduction.BigInt())
+	gasPrice := baseFee.BigInt()
 
 	tx2GasLimit := uint64(1000000)
 	eth2TxContractParams := &evmtypes.EvmTxArgs{
@@ -299,7 +299,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 		Accesses: &ethtypes.AccessList{{Address: addr, StorageKeys: nil}},
 	}
 	tx2 := evmtypes.NewTx(eth2TxContractParams)
-	tx2Priority := int64(1)
+	tx2Priority := gasPrice.Int64()
 
 	tx3GasLimit := evertypes.BlockGasLimit(suite.ctx) + uint64(1)
 	eth3TxContractParams := &evmtypes.EvmTxArgs{
@@ -319,12 +319,12 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 		Nonce:     1,
 		Amount:    big.NewInt(10),
 		GasLimit:  tx2GasLimit,
-		GasFeeCap: new(big.Int).Add(baseFee.BigInt(), big.NewInt(evmtypes.DefaultPriorityReduction.Int64()*2)),
-		GasTipCap: evmtypes.DefaultPriorityReduction.BigInt(),
+		GasFeeCap: baseFee.BigInt(),
+		GasTipCap: big.NewInt(1),
 		Accesses:  &ethtypes.AccessList{{Address: addr, StorageKeys: nil}},
 	}
 	dynamicFeeTx := evmtypes.NewTx(dynamicTxContractParams)
-	dynamicFeeTxPriority := int64(1)
+	dynamicFeeTxPriority := dynamicTxContractParams.GasFeeCap.Int64()
 
 	zeroBalanceAddr := testutiltx.GenerateAddress()
 	zeroBalanceAcc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, zeroBalanceAddr.Bytes())
@@ -521,7 +521,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 		{
 			name:     "pass - zero fees (disabled base fee + min gas price) - access list tx",
 			tx:       zeroFeeAccessListTx,
-			gasLimit: zeroFeeAccessListTx.GetGas(),
+			gasLimit: zeroFeeAccessListTx.AsTransaction().Gas(),
 			malleate: func(ctx sdk.Context) sdk.Context {
 				suite.zeroBaseFeeAndMinGasPrice(ctx)
 				return ctx
@@ -537,7 +537,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 		{
 			name:     "pass - zero fees (disabled base fee + min gas price) - legacy tx",
 			tx:       zeroFeeLegacyTx,
-			gasLimit: zeroFeeLegacyTx.GetGas(),
+			gasLimit: zeroFeeLegacyTx.AsTransaction().Gas(),
 			malleate: func(ctx sdk.Context) sdk.Context {
 				suite.zeroBaseFeeAndMinGasPrice(ctx)
 				return ctx
@@ -593,10 +593,10 @@ func (suite *AnteTestSuite) TestCanTransferDecorator() {
 		ChainID:   suite.app.EvmKeeper.ChainID(),
 		Nonce:     1,
 		Amount:    big.NewInt(10),
-		GasLimit:  1000,
+		GasLimit:  21000,
 		GasPrice:  big.NewInt(1),
-		GasFeeCap: big.NewInt(150),
-		GasTipCap: big.NewInt(200),
+		GasFeeCap: big.NewInt(200),
+		GasTipCap: big.NewInt(150),
 		Accesses:  &ethtypes.AccessList{},
 	}
 
@@ -686,7 +686,7 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		ChainID:  suite.app.EvmKeeper.ChainID(),
 		Nonce:    0,
 		Amount:   big.NewInt(10),
-		GasLimit: 1000,
+		GasLimit: 21000,
 		GasPrice: big.NewInt(1),
 	}
 	contract := evmtypes.NewTx(ethTxContractParamsNonce0)
@@ -700,7 +700,7 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		Nonce:    0,
 		To:       &to,
 		Amount:   big.NewInt(10),
-		GasLimit: 1000,
+		GasLimit: 21000,
 		GasPrice: big.NewInt(1),
 	}
 	tx := evmtypes.NewTx(ethTxParamsNonce0)
@@ -713,7 +713,7 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		Nonce:    1,
 		To:       &to,
 		Amount:   big.NewInt(10),
-		GasLimit: 1000,
+		GasLimit: 21000,
 		GasPrice: big.NewInt(1),
 	}
 	tx2 := evmtypes.NewTx(ethTxParamsNonce1)
@@ -726,7 +726,7 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		Nonce:    2,
 		To:       &to,
 		Amount:   big.NewInt(10),
-		GasLimit: 1000,
+		GasLimit: 21000,
 		GasPrice: big.NewInt(1),
 	}
 	tx3 := evmtypes.NewTx(ethTxParamsNonce2)
@@ -809,12 +809,10 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				msg := tc.tx.(*evmtypes.MsgEthereumTx)
-
-				txData, err := evmtypes.UnpackTxData(msg.Data)
-				suite.Require().NoError(err)
+				ethTx := msg.AsTransaction()
 
 				nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, addr)
-				suite.Equal(txData.GetNonce()+1, nonce)
+				suite.Equal(ethTx.Nonce()+1, nonce)
 				suite.True(suite.app.EvmKeeper.IsSenderNonceIncreasedByAnteHandle(suite.ctx), "flag must be set")
 			} else {
 				suite.Require().Error(err)
@@ -843,10 +841,11 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 	}
 
 	testCases := []struct {
-		name     string
-		tx       func() sdk.Tx
-		expPass  bool
-		expPanic bool
+		name        string
+		tx          func() sdk.Tx
+		expPass     bool
+		expPanic    bool
+		postRunFunc func(sdk.Tx)
 	}{
 		{
 			name: "fail - invalid transaction type",
@@ -890,7 +889,8 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.Amount = big.NewInt(-10)
 				})
 			},
-			expPass: false,
+			expPass:  false,
+			expPanic: true,
 		},
 		{
 			name: "fail - reject value which more than 256 bits",
@@ -901,7 +901,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.Amount = new(big.Int).SetBytes(bz)
 				})
 			},
-			expPanic: true,
+			expPass: false,
 		},
 		{
 			name: "pass - accept positive gas price",
@@ -939,18 +939,23 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasTipCap = nil
 				})
 			},
-			expPass: false,
+			expPanic: true,
 		},
 		{
-			name: "fail - reject gas price which more than 256 bits",
+			name: "pass - auto-correct gas price which more than 256 bits",
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
-					bz := make([]byte, 257)
+					bz := make([]byte, 33)
 					bz[0] = 0xFF
 					args.GasPrice = new(big.Int).SetBytes(bz)
+					suite.Require().Less(256, args.GasPrice.BitLen())
 				})
 			},
-			expPanic: true,
+			expPass: true,
+			postRunFunc: func(tx sdk.Tx) {
+				ethTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+				suite.Require().GreaterOrEqual(256, ethTx.AsTransaction().GasPrice().BitLen())
+			},
 		},
 		{
 			name: "pass - accept positive gas fee cap",
@@ -994,7 +999,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasFeeCap = big.NewInt(-10)
 				})
 			},
-			expPass: false,
+			expPanic: true,
 		},
 		{
 			name: "fail - reject gas fee cap which more than 256 bits",
@@ -1007,7 +1012,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasFeeCap = new(big.Int).SetBytes(bz)
 				})
 			},
-			expPanic: true,
+			expPass: false,
 		},
 		{
 			name: "pass - accept positive gas tip cap",
@@ -1051,7 +1056,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasTipCap = big.NewInt(-10)
 				})
 			},
-			expPass: false,
+			expPanic: true,
 		},
 		{
 			name: "fail - reject gas tip cap which more than 256 bits",
@@ -1064,7 +1069,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasTipCap = new(big.Int).SetBytes(bz)
 				})
 			},
-			expPanic: true,
+			expPass: false,
 		},
 	}
 
@@ -1077,7 +1082,13 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 				return
 			}
 
-			_, err := dec.AnteHandle(suite.ctx, tc.tx(), false, testutil.NextFn)
+			tx := tc.tx()
+			_, err := dec.AnteHandle(suite.ctx, tx, false, testutil.NextFn)
+			defer func() {
+				if tc.postRunFunc != nil {
+					tc.postRunFunc(tx)
+				}
+			}()
 
 			if tc.expPass {
 				suite.Require().NoError(err)

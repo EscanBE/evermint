@@ -375,7 +375,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 				ethTxParams := evmtypes.EvmTxArgs{
 					From:      suite.address,
 					Nonce:     getNonce(suite.address.Bytes()),
-					GasLimit:  ethparams.TxGas / 2,
+					GasLimit:  ethparams.TxGas - 1,
 					Input:     nil,
 					GasFeeCap: nil,
 					GasPrice:  big.NewInt(10),
@@ -439,14 +439,15 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 
 			tc.malleate()
 
-			suite.ctx = suite.ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(ethMsg.GetGas()))
+			ethTx := ethMsg.AsTransaction()
+			suite.ctx = suite.ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(ethTx.Gas()))
 
 			if tc.simulateCommitDbError {
 				suite.StateDB().ToggleStateDBPreventCommit(true)
 				defer suite.StateDB().ToggleStateDBPreventCommit(false)
 			}
 
-			res, err := suite.app.EvmKeeper.ApplyTransaction(suite.ctx, ethMsg.AsTransaction())
+			res, err := suite.app.EvmKeeper.ApplyTransaction(suite.ctx, ethTx)
 
 			if tc.expErr {
 				if res != nil {
@@ -458,7 +459,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 					suite.FailNow("bad setup testcase")
 				}
 				suite.Contains(err.Error(), tc.expErrContains)
-				suite.Equal(ethMsg.GetGas(), suite.ctx.GasMeter().GasConsumed(), "gas consumed should be equals to tx gas limit")
+				suite.Equal(ethTx.Gas(), suite.ctx.GasMeter().GasConsumed(), "gas consumed should be equals to tx gas limit")
 
 				// due to this project use a custom infiniteGasMeterWithLimit so this is the correct way to calculate the remaining gas
 				actualRemainingGas := suite.ctx.GasMeter().Limit() - suite.ctx.GasMeter().GasConsumed()
@@ -593,7 +594,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 				ethTxParams := evmtypes.EvmTxArgs{
 					From:      suite.address,
 					Nonce:     getNonce(suite.address.Bytes()),
-					GasLimit:  ethparams.TxGas / 2,
+					GasLimit:  ethparams.TxGas - 1,
 					Input:     nil,
 					GasFeeCap: nil,
 					GasPrice:  big.NewInt(10),
@@ -838,7 +839,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				ethTxParams := evmtypes.EvmTxArgs{
 					From:      suite.address,
 					Nonce:     getNonce(suite.address.Bytes()),
-					GasLimit:  ethparams.TxGas / 2,
+					GasLimit:  ethparams.TxGas - 1,
 					Input:     nil,
 					GasFeeCap: nil,
 					GasPrice:  big.NewInt(10),
@@ -964,9 +965,8 @@ func (suite *KeeperTestSuite) createContractMsgTx(nonce uint64, signer ethtypes.
 	}
 	ethTx := ethtypes.NewTx(contractCreateTx)
 	ethMsg := &evmtypes.MsgEthereumTx{}
-	err := ethMsg.FromEthereumTx(ethTx)
+	err := ethMsg.FromEthereumTx(ethTx, suite.address)
 	suite.Require().NoError(err)
-	ethMsg.From = sdk.AccAddress(suite.address.Bytes()).String()
 
 	return ethMsg, ethMsg.Sign(signer, suite.signer)
 }

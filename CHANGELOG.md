@@ -57,6 +57,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (feemarket) [#155](https://github.com/EscanBE/evermint/pull/155) Deprecate usage of `x/feemarket` `NoBaseFee`
 - (eip712) [#158](https://github.com/EscanBE/evermint/pull/158) Cleanup EIP-712, remove `ExtensionOptionsWeb3Tx` and the custom Cosmos AnteHandler
 - (eip712) [#159](https://github.com/EscanBE/evermint/pull/159) Cleanup EIP-712, remove the legacy handler
+- (evm) [#160](https://github.com/EscanBE/evermint/pull/160) Use Ethereum Tx marshalled binary instead of local maintained TxData
 
 # Cosmos-SDK v0.47
 

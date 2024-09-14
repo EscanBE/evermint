@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
+
 	"github.com/EscanBE/evermint/v12/constants"
 
 	sdkmath "cosmossdk.io/math"
@@ -284,10 +286,9 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
 
-				txData, err := evmtypes.UnpackTxData(signedTx.Data)
-				suite.Require().NoError(err)
+				ethTx := signedTx.AsTransaction()
 
-				expFee := txData.Fee()
+				expFee := evmutils.EthTxFee(ethTx)
 				invalidFee := new(big.Int).Add(expFee, big.NewInt(1))
 				invalidFeeAmount := sdk.Coins{sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewIntFromBigInt(invalidFee))}
 				txBuilder.SetFeeAmount(invalidFeeAmount)
@@ -312,10 +313,11 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 					GasPrice: big.NewInt(1),
 				}
 				signedTx := evmtypes.NewTx(ethTxParams)
+				ethTx := signedTx.AsTransaction()
 
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
 
-				expGasLimit := signedTx.GetGas()
+				expGasLimit := ethTx.Gas()
 				invalidGasLimit := expGasLimit + 1
 				txBuilder.SetGasLimit(invalidGasLimit)
 				return txBuilder.GetTx()

@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"time"
 
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
+
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
@@ -112,12 +114,11 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 	err = builder.SetMsgs(msg)
 	suite.Require().NoError(err)
 
-	txData, err := evmtypes.UnpackTxData(msg.Data)
-	suite.Require().NoError(err)
+	ethTx := msg.AsTransaction()
 
-	fees := sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewIntFromBigInt(txData.Fee())))
+	fees := sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewIntFromBigInt(evmutils.EthTxFee(ethTx))))
 	builder.SetFeeAmount(fees)
-	builder.SetGasLimit(msg.GetGas())
+	builder.SetGasLimit(ethTx.Gas())
 
 	if signCosmosTx {
 		// First round: we gather all the signer infos. We use the "set empty
@@ -128,7 +129,7 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 				SignMode:  signMode,
 				Signature: nil,
 			},
-			Sequence: txData.GetNonce(),
+			Sequence: ethTx.Nonce(),
 		}
 
 		sigsV2 := []signing.SignatureV2{sigV2}
@@ -141,12 +142,12 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 		signerData := authsigning.SignerData{
 			ChainID:       suite.ctx.ChainID(),
 			AccountNumber: accNum,
-			Sequence:      txData.GetNonce(),
+			Sequence:      ethTx.Nonce(),
 		}
 		sigV2, err = clienttx.SignWithPrivKey(
 			suite.ctx,
 			signMode, signerData,
-			txBuilder, priv, suite.clientCtx.TxConfig, txData.GetNonce(),
+			txBuilder, priv, suite.clientCtx.TxConfig, ethTx.Nonce(),
 		)
 		suite.Require().NoError(err)
 

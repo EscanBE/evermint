@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strconv"
 
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
+
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/EscanBE/evermint/v12/utils"
@@ -84,12 +86,13 @@ func (eeed EthEmitEventDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+		ethTx := msgEthTx.AsTransaction()
 
 		// emit ethereum tx hash as an event so that it can be indexed by CometBFT for query purposes
 		// it's emitted in ante handler, so we can query failed transaction (out of block gas limit).
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			evmtypes.EventTypeEthereumTx,
-			sdk.NewAttribute(evmtypes.AttributeKeyEthereumTxHash, msgEthTx.Hash),
+			sdk.NewAttribute(evmtypes.AttributeKeyEthereumTxHash, ethTx.Hash().Hex()),
 			sdk.NewAttribute(evmtypes.AttributeKeyTxIndex, strconv.FormatUint(txIndex, 10)), // #nosec G701
 		))
 	}
@@ -186,21 +189,20 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 			return ctx, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "invalid From %s, expect bech32 address", msgEthTx.From)
 		}
 
-		txGasLimit += msgEthTx.GetGas()
+		ethTx := msgEthTx.AsTransaction()
 
-		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
-		if err != nil {
-			return ctx, errorsmod.Wrap(err, "failed to unpack MsgEthereumTx Data")
-		}
+		txGasLimit += ethTx.Gas()
 
 		// return error if contract creation or call are disabled through governance
-		if !enableCreate && txData.GetTo() == nil {
+		if !enableCreate && ethTx.To() == nil {
 			return ctx, errorsmod.Wrap(evmtypes.ErrCreateDisabled, "failed to create new contract")
-		} else if !enableCall && txData.GetTo() != nil {
+		} else if !enableCall && ethTx.To() != nil {
 			return ctx, errorsmod.Wrap(evmtypes.ErrCallDisabled, "failed to call contract")
 		}
 
-		txFee = txFee.Add(sdk.Coin{Denom: evmDenom, Amount: sdkmath.NewIntFromBigInt(txData.Fee())})
+		txFee = txFee.Add(
+			sdk.NewCoin(evmDenom, sdkmath.NewIntFromBigInt(evmutils.EthTxFee(ethTx))),
+		)
 	}
 
 	if !authInfo.Fee.Amount.Equal(txFee) {
