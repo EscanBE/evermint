@@ -7,29 +7,8 @@ option go_package = "github.com/EscanBE/evermint/v12/x/feemarket/types";
 
 // Params defines the x/feemarket module parameters
 message Params {
-  // DEPRECATED: no_base_fee forces the EIP-1559 base fee to 0 (needed for 0 price calls)
-  reserved 1;
-  reserved "no_base_fee";
-  // DEPRECATED: base_fee_change_denominator bounds the amount the base fee can change
-  // between blocks.
-  reserved 2;
-  reserved "base_fee_change_denominator";
-  // DEPRECATED: elasticity_multiplier bounds the maximum gas limit an EIP-1559 block may
-  // have.
-  reserved 3;
-  reserved "elasticity_multiplier";
-  // DEPRECATED: initial base fee for EIP-1559 blocks.
-  reserved 4;
-  reserved "initial_base_fee";
-  // DEPRECATED: enable_height defines at which block height the base fee calculation is enabled.
-  reserved 5;
-  reserved "enable_height";
   // base_fee for EIP-1559 blocks.
-  string base_fee = 6 [(gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
-  // min_gas_price defines the minimum gas price value for cosmos and eth transactions
-  string min_gas_price = 7 [(gogoproto.customtype) = "cosmossdk.io/math.LegacyDec", (gogoproto.nullable) = false];
-  // DEPRECATED: min_gas_multiplier bounds the minimum gas used to be charged
-  // to senders based on gas limit
-  reserved 8;
-  reserved "min_gas_multiplier";
+  string base_fee = 1 [(gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
+  // min_gas_price defines the minimum gas price value for Cosmos and Ethereum transactions
+  string min_gas_price = 2 [(gogoproto.customtype) = "cosmossdk.io/math.LegacyDec", (gogoproto.nullable) = false];
 }

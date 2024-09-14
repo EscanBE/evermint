@@ -216,26 +216,23 @@ message EstimateGasResponse {
 message QueryTraceTxRequest {
   // msg is the MsgEthereumTx for the requested transaction
   MsgEthereumTx msg = 1;
-  // tx_index is not necessary anymore
-  reserved 2;
-  reserved "tx_index";
   // trace_config holds extra parameters to trace functions.
-  TraceConfig trace_config = 3;
+  TraceConfig trace_config = 2;
   // predecessors is an array of transactions included in the same block
   // need to be replayed first to get correct context for tracing.
-  repeated MsgEthereumTx predecessors = 4;
+  repeated MsgEthereumTx predecessors = 3;
   // block_number of requested transaction
-  int64 block_number = 5;
+  int64 block_number = 4;
   // block_hash of requested transaction
-  string block_hash = 6;
+  string block_hash = 5;
   // block_time of requested transaction
-  google.protobuf.Timestamp block_time = 7 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  google.protobuf.Timestamp block_time = 6 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
   // proposer_address is the proposer of the requested block
-  bytes proposer_address = 8 [(gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.ConsAddress"];
+  bytes proposer_address = 7 [(gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.ConsAddress"];
   // chain_id is the the eip155 chain id parsed from the requested block header
-  int64 chain_id = 9;
+  int64 chain_id = 8;
   // block_max_gas of the block of the requested transaction
-  int64 block_max_gas = 10;
+  int64 block_max_gas = 9;
 }
 
 // QueryTraceTxResponse defines TraceTx response
