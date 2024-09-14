@@ -82,13 +82,13 @@ func (suite *AnteTestSuite) CreateTestTx(
 	msg *evmtypes.MsgEthereumTx, priv cryptotypes.PrivKey, accNum uint64, signCosmosTx bool,
 	unsetExtensionOptions bool,
 ) authsigning.Tx {
-	return suite.CreateTestTxBuilder(msg, priv, accNum, signCosmosTx, unsetExtensionOptions).GetTx()
+	return suite.CreateTestTxBuilder(msg, priv, accNum, signCosmosTx, unsetExtensionOptions, false).GetTx()
 }
 
 // CreateTestTxBuilder is a helper function to create a tx builder given multiple inputs.
 func (suite *AnteTestSuite) CreateTestTxBuilder(
 	msg *evmtypes.MsgEthereumTx, priv cryptotypes.PrivKey, accNum uint64, signCosmosTx bool,
-	unsetExtensionOptions bool,
+	unsetExtensionOptions, skipSign bool,
 ) client.TxBuilder {
 	var option *codectypes.Any
 	var err error
@@ -108,8 +108,10 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 		builder.SetExtensionOptions(option)
 	}
 
-	err = msg.Sign(suite.ethSigner, utiltx.NewSigner(priv))
-	suite.Require().NoError(err)
+	if !skipSign {
+		err = msg.Sign(suite.ethSigner, utiltx.NewSigner(priv))
+		suite.Require().NoError(err)
+	}
 
 	err = builder.SetMsgs(msg)
 	suite.Require().NoError(err)

@@ -828,7 +828,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 
 	addr, privKey := utiltx.NewAddrKey()
 
-	getTx := func(f func(args *evmtypes.EvmTxArgs)) sdk.Tx {
+	getTx := func(f func(args *evmtypes.EvmTxArgs), skipSign bool) sdk.Tx {
 		evmTxArgs := &evmtypes.EvmTxArgs{
 			From:      addr,
 			ChainID:   suite.app.EvmKeeper.ChainID(),
@@ -843,7 +843,8 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 		f(evmTxArgs)
 
 		ethMsg := evmtypes.NewTx(evmTxArgs)
-		txBuilder := suite.CreateTestTxBuilder(ethMsg, privKey, 0, false, false)
+
+		txBuilder := suite.CreateTestTxBuilder(ethMsg, privKey, 0, false, false, skipSign)
 
 		return txBuilder.GetTx()
 	}
@@ -852,7 +853,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 		name        string
 		tx          func() sdk.Tx
 		expPass     bool
-		expPanic    bool // TODO ES: remove?
+		expPanic    bool
 		postRunFunc func(sdk.Tx)
 	}{
 		{
@@ -867,7 +868,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.Amount = big.NewInt(10)
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -876,7 +877,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.Amount = big.NewInt(0)
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -885,7 +886,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.Amount = nil
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -894,7 +895,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.Amount = big.NewInt(-10)
-				})
+				}, false)
 			},
 			expPass:  false,
 			expPanic: true,
@@ -902,11 +903,13 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 		{
 			name: "fail - reject value which more than 256 bits",
 			tx: func() sdk.Tx {
+				const skipSign = true // don't sign tx because signing tx also performs validation
 				return getTx(func(args *evmtypes.EvmTxArgs) {
-					bz := make([]byte, 257)
+					bz := make([]byte, 33)
 					bz[0] = 0xFF
 					args.Amount = new(big.Int).SetBytes(bz)
-				})
+					suite.Require().Less(256, args.Amount.BitLen())
+				}, skipSign)
 			},
 			expPass: false,
 		},
@@ -915,7 +918,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.GasPrice = big.NewInt(10)
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -924,7 +927,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.GasPrice = big.NewInt(0)
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -933,7 +936,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.GasPrice = nil
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -944,7 +947,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasPrice = big.NewInt(-10)
 					args.GasFeeCap = nil
 					args.GasTipCap = nil
-				})
+				}, false)
 			},
 			expPanic: true,
 		},
@@ -956,7 +959,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					bz[0] = 0xFF
 					args.GasPrice = new(big.Int).SetBytes(bz)
 					suite.Require().Less(256, args.GasPrice.BitLen())
-				})
+				}, false)
 			},
 			expPass: true,
 			postRunFunc: func(tx sdk.Tx) {
@@ -971,7 +974,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasPrice = nil
 
 					args.GasFeeCap = new(big.Int).Add(args.GasTipCap, common.Big1)
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -983,7 +986,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 
 					args.GasFeeCap = big.NewInt(0)
 					args.GasTipCap = big.NewInt(0)
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -995,7 +998,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 
 					args.GasFeeCap = nil
 					args.GasTipCap = nil
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -1006,22 +1009,24 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasPrice = nil
 
 					args.GasFeeCap = big.NewInt(-10)
-				})
+				}, false)
 			},
 			expPanic: true,
 		},
 		{
 			name: "fail - reject gas fee cap which more than 256 bits",
 			tx: func() sdk.Tx {
+				const skipSign = true // don't sign tx because signing tx also performs validation
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.GasPrice = nil
 
-					bz := make([]byte, 257)
+					bz := make([]byte, 33)
 					bz[0] = 0xFF
 					args.GasFeeCap = new(big.Int).SetBytes(bz)
-				})
+					suite.Require().Less(256, args.GasFeeCap.BitLen())
+				}, skipSign)
 			},
-			expPass: false,
+			expPanic: true,
 		},
 		{
 			name: "pass - accept positive gas tip cap",
@@ -1030,7 +1035,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasPrice = nil
 
 					args.GasTipCap = big.NewInt(10)
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -1041,7 +1046,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasPrice = nil
 
 					args.GasTipCap = big.NewInt(0)
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -1050,9 +1055,8 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.GasPrice = nil
-
 					args.GasTipCap = nil
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -1063,20 +1067,23 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasPrice = nil
 
 					args.GasTipCap = big.NewInt(-10)
-				})
+				}, false)
 			},
+			expPass:  false,
 			expPanic: true,
 		},
 		{
 			name: "fail - reject gas tip cap which more than 256 bits",
 			tx: func() sdk.Tx {
+				const skipSign = true // don't sign tx because signing tx also performs validation
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.GasPrice = nil
 
-					bz := make([]byte, 257)
+					bz := make([]byte, 33)
 					bz[0] = 0xFF
 					args.GasTipCap = new(big.Int).SetBytes(bz)
-				})
+					suite.Require().Less(256, args.GasTipCap.BitLen())
+				}, skipSign)
 			},
 			expPass: false,
 		},

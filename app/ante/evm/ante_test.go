@@ -161,7 +161,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false, false)
 				// bigger than MaxGasWanted
 				txBuilder.SetGasLimit(uint64(1 << 63))
 				return txBuilder.GetTx()
@@ -175,7 +175,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false, false)
 				txBuilder.SetMemo(strings.Repeat("*", 257))
 				return txBuilder.GetTx()
 			},
@@ -188,7 +188,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, true)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, true, false)
 				return txBuilder.GetTx()
 			},
 			checkTx:   true,
@@ -236,7 +236,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				}
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false, false)
 				txBuilder.SetMemo("memo for cosmos tx not allowed")
 				return txBuilder.GetTx()
 			},
@@ -260,7 +260,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				}
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false, false)
 				txBuilder.SetTimeoutHeight(10)
 				return txBuilder.GetTx()
 			},
@@ -284,7 +284,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				}
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false, false)
 
 				ethTx := signedTx.AsTransaction()
 
@@ -315,7 +315,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				signedTx := evmtypes.NewTx(ethTxParams)
 				ethTx := signedTx.AsTransaction()
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false, false)
 
 				expGasLimit := ethTx.Gas()
 				invalidGasLimit := expGasLimit + 1
@@ -1233,7 +1233,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false, false)
 				// bigger than MaxGasWanted
 				txBuilder.SetGasLimit(uint64(1 << 63))
 				return txBuilder.GetTx()
@@ -1247,7 +1247,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false, false)
 				txBuilder.SetMemo(strings.Repeat("*", 257))
 				return txBuilder.GetTx()
 			},
