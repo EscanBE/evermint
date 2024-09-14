@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	ethparams "github.com/ethereum/go-ethereum/params"
 
 	storetypes "cosmossdk.io/store/types"
@@ -20,7 +22,7 @@ import (
 	ethante "github.com/EscanBE/evermint/v12/app/ante/evm"
 	"github.com/EscanBE/evermint/v12/server/config"
 	"github.com/EscanBE/evermint/v12/testutil"
-	testutiltx "github.com/EscanBE/evermint/v12/testutil/tx"
+	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
@@ -33,7 +35,7 @@ func (suite *AnteTestSuite) TestNewExternalOwnedAccountVerificationDecorator() {
 		suite.app.AccountKeeper, suite.app.BankKeeper, suite.app.EvmKeeper,
 	)
 
-	addr := testutiltx.GenerateAddress()
+	addr := utiltx.GenerateAddress()
 
 	ethContractCreationTxParams := &evmtypes.EvmTxArgs{
 		From:     addr,
@@ -63,7 +65,7 @@ func (suite *AnteTestSuite) TestNewExternalOwnedAccountVerificationDecorator() {
 		},
 		{
 			name:     "invalid transaction type",
-			tx:       &testutiltx.InvalidTx{},
+			tx:       &utiltx.InvalidTx{},
 			malleate: func(_ sdk.Context, _ *statedb.StateDB) {},
 			checkTx:  true,
 			expPass:  false,
@@ -172,7 +174,7 @@ func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
 	suite.SetupTest()
 	dec := ethante.NewEthIncrementSenderSequenceDecorator(suite.app.AccountKeeper, suite.app.EvmKeeper)
 
-	addr := testutiltx.GenerateAddress()
+	addr := utiltx.GenerateAddress()
 
 	ethContractCreationTxParams := &evmtypes.EvmTxArgs{
 		From:     addr,
@@ -195,7 +197,7 @@ func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
 	}{
 		{
 			name:      "fail - ReCheckTx",
-			tx:        &testutiltx.InvalidTx{},
+			tx:        &utiltx.InvalidTx{},
 			malleate:  func() {},
 			reCheckTx: true,
 			expPass:   false,
@@ -203,7 +205,7 @@ func (suite *AnteTestSuite) TestEthNonceVerificationDecorator() {
 		},
 		{
 			name:      "fail - invalid transaction type",
-			tx:        &testutiltx.InvalidTx{},
+			tx:        &utiltx.InvalidTx{},
 			malleate:  func() {},
 			reCheckTx: false,
 			expPass:   false,
@@ -268,7 +270,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 	chainID := suite.app.EvmKeeper.ChainID()
 	dec := ethante.NewEthGasConsumeDecorator(suite.app.BankKeeper, suite.app.DistrKeeper, suite.app.EvmKeeper, *suite.app.StakingKeeper, config.DefaultMaxTxGasWanted)
 
-	addr := testutiltx.GenerateAddress()
+	addr := utiltx.GenerateAddress()
 
 	txGasLimit := uint64(1000)
 
@@ -326,7 +328,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 	dynamicFeeTx := evmtypes.NewTx(dynamicTxContractParams)
 	dynamicFeeTxPriority := dynamicTxContractParams.GasFeeCap.Int64()
 
-	zeroBalanceAddr := testutiltx.GenerateAddress()
+	zeroBalanceAddr := utiltx.GenerateAddress()
 	zeroBalanceAcc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, zeroBalanceAddr.Bytes())
 	suite.app.AccountKeeper.SetAccount(suite.ctx, zeroBalanceAcc)
 	zeroFeeLegacyTx := evmtypes.NewTx(&evmtypes.EvmTxArgs{
@@ -361,7 +363,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 	}{
 		{
 			name:        "fail - invalid transaction type",
-			tx:          &testutiltx.InvalidTx{},
+			tx:          &utiltx.InvalidTx{},
 			gasLimit:    math.MaxUint64,
 			malleate:    func(ctx sdk.Context) sdk.Context { return ctx },
 			expPass:     false,
@@ -585,7 +587,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 func (suite *AnteTestSuite) TestCanTransferDecorator() {
 	dec := ethante.NewCanTransferDecorator(suite.app.EvmKeeper)
 
-	addr, privKey := testutiltx.NewAddrKey()
+	addr, privKey := utiltx.NewAddrKey()
 
 	suite.app.FeeMarketKeeper.SetBaseFee(suite.ctx, sdkmath.NewInt(100))
 	ethContractCreationTxParams := &evmtypes.EvmTxArgs{
@@ -605,7 +607,7 @@ func (suite *AnteTestSuite) TestCanTransferDecorator() {
 	unsignedTxWithoutFrom := evmtypes.NewTx(ethContractCreationTxParams)
 	unsignedTxWithoutFrom.From = ""
 
-	err := tx.Sign(suite.ethSigner, testutiltx.NewSigner(privKey))
+	err := tx.Sign(suite.ethSigner, utiltx.NewSigner(privKey))
 	suite.Require().NoError(err)
 	signedTx := tx
 
@@ -620,7 +622,7 @@ func (suite *AnteTestSuite) TestCanTransferDecorator() {
 	}{
 		{
 			name:     "fail - invalid transaction type",
-			tx:       &testutiltx.InvalidTx{},
+			tx:       &utiltx.InvalidTx{},
 			malleate: func() {},
 			expPass:  false,
 			expPanic: true,
@@ -679,7 +681,7 @@ func (suite *AnteTestSuite) TestCanTransferDecorator() {
 
 func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 	dec := ethante.NewEthIncrementSenderSequenceDecorator(suite.app.AccountKeeper, suite.app.EvmKeeper)
-	addr, privKey := testutiltx.NewAddrKey()
+	addr, privKey := utiltx.NewAddrKey()
 
 	ethTxContractParamsNonce0 := &evmtypes.EvmTxArgs{
 		From:     addr,
@@ -690,10 +692,10 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		GasPrice: big.NewInt(1),
 	}
 	contract := evmtypes.NewTx(ethTxContractParamsNonce0)
-	err := contract.Sign(suite.ethSigner, testutiltx.NewSigner(privKey))
+	err := contract.Sign(suite.ethSigner, utiltx.NewSigner(privKey))
 	suite.Require().NoError(err)
 
-	to := testutiltx.GenerateAddress()
+	to := utiltx.GenerateAddress()
 	ethTxParamsNonce0 := &evmtypes.EvmTxArgs{
 		From:     addr,
 		ChainID:  suite.app.EvmKeeper.ChainID(),
@@ -704,7 +706,7 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		GasPrice: big.NewInt(1),
 	}
 	tx := evmtypes.NewTx(ethTxParamsNonce0)
-	err = tx.Sign(suite.ethSigner, testutiltx.NewSigner(privKey))
+	err = tx.Sign(suite.ethSigner, utiltx.NewSigner(privKey))
 	suite.Require().NoError(err)
 
 	ethTxParamsNonce1 := &evmtypes.EvmTxArgs{
@@ -717,7 +719,7 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		GasPrice: big.NewInt(1),
 	}
 	tx2 := evmtypes.NewTx(ethTxParamsNonce1)
-	err = tx2.Sign(suite.ethSigner, testutiltx.NewSigner(privKey))
+	err = tx2.Sign(suite.ethSigner, utiltx.NewSigner(privKey))
 	suite.Require().NoError(err)
 
 	ethTxParamsNonce2 := &evmtypes.EvmTxArgs{
@@ -730,7 +732,7 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 		GasPrice: big.NewInt(1),
 	}
 	tx3 := evmtypes.NewTx(ethTxParamsNonce2)
-	err = tx3.Sign(suite.ethSigner, testutiltx.NewSigner(privKey))
+	err = tx3.Sign(suite.ethSigner, utiltx.NewSigner(privKey))
 	suite.Require().NoError(err)
 
 	testCases := []struct {
@@ -742,7 +744,7 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 	}{
 		{
 			name:     "fail - invalid transaction type",
-			tx:       &testutiltx.InvalidTx{},
+			tx:       &utiltx.InvalidTx{},
 			malleate: func() {},
 			expPass:  false,
 			expPanic: true,
@@ -822,22 +824,29 @@ func (suite *AnteTestSuite) TestEthIncrementSenderSequenceDecorator() {
 }
 
 func (suite *AnteTestSuite) TestValidateBasicDecorator() {
-	dec := ethante.NewEthBasicValidationDecorator()
+	dec := ethante.NewEthValidateBasicDecorator(suite.app.EvmKeeper)
 
-	getTx := func(f func(args *evmtypes.EvmTxArgs)) *evmtypes.MsgEthereumTx {
+	addr, privKey := utiltx.NewAddrKey()
+
+	getTx := func(f func(args *evmtypes.EvmTxArgs), skipSign bool) sdk.Tx {
 		evmTxArgs := &evmtypes.EvmTxArgs{
-			From:      testutiltx.GenerateAddress(),
+			From:      addr,
 			ChainID:   suite.app.EvmKeeper.ChainID(),
 			Nonce:     1,
 			Amount:    nil,
-			GasLimit:  1000,
+			GasLimit:  21000,
 			GasPrice:  big.NewInt(1),
-			GasFeeCap: big.NewInt(150),
-			GasTipCap: big.NewInt(200),
+			GasFeeCap: big.NewInt(200),
+			GasTipCap: big.NewInt(150),
 			Accesses:  &ethtypes.AccessList{},
 		}
 		f(evmTxArgs)
-		return evmtypes.NewTx(evmTxArgs)
+
+		ethMsg := evmtypes.NewTx(evmTxArgs)
+
+		txBuilder := suite.CreateTestTxBuilder(ethMsg, privKey, 0, false, false, skipSign)
+
+		return txBuilder.GetTx()
 	}
 
 	testCases := []struct {
@@ -850,17 +859,16 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 		{
 			name: "fail - invalid transaction type",
 			tx: func() sdk.Tx {
-				return &testutiltx.InvalidTx{}
+				return &utiltx.InvalidTx{}
 			},
-			expPass:  false,
-			expPanic: true,
+			expPass: false,
 		},
 		{
 			name: "pass - accept positive value",
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.Amount = big.NewInt(10)
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -869,7 +877,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.Amount = big.NewInt(0)
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -878,7 +886,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.Amount = nil
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -887,7 +895,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.Amount = big.NewInt(-10)
-				})
+				}, false)
 			},
 			expPass:  false,
 			expPanic: true,
@@ -895,11 +903,13 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 		{
 			name: "fail - reject value which more than 256 bits",
 			tx: func() sdk.Tx {
+				const skipSign = true // don't sign tx because signing tx also performs validation
 				return getTx(func(args *evmtypes.EvmTxArgs) {
-					bz := make([]byte, 257)
+					bz := make([]byte, 33)
 					bz[0] = 0xFF
 					args.Amount = new(big.Int).SetBytes(bz)
-				})
+					suite.Require().Less(256, args.Amount.BitLen())
+				}, skipSign)
 			},
 			expPass: false,
 		},
@@ -908,7 +918,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.GasPrice = big.NewInt(10)
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -917,7 +927,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.GasPrice = big.NewInt(0)
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -926,7 +936,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.GasPrice = nil
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -937,7 +947,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasPrice = big.NewInt(-10)
 					args.GasFeeCap = nil
 					args.GasTipCap = nil
-				})
+				}, false)
 			},
 			expPanic: true,
 		},
@@ -949,7 +959,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					bz[0] = 0xFF
 					args.GasPrice = new(big.Int).SetBytes(bz)
 					suite.Require().Less(256, args.GasPrice.BitLen())
-				})
+				}, false)
 			},
 			expPass: true,
 			postRunFunc: func(tx sdk.Tx) {
@@ -963,8 +973,8 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.GasPrice = nil
 
-					args.GasFeeCap = big.NewInt(10)
-				})
+					args.GasFeeCap = new(big.Int).Add(args.GasTipCap, common.Big1)
+				}, false)
 			},
 			expPass: true,
 		},
@@ -975,7 +985,8 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasPrice = nil
 
 					args.GasFeeCap = big.NewInt(0)
-				})
+					args.GasTipCap = big.NewInt(0)
+				}, false)
 			},
 			expPass: true,
 		},
@@ -986,7 +997,8 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasPrice = nil
 
 					args.GasFeeCap = nil
-				})
+					args.GasTipCap = nil
+				}, false)
 			},
 			expPass: true,
 		},
@@ -997,22 +1009,24 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasPrice = nil
 
 					args.GasFeeCap = big.NewInt(-10)
-				})
+				}, false)
 			},
 			expPanic: true,
 		},
 		{
 			name: "fail - reject gas fee cap which more than 256 bits",
 			tx: func() sdk.Tx {
+				const skipSign = true // don't sign tx because signing tx also performs validation
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.GasPrice = nil
 
-					bz := make([]byte, 257)
+					bz := make([]byte, 33)
 					bz[0] = 0xFF
 					args.GasFeeCap = new(big.Int).SetBytes(bz)
-				})
+					suite.Require().Less(256, args.GasFeeCap.BitLen())
+				}, skipSign)
 			},
-			expPass: false,
+			expPanic: true,
 		},
 		{
 			name: "pass - accept positive gas tip cap",
@@ -1021,7 +1035,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasPrice = nil
 
 					args.GasTipCap = big.NewInt(10)
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -1032,7 +1046,7 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasPrice = nil
 
 					args.GasTipCap = big.NewInt(0)
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -1041,9 +1055,8 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 			tx: func() sdk.Tx {
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.GasPrice = nil
-
 					args.GasTipCap = nil
-				})
+				}, false)
 			},
 			expPass: true,
 		},
@@ -1054,20 +1067,23 @@ func (suite *AnteTestSuite) TestValidateBasicDecorator() {
 					args.GasPrice = nil
 
 					args.GasTipCap = big.NewInt(-10)
-				})
+				}, false)
 			},
+			expPass:  false,
 			expPanic: true,
 		},
 		{
 			name: "fail - reject gas tip cap which more than 256 bits",
 			tx: func() sdk.Tx {
+				const skipSign = true // don't sign tx because signing tx also performs validation
 				return getTx(func(args *evmtypes.EvmTxArgs) {
 					args.GasPrice = nil
 
-					bz := make([]byte, 257)
+					bz := make([]byte, 33)
 					bz[0] = 0xFF
 					args.GasTipCap = new(big.Int).SetBytes(bz)
-				})
+					suite.Require().Less(256, args.GasTipCap.BitLen())
+				}, skipSign)
 			},
 			expPass: false,
 		},

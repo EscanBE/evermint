@@ -42,6 +42,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (test) [#150](https://github.com/EscanBE/evermint/pull/150) Improve readability for test
 - (evm) [#154](https://github.com/EscanBE/evermint/pull/154) Simplify code, force all ETH hardfork enabled
 - (evm) [#156](https://github.com/EscanBE/evermint/pull/156) Refactor `x/evm` state transition code, use go-ethereum code and make usage of `NoBaseFee` flag.
+- (ante) [#161](https://github.com/EscanBE/evermint/pull/161) Merge `EthBasicValidationDecorator` into `EthValidateBasicDecorator` with enhancement
 
 ### Bug Fixes
 

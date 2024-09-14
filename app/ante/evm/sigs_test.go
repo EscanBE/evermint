@@ -32,7 +32,7 @@ func (suite *AnteTestSuite) TestSignatures() {
 	msgEthereumTx := evmtypes.NewTx(ethTxParams)
 
 	// CreateTestTx will sign the msgEthereumTx but not sign the cosmos tx since we have signCosmosTx as false
-	tx := suite.CreateTestTx(msgEthereumTx, privKey, 1, false)
+	tx := suite.CreateTestTx(msgEthereumTx, privKey, 1, false, false)
 	sigs, err := tx.GetSignaturesV2()
 	suite.Require().NoError(err)
 
