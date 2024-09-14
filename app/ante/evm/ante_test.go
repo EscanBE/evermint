@@ -77,7 +77,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
 
-				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false, false)
 				return tx
 			},
 			checkTx:   false,
@@ -89,7 +89,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
 
-				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false, false)
 				return tx
 			},
 			checkTx:   true,
@@ -101,7 +101,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
 
-				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false, false)
 				return tx
 			},
 			checkTx:   false,
@@ -113,7 +113,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedTx, privKey, 1, false, false)
 				return tx
 			},
 			checkTx:   false,
@@ -125,7 +125,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedTx, privKey, 1, false, false)
 				return tx
 			},
 			checkTx:   true,
@@ -137,7 +137,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedTx, privKey, 1, false, false)
 				return tx
 			},
 			checkTx:   false,
@@ -149,7 +149,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedTx, privKey, 1, false, false)
 				return tx
 			},
 			checkTx:   false,
@@ -161,7 +161,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false)
 				// bigger than MaxGasWanted
 				txBuilder.SetGasLimit(uint64(1 << 63))
 				return txBuilder.GetTx()
@@ -175,7 +175,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false)
 				txBuilder.SetMemo(strings.Repeat("*", 257))
 				return txBuilder.GetTx()
 			},
@@ -213,7 +213,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				}
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				tx := suite.CreateTestTx(signedTx, privKey, 1, true)
+				tx := suite.CreateTestTx(signedTx, privKey, 1, true, false)
 				return tx
 			},
 			checkTx:   false,
@@ -236,7 +236,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				}
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false)
 				txBuilder.SetMemo("memo for cosmos tx not allowed")
 				return txBuilder.GetTx()
 			},
@@ -260,7 +260,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				}
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false)
 				txBuilder.SetTimeoutHeight(10)
 				return txBuilder.GetTx()
 			},
@@ -284,7 +284,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				}
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false)
 
 				ethTx := signedTx.AsTransaction()
 
@@ -315,7 +315,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				signedTx := evmtypes.NewTx(ethTxParams)
 				ethTx := signedTx.AsTransaction()
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false)
 
 				expGasLimit := ethTx.Gas()
 				invalidGasLimit := expGasLimit + 1
@@ -745,7 +745,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			name: "fail - invalid from",
 			txFn: func() sdk.Tx {
 				msg := evmtypes.NewTx(ethContractCreationTxParams)
-				tx := suite.CreateTestTx(msg, privKey, 1, false)
+				tx := suite.CreateTestTx(msg, privKey, 1, false, false)
 				msg = tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
 				msg.From = sdk.AccAddress(func() []byte {
@@ -1149,7 +1149,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
 
-				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false, false)
 				return tx
 			},
 			checkTx:   false,
@@ -1161,7 +1161,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
 
-				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false, false)
 				return tx
 			},
 			checkTx:   true,
@@ -1173,7 +1173,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
 
-				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false, false)
 				return tx
 			},
 			checkTx:   false,
@@ -1185,7 +1185,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedTx, privKey, 1, false, false)
 				return tx
 			},
 			checkTx:   false,
@@ -1197,7 +1197,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedTx, privKey, 1, false, false)
 				return tx
 			},
 			checkTx:   true,
@@ -1209,7 +1209,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedTx, privKey, 1, false, false)
 				return tx
 			},
 			checkTx:   false,
@@ -1221,7 +1221,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedTx, privKey, 1, false, false)
 				return tx
 			},
 			checkTx:   false,
@@ -1233,7 +1233,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false)
 				// bigger than MaxGasWanted
 				txBuilder.SetGasLimit(uint64(1 << 63))
 				return txBuilder.GetTx()
@@ -1247,7 +1247,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
+				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false, false)
 				txBuilder.SetMemo(strings.Repeat("*", 257))
 				return txBuilder.GetTx()
 			},
@@ -1320,7 +1320,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
 
-				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false, false)
 				return tx
 			},
 			enableCall:   true,
@@ -1332,7 +1332,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 			txFn: func() sdk.Tx {
 				signedContractTx := evmtypes.NewTx(ethContractCreationTxParams)
 
-				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedContractTx, privKey, 1, false, false)
 				return tx
 			},
 			enableCall:   true,
@@ -1344,7 +1344,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedTx, privKey, 1, false, false)
 				return tx
 			},
 			enableCall:   false,
@@ -1356,7 +1356,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 			txFn: func() sdk.Tx {
 				signedTx := evmtypes.NewTx(ethTxParams)
 
-				tx := suite.CreateTestTx(signedTx, privKey, 1, false)
+				tx := suite.CreateTestTx(signedTx, privKey, 1, false, false)
 				return tx
 			},
 			enableCall:   true,

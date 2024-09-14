@@ -92,7 +92,7 @@ func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 				suite.Require().NoError(err)
 
 				msg := suite.BuildTestEthTx(from, to, nil, make([]byte, 0), big.NewInt(0), nil, nil, nil)
-				return suite.CreateTestTx(msg, privKey, 1, false)
+				return suite.CreateTestTx(msg, privKey, 1, false, false)
 			},
 			expPass: true,
 			errMsg:  "",
@@ -106,7 +106,7 @@ func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 				suite.Require().NoError(err)
 
 				msg := suite.BuildTestEthTx(from, to, nil, make([]byte, 0), big.NewInt(10), nil, nil, nil)
-				return suite.CreateTestTx(msg, privKey, 1, false)
+				return suite.CreateTestTx(msg, privKey, 1, false, false)
 			},
 			expPass: true,
 			errMsg:  "",
@@ -120,7 +120,7 @@ func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 				suite.Require().NoError(err)
 
 				msg := suite.BuildTestEthTx(from, to, nil, make([]byte, 0), big.NewInt(10), nil, nil, nil)
-				return suite.CreateTestTx(msg, privKey, 1, false)
+				return suite.CreateTestTx(msg, privKey, 1, false, false)
 			},
 			expPass: true,
 			errMsg:  "",
@@ -134,7 +134,7 @@ func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 				suite.Require().NoError(err)
 
 				msg := suite.BuildTestEthTx(from, to, nil, make([]byte, 0), big.NewInt(0), nil, nil, nil)
-				return suite.CreateTestTx(msg, privKey, 1, false)
+				return suite.CreateTestTx(msg, privKey, 1, false, false)
 			},
 			expPass: false,
 			errMsg:  "provided fee < minimum global fee",
@@ -148,7 +148,7 @@ func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 				suite.Require().NoError(err)
 
 				msg := suite.BuildTestEthTx(from, to, nil, make([]byte, 0), nil, big.NewInt(0), big.NewInt(0), &emptyAccessList)
-				return suite.CreateTestTx(msg, privKey, 1, false)
+				return suite.CreateTestTx(msg, privKey, 1, false, false)
 			},
 			expPass: true,
 			errMsg:  "",
@@ -162,7 +162,7 @@ func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 				suite.Require().NoError(err)
 
 				msg := suite.BuildTestEthTx(from, to, nil, make([]byte, 0), nil, big.NewInt(100), big.NewInt(50), &emptyAccessList)
-				return suite.CreateTestTx(msg, privKey, 1, false)
+				return suite.CreateTestTx(msg, privKey, 1, false, false)
 			},
 			expPass: true,
 			errMsg:  "",
@@ -176,7 +176,7 @@ func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 				suite.Require().NoError(err)
 
 				msg := suite.BuildTestEthTx(from, to, nil, make([]byte, 0), nil, big.NewInt(100), big.NewInt(100), &emptyAccessList)
-				return suite.CreateTestTx(msg, privKey, 1, false)
+				return suite.CreateTestTx(msg, privKey, 1, false, false)
 			},
 			expPass: true,
 			errMsg:  "",
@@ -190,7 +190,7 @@ func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 				suite.Require().NoError(err)
 
 				msg := suite.BuildTestEthTx(from, to, nil, make([]byte, 0), nil, big.NewInt(0), big.NewInt(0), &emptyAccessList)
-				return suite.CreateTestTx(msg, privKey, 1, false)
+				return suite.CreateTestTx(msg, privKey, 1, false, false)
 			},
 			expPass: false,
 			errMsg:  "provided fee < minimum global fee",
@@ -209,7 +209,7 @@ func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 				suite.Require().NoError(err)
 
 				msg := suite.BuildTestEthTx(from, to, nil, make([]byte, 0), nil, big.NewInt(1000), big.NewInt(0), &emptyAccessList)
-				return suite.CreateTestTx(msg, privKey, 1, false)
+				return suite.CreateTestTx(msg, privKey, 1, false, false)
 			},
 			expPass: false,
 			errMsg:  "provided fee < minimum global fee",
@@ -228,7 +228,7 @@ func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 				suite.Require().NoError(err)
 
 				msg := suite.BuildTestEthTx(from, to, nil, make([]byte, 0), nil, big.NewInt(1000), big.NewInt(101), &emptyAccessList)
-				return suite.CreateTestTx(msg, privKey, 1, false)
+				return suite.CreateTestTx(msg, privKey, 1, false, false)
 			},
 			expPass: true,
 			errMsg:  "",
@@ -252,7 +252,7 @@ func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 					gasFeeOverflowInt64, // gas tip cap
 					&emptyAccessList,    // access list
 				)
-				return suite.CreateTestTx(msg, privKey, 1, false)
+				return suite.CreateTestTx(msg, privKey, 1, false, false)
 			},
 			expPass: false,
 			errMsg:  "provided fee < minimum global fee",
@@ -275,7 +275,7 @@ func (suite *AnteTestSuite) TestEthMinGasPriceDecorator() {
 					big.NewInt(100),     // gas tip cap
 					&emptyAccessList,    // access list
 				)
-				return suite.CreateTestTx(msg, privKey, 1, false)
+				return suite.CreateTestTx(msg, privKey, 1, false, false)
 			},
 			expPass: false,
 			errMsg:  "provided fee < minimum global fee",
