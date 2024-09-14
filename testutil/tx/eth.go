@@ -2,6 +2,7 @@ package tx
 
 import (
 	"encoding/json"
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"math/big"
 
 	"github.com/EscanBE/evermint/v12/constants"
@@ -50,7 +51,10 @@ func PrepareEthTx(
 	}
 
 	ethTx := msgEthTx.AsTransaction()
-	txFee = txFee.Add(sdk.Coin{Denom: constants.BaseDenom, Amount: sdkmath.NewIntFromBigInt(msgEthTx.GetFee())})
+	txFee = txFee.Add(sdk.NewCoin(
+		constants.BaseDenom,
+		sdkmath.NewIntFromBigInt(evmutils.EthTxFee(ethTx)),
+	))
 
 	if err := txBuilder.SetMsgs(msg); err != nil {
 		return nil, err

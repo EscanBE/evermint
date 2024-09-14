@@ -4,6 +4,7 @@ package integration_test_util
 import (
 	"context"
 	"encoding/hex"
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -39,7 +40,10 @@ func (suite *ChainIntegrationTestSuite) PrepareEthTx(
 	}
 
 	ethTx := ethMsg.AsTransaction()
-	txFee = txFee.Add(sdk.Coin{Denom: suite.ChainConstantsConfig.GetMinDenom(), Amount: sdkmath.NewIntFromBigInt(ethMsg.GetFee())})
+	txFee = txFee.Add(sdk.NewCoin(
+		suite.ChainConstantsConfig.GetMinDenom(),
+		sdkmath.NewIntFromBigInt(evmutils.EthTxFee(ethTx)),
+	))
 
 	if err := txBuilder.SetMsgs(ethMsg); err != nil {
 		return nil, err

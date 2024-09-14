@@ -265,12 +265,14 @@ func (msg MsgEthereumTx) GetGas() uint64 {
 	return msg.AsTransaction().Gas()
 }
 
-// GetFee returns the fee for non dynamic fee tx
+// GetFee returns the fee of the tx.
+// For Dynamic Tx, it is `Gas Fee Cap * Gas Limit`
+// TODO ES: remove?
 func (msg MsgEthereumTx) GetFee() *big.Int {
 	return evmutils.EthTxFee(msg.AsTransaction())
 }
 
-// GetEffectiveFee returns the fee for dynamic fee tx
+// GetEffectiveFee returns the effective fee of the tx.
 func (msg MsgEthereumTx) GetEffectiveFee(baseFee sdkmath.Int) *big.Int {
 	return evmutils.EthTxEffectiveFee(msg.AsTransaction(), baseFee)
 }
