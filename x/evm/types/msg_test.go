@@ -1,13 +1,14 @@
 package types_test
 
 import (
-	"cosmossdk.io/errors"
 	"fmt"
 	"math"
 	"math/big"
 	"reflect"
 	"strings"
 	"testing"
+
+	"cosmossdk.io/errors"
 
 	ethparams "github.com/ethereum/go-ethereum/params"
 

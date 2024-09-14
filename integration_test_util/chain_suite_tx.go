@@ -4,6 +4,7 @@ package integration_test_util
 import (
 	"context"
 	"encoding/hex"
+
 	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 
 	errorsmod "cosmossdk.io/errors"

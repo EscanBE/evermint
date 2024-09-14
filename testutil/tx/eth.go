@@ -2,8 +2,9 @@ package tx
 
 import (
 	"encoding/json"
-	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"math/big"
+
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 
 	"github.com/EscanBE/evermint/v12/constants"
 

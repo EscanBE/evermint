@@ -3,9 +3,10 @@ package cli
 import (
 	"bufio"
 	"fmt"
+	"os"
+
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"os"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -38,7 +39,6 @@ func NewRawTxCmd() *cobra.Command {
 		Short: "Build cosmos transaction from raw ethereum transaction",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err

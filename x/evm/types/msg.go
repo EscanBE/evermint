@@ -3,9 +3,10 @@ package types
 import (
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
 	"math"
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/common"
 
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
