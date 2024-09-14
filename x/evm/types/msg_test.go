@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"cosmossdk.io/errors"
 	"fmt"
 	"math"
 	"math/big"
@@ -992,13 +993,9 @@ func (suite *MsgsTestSuite) TestTransactionCoding() {
 }
 
 func encodeDecodeBinary(tx *ethtypes.Transaction) (*evmtypes.MsgEthereumTx, error) {
-	data, err := tx.MarshalBinary()
-	if err != nil {
-		return nil, fmt.Errorf("rlp encoding failed: %v", err)
-	}
 	parsedTx := &evmtypes.MsgEthereumTx{}
-	if err := parsedTx.UnmarshalBinary(data); err != nil {
-		return nil, fmt.Errorf("rlp decoding failed: %v", err)
+	if err := parsedTx.FromEthereumTx(tx, common.Address{}); err != nil {
+		return nil, errors.Wrapf(err, "failed to cast into %T", parsedTx)
 	}
 	return parsedTx, nil
 }

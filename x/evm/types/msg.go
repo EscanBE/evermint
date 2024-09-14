@@ -298,20 +298,6 @@ func (msg *MsgEthereumTx) HashStr() string {
 	return msg.AsTransaction().Hash().Hex()
 }
 
-// UnmarshalBinary decodes the canonical encoding of transactions.
-// Note: the field `From` will be set to empty.
-func (msg *MsgEthereumTx) UnmarshalBinary(b []byte) error {
-	tx := &ethtypes.Transaction{}
-	if err := tx.UnmarshalBinary(b); err != nil {
-		return err
-	}
-	if err := msg.FromEthereumTx(tx, common.Address{}); err != nil {
-		return err
-	}
-	msg.From = ""
-	return nil
-}
-
 // BuildTx builds the canonical cosmos tx from ethereum msg
 func (msg *MsgEthereumTx) BuildTx(b client.TxBuilder, feeDenom string) (signing.Tx, error) {
 	builder, ok := b.(authtx.ExtensionOptionsTxBuilder)
