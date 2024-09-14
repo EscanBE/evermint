@@ -22,7 +22,7 @@ func TestParamsValidate(t *testing.T) {
 		},
 		{
 			name:     "pass - valid",
-			params:   NewParams("ara", false, true, true, DefaultChainConfig(), extraEips),
+			params:   NewParams("ara", true, true, DefaultChainConfig(), extraEips),
 			expError: false,
 		},
 		{
@@ -62,7 +62,7 @@ func TestParamsValidate(t *testing.T) {
 
 func TestParamsEIPs(t *testing.T) {
 	extraEips := []int64{2929, 1884, 1344}
-	params := NewParams("ara", false, true, true, DefaultChainConfig(), extraEips)
+	params := NewParams("ara", true, true, DefaultChainConfig(), extraEips)
 	actual := params.EIPs()
 
 	require.Equal(t, []int{2929, 1884, 1344}, actual)

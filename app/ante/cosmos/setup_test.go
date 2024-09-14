@@ -78,7 +78,6 @@ func (suite *AnteTestSuite) SetupTest() {
 		{
 			// setup x/evm genesis params
 			evmGenesis := evmtypes.DefaultGenesisState()
-			evmGenesis.Params.AllowUnprotectedTxs = false
 			if suite.evmParamsOption != nil {
 				suite.evmParamsOption(&evmGenesis.Params)
 			}

@@ -69,20 +69,6 @@ func (suite *KeeperTestSuite) TestParams() {
 			expected: true,
 		},
 		{
-			name: "pass - Check AllowUnprotectedTxs param is set to false and can be retrieved correctly",
-			paramsFun: func() interface{} {
-				params.AllowUnprotectedTxs = false
-				err := suite.app.EvmKeeper.SetParams(suite.ctx, params)
-				suite.Require().NoError(err)
-				return params.AllowUnprotectedTxs
-			},
-			getFun: func() interface{} {
-				evmParams := suite.app.EvmKeeper.GetParams(suite.ctx)
-				return evmParams.AllowUnprotectedTxs
-			},
-			expected: true,
-		},
-		{
 			name: "pass - Check ChainConfig param is set to the default value and can be retrieved correctly",
 			paramsFun: func() interface{} {
 				params.ChainConfig = evmtypes.DefaultChainConfig()

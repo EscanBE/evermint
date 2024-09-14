@@ -13,8 +13,6 @@ import (
 var (
 	// DefaultEVMDenom defines the default EVM denomination on this EVM chain
 	DefaultEVMDenom = constants.BaseDenom
-	// DefaultAllowUnprotectedTxs rejects all unprotected txs (i.e false)
-	DefaultAllowUnprotectedTxs = false
 	// DefaultEnableCreate enables contract creation (i.e true)
 	DefaultEnableCreate = true
 	// DefaultEnableCall enables contract calls (i.e true)
@@ -26,14 +24,13 @@ var (
 )
 
 // NewParams creates a new Params instance
-func NewParams(evmDenom string, allowUnprotectedTxs, enableCreate, enableCall bool, config ChainConfig, extraEIPs []int64) Params {
+func NewParams(evmDenom string, enableCreate, enableCall bool, config ChainConfig, extraEIPs []int64) Params {
 	return Params{
-		EvmDenom:            evmDenom,
-		AllowUnprotectedTxs: allowUnprotectedTxs,
-		EnableCreate:        enableCreate,
-		EnableCall:          enableCall,
-		ExtraEIPs:           extraEIPs,
-		ChainConfig:         config,
+		EvmDenom:     evmDenom,
+		EnableCreate: enableCreate,
+		EnableCall:   enableCall,
+		ExtraEIPs:    extraEIPs,
+		ChainConfig:  config,
 	}
 }
 
@@ -41,12 +38,11 @@ func NewParams(evmDenom string, allowUnprotectedTxs, enableCreate, enableCall bo
 // ExtraEIPs is empty to prevent overriding the latest hard fork instruction set
 func DefaultParams() Params {
 	return Params{
-		EvmDenom:            DefaultEVMDenom,
-		EnableCreate:        DefaultEnableCreate,
-		EnableCall:          DefaultEnableCall,
-		ChainConfig:         DefaultChainConfig(),
-		ExtraEIPs:           DefaultExtraEIPs,
-		AllowUnprotectedTxs: DefaultAllowUnprotectedTxs,
+		EvmDenom:     DefaultEVMDenom,
+		EnableCreate: DefaultEnableCreate,
+		EnableCall:   DefaultEnableCall,
+		ChainConfig:  DefaultChainConfig(),
+		ExtraEIPs:    DefaultExtraEIPs,
 	}
 }
 
@@ -65,10 +61,6 @@ func (p Params) Validate() error {
 	}
 
 	if err := validateBool(p.EnableCreate); err != nil {
-		return err
-	}
-
-	if err := validateBool(p.AllowUnprotectedTxs); err != nil {
 		return err
 	}
 
