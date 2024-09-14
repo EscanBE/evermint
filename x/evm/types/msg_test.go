@@ -735,17 +735,6 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_Getters() {
 			expPanic:              true,
 		},
 		{
-			name:      "get effective fee - pass",
-			ethSigner: ethtypes.NewEIP2930Signer(suite.chainID),
-			exp:       big.NewInt(5000),
-		},
-		{
-			name:                  "get effective fee - fail: nil data",
-			ethSigner:             ethtypes.NewEIP2930Signer(suite.chainID),
-			emptyMarshalledBinary: true,
-			expPanic:              true,
-		},
-		{
 			name:      "get gas - pass",
 			ethSigner: ethtypes.NewEIP2930Signer(suite.chainID),
 			exp:       big.NewInt(50),
@@ -758,7 +747,6 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_Getters() {
 		},
 	}
 
-	var fee, effFee *big.Int
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			tx := evmtypes.NewTx(evmTx)
@@ -774,18 +762,8 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_Getters() {
 					return
 				}
 
-				fee = tx.GetFee()
+				fee := tx.GetFee()
 				suite.Require().Equal(tc.exp, fee)
-			case strings.Contains(tc.name, "get effective fee"):
-				if tc.expPanic {
-					suite.Require().Panics(func() {
-						_ = tx.GetEffectiveFee(sdkmath.ZeroInt())
-					})
-					return
-				}
-
-				effFee = tx.GetEffectiveFee(sdkmath.ZeroInt())
-				suite.Require().Equal(tc.exp, effFee)
 			case strings.Contains(tc.name, "get gas"):
 				if tc.expPanic {
 					suite.Require().Panics(func() {

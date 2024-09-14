@@ -272,11 +272,6 @@ func (msg MsgEthereumTx) GetFee() *big.Int {
 	return evmutils.EthTxFee(msg.AsTransaction())
 }
 
-// GetEffectiveFee returns the effective fee of the tx.
-func (msg MsgEthereumTx) GetEffectiveFee(baseFee sdkmath.Int) *big.Int {
-	return evmutils.EthTxEffectiveFee(msg.AsTransaction(), baseFee)
-}
-
 // GetFrom loads the ethereum sender address from the sigcache and returns an
 // sdk.AccAddress from its bytes
 func (msg *MsgEthereumTx) GetFrom() sdk.AccAddress {
