@@ -15,11 +15,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-// DefaultPriorityReduction is the default amount of price values required for 1 unit of priority.
-// Because priority is `int64` while price is `big.Int`, it's necessary to scale down the range to keep it more pratical.
-// The default value is the same as the `sdk.DefaultPowerReduction`.
-var DefaultPriorityReduction = sdk.DefaultPowerReduction
-
 var EmptyCodeHash = crypto.Keccak256(nil)
 
 // DecodeTxResponse decodes an protobuf-encoded byte slice into TxResponse

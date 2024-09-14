@@ -2,9 +2,10 @@ package evm_test
 
 import (
 	"context"
-	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"math/big"
 	"time"
+
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 
 	sdkmath "cosmossdk.io/math"
 

@@ -1,9 +1,10 @@
 package evm
 
 import (
-	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"math"
 	"math/big"
+
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"

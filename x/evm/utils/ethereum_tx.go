@@ -1,10 +1,11 @@
 package utils
 
 import (
+	"math/big"
+
 	sdkmath "cosmossdk.io/math"
 	"github.com/ethereum/go-ethereum/common/math"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"math/big"
 )
 
 // EthTxGasPrice returns the gas price willing to pay for the transaction.

@@ -3,6 +3,11 @@ package types_test
 import (
 	"fmt"
 	"math/big"
+	"testing"
+
+	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -10,7 +15,31 @@ import (
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
-func (suite *TxDataTestSuite) TestTxArgsString() {
+type TxArgsTestSuite struct {
+	suite.Suite
+
+	hexUint64     hexutil.Uint64
+	bigInt        *big.Int
+	hexBigInt     hexutil.Big
+	addr          common.Address
+	hexDataBytes  hexutil.Bytes
+	hexInputBytes hexutil.Bytes
+}
+
+func (suite *TxArgsTestSuite) SetupTest() {
+	suite.hexUint64 = hexutil.Uint64(100)
+	suite.bigInt = big.NewInt(1)
+	suite.hexBigInt = hexutil.Big(*big.NewInt(1))
+	suite.addr = utiltx.GenerateAddress()
+	suite.hexDataBytes = hexutil.Bytes("data")
+	suite.hexInputBytes = hexutil.Bytes("input")
+}
+
+func TestTxArgsTestSuite(t *testing.T) {
+	suite.Run(t, new(TxArgsTestSuite))
+}
+
+func (suite *TxArgsTestSuite) TestTxArgsString() {
 	testCases := []struct {
 		name           string
 		txArgs         evmtypes.TransactionArgs
@@ -48,7 +77,7 @@ func (suite *TxDataTestSuite) TestTxArgsString() {
 	}
 }
 
-func (suite *TxDataTestSuite) TestConvertTxArgsEthTx() {
+func (suite *TxArgsTestSuite) TestConvertTxArgsEthTx() {
 	testCases := []struct {
 		name   string
 		txArgs evmtypes.TransactionArgs
@@ -98,7 +127,7 @@ func (suite *TxDataTestSuite) TestConvertTxArgsEthTx() {
 	}
 }
 
-func (suite *TxDataTestSuite) TestToMessageEVM() {
+func (suite *TxArgsTestSuite) TestToMessageEVM() {
 	testCases := []struct {
 		name         string
 		txArgs       evmtypes.TransactionArgs
@@ -228,7 +257,7 @@ func (suite *TxDataTestSuite) TestToMessageEVM() {
 	}
 }
 
-func (suite *TxDataTestSuite) TestGetFrom() {
+func (suite *TxArgsTestSuite) TestGetFrom() {
 	testCases := []struct {
 		name       string
 		txArgs     evmtypes.TransactionArgs
@@ -255,7 +284,7 @@ func (suite *TxDataTestSuite) TestGetFrom() {
 	}
 }
 
-func (suite *TxDataTestSuite) TestGetData() {
+func (suite *TxArgsTestSuite) TestGetData() {
 	testCases := []struct {
 		name           string
 		txArgs         evmtypes.TransactionArgs

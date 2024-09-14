@@ -1,9 +1,10 @@
 package keeper_test
 
 import (
-	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"math/big"
 	"testing"
+
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/require"

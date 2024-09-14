@@ -3,11 +3,12 @@ package types
 import (
 	"errors"
 	"fmt"
+	"math"
+	"math/big"
+
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	"math"
-	"math/big"
 
 	"google.golang.org/protobuf/proto"
 

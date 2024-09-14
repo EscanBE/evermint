@@ -1,10 +1,11 @@
 package keeper
 
 import (
+	"math/big"
+
 	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"

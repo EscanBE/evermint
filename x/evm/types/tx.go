@@ -1,7 +1,6 @@
 package types
 
 import (
-	"math"
 	"math/big"
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -24,30 +23,6 @@ type EvmTxArgs struct {
 	From      common.Address
 	To        *common.Address
 	Accesses  *ethtypes.AccessList
-}
-
-// GetTxPriority returns the priority of a given Ethereum tx. It relies on the
-// priority reduction global variable to calculate the tx priority given the tx
-// tip price:
-//
-//	tx_priority = tip_price / priority_reduction
-func GetTxPriority(txData TxData, baseFee *big.Int) (priority int64) {
-	// calculate priority based on effective gas price
-	tipPrice := txData.EffectiveGasPrice(baseFee)
-
-	if txData.TxType() != ethtypes.LegacyTxType {
-		tipPrice = new(big.Int).Sub(tipPrice, baseFee)
-	}
-
-	priority = math.MaxInt64
-	priorityBig := new(big.Int).Quo(tipPrice, DefaultPriorityReduction.BigInt())
-
-	// safety check
-	if priorityBig.IsInt64() {
-		priority = priorityBig.Int64()
-	}
-
-	return priority
 }
 
 // Failed returns if the contract execution failed in vm errors

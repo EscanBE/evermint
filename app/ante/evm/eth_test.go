@@ -286,7 +286,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 	baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx)
 	suite.Require().Equal(int64(ethparams.InitialBaseFee), baseFee.Int64())
 
-	gasPrice := new(big.Int).Add(baseFee.BigInt(), evmtypes.DefaultPriorityReduction.BigInt())
+	gasPrice := baseFee.BigInt()
 
 	tx2GasLimit := uint64(1000000)
 	eth2TxContractParams := &evmtypes.EvmTxArgs{
@@ -319,8 +319,8 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 		Nonce:     1,
 		Amount:    big.NewInt(10),
 		GasLimit:  tx2GasLimit,
-		GasFeeCap: new(big.Int).Add(baseFee.BigInt(), big.NewInt(evmtypes.DefaultPriorityReduction.Int64()*2)),
-		GasTipCap: evmtypes.DefaultPriorityReduction.BigInt(),
+		GasFeeCap: baseFee.BigInt(),
+		GasTipCap: big.NewInt(1),
 		Accesses:  &ethtypes.AccessList{{Address: addr, StorageKeys: nil}},
 	}
 	dynamicFeeTx := evmtypes.NewTx(dynamicTxContractParams)

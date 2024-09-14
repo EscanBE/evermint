@@ -564,7 +564,6 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_ValidateBasic() {
 			if tc.accessList == nil && from.Hex() == suite.from.Hex() {
 				ethSigner := ethtypes.LatestSignerForChainID(tc.chainID)
 				err := tx.Sign(ethSigner, suite.signer)
-
 				if err != nil {
 					suite.Require().ErrorContains(err, tc.errMsg)
 				}

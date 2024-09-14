@@ -3,10 +3,11 @@ package evm_test
 import (
 	"errors"
 	"fmt"
-	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"math/big"
 	"strings"
 	"time"
+
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 
 	"github.com/EscanBE/evermint/v12/constants"
 

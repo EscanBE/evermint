@@ -1,11 +1,13 @@
 package backend
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"fmt"
-	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"math"
 	"math/big"
+
+	sdkmath "cosmossdk.io/math"
+
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evertypes "github.com/EscanBE/evermint/v12/types"

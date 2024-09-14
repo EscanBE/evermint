@@ -2,8 +2,9 @@ package evm
 
 import (
 	"errors"
-	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"strconv"
+
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 
 	storetypes "cosmossdk.io/store/types"
 

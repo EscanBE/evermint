@@ -2,8 +2,9 @@ package keeper_test
 
 import (
 	"fmt"
-	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"math/big"
+
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 
 	sdkmath "cosmossdk.io/math"
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
