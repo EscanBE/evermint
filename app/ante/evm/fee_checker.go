@@ -32,18 +32,17 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 			return checkTxFeeWithValidatorMinGasPrices(ctx, feeTx)
 		}
 
-		fee := feeTx.GetFee()
-		if len(fee) != 1 {
-			return nil, 0, fmt.Errorf("only one fee coin is allowed, got: %d", len(fee))
+		fees := feeTx.GetFee()
+		if len(fees) != 1 {
+			return nil, 0, fmt.Errorf("only one fee coin is allowed, got: %d", len(fees))
 		}
 
 		params := k.GetParams(ctx)
 		denom := params.EvmDenom
 
-		feeAmount := fee.AmountOfNoDenomValidation(denom)
-
-		if feeAmount.IsNil() || !feeAmount.IsPositive() {
-			return nil, 0, fmt.Errorf("only '%s' is allowed as fee, got: %s", denom, fee[0].Denom)
+		fee := fees[0]
+		if fee.Denom != denom {
+			return nil, 0, fmt.Errorf("only '%s' is allowed as fee, got: %s", denom, fee)
 		}
 
 		baseFee := k.GetBaseFee(ctx)
@@ -70,7 +69,7 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 				return nil, 0, errorsmod.Wrapf(errortypes.ErrInsufficientFee, "max priority price cannot be negative")
 			}
 
-			gasFeeCap := feeAmount.Quo(sdkmath.NewIntFromUint64(gas))
+			gasFeeCap := fee.Amount.Quo(sdkmath.NewIntFromUint64(gas))
 
 			// Compute follow formula of Ethereum EIP-1559
 			effectiveGasPrice := cmath.BigMin(new(big.Int).Add(gasTipCap.BigInt(), baseFee.BigInt()), gasFeeCap.BigInt())
@@ -81,9 +80,7 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 			}
 		} else {
 			// normal logic
-			effectiveFee = sdk.Coins{
-				sdk.NewCoin(denom, feeAmount),
-			}
+			effectiveFee = fees
 		}
 
 		if ctx.IsCheckTx() {
