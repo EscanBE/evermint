@@ -347,7 +347,6 @@ func (suite *BackendTestSuite) TestSendRawTransaction() {
 			name: "fail - unprotected transactions",
 			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				suite.backend.AllowUnprotectedTxs(false)
 				RegisterParamsWithoutHeaderError(queryClient, 1)
 			},
 			rawTx:   rlpEncodedBz,
@@ -358,7 +357,6 @@ func (suite *BackendTestSuite) TestSendRawTransaction() {
 			name: "fail - failed to get evm params",
 			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				suite.backend.AllowUnprotectedTxs(true)
 				RegisterParamsWithoutHeaderError(queryClient, 1)
 			},
 			rawTx:   rlpEncodedBz,
@@ -370,7 +368,6 @@ func (suite *BackendTestSuite) TestSendRawTransaction() {
 			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				suite.backend.AllowUnprotectedTxs(true)
 				RegisterParamsWithoutHeader(queryClient, 1)
 				RegisterBroadcastTxError(client, txBytes)
 			},
@@ -383,7 +380,6 @@ func (suite *BackendTestSuite) TestSendRawTransaction() {
 			registerMock: func() {
 				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				suite.backend.AllowUnprotectedTxs(true)
 				RegisterParamsWithoutHeader(queryClient, 1)
 				RegisterBroadcastTx(client, txBytes)
 			},
