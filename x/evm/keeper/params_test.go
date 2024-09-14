@@ -78,7 +78,7 @@ func (suite *KeeperTestSuite) TestParams() {
 			},
 			getFun: func() interface{} {
 				evmParams := suite.app.EvmKeeper.GetParams(suite.ctx)
-				return evmParams.GetAllowUnprotectedTxs()
+				return evmParams.AllowUnprotectedTxs
 			},
 			expected: true,
 		},

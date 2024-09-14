@@ -38,7 +38,7 @@ func (esvd EthSigVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, s
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
-		allowUnprotectedTxs := evmParams.GetAllowUnprotectedTxs()
+		allowUnprotectedTxs := evmParams.AllowUnprotectedTxs
 		ethTx := msgEthTx.AsTransaction()
 		if !allowUnprotectedTxs && !ethTx.Protected() {
 			return ctx, errorsmod.Wrapf(
