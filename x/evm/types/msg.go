@@ -34,9 +34,6 @@ var (
 	_ ante.GasTx           = &MsgEthereumTx{}
 	_ sdk.Msg              = &MsgUpdateParams{}
 	// TODO ES: check relates logic, because MsgEthereumTx is not a FeeTx
-
-	// TODO ES: remove this
-	_ codectypes.UnpackInterfacesMessage = MsgEthereumTx{}
 )
 
 // message type and route constants
@@ -329,12 +326,6 @@ func (msg MsgEthereumTx) AsMessage(signer ethtypes.Signer, baseFee *big.Int) (co
 // HashStr returns transaction hash
 func (msg *MsgEthereumTx) HashStr() string {
 	return msg.AsTransaction().Hash().Hex()
-}
-
-// UnpackInterfaces implements UnpackInterfacesMesssage.UnpackInterfaces
-// TODO ES: remove this
-func (msg MsgEthereumTx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	return unpacker.UnpackAny(msg.Data, new(TxData))
 }
 
 // UnmarshalBinary decodes the canonical encoding of transactions.
