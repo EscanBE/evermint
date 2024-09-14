@@ -375,7 +375,7 @@ func (suite *BackendTestSuite) TestSendRawTransaction() {
 				RegisterBroadcastTxError(client, txBytes)
 			},
 			rawTx:   rlpEncodedBz,
-			expHash: common.HexToHash(ethTx.HashStr()),
+			expHash: ethTx.AsTransaction().Hash(),
 			expPass: false,
 		},
 		{
@@ -388,7 +388,7 @@ func (suite *BackendTestSuite) TestSendRawTransaction() {
 				RegisterBroadcastTx(client, txBytes)
 			},
 			rawTx:   rlpEncodedBz,
-			expHash: common.HexToHash(ethTx.HashStr()),
+			expHash: ethTx.AsTransaction().Hash(),
 			expPass: true,
 		},
 	}

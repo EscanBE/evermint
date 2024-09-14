@@ -86,12 +86,13 @@ func (eeed EthEmitEventDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+		ethTx := msgEthTx.AsTransaction()
 
 		// emit ethereum tx hash as an event so that it can be indexed by CometBFT for query purposes
 		// it's emitted in ante handler, so we can query failed transaction (out of block gas limit).
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			evmtypes.EventTypeEthereumTx,
-			sdk.NewAttribute(evmtypes.AttributeKeyEthereumTxHash, msgEthTx.HashStr()),
+			sdk.NewAttribute(evmtypes.AttributeKeyEthereumTxHash, ethTx.Hash().Hex()),
 			sdk.NewAttribute(evmtypes.AttributeKeyTxIndex, strconv.FormatUint(txIndex, 10)), // #nosec G701
 		))
 	}
