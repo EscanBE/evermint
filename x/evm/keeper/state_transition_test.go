@@ -964,9 +964,8 @@ func (suite *KeeperTestSuite) createContractMsgTx(nonce uint64, signer ethtypes.
 	}
 	ethTx := ethtypes.NewTx(contractCreateTx)
 	ethMsg := &evmtypes.MsgEthereumTx{}
-	err := ethMsg.FromEthereumTx(ethTx)
+	err := ethMsg.FromEthereumTx(ethTx, suite.address)
 	suite.Require().NoError(err)
-	ethMsg.From = sdk.AccAddress(suite.address.Bytes()).String()
 
 	return ethMsg, ethMsg.Sign(signer, suite.signer)
 }

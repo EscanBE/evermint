@@ -3,6 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"math"
 	"math/big"
 
@@ -112,7 +113,7 @@ func NewTx(
 }
 
 // FromEthereumTx populates the message fields from the given ethereum transaction
-func (msg *MsgEthereumTx) FromEthereumTx(tx *ethtypes.Transaction) error {
+func (msg *MsgEthereumTx) FromEthereumTx(tx *ethtypes.Transaction, from common.Address) error {
 	if err := validateBasic(tx); err != nil {
 		return err
 	}
@@ -123,15 +124,10 @@ func (msg *MsgEthereumTx) FromEthereumTx(tx *ethtypes.Transaction) error {
 	}
 
 	msg.MarshalledTx = bz
+	msg.From = sdk.AccAddress(from.Bytes()).String()
 
 	return nil
 }
-
-// Route returns the route value of an MsgEthereumTx.
-func (msg MsgEthereumTx) Route() string { return RouterKey }
-
-// Type returns the type value of an MsgEthereumTx.
-func (msg *MsgEthereumTx) Type() string { return TypeMsgEthereumTx }
 
 // ValidateBasic implements the sdk.Msg interface. It performs basic validation
 // checks of a Transaction. If returns an error if validation fails.
@@ -232,30 +228,6 @@ func validateBasic(ethTx *ethtypes.Transaction) error {
 	return nil
 }
 
-// GetMsgs returns a single MsgEthereumTx as an sdk.Msg.
-func (msg *MsgEthereumTx) GetMsgs() []sdk.Msg {
-	return []sdk.Msg{msg}
-}
-
-func (msg *MsgEthereumTx) GetMsgsV2() ([]proto.Message, error) {
-	return nil, errors.New("not implemented")
-}
-
-// GetSigners returns the expected signers for an Ethereum transaction message.
-// For such a message, there should exist only a single 'signer'.
-func (msg *MsgEthereumTx) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(msg.From)}
-}
-
-// GetSignBytes returns the Amino bytes of an Ethereum transaction message used
-// for signing.
-//
-// NOTE: This method cannot be used as a chain ID is needed to create valid bytes
-// to sign over. Use 'RLPSignBytes' instead.
-func (msg MsgEthereumTx) GetSignBytes() []byte {
-	panic("must use 'RLPSignBytes' with a chain ID to get the valid bytes to sign")
-}
-
 // Sign calculates a secp256k1 ECDSA signature and signs the transaction. It
 // takes a keyring signer and the chainID to sign an Ethereum transaction according to
 // EIP155 standard.
@@ -285,7 +257,7 @@ func (msg *MsgEthereumTx) Sign(ethSigner ethtypes.Signer, keyringSigner keyring.
 		return err
 	}
 
-	return msg.FromEthereumTx(tx)
+	return msg.FromEthereumTx(tx, common.BytesToAddress(from))
 }
 
 // GetGas implements the GasTx interface. It returns the GasLimit of the transaction.
@@ -330,12 +302,17 @@ func (msg *MsgEthereumTx) HashStr() string {
 }
 
 // UnmarshalBinary decodes the canonical encoding of transactions.
+// Note: the field `From` will be set to empty.
 func (msg *MsgEthereumTx) UnmarshalBinary(b []byte) error {
 	tx := &ethtypes.Transaction{}
 	if err := tx.UnmarshalBinary(b); err != nil {
 		return err
 	}
-	return msg.FromEthereumTx(tx)
+	if err := msg.FromEthereumTx(tx, common.Address{}); err != nil {
+		return err
+	}
+	msg.From = ""
+	return nil
 }
 
 // BuildTx builds the canonical cosmos tx from ethereum msg
@@ -368,6 +345,36 @@ func (msg *MsgEthereumTx) BuildTx(b client.TxBuilder, feeDenom string) (signing.
 	builder.SetGasLimit(msg.GetGas())
 	tx := builder.GetTx()
 	return tx, nil
+}
+
+// Route returns the route value of an MsgEthereumTx.
+func (msg MsgEthereumTx) Route() string { return RouterKey }
+
+// Type returns the type value of an MsgEthereumTx.
+func (msg *MsgEthereumTx) Type() string { return TypeMsgEthereumTx }
+
+// GetMsgs returns a single MsgEthereumTx as an sdk.Msg.
+func (msg *MsgEthereumTx) GetMsgs() []sdk.Msg {
+	return []sdk.Msg{msg}
+}
+
+func (msg *MsgEthereumTx) GetMsgsV2() ([]proto.Message, error) {
+	return nil, errors.New("not implemented")
+}
+
+// GetSigners returns the expected signers for an Ethereum transaction message.
+// For such a message, there should exist only a single 'signer'.
+func (msg *MsgEthereumTx) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(msg.From)}
+}
+
+// GetSignBytes returns the Amino bytes of an Ethereum transaction message used
+// for signing.
+//
+// NOTE: This method cannot be used as a chain ID is needed to create valid bytes
+// to sign over. Use 'RLPSignBytes' instead.
+func (msg MsgEthereumTx) GetSignBytes() []byte {
+	panic("must use 'RLPSignBytes' with a chain ID to get the valid bytes to sign")
 }
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.

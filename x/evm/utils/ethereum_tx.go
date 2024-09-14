@@ -35,8 +35,7 @@ func EthTxEffectiveFee(tx *ethtypes.Transaction, baseFee sdkmath.Int) *big.Int {
 }
 
 // EthTxPriority returns the priority of a given Ethereum tx.
-// TODO ES: cleanup
-func EthTxPriority(tx *ethtypes.Transaction, _ sdkmath.Int) (priority int64) {
+func EthTxPriority(tx *ethtypes.Transaction) (priority int64) {
 	gasPrice := EthTxGasPrice(tx)
 
 	priority = math.MaxInt64

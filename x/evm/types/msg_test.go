@@ -161,7 +161,7 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_HashStr() {
 	})
 
 	ethMsg := &evmtypes.MsgEthereumTx{}
-	err := ethMsg.FromEthereumTx(ethTx)
+	err := ethMsg.FromEthereumTx(ethTx, common.Address{})
 	suite.Require().NoError(err)
 
 	suite.Require().Equal(ethTx.Hash().Hex(), ethMsg.HashStr())
@@ -922,7 +922,7 @@ func (suite *MsgsTestSuite) TestFromEthereumTx() {
 		suite.Run(tc.name, func() {
 			ethTx := tc.buildTx()
 			tx := &evmtypes.MsgEthereumTx{}
-			err := tx.FromEthereumTx(ethTx)
+			err := tx.FromEthereumTx(ethTx, common.Address{})
 			if tc.expectPass {
 				suite.Require().NoError(err)
 
