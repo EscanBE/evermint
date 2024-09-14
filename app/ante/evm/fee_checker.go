@@ -31,49 +31,49 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 			return checkTxFeeWithValidatorMinGasPrices(ctx, feeTx)
 		}
 
-		params := k.GetParams(ctx)
-		denom := params.EvmDenom
-
-		baseFee := k.GetBaseFee(ctx)
-		if baseFee.Sign() != 1 {
-			// fallback to min-gas-prices logic
-			return checkTxFeeWithValidatorMinGasPrices(ctx, feeTx)
-		}
-
-		// default to `MaxInt64` when there's no extension option.
-		gasTipCap := sdkmath.NewInt(math.MaxInt64)
-
-		// get the priority tip cap from the extension option.
+		var gasTipCap *sdkmath.Int
 		if hasExtOptsTx, ok := feeTx.(authante.HasExtensionOptionsTx); ok {
 			for _, opt := range hasExtOptsTx.GetExtensionOptions() {
 				if extOpt, ok := opt.GetCachedValue().(*evertypes.ExtensionOptionDynamicFeeTx); ok {
-					gasTipCap = extOpt.MaxPriorityPrice
+					gasTipCap = &extOpt.MaxPriorityPrice
 					break
 				}
 			}
 		}
 
-		// priority fee cannot be negative
-		if gasTipCap.IsNegative() {
-			return nil, 0, errorsmod.Wrapf(errortypes.ErrInsufficientFee, "max priority price cannot be negative")
-		}
-
+		var effectiveFee sdk.Coins
 		gas := feeTx.GetGas()
-		feeCoins := feeTx.GetFee()
-		fee := feeCoins.AmountOfNoDenomValidation(denom)
+		if gasTipCap != nil { // has Dynamic Fee Tx ext
+			// priority fee cannot be negative
+			if gasTipCap.IsNegative() {
+				return nil, 0, errorsmod.Wrapf(errortypes.ErrInsufficientFee, "max priority price cannot be negative")
+			}
 
-		feeCap := fee.Quo(sdkmath.NewIntFromUint64(gas))
+			baseFee := k.GetBaseFee(ctx)
+			if baseFee.Sign() != 1 {
+				// fallback to min-gas-prices logic
+				return checkTxFeeWithValidatorMinGasPrices(ctx, feeTx)
+			}
 
-		if feeCap.LT(baseFee) {
-			return nil, 0, errorsmod.Wrapf(errortypes.ErrInsufficientFee, "gas prices too low, got: %s%s required: %s%s. Please retry using a higher gas price or a higher fee", feeCap, denom, baseFee, denom)
-		}
+			params := k.GetParams(ctx)
+			denom := params.EvmDenom
 
-		// Compute follow formula of Ethereum EIP-1559
-		effectiveGasPrice := cmath.BigMin(new(big.Int).Add(gasTipCap.BigInt(), baseFee.BigInt()), feeCap.BigInt())
+			fee := feeTx.GetFee().AmountOfNoDenomValidation(denom)
+			gasFeeCap := fee.Quo(sdkmath.NewIntFromUint64(gas))
+			if gasFeeCap.LT(baseFee) {
+				return nil, 0, errorsmod.Wrapf(errortypes.ErrInsufficientFee, "gas prices too low, got: %s%s required: %s%s. Please retry using a higher gas price or a higher fee", gasFeeCap, denom, baseFee, denom)
+			}
 
-		// NOTE: create a new coins slice without having to validate the denom
-		effectiveFee := sdk.Coins{
-			sdk.NewCoin(denom, sdkmath.NewIntFromBigInt(effectiveGasPrice).Mul(sdkmath.NewIntFromUint64(gas))),
+			// Compute follow formula of Ethereum EIP-1559
+			effectiveGasPrice := cmath.BigMin(new(big.Int).Add(gasTipCap.BigInt(), baseFee.BigInt()), gasFeeCap.BigInt())
+
+			// Dynamic Fee effective fee = effective gas price * gas
+			effectiveFee = sdk.Coins{
+				sdk.NewCoin(denom, sdkmath.NewIntFromBigInt(effectiveGasPrice).Mul(sdkmath.NewIntFromUint64(gas))),
+			}
+		} else {
+			// normal logic
+			effectiveFee = feeTx.GetFee()
 		}
 
 		if ctx.IsCheckTx() {
