@@ -313,10 +313,11 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 					GasPrice: big.NewInt(1),
 				}
 				signedTx := evmtypes.NewTx(ethTxParams)
+				ethTx := signedTx.AsTransaction()
 
 				txBuilder := suite.CreateTestTxBuilder(signedTx, privKey, 1, false)
 
-				expGasLimit := signedTx.GetGas()
+				expGasLimit := ethTx.Gas()
 				invalidGasLimit := expGasLimit + 1
 				txBuilder.SetGasLimit(invalidGasLimit)
 				return txBuilder.GetTx()

@@ -342,7 +342,7 @@ func (msg *MsgEthereumTx) BuildTx(b client.TxBuilder, feeDenom string) (signing.
 		return nil, err
 	}
 	builder.SetFeeAmount(fees)
-	builder.SetGasLimit(msg.GetGas())
+	builder.SetGasLimit(ethTx.Gas())
 	tx := builder.GetTx()
 	return tx, nil
 }

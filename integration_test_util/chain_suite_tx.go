@@ -31,7 +31,6 @@ func (suite *ChainIntegrationTestSuite) PrepareEthTx(
 	txBuilder := suite.EncodingConfig.TxConfig.NewTxBuilder()
 
 	txFee := sdk.Coins{}
-	txGasLimit := uint64(0)
 
 	// Sign messages and compute gas/fees.
 	err := ethMsg.Sign(suite.EthSigner, itutiltypes.NewSigner(signer.PrivateKey))
@@ -39,7 +38,7 @@ func (suite *ChainIntegrationTestSuite) PrepareEthTx(
 		return nil, err
 	}
 
-	txGasLimit += ethMsg.GetGas()
+	ethTx := ethMsg.AsTransaction()
 	txFee = txFee.Add(sdk.Coin{Denom: suite.ChainConstantsConfig.GetMinDenom(), Amount: sdkmath.NewIntFromBigInt(ethMsg.GetFee())})
 
 	if err := txBuilder.SetMsgs(ethMsg); err != nil {
@@ -60,7 +59,7 @@ func (suite *ChainIntegrationTestSuite) PrepareEthTx(
 
 	builder.SetExtensionOptions(option)
 
-	txBuilder.SetGasLimit(txGasLimit)
+	txBuilder.SetGasLimit(ethTx.Gas())
 	txBuilder.SetFeeAmount(txFee)
 
 	return txBuilder.GetTx(), nil

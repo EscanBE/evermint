@@ -118,7 +118,7 @@ func (suite *AnteTestSuite) CreateTestTxBuilder(
 
 	fees := sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewIntFromBigInt(evmutils.EthTxFee(ethTx))))
 	builder.SetFeeAmount(fees)
-	builder.SetGasLimit(msg.GetGas())
+	builder.SetGasLimit(ethTx.Gas())
 
 	if signCosmosTx {
 		// First round: we gather all the signer infos. We use the "set empty

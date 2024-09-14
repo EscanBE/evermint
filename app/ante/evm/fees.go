@@ -57,7 +57,7 @@ func (empd EthMinGasPriceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 		ethTx := msgEthTx.AsTransaction()
 		feeAmt := evmutils.EthTxEffectiveFee(ethTx, baseFee)
 
-		gasLimit := sdkmath.LegacyNewDecFromBigInt(new(big.Int).SetUint64(msgEthTx.GetGas()))
+		gasLimit := sdkmath.LegacyNewDecFromBigInt(new(big.Int).SetUint64(ethTx.Gas()))
 
 		requiredFee := minGasPrice.Mul(gasLimit)
 		fee := sdkmath.LegacyNewDecFromBigInt(feeAmt)
@@ -105,10 +105,11 @@ func (mfd EthMempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 	minGasPrice := ctx.MinGasPrices().AmountOf(evmDenom)
 
 	msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
+	ethTx := msgEthTx.AsTransaction()
 
 	fee := sdkmath.LegacyNewDecFromBigInt(msgEthTx.GetFee())
 
-	gasLimit := sdkmath.LegacyNewDecFromBigInt(new(big.Int).SetUint64(msgEthTx.GetGas()))
+	gasLimit := sdkmath.LegacyNewDecFromBigInt(new(big.Int).SetUint64(ethTx.Gas()))
 	requiredFee := minGasPrice.Mul(gasLimit)
 
 	if fee.LT(requiredFee) {
