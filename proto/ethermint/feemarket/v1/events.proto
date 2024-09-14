@@ -8,11 +8,3 @@ message EventFeeMarket {
   // base_fee for EIP-1559 blocks
   string base_fee = 1;
 }
-
-// EventBlockGas defines an Ethereum block gas event
-message EventBlockGas {
-  // height of the block
-  string height = 1;
-  // amount of gas used by the block
-  string amount = 2;
-}
