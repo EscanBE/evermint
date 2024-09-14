@@ -82,7 +82,7 @@ func TestSDKTxFeeChecker(t *testing.T) {
 			expFees:        "",
 			expPriority:    0,
 			expSuccess:     false,
-			expErrContains: "insufficient fees; got:  required:",
+			expErrContains: "only one fee coin is allowed",
 		},
 		{
 			name:   "pass - min-gas-prices",
@@ -113,11 +113,12 @@ func TestSDKTxFeeChecker(t *testing.T) {
 			name: "fail - gas price is zero, lower than base fee",
 			ctx:  deliverTxCtx,
 			keeper: MockEVMKeeper{
-				BaseFee: sdkmath.OneInt(),
+				BaseFee: sdkmath.NewInt(2),
 			},
 			buildTx: func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder()
 				txBuilder.SetGasLimit(1)
+				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(1))))
 				return txBuilder.GetTx()
 			},
 			expFees:        "",
@@ -134,12 +135,47 @@ func TestSDKTxFeeChecker(t *testing.T) {
 			buildTx: func() sdk.FeeTx {
 				txBuilder := encodingConfig.TxConfig.NewTxBuilder()
 				txBuilder.SetGasLimit(1)
-				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(evmtypes.DefaultEVMDenom, sdkmath.NewInt(10))))
+				txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(10))))
 				return txBuilder.GetTx()
 			},
 			expFees:     "10" + constants.BaseDenom,
 			expPriority: 10,
 			expSuccess:  true,
+		},
+		{
+			name: "fail - reject multi fee coins",
+			ctx:  deliverTxCtx,
+			keeper: MockEVMKeeper{
+				BaseFee: sdkmath.NewInt(10),
+			},
+			buildTx: func() sdk.FeeTx {
+				txBuilder := encodingConfig.TxConfig.NewTxBuilder()
+				txBuilder.SetGasLimit(1)
+				txBuilder.SetFeeAmount(sdk.NewCoins(
+					sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(10)),
+					sdk.NewCoin(constants.BaseDenom+"x", sdkmath.NewInt(10)),
+				))
+				return txBuilder.GetTx()
+			},
+			expSuccess:     false,
+			expErrContains: "only one fee coin is allowed, got: 2",
+		},
+		{
+			name: "fail - reject invalid denom fee coin",
+			ctx:  deliverTxCtx,
+			keeper: MockEVMKeeper{
+				BaseFee: sdkmath.NewInt(10),
+			},
+			buildTx: func() sdk.FeeTx {
+				txBuilder := encodingConfig.TxConfig.NewTxBuilder()
+				txBuilder.SetGasLimit(1)
+				txBuilder.SetFeeAmount(sdk.NewCoins(
+					sdk.NewCoin(constants.BaseDenom+"x", sdkmath.NewInt(10)),
+				))
+				return txBuilder.GetTx()
+			},
+			expSuccess:     false,
+			expErrContains: fmt.Sprintf("only '%s' is allowed as fee, got:", constants.BaseDenom),
 		},
 		{
 			name: "pass - dynamic fee priority",

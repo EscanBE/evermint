@@ -528,10 +528,10 @@ func (suite *KeeperTestSuite) TestVerifyFeeAndDeductTxCostsFromUserBalance() {
 			tx := evmtypes.NewTx(ethTxParams)
 			ethTx := tx.AsTransaction()
 
-			priority := evmutils.EthTxPriority(ethTx)
-			suite.Require().Equal(evmutils.EthTxGasPrice(ethTx).String(), fmt.Sprintf("%d", priority))
-
 			baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx)
+			priority := evmutils.EthTxPriority(ethTx, baseFee)
+			suite.Require().Equal(evmutils.EthTxEffectiveGasPrice(ethTx, baseFee).String(), fmt.Sprintf("%d", priority))
+
 			fees, err := evmkeeper.VerifyFee(ethTx, evmtypes.DefaultEVMDenom, baseFee, suite.ctx.IsCheckTx())
 			if tc.expectPassVerify {
 				suite.Require().NoError(err)

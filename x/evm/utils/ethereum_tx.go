@@ -1,10 +1,11 @@
 package utils
 
 import (
+	"math"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/ethereum/go-ethereum/common/math"
+	cmath "github.com/ethereum/go-ethereum/common/math"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -24,7 +25,7 @@ func EthTxFee(tx *ethtypes.Transaction) *big.Int {
 // EthTxEffectiveGasPrice returns the effective gas price for the transaction.
 func EthTxEffectiveGasPrice(tx *ethtypes.Transaction, baseFee sdkmath.Int) *big.Int {
 	if tx.Type() == ethtypes.DynamicFeeTxType {
-		return math.BigMin(add(tx.GasTipCap(), baseFee.BigInt()), tx.GasFeeCap())
+		return cmath.BigMin(add(tx.GasTipCap(), baseFee.BigInt()), tx.GasFeeCap())
 	}
 	return tx.GasPrice()
 }
@@ -35,8 +36,8 @@ func EthTxEffectiveFee(tx *ethtypes.Transaction, baseFee sdkmath.Int) *big.Int {
 }
 
 // EthTxPriority returns the priority of a given Ethereum tx.
-func EthTxPriority(tx *ethtypes.Transaction) (priority int64) {
-	gasPrice := EthTxGasPrice(tx)
+func EthTxPriority(tx *ethtypes.Transaction, baseFee sdkmath.Int) (priority int64) {
+	gasPrice := EthTxEffectiveGasPrice(tx, baseFee)
 
 	priority = math.MaxInt64
 

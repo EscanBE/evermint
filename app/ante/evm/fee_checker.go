@@ -1,16 +1,20 @@
 package evm
 
 import (
+	"fmt"
 	"math"
+	"math/big"
+
+	cmath "github.com/ethereum/go-ethereum/common/math"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-
-	anteutils "github.com/EscanBE/evermint/v12/app/ante/utils"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
+
+	anteutils "github.com/EscanBE/evermint/v12/app/ante/utils"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 )
 
 // NewDynamicFeeChecker returns a `TxFeeChecker` that applies a dynamic fee to
@@ -28,8 +32,18 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 			return checkTxFeeWithValidatorMinGasPrices(ctx, feeTx)
 		}
 
+		fees := feeTx.GetFee()
+		if len(fees) != 1 {
+			return nil, 0, fmt.Errorf("only one fee coin is allowed, got: %d", len(fees))
+		}
+
 		params := k.GetParams(ctx)
 		denom := params.EvmDenom
+
+		fee := fees[0]
+		if fee.Denom != denom {
+			return nil, 0, fmt.Errorf("only '%s' is allowed as fee, got: %s", denom, fee)
+		}
 
 		baseFee := k.GetBaseFee(ctx)
 		if baseFee.Sign() != 1 {
@@ -37,39 +51,36 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 			return checkTxFeeWithValidatorMinGasPrices(ctx, feeTx)
 		}
 
-		// default to `MaxInt64` when there's no extension option.
-		maxPriorityPrice := sdkmath.NewInt(math.MaxInt64)
-
-		// get the priority tip cap from the extension option.
+		var gasTipCap *sdkmath.Int
 		if hasExtOptsTx, ok := feeTx.(authante.HasExtensionOptionsTx); ok {
 			for _, opt := range hasExtOptsTx.GetExtensionOptions() {
 				if extOpt, ok := opt.GetCachedValue().(*evertypes.ExtensionOptionDynamicFeeTx); ok {
-					maxPriorityPrice = extOpt.MaxPriorityPrice
+					gasTipCap = &extOpt.MaxPriorityPrice
 					break
 				}
 			}
 		}
 
-		// priority fee cannot be negative
-		if maxPriorityPrice.IsNegative() {
-			return nil, 0, errorsmod.Wrapf(errortypes.ErrInsufficientFee, "max priority price cannot be negative")
-		}
-
+		var effectiveFee sdk.Coins
 		gas := feeTx.GetGas()
-		feeCoins := feeTx.GetFee()
-		fee := feeCoins.AmountOfNoDenomValidation(denom)
+		if gasTipCap != nil { // has Dynamic Fee Tx ext
+			// priority fee cannot be negative
+			if gasTipCap.IsNegative() {
+				return nil, 0, errorsmod.Wrapf(errortypes.ErrInsufficientFee, "max priority price cannot be negative")
+			}
 
-		feeCap := fee.Quo(sdkmath.NewIntFromUint64(gas))
+			gasFeeCap := fee.Amount.Quo(sdkmath.NewIntFromUint64(gas))
 
-		if feeCap.LT(baseFee) {
-			return nil, 0, errorsmod.Wrapf(errortypes.ErrInsufficientFee, "gas prices too low, got: %s%s required: %s%s. Please retry using a higher gas price or a higher fee", feeCap, denom, baseFee, denom)
-		}
+			// Compute follow formula of Ethereum EIP-1559
+			effectiveGasPrice := cmath.BigMin(new(big.Int).Add(gasTipCap.BigInt(), baseFee.BigInt()), gasFeeCap.BigInt())
 
-		gasPrice := feeCap
-
-		// NOTE: create a new coins slice without having to validate the denom
-		effectiveFee := sdk.Coins{
-			sdk.NewCoin(denom, gasPrice.Mul(sdkmath.NewIntFromUint64(gas))),
+			// Dynamic Fee effective fee = effective gas price * gas
+			effectiveFee = sdk.Coins{
+				sdk.NewCoin(denom, sdkmath.NewIntFromBigInt(effectiveGasPrice).Mul(sdkmath.NewIntFromUint64(gas))),
+			}
+		} else {
+			// normal logic
+			effectiveFee = fees
 		}
 
 		if ctx.IsCheckTx() {
@@ -82,7 +93,10 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 			}
 		}
 
-		priority := getTxPriority(effectiveFee, int64(gas))
+		priority, err := getTxPriority(effectiveFee, int64(gas), baseFee)
+		if err != nil {
+			return nil, 0, err
+		}
 		return effectiveFee, priority, nil
 	}
 }
@@ -113,18 +127,25 @@ func checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.FeeTx) (sdk.Coi
 		}
 	}
 
-	priority := getTxPriority(feeCoins, gas)
+	priority, err := getTxPriority(feeCoins, gas, sdkmath.ZeroInt())
+	if err != nil {
+		return nil, 0, err
+	}
 	return feeCoins, priority, nil
 }
 
 // getTxPriority returns a naive tx priority based on the amount of the smallest denomination of the gas price
 // provided in a transaction.
-func getTxPriority(fees sdk.Coins, gas int64) int64 {
+func getTxPriority(fees sdk.Coins, gas int64, baseFee sdkmath.Int) (int64, error) {
 	var priority int64
 
 	for _, fee := range fees {
 		p := int64(math.MaxInt64)
 		gasPrice := fee.Amount.QuoRaw(gas)
+		if gasPrice.LT(baseFee) {
+			return 0, errorsmod.Wrapf(errortypes.ErrInsufficientFee, "gas prices too low, got: %s required: %s. Please retry using a higher gas price or a higher fee", gasPrice, baseFee)
+		}
+
 		if gasPrice.IsInt64() {
 			p = gasPrice.Int64()
 		}
@@ -133,5 +154,5 @@ func getTxPriority(fees sdk.Coins, gas int64) int64 {
 		}
 	}
 
-	return priority
+	return priority, nil
 }
