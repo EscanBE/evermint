@@ -26,9 +26,9 @@ message MsgEthereumTx {
   option (cosmos.msg.v1.signer) = "from";
   option (gogoproto.goproto_getters) = false;
 
-  // data is inner transaction data of the Ethereum transaction
-  google.protobuf.Any data = 1;
-
+  // DEPRECATED: data is inner transaction data of the Ethereum transaction
+  reserved 1;
+  reserved "data";
   // DEPRECATED: size is the encoded storage size of the transaction (DEPRECATED)
   reserved 2;
   reserved "size";
