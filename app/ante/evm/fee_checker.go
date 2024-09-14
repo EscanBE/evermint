@@ -2,15 +2,18 @@ package evm
 
 import (
 	"math"
+	"math/big"
+
+	cmath "github.com/ethereum/go-ethereum/common/math"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-
-	anteutils "github.com/EscanBE/evermint/v12/app/ante/utils"
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
+
+	anteutils "github.com/EscanBE/evermint/v12/app/ante/utils"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 )
 
 // NewDynamicFeeChecker returns a `TxFeeChecker` that applies a dynamic fee to
@@ -38,20 +41,20 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 		}
 
 		// default to `MaxInt64` when there's no extension option.
-		maxPriorityPrice := sdkmath.NewInt(math.MaxInt64)
+		gasTipCap := sdkmath.NewInt(math.MaxInt64)
 
 		// get the priority tip cap from the extension option.
 		if hasExtOptsTx, ok := feeTx.(authante.HasExtensionOptionsTx); ok {
 			for _, opt := range hasExtOptsTx.GetExtensionOptions() {
 				if extOpt, ok := opt.GetCachedValue().(*evertypes.ExtensionOptionDynamicFeeTx); ok {
-					maxPriorityPrice = extOpt.MaxPriorityPrice
+					gasTipCap = extOpt.MaxPriorityPrice
 					break
 				}
 			}
 		}
 
 		// priority fee cannot be negative
-		if maxPriorityPrice.IsNegative() {
+		if gasTipCap.IsNegative() {
 			return nil, 0, errorsmod.Wrapf(errortypes.ErrInsufficientFee, "max priority price cannot be negative")
 		}
 
@@ -65,11 +68,12 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 			return nil, 0, errorsmod.Wrapf(errortypes.ErrInsufficientFee, "gas prices too low, got: %s%s required: %s%s. Please retry using a higher gas price or a higher fee", feeCap, denom, baseFee, denom)
 		}
 
-		gasPrice := feeCap
+		// Compute follow formula of Ethereum EIP-1559
+		effectiveGasPrice := cmath.BigMin(new(big.Int).Add(gasTipCap.BigInt(), baseFee.BigInt()), feeCap.BigInt())
 
 		// NOTE: create a new coins slice without having to validate the denom
 		effectiveFee := sdk.Coins{
-			sdk.NewCoin(denom, gasPrice.Mul(sdkmath.NewIntFromUint64(gas))),
+			sdk.NewCoin(denom, sdkmath.NewIntFromBigInt(effectiveGasPrice).Mul(sdkmath.NewIntFromUint64(gas))),
 		}
 
 		if ctx.IsCheckTx() {

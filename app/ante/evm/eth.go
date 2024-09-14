@@ -206,7 +206,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 			),
 		)
 
-		priority := evmutils.EthTxPriority(ethTx)
+		priority := evmutils.EthTxPriority(ethTx, baseFee)
 
 		if priority < minPriority {
 			minPriority = priority
