@@ -1,6 +1,7 @@
 package evm
 
 import (
+	"fmt"
 	"math"
 	"math/big"
 
@@ -31,6 +32,20 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 			return checkTxFeeWithValidatorMinGasPrices(ctx, feeTx)
 		}
 
+		fee := feeTx.GetFee()
+		if len(fee) != 1 {
+			return nil, 0, fmt.Errorf("only one fee coin is allowed, got: %d", len(fee))
+		}
+
+		params := k.GetParams(ctx)
+		denom := params.EvmDenom
+
+		feeAmount := fee.AmountOfNoDenomValidation(denom)
+
+		if feeAmount.IsNil() || !feeAmount.IsPositive() {
+			return nil, 0, fmt.Errorf("only '%s' is allowed as fee, got: %s", denom, fee[0].Denom)
+		}
+
 		var gasTipCap *sdkmath.Int
 		if hasExtOptsTx, ok := feeTx.(authante.HasExtensionOptionsTx); ok {
 			for _, opt := range hasExtOptsTx.GetExtensionOptions() {
@@ -55,11 +70,7 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 				return checkTxFeeWithValidatorMinGasPrices(ctx, feeTx)
 			}
 
-			params := k.GetParams(ctx)
-			denom := params.EvmDenom
-
-			fee := feeTx.GetFee().AmountOfNoDenomValidation(denom)
-			gasFeeCap := fee.Quo(sdkmath.NewIntFromUint64(gas))
+			gasFeeCap := feeAmount.Quo(sdkmath.NewIntFromUint64(gas))
 			if gasFeeCap.LT(baseFee) {
 				return nil, 0, errorsmod.Wrapf(errortypes.ErrInsufficientFee, "gas prices too low, got: %s%s required: %s%s. Please retry using a higher gas price or a higher fee", gasFeeCap, denom, baseFee, denom)
 			}
@@ -73,7 +84,9 @@ func NewDynamicFeeChecker(k DynamicFeeEVMKeeper) anteutils.TxFeeChecker {
 			}
 		} else {
 			// normal logic
-			effectiveFee = feeTx.GetFee()
+			effectiveFee = sdk.Coins{
+				sdk.NewCoin(denom, feeAmount),
+			}
 		}
 
 		if ctx.IsCheckTx() {
