@@ -3,15 +3,12 @@ package types
 import (
 	"bytes"
 	"fmt"
-	"math/big"
-
 	"github.com/cosmos/gogoproto/proto"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
@@ -74,13 +71,6 @@ func BinSearch(lo, hi uint64, executable func(uint64) (bool, *MsgEthereumTxRespo
 		}
 	}
 	return hi, nil
-}
-
-// EffectiveGasPrice compute the effective gas price based on eip-1159 rules
-// `effectiveGasPrice = min(baseFee + tipCap, feeCap)`
-// TODO ES: remove or move to utils?
-func EffectiveGasPrice(baseFee, feeCap, tipCap *big.Int) *big.Int {
-	return math.BigMin(new(big.Int).Add(tipCap, baseFee), feeCap)
 }
 
 // IsEmptyCodeHash returns true if the given code hash is the empty code hash
