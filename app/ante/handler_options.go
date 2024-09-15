@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	sdkauthante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
@@ -38,8 +38,8 @@ type HandlerOptions struct {
 	FeeMarketKeeper        evmante.FeeMarketKeeper
 	EvmKeeper              evmante.EVMKeeper
 	VAuthKeeper            cosmosante.VAuthKeeper
-	FeegrantKeeper         ante.FeegrantKeeper
-	ExtensionOptionChecker ante.ExtensionOptionChecker
+	FeegrantKeeper         sdkauthante.FeegrantKeeper
+	ExtensionOptionChecker sdkauthante.ExtensionOptionChecker
 	SignModeHandler        *txsigning.HandlerMap
 	SigGasConsumer         func(meter storetypes.GasMeter, sig signing.SignatureV2, params authtypes.Params) error
 	TxFeeChecker           anteutils.TxFeeChecker
@@ -101,7 +101,7 @@ func (options HandlerOptions) Validate() error {
 	return nil
 }
 
-// newEVMAnteHandler creates the default ante handler for Ethereum transactions
+// newEVMAnteHandler creates the default AnteHandler for Ethereum transactions
 func newEVMAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		// outermost AnteDecorator. SetUpContext must be called first
@@ -124,28 +124,28 @@ func newEVMAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	)
 }
 
-// newCosmosAnteHandler creates the default ante handler for Cosmos transactions
+// newCosmosAnteHandler creates the default AnteHandler for Cosmos transactions
 func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		cosmosante.RejectMessagesDecorator{}, // reject MsgEthereumTxs
 		cosmosante.NewAuthzLimiterDecorator( // disable the Msg types that cannot be included on an authz.MsgExec msgs field
 			options.DisabledAuthzMsgs,
 		),
-		ante.NewSetUpContextDecorator(),
-		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
-		ante.NewValidateBasicDecorator(),
+		sdkauthante.NewSetUpContextDecorator(),
+		sdkauthante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
+		sdkauthante.NewValidateBasicDecorator(),
 		cosmosante.NewVestingMessagesAuthorizationDecorator(options.VAuthKeeper),
-		ante.NewTxTimeoutHeightDecorator(),
-		ante.NewValidateMemoDecorator(options.AccountKeeper),
+		sdkauthante.NewTxTimeoutHeightDecorator(),
+		sdkauthante.NewValidateMemoDecorator(options.AccountKeeper),
 		cosmosante.NewMinGasPriceDecorator(options.FeeMarketKeeper, options.EvmKeeper),
-		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
+		sdkauthante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
 		cosmosante.NewDeductFeeDecorator(*options.AccountKeeper, options.BankKeeper, *options.DistributionKeeper, options.FeegrantKeeper, *options.StakingKeeper, options.TxFeeChecker),
 		// SetPubKeyDecorator must be called before all signature verification decorators
-		ante.NewSetPubKeyDecorator(options.AccountKeeper),
-		ante.NewValidateSigCountDecorator(options.AccountKeeper),
-		ante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
-		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
-		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
+		sdkauthante.NewSetPubKeyDecorator(options.AccountKeeper),
+		sdkauthante.NewValidateSigCountDecorator(options.AccountKeeper),
+		sdkauthante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
+		sdkauthante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
+		sdkauthante.NewIncrementSequenceDecorator(options.AccountKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 	)
 }

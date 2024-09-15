@@ -63,7 +63,6 @@ func (avd ExternalOwnedAccountVerificationDecorator) AnteHandle(
 	{
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
-		// sender address should be in the tx cache from the previous AnteHandle call
 		from := msgEthTx.GetFrom()
 		if from.Empty() {
 			return ctx, errorsmod.Wrap(errortypes.ErrInvalidAddress, "from address cannot be empty")
@@ -80,7 +79,7 @@ func (avd ExternalOwnedAccountVerificationDecorator) AnteHandle(
 		} else if acct.IsContract() {
 			return ctx, errorsmod.Wrapf(
 				errortypes.ErrInvalidType,
-				"the sender is not EOA: address %s, codeHash <%s>", fromAddr, acct.CodeHash,
+				"the sender is not EOA: address %s, codeHash <%s>", fromAddr, common.BytesToHash(acct.CodeHash),
 			)
 		}
 
@@ -222,9 +221,6 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	// Set tx GasMeter with a limit of GasWanted (i.e. gas limit from the Ethereum tx).
 	// The gas consumed will be then reset to the gas used by the state transition
 	// in the EVM.
-
-	// FIXME: use a custom gas configuration that doesn't add any additional gas and only
-	// takes into account the gas consumed at the end of the EVM transaction.
 	newCtx := ctx.
 		WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(gasWanted)).
 		WithPriority(minPriority)

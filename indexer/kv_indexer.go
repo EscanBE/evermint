@@ -2,9 +2,8 @@ package indexer
 
 import (
 	"fmt"
+	dlanteutils "github.com/EscanBE/evermint/v12/app/antedl/utils"
 	"sync"
-
-	"github.com/EscanBE/evermint/v12/constants"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
@@ -15,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/ethereum/go-ethereum/common"
 
 	evertypes "github.com/EscanBE/evermint/v12/types"
@@ -268,15 +266,7 @@ func LoadFirstBlock(db sdkdb.DB) (int64, error) {
 
 // isEthTx check if the tx is an eth tx
 func isEthTx(tx sdk.Tx) bool {
-	extTx, ok := tx.(authante.HasExtensionOptionsTx)
-	if !ok {
-		return false
-	}
-	opts := extTx.GetExtensionOptions()
-	if len(opts) != 1 || opts[0].GetTypeUrl() != constants.EthermintExtensionOptionsEthereumTx {
-		return false
-	}
-	return true
+	return dlanteutils.IsEthereumTx(tx)
 }
 
 // saveTxResult index the txResult into the kv db batch

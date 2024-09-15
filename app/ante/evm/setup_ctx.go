@@ -186,13 +186,8 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 
 		err := msgEthTx.ValidateBasic()
-		// ErrNoSignatures is fine with eth tx
 		if err != nil {
 			return ctx, errorsmod.Wrap(err, "msg basic validation failed")
-		}
-
-		if _, err := sdk.AccAddressFromBech32(msgEthTx.From); err != nil {
-			return ctx, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "invalid From %s, expect bech32 address", msgEthTx.From)
 		}
 
 		ethTx := msgEthTx.AsTransaction()

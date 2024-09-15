@@ -59,9 +59,12 @@ func (k *Keeper) DeductTxCostsFromUserBalance(
 	return nil
 }
 
-// VerifyFee is used to return the fee for the given transaction data in sdk.Coins. It checks that the
-// gas limit is not reached, the gas limit is higher than the intrinsic gas and that the
-// base fee is higher than the gas fee cap.
+// VerifyFee is used to return the fee for the given transaction data in sdk.Coins.
+// It checks:
+//   - Gas limit vs intrinsic gas
+//   - Base fee vs gas fee cap
+//
+// TODO ES: remove?
 func VerifyFee(
 	ethTx *ethtypes.Transaction,
 	denom string,
@@ -77,22 +80,24 @@ func VerifyFee(
 		accessList = ethTx.AccessList()
 	}
 
-	const homestead = true
-	const istanbul = true
-	intrinsicGas, err := core.IntrinsicGas(ethTx.Data(), accessList, isContractCreation, homestead, istanbul)
-	if err != nil {
-		return nil, errorsmod.Wrapf(
-			err,
-			"failed to retrieve intrinsic gas, contract creation = %t", isContractCreation,
-		)
-	}
-
 	// intrinsic gas verification during CheckTx
-	if isCheckTx && gasLimit < intrinsicGas {
-		return nil, errorsmod.Wrapf(
-			errortypes.ErrOutOfGas,
-			"gas limit too low: %d (gas limit) < %d (intrinsic gas)", gasLimit, intrinsicGas,
-		)
+	if isCheckTx {
+		const homestead = true
+		const istanbul = true
+		intrinsicGas, err := core.IntrinsicGas(ethTx.Data(), accessList, isContractCreation, homestead, istanbul)
+		if err != nil {
+			return nil, errorsmod.Wrapf(
+				err,
+				"failed to retrieve intrinsic gas, contract creation = %t", isContractCreation,
+			)
+		}
+
+		if gasLimit < intrinsicGas {
+			return nil, errorsmod.Wrapf(
+				errortypes.ErrOutOfGas,
+				"gas limit too low: %d (gas limit) < %d (intrinsic gas)", gasLimit, intrinsicGas,
+			)
+		}
 	}
 
 	if ethTx.GasFeeCap().Cmp(baseFee.BigInt()) < 0 {
