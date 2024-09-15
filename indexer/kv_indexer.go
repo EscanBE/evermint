@@ -2,20 +2,22 @@ package indexer
 
 import (
 	"fmt"
-	dlanteutils "github.com/EscanBE/evermint/v12/app/antedl/utils"
 	"sync"
+
+	"github.com/ethereum/go-ethereum/common"
+
+	abci "github.com/cometbft/cometbft/abci/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	abci "github.com/cometbft/cometbft/abci/types"
-	cmttypes "github.com/cometbft/cometbft/types"
 	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/common"
 
+	dlanteutils "github.com/EscanBE/evermint/v12/app/antedl/utils"
+	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )

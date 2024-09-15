@@ -50,6 +50,8 @@ import (
 
 	"github.com/EscanBE/evermint/v12/app/ante"
 	ethante "github.com/EscanBE/evermint/v12/app/ante/evm"
+	"github.com/EscanBE/evermint/v12/app/antedl"
+	"github.com/EscanBE/evermint/v12/app/antedl/duallane"
 	"github.com/EscanBE/evermint/v12/app/keepers"
 	"github.com/EscanBE/evermint/v12/app/params"
 	"github.com/EscanBE/evermint/v12/app/upgrades"
@@ -232,7 +234,8 @@ func NewEvermint(
 	chainApp.MountTransientStores(chainApp.GetTransientStoreKey())
 	chainApp.MountMemoryStores(chainApp.GetMemoryStoreKey())
 
-	chainApp.setAnteHandler(txConfig)
+	// chainApp.setAnteHandler(txConfig)
+	chainApp.setDualLaneAnteHandler(txConfig)
 	chainApp.setPostHandler()
 
 	chainApp.SetInitChainer(chainApp.InitChainer)
@@ -399,6 +402,31 @@ func (app *Evermint) setAnteHandler(txConfig client.TxConfig) {
 	}
 
 	app.SetAnteHandler(ante.NewAnteHandler(options))
+}
+
+func (app *Evermint) setDualLaneAnteHandler(txConfig client.TxConfig) {
+	options := antedl.HandlerOptions{
+		Cdc:                    app.appCodec,
+		AccountKeeper:          &app.AccountKeeper,
+		BankKeeper:             app.BankKeeper,
+		ExtensionOptionChecker: evertypes.HasDynamicFeeExtensionOption,
+		EvmKeeper:              app.EvmKeeper,
+		VAuthKeeper:            &app.VAuthKeeper,
+		StakingKeeper:          app.StakingKeeper,
+		FeegrantKeeper:         &app.FeeGrantKeeper,
+		DistributionKeeper:     &app.DistrKeeper,
+		IBCKeeper:              app.IBCKeeper,
+		FeeMarketKeeper:        &app.FeeMarketKeeper,
+		SignModeHandler:        txConfig.SignModeHandler(),
+		SigGasConsumer:         ante.SigVerificationGasConsumer,
+		TxFeeChecker:           duallane.DualLaneFeeChecker(app.EvmKeeper, app.FeeMarketKeeper),
+	}.WithDefaultDisabledNestedMsgs()
+
+	if err := options.Validate(); err != nil {
+		panic(err)
+	}
+
+	app.SetAnteHandler(antedl.NewAnteHandler(options))
 }
 
 func (app *Evermint) setPostHandler() {
