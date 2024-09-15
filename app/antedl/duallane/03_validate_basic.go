@@ -66,8 +66,6 @@ func (vbd DLValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 	}
 
 	protoTx := wrapperTx.GetProtoTx()
-	// TODO ES: validate memo must empty
-	// TODO ES: validate timeout height must zero
 
 	authInfo := protoTx.AuthInfo
 	if len(authInfo.SignerInfos) > 0 {
@@ -100,7 +98,6 @@ func (vbd DLValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 		return ctx, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "cannot cast to Ethereum core message")
 	}
 
-	// return error if contract creation or call are disabled through governance
 	if !enableCreate && ethTx.To() == nil {
 		return ctx, errorsmod.Wrap(evmtypes.ErrCreateDisabled, "failed to create new contract")
 	} else if !enableCall && ethTx.To() != nil {

@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 
 	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -121,11 +122,15 @@ func (suite *ChainIntegrationTestSuite) PrepareCosmosTx(
 
 	txBuilder.SetFeeGranter(args.FeeGranter)
 
-	return suite.signCosmosTx(
+	err := suite.signCosmosTx(
 		ctx,
 		account,
 		txBuilder,
 	)
+	if err != nil {
+		return nil, err
+	}
+	return txBuilder.GetTx(), nil
 }
 
 // signCosmosTx signs the cosmos transaction on the txBuilder provided using
@@ -134,19 +139,19 @@ func (suite *ChainIntegrationTestSuite) signCosmosTx(
 	ctx sdk.Context,
 	account *itutiltypes.TestAccount,
 	txBuilder client.TxBuilder,
-) (authsigning.Tx, error) {
+) error {
 	suite.Require().NotNil(account)
 
 	txCfg := suite.EncodingConfig.TxConfig
 
 	signMode, err := authsigning.APISignModeToInternal(txCfg.SignModeHandler().DefaultMode())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	seq, err := suite.ChainApp.AccountKeeper().GetSequence(ctx, account.GetCosmosAddress())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// First round: we gather all the signer infos. We use the "set empty
@@ -163,7 +168,7 @@ func (suite *ChainIntegrationTestSuite) signCosmosTx(
 	sigsV2 := []signing.SignatureV2{sigV2}
 
 	if err := txBuilder.SetSignatures(sigsV2...); err != nil {
-		return nil, err
+		return err
 	}
 
 	// Second round: all signer infos are set, so each signer can sign.
@@ -181,14 +186,11 @@ func (suite *ChainIntegrationTestSuite) signCosmosTx(
 		seq,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	sigsV2 = []signing.SignatureV2{sigV2}
-	if err = txBuilder.SetSignatures(sigsV2...); err != nil {
-		return nil, err
-	}
-	return txBuilder.GetTx(), nil
+	return txBuilder.SetSignatures(sigsV2...)
 }
 
 // QueryTxResponse returns the TxResponse for the given tx
@@ -204,4 +206,87 @@ func (suite *ChainIntegrationTestSuite) QueryTxResponse(tx authsigning.Tx) *sdkt
 	suite.Require().NoError(err)
 	suite.Require().NotNil(txResponse)
 	return txResponse
+}
+
+// TxBuilder returns a custom tx builder
+func (suite *ChainIntegrationTestSuite) TxBuilder() *itutiltypes.TxBuilder {
+	return itutiltypes.NewTxBuilder(suite.EncodingConfig, suite.Require)
+}
+
+// SignCosmosTx inserts signature, gas, fee to the tx builder
+func (suite *ChainIntegrationTestSuite) SignCosmosTx(
+	ctx sdk.Context,
+	account *itutiltypes.TestAccount,
+	txBuilder *itutiltypes.TxBuilder,
+) (client.TxBuilder, error) {
+	tb := txBuilder.ClientTxBuilder()
+	err := suite.signCosmosTx(ctx, account, tb)
+	return tb, err
+}
+
+// SignEthereumMsg inserts signature, gas, fee to the tx builder
+func (suite *ChainIntegrationTestSuite) SignEthereumMsg(
+	_ sdk.Context,
+	account *itutiltypes.TestAccount,
+	ethMsg *evmtypes.MsgEthereumTx,
+	txBuilder *itutiltypes.TxBuilder,
+) (client.TxBuilder, error) {
+	if err := suite.PureSignEthereumMsg(account, ethMsg); err != nil {
+		return nil, err
+	}
+
+	ethTx := ethMsg.AsTransaction()
+	txFee := sdk.NewCoins(sdk.NewCoin(
+		suite.ChainConstantsConfig.GetMinDenom(),
+		sdkmath.NewIntFromBigInt(evmutils.EthTxFee(ethTx)),
+	))
+
+	tb := txBuilder.ClientTxBuilder()
+	if err := tb.SetMsgs(ethMsg); err != nil {
+		return nil, err
+	}
+
+	tb.SetGasLimit(ethTx.Gas())
+	tb.SetFeeAmount(txFee)
+	return tb, nil
+}
+
+func (suite *ChainIntegrationTestSuite) PureSignEthereumMsg(
+	account *itutiltypes.TestAccount,
+	ethMsg *evmtypes.MsgEthereumTx,
+) error {
+	return ethMsg.Sign(suite.EthSigner, itutiltypes.NewSigner(account.PrivateKey))
+}
+
+// SignEthereumTx inserts signature, gas, fee to the tx builder
+func (suite *ChainIntegrationTestSuite) SignEthereumTx(
+	ctx sdk.Context,
+	account *itutiltypes.TestAccount,
+	txData ethtypes.TxData,
+	txBuilder *itutiltypes.TxBuilder,
+) (client.TxBuilder, error) {
+	ethMsg, err := suite.PureSignEthereumTx(account, txData)
+	if err != nil {
+		return nil, err
+	}
+
+	return suite.SignEthereumMsg(ctx, account, ethMsg, txBuilder)
+}
+
+func (suite *ChainIntegrationTestSuite) PureSignEthereumTx(
+	account *itutiltypes.TestAccount,
+	txData ethtypes.TxData,
+) (*evmtypes.MsgEthereumTx, error) {
+	ethTx := ethtypes.NewTx(txData)
+	ethMsg := &evmtypes.MsgEthereumTx{}
+
+	if err := ethMsg.FromEthereumTx(ethTx, account.GetEthAddress()); err != nil {
+		return nil, err
+	}
+
+	if err := suite.PureSignEthereumMsg(account, ethMsg); err != nil {
+		return nil, err
+	}
+
+	return ethMsg, nil
 }

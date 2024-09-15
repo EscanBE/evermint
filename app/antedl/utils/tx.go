@@ -36,6 +36,10 @@ func IsEthereumTx(tx sdk.Tx) bool {
 		return true // allow no extension
 	}
 
+	if nonCriticalOps := extTx.GetNonCriticalExtensionOptions(); len(nonCriticalOps) != 0 {
+		return false
+	}
+
 	opts := extTx.GetExtensionOptions()
 	if len(opts) == 0 {
 		return true

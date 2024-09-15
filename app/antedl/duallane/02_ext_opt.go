@@ -1,7 +1,6 @@
 package duallane
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -30,16 +29,6 @@ func (eod DLExtensionOptionsDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, si
 
 	if !dlanteutils.IsEthereumTx(tx) {
 		return ctx, sdkerrors.ErrUnknownExtensionOptions
-	}
-
-	wrapperTx, ok := tx.(protoTxProvider)
-	if !ok {
-		return ctx, errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "invalid tx type %T, didn't implement interface protoTxProvider", tx)
-	}
-
-	protoTx := wrapperTx.GetProtoTx()
-	if len(protoTx.Body.NonCriticalExtensionOptions) > 0 {
-		return ctx, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "NonCriticalExtensionOptions is now allowed")
 	}
 
 	return next(ctx, tx, simulate)

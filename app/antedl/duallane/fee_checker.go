@@ -20,6 +20,8 @@ import (
 	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 )
 
+// TODO ES: adjust priority = gas fee cap instead of effective gas price
+
 // DualLaneFeeChecker returns CosmosTxDynamicFeeChecker or EthereumTxDynamicFeeChecker based on the transaction content.
 func DualLaneFeeChecker(ek EvmKeeperForFeeChecker, fk FeeMarketKeeperForFeeChecker) authante.TxFeeChecker {
 	return func(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {

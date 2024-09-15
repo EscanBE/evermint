@@ -36,8 +36,8 @@ func NewEvmLaneExecWithoutErrorDecorator(ak authkeeper.AccountKeeper, ek evmkeep
 
 // AnteHandle emits some basic events for the eth messages
 func (ed ELExecWithoutErrorDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
-	if ctx.IsCheckTx() {
-		// allow, re-check-tx is included
+	if ctx.IsCheckTx() || ctx.IsReCheckTx() {
+		// allow
 	} else if simulate {
 		// allow
 	} else {
@@ -58,40 +58,38 @@ func (ed ELExecWithoutErrorDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, sim
 		panic(err) // should be checked by basic validation
 	}
 
-	{
-		// create a branched context for simulation
-		simulationCtx, _ := ctx.CacheContext()
+	// create a branched context for simulation
+	simulationCtx, _ := ctx.CacheContext()
 
-		{ // rollback the nonce which was increased by previous ante handle
-			acc := ed.ak.GetAccount(simulationCtx, ethMsg.GetFrom())
-			err := acc.SetSequence(acc.GetSequence() - 1)
-			if err != nil {
-				panic(err)
-			}
-			ed.ak.SetAccount(simulationCtx, acc)
-			ed.ek.SetFlagSenderNonceIncreasedByAnteHandle(simulationCtx, false)
-		}
-
-		var evm *vm.EVM
-		{ // initialize EVM
-			txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(simulationCtx.HeaderHash()))
-			txConfig = txConfig.WithTxTypeFromMessage(ethCoreMsg)
-			stateDB := statedb.New(simulationCtx, &ed.ek, txConfig)
-			evmParams := ed.ek.GetParams(simulationCtx)
-			evmCfg := &statedb.EVMConfig{
-				Params:      evmParams,
-				ChainConfig: evmParams.ChainConfig.EthereumConfig(ed.ek.ChainID()),
-				CoinBase:    common.Address{},
-				BaseFee:     baseFee.BigInt(),
-				NoBaseFee:   false,
-			}
-			evm = ed.ek.NewEVM(simulationCtx, ethCoreMsg, evmCfg, evmtypes.NewNoOpTracer(), stateDB)
-		}
-		gasPool := core.GasPool(ethCoreMsg.Gas())
-		_, err := evmkeeper.ApplyMessage(evm, ethCoreMsg, &gasPool)
+	{ // rollback the nonce which was increased by previous ante handle
+		acc := ed.ak.GetAccount(simulationCtx, ethMsg.GetFrom())
+		err := acc.SetSequence(acc.GetSequence() - 1)
 		if err != nil {
-			return ctx, errorsmod.Wrap(errors.Join(sdkerrors.ErrLogic, err), "tx simulation execution failed")
+			panic(err)
 		}
+		ed.ak.SetAccount(simulationCtx, acc)
+		ed.ek.SetFlagSenderNonceIncreasedByAnteHandle(simulationCtx, false)
+	}
+
+	var evm *vm.EVM
+	{ // initialize EVM
+		txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(simulationCtx.HeaderHash()))
+		txConfig = txConfig.WithTxTypeFromMessage(ethCoreMsg)
+		stateDB := statedb.New(simulationCtx, &ed.ek, txConfig)
+		evmParams := ed.ek.GetParams(simulationCtx)
+		evmCfg := &statedb.EVMConfig{
+			Params:      evmParams,
+			ChainConfig: evmParams.ChainConfig.EthereumConfig(ed.ek.ChainID()),
+			CoinBase:    common.Address{},
+			BaseFee:     baseFee.BigInt(),
+			NoBaseFee:   false,
+		}
+		evm = ed.ek.NewEVM(simulationCtx, ethCoreMsg, evmCfg, evmtypes.NewNoOpTracer(), stateDB)
+	}
+	gasPool := core.GasPool(ethCoreMsg.Gas())
+	_, err = evmkeeper.ApplyMessage(evm, ethCoreMsg, &gasPool)
+	if err != nil {
+		return ctx, errorsmod.Wrap(errors.Join(sdkerrors.ErrLogic, err), "tx simulation execution failed")
 	}
 
 	return next(ctx, tx, simulate)
