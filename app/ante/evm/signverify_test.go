@@ -84,7 +84,7 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 			expPass:   false,
 		},
 		{
-			name:      "reject - allow unprotected txs",
+			name:      "fail - reject unprotected txs",
 			tx:        unprotectedTx,
 			reCheckTx: false,
 			expPass:   false,

@@ -42,15 +42,15 @@ func (esvd EthSigVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, s
 		if !ethTx.Protected() {
 			return ctx, errorsmod.Wrapf(
 				errortypes.ErrNotSupported,
-				"rejected unprotected Ethereum transaction. Please EIP155 sign your transaction to protect it against replay-attacks")
+				"rejected unprotected Ethereum transaction. Please EIP155 sign your transaction to protect it against replay-attacks",
+			)
 		}
 
 		sender, err := signer.Sender(ethTx)
 		if err != nil {
 			return ctx, errorsmod.Wrapf(
 				errortypes.ErrorInvalidSigner,
-				"couldn't retrieve sender address from the ethereum transaction: %s",
-				err.Error(),
+				"couldn't retrieve sender address from the ethereum transaction: %s", err.Error(),
 			)
 		}
 
