@@ -42,7 +42,6 @@ type HandlerOptions struct {
 	ExtensionOptionChecker ante.ExtensionOptionChecker
 	SignModeHandler        *txsigning.HandlerMap
 	SigGasConsumer         func(meter storetypes.GasMeter, sig signing.SignatureV2, params authtypes.Params) error
-	MaxTxGasWanted         uint64
 	TxFeeChecker           anteutils.TxFeeChecker
 	DisabledAuthzMsgs      map[string]bool
 }
@@ -117,7 +116,7 @@ func newEVMAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		evmante.NewEthSigVerificationDecorator(options.EvmKeeper),
 		evmante.NewExternalOwnedAccountVerificationDecorator(options.AccountKeeper, options.BankKeeper, options.EvmKeeper),
 		evmante.NewCanTransferDecorator(options.EvmKeeper),
-		evmante.NewEthGasConsumeDecorator(options.BankKeeper, *options.DistributionKeeper, options.EvmKeeper, *options.StakingKeeper, options.MaxTxGasWanted),
+		evmante.NewEthGasConsumeDecorator(options.BankKeeper, *options.DistributionKeeper, options.EvmKeeper, *options.StakingKeeper),
 		evmante.NewEthIncrementSenderSequenceDecorator(options.AccountKeeper, options.EvmKeeper),
 		evmante.NewEthSetupExecutionDecorator(options.EvmKeeper),
 		// emit eth tx hash and index at the very last ante handler.

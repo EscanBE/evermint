@@ -56,7 +56,6 @@ import (
 	"github.com/EscanBE/evermint/v12/client/docs"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
-	srvflags "github.com/EscanBE/evermint/v12/server/flags"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/utils"
 
@@ -233,10 +232,7 @@ func NewEvermint(
 	chainApp.MountTransientStores(chainApp.GetTransientStoreKey())
 	chainApp.MountMemoryStores(chainApp.GetMemoryStoreKey())
 
-	// initialize BaseApp
-	maxGasWanted := cast.ToUint64(appOpts.Get(srvflags.EVMMaxTxGasWanted))
-
-	chainApp.setAnteHandler(txConfig, maxGasWanted)
+	chainApp.setAnteHandler(txConfig)
 	chainApp.setPostHandler()
 
 	chainApp.SetInitChainer(chainApp.InitChainer)
@@ -380,7 +376,7 @@ func (app *Evermint) RegisterTendermintService(clientCtx client.Context) {
 	)
 }
 
-func (app *Evermint) setAnteHandler(txConfig client.TxConfig, maxGasWanted uint64) {
+func (app *Evermint) setAnteHandler(txConfig client.TxConfig) {
 	options := ante.HandlerOptions{
 		Cdc:                    app.appCodec,
 		AccountKeeper:          &app.AccountKeeper,
@@ -395,7 +391,6 @@ func (app *Evermint) setAnteHandler(txConfig client.TxConfig, maxGasWanted uint6
 		FeeMarketKeeper:        app.FeeMarketKeeper,
 		SignModeHandler:        txConfig.SignModeHandler(),
 		SigGasConsumer:         ante.SigVerificationGasConsumer,
-		MaxTxGasWanted:         maxGasWanted,
 		TxFeeChecker:           ethante.NewDynamicFeeChecker(app.EvmKeeper),
 	}.WithDefaultDisabledAuthzMsgs()
 

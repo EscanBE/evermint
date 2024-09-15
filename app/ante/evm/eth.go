@@ -115,7 +115,6 @@ type EthGasConsumeDecorator struct {
 	distributionKeeper distrkeeper.Keeper
 	evmKeeper          EVMKeeper
 	stakingKeeper      stakingkeeper.Keeper
-	maxGasWanted       uint64
 }
 
 // NewEthGasConsumeDecorator creates a new EthGasConsumeDecorator
@@ -124,14 +123,12 @@ func NewEthGasConsumeDecorator(
 	distributionKeeper distrkeeper.Keeper,
 	evmKeeper EVMKeeper,
 	stakingKeeper stakingkeeper.Keeper,
-	maxGasWanted uint64,
 ) EthGasConsumeDecorator {
 	return EthGasConsumeDecorator{
-		bankKeeper,
-		distributionKeeper,
-		evmKeeper,
-		stakingKeeper,
-		maxGasWanted,
+		bankKeeper:         bankKeeper,
+		distributionKeeper: distributionKeeper,
+		evmKeeper:          evmKeeper,
+		stakingKeeper:      stakingKeeper,
 	}
 }
 
@@ -178,16 +175,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 		ethTx := msgEthTx.AsTransaction()
 
-		if ctx.IsCheckTx() && egcd.maxGasWanted != 0 {
-			// We can't trust the tx gas limit, because we'll refund the unused gas.
-			if ethTx.Gas() > egcd.maxGasWanted {
-				gasWanted += egcd.maxGasWanted
-			} else {
-				gasWanted += ethTx.Gas()
-			}
-		} else {
-			gasWanted += ethTx.Gas()
-		}
+		gasWanted += ethTx.Gas()
 
 		fees, err := evmkeeper.VerifyFee(ethTx, evmDenom, baseFee, ctx.IsCheckTx())
 		if err != nil {

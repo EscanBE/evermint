@@ -20,7 +20,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	ethante "github.com/EscanBE/evermint/v12/app/ante/evm"
-	"github.com/EscanBE/evermint/v12/server/config"
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evertypes "github.com/EscanBE/evermint/v12/types"
@@ -268,7 +267,7 @@ func (suite *AnteTestSuite) TestEthGasConsumeDecorator() {
 	suite.SetupTest()
 
 	chainID := suite.app.EvmKeeper.ChainID()
-	dec := ethante.NewEthGasConsumeDecorator(suite.app.BankKeeper, suite.app.DistrKeeper, suite.app.EvmKeeper, *suite.app.StakingKeeper, config.DefaultMaxTxGasWanted)
+	dec := ethante.NewEthGasConsumeDecorator(suite.app.BankKeeper, suite.app.DistrKeeper, suite.app.EvmKeeper, *suite.app.StakingKeeper)
 
 	addr := utiltx.GenerateAddress()
 
