@@ -18,9 +18,6 @@ message Params {
   repeated int64 extra_eips = 4 [(gogoproto.customname) = "ExtraEIPs", (gogoproto.moretags) = "yaml:\"extra_eips\""];
   // chain_config defines the EVM chain configuration parameters
   ChainConfig chain_config = 5 [(gogoproto.moretags) = "yaml:\"chain_config\"", (gogoproto.nullable) = false];
-  // allow_unprotected_txs defines if replay-protected (i.e non EIP155
-  // signed) transactions can be executed on the state machine.
-  bool allow_unprotected_txs = 6;
 }
 
 // ChainConfig defines the Ethereum ChainConfig parameters using *sdk.Int values

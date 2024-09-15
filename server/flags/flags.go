@@ -50,7 +50,6 @@ const (
 	JSONRPCBlockRangeCap       = "json-rpc.block-range-cap"
 	JSONRPCHTTPTimeout         = "json-rpc.http-timeout"
 	JSONRPCHTTPIdleTimeout     = "json-rpc.http-idle-timeout"
-	JSONRPCAllowUnprotectedTxs = "json-rpc.allow-unprotected-txs"
 	JSONRPCAllowInsecureUnlock = "json-rpc.allow-insecure-unlock"
 	JSONRPCMaxOpenConnections  = "json-rpc.max-open-connections"
 	// JSONRPCEnableMetrics enables EVM RPC metrics server.
@@ -60,9 +59,9 @@ const (
 )
 
 // Flags follow go-ethereum naming
+
 const (
-	LegacyRpcAllowUnprotectedTxs = "rpc.allow-unprotected-txs"
-	LegacyAllowInsecureUnlock    = "allow-insecure-unlock"
+	LegacyAllowInsecureUnlock = "allow-insecure-unlock"
 )
 
 // EVM flags

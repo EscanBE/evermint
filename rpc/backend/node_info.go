@@ -290,16 +290,6 @@ func (b *Backend) SetGasPrice(gasPrice hexutil.Big) bool {
 	return true
 }
 
-// AllowUnprotectedTxs should be used for testing purpose only.
-func (b *Backend) AllowUnprotectedTxs(allow bool) {
-	if b.cfg.JSONRPC.AllowUnprotectedTxs == allow {
-		return
-	}
-
-	jsonRpc := &b.cfg.JSONRPC
-	jsonRpc.AllowUnprotectedTxs = allow
-}
-
 // AllowInsecureUnlock should be used for testing purpose only.
 func (b *Backend) AllowInsecureUnlock(allow bool) {
 	if b.cfg.JSONRPC.AllowInsecureUnlock == allow {

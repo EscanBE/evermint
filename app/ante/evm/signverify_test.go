@@ -38,28 +38,25 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 	suite.Require().NoError(err)
 
 	testCases := []struct {
-		name                string
-		tx                  sdk.Tx
-		allowUnprotectedTxs bool
-		reCheckTx           bool
-		expPass             bool
-		expPanic            bool
+		name      string
+		tx        sdk.Tx
+		reCheckTx bool
+		expPass   bool
+		expPanic  bool
 	}{
 		{
-			name:                "fail - ReCheckTx",
-			tx:                  &testutiltx.InvalidTx{},
-			allowUnprotectedTxs: false,
-			reCheckTx:           true,
-			expPass:             false,
-			expPanic:            true,
+			name:      "fail - ReCheckTx",
+			tx:        &testutiltx.InvalidTx{},
+			reCheckTx: true,
+			expPass:   false,
+			expPanic:  true,
 		},
 		{
-			name:                "fail - invalid transaction type",
-			tx:                  &testutiltx.InvalidTx{},
-			allowUnprotectedTxs: false,
-			reCheckTx:           false,
-			expPass:             false,
-			expPanic:            true,
+			name:      "fail - invalid transaction type",
+			tx:        &testutiltx.InvalidTx{},
+			reCheckTx: false,
+			expPass:   false,
+			expPanic:  true,
 		},
 		{
 			name: "fail - invalid sender",
@@ -69,31 +66,28 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 				Amount:   big.NewInt(10),
 				GasLimit: 21000,
 				GasPrice: big.NewInt(1),
+				ChainID:  suite.app.EvmKeeper.ChainID(),
 			}),
-			allowUnprotectedTxs: true,
-			reCheckTx:           false,
-			expPass:             false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			name:                "pass - successful signature verification",
-			tx:                  signedTx,
-			allowUnprotectedTxs: false,
-			reCheckTx:           false,
-			expPass:             true,
+			name:      "pass - successful signature verification",
+			tx:        signedTx,
+			reCheckTx: false,
+			expPass:   true,
 		},
 		{
-			name:                "fail - invalid, reject unprotected txs",
-			tx:                  unprotectedTx,
-			allowUnprotectedTxs: false,
-			reCheckTx:           false,
-			expPass:             false,
+			name:      "fail - invalid, reject unprotected txs",
+			tx:        unprotectedTx,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
-			name:                "pass - allow unprotected txs",
-			tx:                  unprotectedTx,
-			allowUnprotectedTxs: true,
-			reCheckTx:           false,
-			expPass:             true,
+			name:      "fail - reject unprotected txs",
+			tx:        unprotectedTx,
+			reCheckTx: false,
+			expPass:   false,
 		},
 		{
 			name: "fail - reject if sender is already set and doesn't match the signature",
@@ -105,17 +99,14 @@ func (suite *AnteTestSuite) TestEthSigVerificationDecorator() {
 
 				return &copied
 			}(),
-			allowUnprotectedTxs: false,
-			reCheckTx:           false,
-			expPass:             false,
+			reCheckTx: false,
+			expPass:   false,
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.evmParamsOption = func(params *evmtypes.Params) {
-				params.AllowUnprotectedTxs = tc.allowUnprotectedTxs
-			}
+			suite.evmParamsOption = func(params *evmtypes.Params) {}
 			suite.SetupTest()
 			dec := ethante.NewEthSigVerificationDecorator(suite.app.EvmKeeper)
 

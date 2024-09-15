@@ -191,8 +191,6 @@ which accepts a path for the resulting pprof file.
 	cmd.Flags().Duration(srvflags.JSONRPCEVMTimeout, servercfg.DefaultEVMTimeout, "Sets a timeout used for eth_call (0=infinite)")
 	cmd.Flags().Duration(srvflags.JSONRPCHTTPTimeout, servercfg.DefaultHTTPTimeout, "Sets a read/write timeout for json-rpc http server (0=infinite)")
 	cmd.Flags().Duration(srvflags.JSONRPCHTTPIdleTimeout, servercfg.DefaultHTTPIdleTimeout, "Sets a idle timeout for json-rpc http server (0=infinite)")
-	cmd.Flags().Bool(srvflags.JSONRPCAllowUnprotectedTxs, servercfg.DefaultAllowUnprotectedTxs, "Allow for unprotected (non EIP155 signed) transactions to be submitted via the node's RPC when the global parameter is disabled") //nolint:lll
-	cmd.Flags().Bool(srvflags.LegacyRpcAllowUnprotectedTxs, servercfg.DefaultAllowUnprotectedTxs, fmt.Sprintf("alias of flag --%s to consistency with go-ethereum naming", srvflags.JSONRPCAllowUnprotectedTxs))                   //nolint:lll
 	cmd.Flags().Bool(srvflags.JSONRPCAllowInsecureUnlock, servercfg.DefaultAllowInsecureUnlock, "Allow insecure account unlocking when account-related RPCs are exposed by http")
 	cmd.Flags().Bool(srvflags.LegacyAllowInsecureUnlock, servercfg.DefaultAllowInsecureUnlock, fmt.Sprintf("alias of flag --%s to consistency with go-ethereum naming", srvflags.JSONRPCAllowInsecureUnlock))
 	cmd.Flags().Int32(srvflags.JSONRPCLogsCap, servercfg.DefaultLogsCap, "Sets the max number of results can be returned from single `eth_getLogs` query")

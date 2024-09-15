@@ -63,9 +63,6 @@ const (
 	// DefaultHTTPIdleTimeout is the default idle timeout of the http json-rpc server
 	DefaultHTTPIdleTimeout = 120 * time.Second
 
-	// DefaultAllowUnprotectedTxs value is false
-	DefaultAllowUnprotectedTxs = false
-
 	// DefaultAllowInsecureUnlock is the default value of allow insecure unlock configuration
 	DefaultAllowInsecureUnlock = false
 
@@ -125,9 +122,6 @@ type JSONRPCConfig struct {
 	HTTPTimeout time.Duration `mapstructure:"http-timeout"`
 	// HTTPIdleTimeout is the idle timeout of http json-rpc server.
 	HTTPIdleTimeout time.Duration `mapstructure:"http-idle-timeout"`
-	// AllowUnprotectedTxs restricts unprotected (non EIP155 signed) transactions to be submitted via
-	// the node's RPC when global parameter is disabled.
-	AllowUnprotectedTxs bool `mapstructure:"allow-unprotected-txs"`
 	// AllowInsecureUnlock allow insecure account unlocking when account-related RPCs are exposed by http
 	AllowInsecureUnlock bool `mapstructure:"allow-insecure-unlock"`
 	// MaxOpenConnections sets the maximum number of simultaneous connections
@@ -233,7 +227,6 @@ func DefaultJSONRPCConfig() *JSONRPCConfig {
 		LogsCap:             DefaultLogsCap,
 		HTTPTimeout:         DefaultHTTPTimeout,
 		HTTPIdleTimeout:     DefaultHTTPIdleTimeout,
-		AllowUnprotectedTxs: DefaultAllowUnprotectedTxs,
 		AllowInsecureUnlock: DefaultAllowInsecureUnlock,
 		MaxOpenConnections:  DefaultMaxOpenConnections,
 		MetricsAddress:      DefaultJSONRPCMetricsAddress,
@@ -343,7 +336,6 @@ func GetConfig(v *viper.Viper) (Config, error) {
 			BlockRangeCap:       v.GetInt32("json-rpc.block-range-cap"),
 			HTTPTimeout:         v.GetDuration("json-rpc.http-timeout"),
 			HTTPIdleTimeout:     v.GetDuration("json-rpc.http-idle-timeout"),
-			AllowUnprotectedTxs: v.GetBool(flags.JSONRPCAllowUnprotectedTxs) || v.GetBool(flags.LegacyRpcAllowUnprotectedTxs),
 			AllowInsecureUnlock: v.GetBool(flags.JSONRPCAllowInsecureUnlock) || v.GetBool(flags.LegacyAllowInsecureUnlock),
 			MaxOpenConnections:  v.GetInt("json-rpc.max-open-connections"),
 			MetricsAddress:      v.GetString("json-rpc.metrics-address"),

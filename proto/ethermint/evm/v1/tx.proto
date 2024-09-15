@@ -26,22 +26,13 @@ message MsgEthereumTx {
   option (cosmos.msg.v1.signer) = "from";
   option (gogoproto.goproto_getters) = false;
 
-  // DEPRECATED: data is inner transaction data of the Ethereum transaction
-  reserved 1;
-  reserved "data";
-  // DEPRECATED: size is the encoded storage size of the transaction (DEPRECATED)
-  reserved 2;
-  reserved "size";
-  // DEPRECATED: hash of the transaction in hex format
-  reserved 3;
-  reserved "hash";
   // from is the ethereum signer address in bech32 format. This address value is checked
   // against the address derived from the signature (V, R, S) using the
   // secp256k1 elliptic curve
-  string from = 4;
+  string from = 1;
 
   // marshalled_tx is the binary of the Ethereum tx.
-  bytes marshalled_tx = 5;
+  bytes marshalled_tx = 2;
 }
 
 // ExtensionOptionsEthereumTx is an extension option for ethereum transactions
@@ -57,18 +48,15 @@ message MsgEthereumTxResponse {
   // This hash differs from the CometBFT sha256 hash of the transaction bytes.
   // See https://github.com/tendermint/tendermint/issues/6539 for reference
   string hash = 1;
-  // DEPRECATED: logs contains the transaction hash and the proto-compatible ethereum logs.
-  reserved 2;
-  reserved "logs";
   // ret is the returned data from evm function (result or data supplied with revert
   // opcode)
-  bytes ret = 3;
+  bytes ret = 2;
   // vm_error is the error returned by vm execution
-  string vm_error = 4;
+  string vm_error = 3;
   // gas_used specifies how much gas was consumed by the transaction
-  uint64 gas_used = 5;
+  uint64 gas_used = 4;
   // marshalled_receipt is the marshalled version of Ethereum tx receipt
-  bytes marshalled_receipt = 6;
+  bytes marshalled_receipt = 5;
 }
 
 // MsgUpdateParams defines a Msg for updating the x/evm module parameters.
