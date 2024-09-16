@@ -11,6 +11,7 @@ type AnteTestSpec struct {
 	WantPriority            *int64
 	WantErr                 bool
 	WantErrMsgContains      *string
+	WantPanic               bool
 	PostRunOnSuccess        func(ctx sdk.Context, tx sdk.Tx)                // will be executed only when ante ran success
 	PostRunOnFail           func(ctx sdk.Context, anteErr error, tx sdk.Tx) // will be executed only when ante ran failed
 	PostRunRegardlessStatus func(ctx sdk.Context, anteErr error, tx sdk.Tx) // will be executed regardless ante ran success or not
@@ -97,6 +98,14 @@ func (ts *AnteTestSpec) WantsErrMsgContains(msg string) *AnteTestSpec {
 	}
 	ts.WantErr = true
 	ts.WantErrMsgContains = &msg
+	return ts
+}
+
+func (ts *AnteTestSpec) WantsPanic() *AnteTestSpec {
+	if ts == nil {
+		return nil
+	}
+	ts.WantPanic = true
 	return ts
 }
 

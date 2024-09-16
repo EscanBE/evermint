@@ -68,6 +68,13 @@ func (s *AnteIntegrationTestSuite) RunTestSpec(ctx sdk.Context, tx sdk.Tx, ts *i
 		cachedCtx = cachedCtx.WithIsCheckTx(true)
 	}
 
+	if ts.WantPanic {
+		s.Require().Panics(func() {
+			_, _ = ts.Ante(cachedCtx, tx, ts.Simulate)
+		})
+		return
+	}
+
 	newCtx, err := ts.Ante(cachedCtx, tx, ts.Simulate)
 
 	defer func() {

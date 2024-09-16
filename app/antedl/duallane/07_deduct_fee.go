@@ -39,24 +39,22 @@ func (dfd DLDeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 	return dfd.cd.AnteHandle(ctx, tx, simulate, next)
 }
 
-// TODO ES: adjust priority = gas fee cap instead of effective gas price
-
-// DualLaneFeeChecker returns CosmosTxDynamicFeeChecker or EthereumTxDynamicFeeChecker based on the transaction content.
+// DualLaneFeeChecker returns CosmosTxFeeChecker or EthereumTxFeeChecker based on the transaction content.
 func DualLaneFeeChecker(ek EvmKeeperForFeeChecker, fk FeeMarketKeeperForFeeChecker) sdkauthante.TxFeeChecker {
 	return func(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
 		var fc sdkauthante.TxFeeChecker
 		if dlanteutils.HasSingleEthereumMessage(tx) {
-			fc = EthereumTxDynamicFeeChecker(ek, fk)
+			fc = EthereumTxFeeChecker(ek, fk)
 		} else {
-			fc = CosmosTxDynamicFeeChecker(ek, fk)
+			fc = CosmosTxFeeChecker(ek, fk)
 		}
 		return fc(ctx, tx)
 	}
 }
 
-// CosmosTxDynamicFeeChecker is implements `TxFeeChecker`
-// that applies a dynamic fee to Cosmos txs follow EIP-1559.
-func CosmosTxDynamicFeeChecker(ek EvmKeeperForFeeChecker, fk FeeMarketKeeperForFeeChecker) sdkauthante.TxFeeChecker {
+// CosmosTxFeeChecker is implements `TxFeeChecker`
+// that applies a dynamic fee to Cosmos txs follow EIP-1559 of the `ExtensionOptionDynamicFeeTx` does exist.
+func CosmosTxFeeChecker(ek EvmKeeperForFeeChecker, fk FeeMarketKeeperForFeeChecker) sdkauthante.TxFeeChecker {
 	return func(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
 		if dlanteutils.HasSingleEthereumMessage(tx) {
 			panic("wrong call")
@@ -157,8 +155,8 @@ func checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.FeeTx) (sdk.Coi
 	return feeCoins, priority, nil
 }
 
-// EthereumTxDynamicFeeChecker is implements `TxFeeChecker`.
-func EthereumTxDynamicFeeChecker(ek EvmKeeperForFeeChecker, fk FeeMarketKeeperForFeeChecker) sdkauthante.TxFeeChecker {
+// EthereumTxFeeChecker is implements `TxFeeChecker`.
+func EthereumTxFeeChecker(ek EvmKeeperForFeeChecker, fk FeeMarketKeeperForFeeChecker) sdkauthante.TxFeeChecker {
 	return func(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
 		if !dlanteutils.HasSingleEthereumMessage(tx) || ctx.BlockHeight() == 0 {
 			panic("wrong call")
@@ -171,14 +169,18 @@ func EthereumTxDynamicFeeChecker(ek EvmKeeperForFeeChecker, fk FeeMarketKeeperFo
 		evmParams := ek.GetParams(ctx)
 		allowedFeeDenom := evmParams.EvmDenom
 
-		feeMarketParams := fk.GetParams(ctx)
-		baseFee := feeMarketParams.BaseFee
-
 		if err := validateSingleFee(feeTx.GetFee(), allowedFeeDenom); err != nil {
 			return nil, 0, err
 		}
 
+		feeMarketParams := fk.GetParams(ctx)
+		baseFee := feeMarketParams.BaseFee
+
 		ethTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx).AsTransaction()
+
+		// Effective fee compute:
+		//  - Dynamic Fee tx = effective gas price * gas
+		//  - Legacy tx/AccessList tx = gas price * gas
 		effectiveFee := sdk.NewCoins(
 			sdk.NewCoin(allowedFeeDenom, sdkmath.NewIntFromBigInt(evmutils.EthTxEffectiveFee(ethTx, baseFee))),
 		)
@@ -237,7 +239,12 @@ func getTxPriority(fees sdk.Coins, gas int64, minGasPricesAllowed sdkmath.Int, m
 
 	gasPrices := fee.Amount.QuoRaw(gas)
 	if gasPrices.LT(minGasPricesAllowed) {
-		err = errorsmod.Wrapf(sdkerrors.ErrInsufficientFee, "gas prices lower than %s, got: %s required: %s. Please retry using a higher gas price or a higher fee", minGasPricesSrc, gasPrices, minGasPricesAllowed)
+		priority = 0
+		err = errorsmod.Wrapf(
+			sdkerrors.ErrInsufficientFee,
+			"gas prices lower than %s, got: %s required: %s. Please retry using a higher gas price or a higher fee",
+			minGasPricesSrc, gasPrices, minGasPricesAllowed,
+		)
 		return
 	}
 
