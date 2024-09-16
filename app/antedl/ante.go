@@ -39,7 +39,8 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 
 			// EVM-only lane
 			evmlane.NewEvmLaneSetupExecutionDecorator(*options.EvmKeeper),
-			evmlane.NewEvmLaneEmitEventDecorator(*options.EvmKeeper), // must be the last effective Ante
+			evmlane.NewEvmLaneEmitEventDecorator(*options.EvmKeeper),                                // must be the last effective Ante
+			evmlane.NewEvmLaneExecWithoutErrorDecorator(*options.AccountKeeper, *options.EvmKeeper), // simulation ante
 
 			// Cosmos-only lane
 			cosmoslane.NewCosmosLaneRejectEthereumMsgsDecorator(),
