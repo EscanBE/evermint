@@ -88,12 +88,9 @@ func (ed ELExecWithoutErrorDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, sim
 		evm = ed.ek.NewEVM(simulationCtx, ethCoreMsg, evmCfg, evmtypes.NewNoOpTracer(), stateDB)
 	}
 	gasPool := core.GasPool(ethCoreMsg.Gas())
-	execResult, err := evmkeeper.ApplyMessage(evm, ethCoreMsg, &gasPool)
+	_, err = evmkeeper.ApplyMessage(evm, ethCoreMsg, &gasPool)
 	if err != nil {
 		return ctx, errorsmod.Wrap(errors.Join(sdkerrors.ErrLogic, err), "tx simulation execution failed")
-	}
-	if execResult.Err != nil {
-		return ctx, errorsmod.Wrap(errors.Join(sdkerrors.ErrLogic, execResult.Err), "tx simulation execution failed with EVM error")
 	}
 
 	return next(ctx, tx, simulate)
