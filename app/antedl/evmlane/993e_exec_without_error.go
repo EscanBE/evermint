@@ -61,7 +61,8 @@ func (ed ELExecWithoutErrorDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, sim
 	// create a branched context for simulation
 	simulationCtx, _ := ctx.CacheContext()
 
-	{ // rollback the nonce which was increased by previous ante handle
+	if ed.ek.IsSenderNonceIncreasedByAnteHandle(simulationCtx) {
+		// rollback the nonce which was increased by previous ante handle
 		acc := ed.ak.GetAccount(simulationCtx, ethMsg.GetFrom())
 		err := acc.SetSequence(acc.GetSequence() - 1)
 		if err != nil {
@@ -87,9 +88,12 @@ func (ed ELExecWithoutErrorDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, sim
 		evm = ed.ek.NewEVM(simulationCtx, ethCoreMsg, evmCfg, evmtypes.NewNoOpTracer(), stateDB)
 	}
 	gasPool := core.GasPool(ethCoreMsg.Gas())
-	_, err = evmkeeper.ApplyMessage(evm, ethCoreMsg, &gasPool)
+	execResult, err := evmkeeper.ApplyMessage(evm, ethCoreMsg, &gasPool)
 	if err != nil {
 		return ctx, errorsmod.Wrap(errors.Join(sdkerrors.ErrLogic, err), "tx simulation execution failed")
+	}
+	if execResult.Err != nil {
+		return ctx, errorsmod.Wrap(errors.Join(sdkerrors.ErrLogic, execResult.Err), "tx simulation execution failed with EVM error")
 	}
 
 	return next(ctx, tx, simulate)
