@@ -17,7 +17,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/app/ante"
 	"github.com/EscanBE/evermint/v12/app/antedl/duallane"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 )
@@ -117,7 +116,7 @@ func TestConsumeSignatureVerificationGas(t *testing.T) {
 			Data:     tt.args.sig,
 			Sequence: 0, // Arbitrary account sequence
 		}
-		err := ante.SigVerificationGasConsumer(tt.args.meter, sigV2, tt.args.params)
+		err := duallane.SigVerificationGasConsumer(tt.args.meter, sigV2, tt.args.params)
 
 		if tt.wantErr {
 			require.Error(t, err)

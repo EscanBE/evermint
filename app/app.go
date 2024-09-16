@@ -48,8 +48,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
 
-	"github.com/EscanBE/evermint/v12/app/ante"
-	ethante "github.com/EscanBE/evermint/v12/app/ante/evm"
 	"github.com/EscanBE/evermint/v12/app/antedl"
 	"github.com/EscanBE/evermint/v12/app/antedl/duallane"
 	"github.com/EscanBE/evermint/v12/app/keepers"
@@ -379,31 +377,6 @@ func (app *Evermint) RegisterTendermintService(clientCtx client.Context) {
 	)
 }
 
-func (app *Evermint) setAnteHandler(txConfig client.TxConfig) {
-	options := ante.HandlerOptions{
-		Cdc:                    app.appCodec,
-		AccountKeeper:          &app.AccountKeeper,
-		BankKeeper:             app.BankKeeper,
-		ExtensionOptionChecker: evertypes.HasDynamicFeeExtensionOption,
-		EvmKeeper:              app.EvmKeeper,
-		VAuthKeeper:            &app.VAuthKeeper,
-		StakingKeeper:          app.StakingKeeper,
-		FeegrantKeeper:         app.FeeGrantKeeper,
-		DistributionKeeper:     &app.DistrKeeper,
-		IBCKeeper:              app.IBCKeeper,
-		FeeMarketKeeper:        app.FeeMarketKeeper,
-		SignModeHandler:        txConfig.SignModeHandler(),
-		SigGasConsumer:         ante.SigVerificationGasConsumer,
-		TxFeeChecker:           ethante.NewDynamicFeeChecker(app.EvmKeeper),
-	}.WithDefaultDisabledAuthzMsgs()
-
-	if err := options.Validate(); err != nil {
-		panic(err)
-	}
-
-	app.SetAnteHandler(ante.NewAnteHandler(options))
-}
-
 func (app *Evermint) setDualLaneAnteHandler(txConfig client.TxConfig) {
 	options := antedl.HandlerOptions{
 		Cdc:                    app.appCodec,
@@ -418,7 +391,7 @@ func (app *Evermint) setDualLaneAnteHandler(txConfig client.TxConfig) {
 		IBCKeeper:              app.IBCKeeper,
 		FeeMarketKeeper:        &app.FeeMarketKeeper,
 		SignModeHandler:        txConfig.SignModeHandler(),
-		SigGasConsumer:         ante.SigVerificationGasConsumer,
+		SigGasConsumer:         duallane.SigVerificationGasConsumer,
 		TxFeeChecker:           duallane.DualLaneFeeChecker(app.EvmKeeper, app.FeeMarketKeeper),
 	}.WithDefaultDisabledNestedMsgs()
 
