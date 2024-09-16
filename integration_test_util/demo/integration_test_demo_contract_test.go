@@ -56,9 +56,12 @@ func (suite *DemoTestSuite) Test_Contract_DeployContracts() {
 			_, resDeliver, err = suite.CITS.TxSendEvmTx(suite.Ctx(), deployer, &newContractAddress, nil, data)
 			suite.Require().Error(err)
 			suite.Require().NotNil(resDeliver)
-			suite.NotEmpty(resDeliver.CosmosTxHash)
-			suite.NotEmpty(resDeliver.EthTxHash)
-			suite.NotEmpty(resDeliver.EvmError)
+			{
+				// tx should not be executed because AnteHandle prevented it from execution
+				suite.Empty(resDeliver.CosmosTxHash)
+				suite.Empty(resDeliver.EthTxHash)
+				suite.Empty(resDeliver.EvmError)
+			}
 			suite.Commit()
 		})
 	})
