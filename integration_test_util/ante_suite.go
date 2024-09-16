@@ -64,8 +64,8 @@ func (s *AnteIntegrationTestSuite) RunTestSpec(ctx sdk.Context, tx sdk.Tx, ts *i
 
 	if ts.ReCheckTx {
 		cachedCtx = cachedCtx.WithIsCheckTx(true).WithIsReCheckTx(true)
-	} else {
-		cachedCtx = cachedCtx.WithIsCheckTx(ts.CheckTx)
+	} else if ts.CheckTx {
+		cachedCtx = cachedCtx.WithIsCheckTx(true)
 	}
 
 	newCtx, err := ts.Ante(cachedCtx, tx, ts.Simulate)
@@ -96,7 +96,7 @@ func (s *AnteIntegrationTestSuite) RunTestSpec(ctx sdk.Context, tx sdk.Tx, ts *i
 			s.Require().NotEmpty(wantErrMsgContains, "bad setup test-case")
 			s.Require().ErrorContains(err, wantErrMsgContains)
 		} else {
-			s.CITS.Require().FailNow("require setup check error message")
+			s.Require().FailNow("require setup check error message")
 		}
 
 		return

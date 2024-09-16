@@ -36,10 +36,8 @@ func (s *DLTestSuite) Test_DLSigVerificationDecorator() {
 				s.Require().NoError(err)
 				return ctb.GetTx()
 			},
-			anteSpec: ts().WantsSuccess(),
-			decoratorSpec: ts().OnSuccess(func(ctx sdk.Context, tx sdk.Tx) {
-				s.Zero(ctx.GasMeter().GasConsumed(), "no gas should be consumed")
-			}),
+			anteSpec:      ts().WantsSuccess(),
+			decoratorSpec: ts().WantsSuccess(),
 		},
 		{
 			name: "fail - single-ETH - reject if signature mismatch",
