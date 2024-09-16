@@ -26,7 +26,6 @@ func (s *ELTestSuite) Test_ELValidateBasicEoaDecorator() {
 		tx            func(ctx sdk.Context) sdk.Tx
 		anteSpec      *itutiltypes.AnteTestSpec
 		decoratorSpec *itutiltypes.AnteTestSpec
-		onSuccess     func(ctx sdk.Context, tx sdk.Tx)
 	}{
 		{
 			name: "pass - single-ETH - should pass",
@@ -46,7 +45,7 @@ func (s *ELTestSuite) Test_ELValidateBasicEoaDecorator() {
 			decoratorSpec: ts().WantsSuccess(),
 		},
 		{
-			name: "fail Ante/pass Decorator - single-ETH - account not exists, should create account",
+			name: "fail Ante/pass Decorator - single-ETH - account not exists, pass because only check code hash",
 			tx: func(ctx sdk.Context) sdk.Tx {
 				ctb, err := s.SignEthereumTx(ctx, notExistsAccWithBalance, &ethtypes.DynamicFeeTx{
 					Nonce:     0,
@@ -59,14 +58,13 @@ func (s *ELTestSuite) Test_ELValidateBasicEoaDecorator() {
 				s.Require().NoError(err)
 				return ctb.GetTx()
 			},
-			anteSpec:      ts().WantsErrMsgContains("insufficient funds"),
-			decoratorSpec: ts().WantsSuccess(),
-			onSuccess: func(ctx sdk.Context, tx sdk.Tx) {
-				s.Require().NotNil(
+			anteSpec: ts().WantsErrMsgContains("does not exist: unknown address"),
+			decoratorSpec: ts().WantsSuccess().OnSuccess(func(ctx sdk.Context, tx sdk.Tx) {
+				s.Require().Nil(
 					s.App().AccountKeeper().GetAccount(ctx, notExistsAccWithBalance.GetCosmosAddress()),
-					"account should be created",
+					"account should not be created",
 				)
-			},
+			}),
 		},
 		{
 			name: "fail - single-ETH - contract account should be rejected",
@@ -136,11 +134,6 @@ func (s *ELTestSuite) Test_ELValidateBasicEoaDecorator() {
 			tt.decoratorSpec.WithDecorator(
 				evmlane.NewEvmLaneValidateBasicEoaDecorator(*s.App().AccountKeeper(), *s.App().EvmKeeper()),
 			)
-
-			if tt.onSuccess != nil {
-				tt.anteSpec.OnSuccess(tt.onSuccess)
-				tt.decoratorSpec.OnSuccess(tt.onSuccess)
-			}
 
 			tx := tt.tx(cachedCtx)
 

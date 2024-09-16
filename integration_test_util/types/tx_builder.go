@@ -6,6 +6,7 @@ import (
 	"github.com/EscanBE/evermint/v12/constants"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -142,7 +143,7 @@ func (tb *TxBuilder) AutoFee() *TxBuilder {
 	for _, msg := range tb.msgs {
 		switch msg := msg.(type) {
 		case *evmtypes.MsgEthereumTx:
-			fees = fees.Add(sdk.NewCoin(constants.BaseDenom, sdkmath.NewIntFromBigInt(msg.GetFee())))
+			fees = fees.Add(sdk.NewCoin(constants.BaseDenom, sdkmath.NewIntFromBigInt(evmutils.EthTxFee(msg.AsTransaction()))))
 		default:
 			tb.r().Failf("unsupported get fee for message", "type %T", msg)
 		}

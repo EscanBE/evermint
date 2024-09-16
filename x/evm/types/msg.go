@@ -36,7 +36,6 @@ var (
 	_ sdk.HasValidateBasic = &MsgEthereumTx{}
 	_ ante.GasTx           = &MsgEthereumTx{}
 	_ sdk.Msg              = &MsgUpdateParams{}
-	// TODO ES: check relates logic, because MsgEthereumTx is not a FeeTx
 )
 
 // message type and route constants
@@ -264,13 +263,6 @@ func (msg *MsgEthereumTx) Sign(ethSigner ethtypes.Signer, keyringSigner keyring.
 // GetGas implements the GasTx interface. It returns the GasLimit of the transaction.
 func (msg MsgEthereumTx) GetGas() uint64 {
 	return msg.AsTransaction().Gas()
-}
-
-// GetFee returns the fee of the tx.
-// For Dynamic Tx, it is `Gas Fee Cap * Gas Limit`
-// TODO ES: remove?
-func (msg MsgEthereumTx) GetFee() *big.Int {
-	return evmutils.EthTxFee(msg.AsTransaction())
 }
 
 // GetFrom loads the ethereum sender address from the sigcache and returns an

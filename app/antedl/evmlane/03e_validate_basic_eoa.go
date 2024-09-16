@@ -50,14 +50,5 @@ func (ead ELValidateBasicEoaDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, si
 		)
 	}
 
-	// create account if not exists
-	acct := ead.ek.GetAccount(ctx, fromAddr)
-
-	if acct == nil {
-		// TODO ES: try to not create account here to see if it works
-		acc := ead.ak.NewAccountWithAddress(ctx, from)
-		ead.ak.SetAccount(ctx, acc)
-	}
-
 	return next(ctx, tx, simulate)
 }

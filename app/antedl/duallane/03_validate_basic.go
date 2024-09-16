@@ -75,7 +75,6 @@ func (vbd DLValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 		return ctx, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "for ETH txs, AuthInfo Fee payer and granter should be empty")
 	}
 
-	// TODO ES: use another decorator
 	sigs := protoTx.Signatures
 	if len(sigs) > 0 {
 		return ctx, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "for ETH txs, Signatures should be empty")
