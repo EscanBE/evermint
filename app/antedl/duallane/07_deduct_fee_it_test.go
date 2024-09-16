@@ -84,6 +84,27 @@ func (s *DLTestSuite) Test_DLDeductFeeDecorator() {
 			},
 		},
 		{
+			name: "pass - single-ETH - should pass even lower than node config min-gas-prices, when not check-tx",
+			tx: func(ctx sdk.Context) sdk.Tx {
+				ctb, err := s.SignEthereumTx(ctx, acc1, &ethtypes.LegacyTx{
+					Nonce:    0,
+					GasPrice: baseFee.BigInt(),
+					Gas:      21000,
+					To:       acc2.GetEthAddressP(),
+					Value:    big.NewInt(1),
+				}, s.TxB())
+				s.Require().NoError(err)
+				return ctb.GetTx()
+			},
+			anteSpec:      ts().WithNodeMinGasPrices(nodeConfigMinGasPrices).WantsSuccess(),
+			decoratorSpec: ts().WithNodeMinGasPrices(nodeConfigMinGasPrices).WantsSuccess(),
+			onSuccess: func(ctx sdk.Context, tx sdk.Tx) {
+				ethTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx).AsTransaction()
+				gasPrices := ethTx.GasPrice()
+				s.Equal(gasPrices.Int64(), ctx.Priority())
+			},
+		},
+		{
 			name: "fail - single-ETH - legacy tx, should reject if gas price is lower than base fee",
 			tx: func(ctx sdk.Context) sdk.Tx {
 				ctb, err := s.SignEthereumTx(ctx, acc1, &ethtypes.LegacyTx{
