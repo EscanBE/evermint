@@ -2,9 +2,11 @@ package types
 
 //goland:noinspection SpellCheckingInspection
 import (
+	feegrantkeeper "cosmossdk.io/x/feegrant/keeper"
 	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	feemarketkeeper "github.com/EscanBE/evermint/v12/x/feemarket/keeper"
+	vauthkeeper "github.com/EscanBE/evermint/v12/x/vauth/keeper"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	distkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
@@ -57,4 +59,12 @@ func (c chainAppImp) SlashingKeeper() *slashingkeeper.Keeper {
 
 func (c chainAppImp) StakingKeeper() *stakingkeeper.Keeper {
 	return c.app.StakingKeeper
+}
+
+func (c chainAppImp) FeeGrantKeeper() *feegrantkeeper.Keeper {
+	return &c.app.FeeGrantKeeper
+}
+
+func (c chainAppImp) VAuthKeeper() *vauthkeeper.Keeper {
+	return &c.app.VAuthKeeper
 }

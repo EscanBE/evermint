@@ -37,6 +37,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Cosmos-SDK v0.50
 
+### Features
+
+- (ante) [#164](https://github.com/EscanBE/evermint/pull/164) Introduce Dual-Lane AnteHandler
+
 ### Improvement
 
 - (test) [#150](https://github.com/EscanBE/evermint/pull/150) Improve readability for test

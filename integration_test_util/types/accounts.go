@@ -78,6 +78,11 @@ func (a TestAccount) GetEthAddress() common.Address {
 	return common.BytesToAddress(a.GetPubKey().Address().Bytes())
 }
 
+func (a TestAccount) GetEthAddressP() *common.Address {
+	ethAddr := a.GetEthAddress()
+	return &ethAddr
+}
+
 func (a TestAccount) ComputeContractAddress(nonce uint64) common.Address {
 	return crypto.CreateAddress(a.GetEthAddress(), nonce)
 }

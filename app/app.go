@@ -48,15 +48,14 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
 
-	"github.com/EscanBE/evermint/v12/app/ante"
-	ethante "github.com/EscanBE/evermint/v12/app/ante/evm"
+	"github.com/EscanBE/evermint/v12/app/antedl"
+	"github.com/EscanBE/evermint/v12/app/antedl/duallane"
 	"github.com/EscanBE/evermint/v12/app/keepers"
 	"github.com/EscanBE/evermint/v12/app/params"
 	"github.com/EscanBE/evermint/v12/app/upgrades"
 	"github.com/EscanBE/evermint/v12/client/docs"
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/ethereum/eip712"
-	srvflags "github.com/EscanBE/evermint/v12/server/flags"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/utils"
 
@@ -233,10 +232,8 @@ func NewEvermint(
 	chainApp.MountTransientStores(chainApp.GetTransientStoreKey())
 	chainApp.MountMemoryStores(chainApp.GetMemoryStoreKey())
 
-	// initialize BaseApp
-	maxGasWanted := cast.ToUint64(appOpts.Get(srvflags.EVMMaxTxGasWanted))
-
-	chainApp.setAnteHandler(txConfig, maxGasWanted)
+	// chainApp.setAnteHandler(txConfig)
+	chainApp.setDualLaneAnteHandler(txConfig)
 	chainApp.setPostHandler()
 
 	chainApp.SetInitChainer(chainApp.InitChainer)
@@ -380,8 +377,8 @@ func (app *Evermint) RegisterTendermintService(clientCtx client.Context) {
 	)
 }
 
-func (app *Evermint) setAnteHandler(txConfig client.TxConfig, maxGasWanted uint64) {
-	options := ante.HandlerOptions{
+func (app *Evermint) setDualLaneAnteHandler(txConfig client.TxConfig) {
+	options := antedl.HandlerOptions{
 		Cdc:                    app.appCodec,
 		AccountKeeper:          &app.AccountKeeper,
 		BankKeeper:             app.BankKeeper,
@@ -389,21 +386,20 @@ func (app *Evermint) setAnteHandler(txConfig client.TxConfig, maxGasWanted uint6
 		EvmKeeper:              app.EvmKeeper,
 		VAuthKeeper:            &app.VAuthKeeper,
 		StakingKeeper:          app.StakingKeeper,
-		FeegrantKeeper:         app.FeeGrantKeeper,
+		FeegrantKeeper:         &app.FeeGrantKeeper,
 		DistributionKeeper:     &app.DistrKeeper,
 		IBCKeeper:              app.IBCKeeper,
-		FeeMarketKeeper:        app.FeeMarketKeeper,
+		FeeMarketKeeper:        &app.FeeMarketKeeper,
 		SignModeHandler:        txConfig.SignModeHandler(),
-		SigGasConsumer:         ante.SigVerificationGasConsumer,
-		MaxTxGasWanted:         maxGasWanted,
-		TxFeeChecker:           ethante.NewDynamicFeeChecker(app.EvmKeeper),
-	}.WithDefaultDisabledAuthzMsgs()
+		SigGasConsumer:         duallane.SigVerificationGasConsumer,
+		TxFeeChecker:           duallane.DualLaneFeeChecker(app.EvmKeeper, app.FeeMarketKeeper),
+	}.WithDefaultDisabledNestedMsgs()
 
 	if err := options.Validate(); err != nil {
 		panic(err)
 	}
 
-	app.SetAnteHandler(ante.NewAnteHandler(options))
+	app.SetAnteHandler(antedl.NewAnteHandler(options))
 }
 
 func (app *Evermint) setPostHandler() {

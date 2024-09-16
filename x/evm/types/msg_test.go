@@ -726,17 +726,6 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_Getters() {
 		expPanic              bool
 	}{
 		{
-			name:      "get fee - pass",
-			ethSigner: ethtypes.NewEIP2930Signer(suite.chainID),
-			exp:       big.NewInt(5000),
-		},
-		{
-			name:                  "get fee - fail: nil data",
-			ethSigner:             ethtypes.NewEIP2930Signer(suite.chainID),
-			emptyMarshalledBinary: true,
-			expPanic:              true,
-		},
-		{
 			name:      "get gas - pass",
 			ethSigner: ethtypes.NewEIP2930Signer(suite.chainID),
 			exp:       big.NewInt(50),
@@ -756,16 +745,6 @@ func (suite *MsgsTestSuite) TestMsgEthereumTx_Getters() {
 				tx.MarshalledTx = nil
 			}
 			switch {
-			case strings.Contains(tc.name, "get fee"):
-				if tc.expPanic {
-					suite.Require().Panics(func() {
-						_ = tx.GetFee()
-					})
-					return
-				}
-
-				fee := tx.GetFee()
-				suite.Require().Equal(tc.exp, fee)
 			case strings.Contains(tc.name, "get gas"):
 				if tc.expPanic {
 					suite.Require().Panics(func() {

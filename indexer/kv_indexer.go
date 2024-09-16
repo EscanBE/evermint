@@ -4,20 +4,20 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/ethereum/go-ethereum/common"
+
+	abci "github.com/cometbft/cometbft/abci/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	abci "github.com/cometbft/cometbft/abci/types"
-	cmttypes "github.com/cometbft/cometbft/types"
 	sdkdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
-	"github.com/ethereum/go-ethereum/common"
 
+	dlanteutils "github.com/EscanBE/evermint/v12/app/antedl/utils"
+	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
@@ -268,15 +268,7 @@ func LoadFirstBlock(db sdkdb.DB) (int64, error) {
 
 // isEthTx check if the tx is an eth tx
 func isEthTx(tx sdk.Tx) bool {
-	extTx, ok := tx.(authante.HasExtensionOptionsTx)
-	if !ok {
-		return false
-	}
-	opts := extTx.GetExtensionOptions()
-	if len(opts) != 1 || opts[0].GetTypeUrl() != constants.EthermintExtensionOptionsEthereumTx {
-		return false
-	}
-	return true
+	return dlanteutils.IsEthereumTx(tx)
 }
 
 // saveTxResult index the txResult into the kv db batch

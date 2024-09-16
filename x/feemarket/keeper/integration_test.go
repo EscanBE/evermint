@@ -34,7 +34,7 @@ var _ = Describe("Feemarket", func() {
 					_, err := testutil.CheckTx(s.ctx, s.app, privKey, &gasPrice, &msg)
 					Expect(err).ToNot(BeNil(), "transaction should have failed")
 					Expect(
-						strings.Contains(err.Error(), "provided fee < minimum global fee"),
+						strings.Contains(err.Error(), "gas prices lower than minimum global fee"),
 					).To(BeTrue(), err.Error())
 				})
 
@@ -52,7 +52,7 @@ var _ = Describe("Feemarket", func() {
 					_, _, err := testutil.DeliverTx(s.ctx, s.app, privKey, &gasPrice, &msg)
 					Expect(err).NotTo(BeNil(), "transaction should have failed")
 					Expect(
-						strings.Contains(err.Error(), "provided fee < minimum global fee"),
+						strings.Contains(err.Error(), "gas prices lower than minimum global fee"),
 					).To(BeTrue(), err.Error())
 				})
 
@@ -95,7 +95,7 @@ var _ = Describe("Feemarket", func() {
 					_, _, err := testutil.DeliverTx(s.ctx, s.app, privKey, &gasPrice, &msg)
 					Expect(err).NotTo(BeNil(), "transaction should have failed")
 					Expect(
-						strings.Contains(err.Error(), "provided fee < minimum global fee"),
+						strings.Contains(err.Error(), "gas prices lower than minimum global fee"),
 					).To(BeTrue(), err.Error())
 				})
 
@@ -111,12 +111,12 @@ var _ = Describe("Feemarket", func() {
 
 		Context("with MinGasPrices (feemarket param) < min-gas-prices (local)", func() {
 			BeforeEach(func() {
-				privKey, msg = setupTestWithContext("5", sdkmath.LegacyNewDec(3), sdkmath.NewInt(5))
+				privKey, msg = setupTestWithContext("5", sdkmath.LegacyNewDec(3), sdkmath.NewInt(4))
 			})
 
 			//nolint
 			Context("during CheckTx", func() {
-				It("should reject transactions with gasPrice < MinGasPrices", func() {
+				It("should reject transactions with gasPrice < node config min-gas-prices", func() {
 					gasPrice := sdkmath.NewInt(2)
 					_, err := testutil.CheckTx(s.ctx, s.app, privKey, &gasPrice, &msg)
 					Expect(err).ToNot(BeNil(), "transaction should have failed")
@@ -144,12 +144,12 @@ var _ = Describe("Feemarket", func() {
 
 			//nolint
 			Context("during DeliverTx", func() {
-				It("should reject transactions with gasPrice < MinGasPrices", func() {
+				It("should reject transactions with gasPrice < base fee < node config min-gas-prices", func() {
 					gasPrice := sdkmath.NewInt(2)
 					_, _, err := testutil.DeliverTx(s.ctx, s.app, privKey, &gasPrice, &msg)
 					Expect(err).NotTo(BeNil(), "transaction should have failed")
 					Expect(
-						strings.Contains(err.Error(), "provided fee < minimum global fee"),
+						strings.Contains(err.Error(), "gas prices lower than base fee"),
 					).To(BeTrue(), err.Error())
 				})
 
@@ -206,7 +206,7 @@ var _ = Describe("Feemarket", func() {
 						_, err := testutil.CheckEthTx(s.app, privKey, msgEthereumTx)
 						Expect(err).ToNot(BeNil(), "transaction should have failed")
 						Expect(
-							strings.Contains(err.Error(), "provided fee < minimum global fee"),
+							strings.Contains(err.Error(), "gas prices lower than minimum global fee"),
 						).To(BeTrue(), err.Error())
 					},
 					Entry("legacy tx", func() txParams {
@@ -284,7 +284,7 @@ var _ = Describe("Feemarket", func() {
 						_, _, err := testutil.DeliverEthTx(s.ctx, s.app, privKey, msgEthereumTx)
 						Expect(err).ToNot(BeNil(), "transaction should have failed")
 						Expect(
-							strings.Contains(err.Error(), "provided fee < minimum global fee"),
+							strings.Contains(err.Error(), "gas prices lower than minimum global fee"),
 						).To(BeTrue(), err.Error())
 					},
 					Entry("legacy tx", func() txParams {
@@ -362,7 +362,7 @@ var _ = Describe("Feemarket", func() {
 			})
 
 			Context("during CheckTx", func() {
-				DescribeTable("should reject transactions with gasPrice < MinGasPrices",
+				DescribeTable("should reject transactions with gasPrice < base fee",
 					func(malleate getprices) {
 						p := malleate()
 						to := utiltx.GenerateAddress()
@@ -370,7 +370,7 @@ var _ = Describe("Feemarket", func() {
 						_, err := testutil.CheckEthTx(s.app, privKey, msgEthereumTx)
 						Expect(err).ToNot(BeNil(), "transaction should have failed")
 						Expect(
-							strings.Contains(err.Error(), "provided fee < minimum global fee"),
+							strings.Contains(err.Error(), "gas prices lower than base fee"),
 						).To(BeTrue(), err.Error())
 					},
 					Entry("legacy tx", func() txParams {
@@ -457,7 +457,7 @@ var _ = Describe("Feemarket", func() {
 			})
 
 			Context("during DeliverTx", func() {
-				DescribeTable("should reject transactions with gasPrice < MinGasPrices",
+				DescribeTable("should reject transactions with gasPrice < base fee",
 					func(malleate getprices) {
 						p := malleate()
 						to := utiltx.GenerateAddress()
@@ -465,7 +465,7 @@ var _ = Describe("Feemarket", func() {
 						_, _, err := testutil.DeliverEthTx(s.ctx, s.app, privKey, msgEthereumTx)
 						Expect(err).ToNot(BeNil(), "transaction should have failed")
 						Expect(
-							strings.Contains(err.Error(), "provided fee < minimum global fee"),
+							strings.Contains(err.Error(), "gas prices lower than base fee"),
 						).To(BeTrue(), err.Error())
 					},
 					Entry("legacy tx", func() txParams {
