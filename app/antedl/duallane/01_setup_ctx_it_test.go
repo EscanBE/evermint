@@ -33,6 +33,7 @@ func (s *DLTestSuite) Test_DLSetupContextDecorator() {
 			name: "pass - single-ETH - setup correctly",
 			tx: func(ctx sdk.Context) sdk.Tx {
 				s.App().EvmKeeper().SetFlagSenderNonceIncreasedByAnteHandle(ctx, true)
+				s.App().EvmKeeper().SetFlagSenderPaidTxFeeInAnteHandle(ctx, true)
 
 				ctb, err := s.SignEthereumTx(ctx, acc1, &ethtypes.LegacyTx{
 					Nonce:    0,
@@ -51,6 +52,7 @@ func (s *DLTestSuite) Test_DLSetupContextDecorator() {
 				s.Equal(storetypes.GasConfig{}, ctx.TransientKVGasConfig())
 
 				s.True(s.App().EvmKeeper().IsSenderNonceIncreasedByAnteHandle(ctx), "this flag should be set by another decorator")
+				s.True(s.App().EvmKeeper().IsSenderPaidTxFeeInAnteHandle(ctx), "this flag should be set by another decorator")
 			}),
 			decoratorSpec: ts().OnSuccess(func(ctx sdk.Context, tx sdk.Tx) {
 				s.Equal(uint64(math.MaxUint64), ctx.GasMeter().Limit(), "this decorator should use infinite gas meter")
@@ -58,7 +60,8 @@ func (s *DLTestSuite) Test_DLSetupContextDecorator() {
 				s.Equal(storetypes.GasConfig{}, ctx.KVGasConfig())
 				s.Equal(storetypes.GasConfig{}, ctx.TransientKVGasConfig())
 
-				s.False(s.App().EvmKeeper().IsSenderNonceIncreasedByAnteHandle(ctx))
+				s.False(s.App().EvmKeeper().IsSenderNonceIncreasedByAnteHandle(ctx), "this decorator should reset this flag")
+				s.False(s.App().EvmKeeper().IsSenderPaidTxFeeInAnteHandle(ctx), "this decorator should reset this flag")
 			}),
 		},
 		{

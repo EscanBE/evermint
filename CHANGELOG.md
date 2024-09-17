@@ -54,6 +54,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - (evm) [#153](https://github.com/EscanBE/evermint/pull/153) Adjustment logic of how sender nonce increased
 - (ante) [#162](https://github.com/EscanBE/evermint/pull/162) Fix `NewDynamicFeeChecker`, correct effective gas price calculation and minor improvement
+- (evm) [#166](https://github.com/EscanBE/evermint/pull/166) Prevent refund gas fee if sender wasn't paid for it
 
 ### API Breaking
 

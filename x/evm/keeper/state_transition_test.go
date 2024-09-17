@@ -706,6 +706,8 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 		chainCfg     *ethparams.ChainConfig
 	)
 
+	ptr := func(i int64) *int64 { return &i }
+
 	testCases := []struct {
 		name                  string
 		simulateCommitDbError bool
@@ -713,9 +715,10 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 		expErr                bool
 		expErrContains        string
 		expGasUsed            uint64
+		expLaterBalance       *int64
 	}{
 		{
-			name: "message applied ok",
+			name: "pass - message applied ok",
 			malleate: func() {
 				msg, err = newNativeMessage(
 					getNonce(suite.address.Bytes()),
@@ -734,7 +737,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 			expGasUsed: ethparams.TxGas,
 		},
 		{
-			name: "call contract tx with config param EnableCall = false",
+			name: "fail - call contract tx with config param EnableCall = false",
 			malleate: func() {
 				config.Params.EnableCall = false
 				msg, err = newNativeMessage(
@@ -754,7 +757,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 			expErrContains: evmtypes.ErrCallDisabled.Error(),
 		},
 		{
-			name: "create contract tx with config param EnableCreate = false",
+			name: "fail - create contract tx with config param EnableCreate = false",
 			malleate: func() {
 				msg, err = suite.createContractGethMsg(getNonce(suite.address.Bytes()), signer, chainCfg, big.NewInt(1))
 				suite.Require().NoError(err)
@@ -764,7 +767,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 			expErrContains: evmtypes.ErrCreateDisabled.Error(),
 		},
 		{
-			name: "transfer message success",
+			name: "pass - transfer message success",
 			malleate: func() {
 				suite.FundDefaultAddress(1_000_000)
 
@@ -793,11 +796,12 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				msg, err = ethMsg.AsMessage(msgSigner, nil)
 				suite.Require().NoError(err)
 			},
-			expErr:     false,
-			expGasUsed: 21000,
+			expErr:          false,
+			expGasUsed:      21000,
+			expLaterBalance: ptr(999_999),
 		},
 		{
-			name: "transfer message success, consume enough gas, regardless max gas",
+			name: "pass - transfer message success, consume enough gas, regardless max gas",
 			malleate: func() {
 				suite.FundDefaultAddress(1_000_000)
 
@@ -826,11 +830,44 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				msg, err = ethMsg.AsMessage(msgSigner, nil)
 				suite.Require().NoError(err)
 			},
-			expErr:     false,
-			expGasUsed: 21_000, // consume just enough gas
+			expErr:          false,
+			expGasUsed:      21_000, // consume just enough gas
+			expLaterBalance: ptr(999_999),
 		},
 		{
-			name: "fail intrinsic gas check",
+			name: "pass - sender paid the fee, should refund the gas fee",
+			malleate: func() {
+				suite.FundDefaultAddress(1_000_000)
+
+				suite.app.EvmKeeper.SetFlagSenderPaidTxFeeInAnteHandle(suite.ctx, true)
+
+				randomAddr, _ := utiltx.NewAddrKey()
+
+				ethTxParams := evmtypes.EvmTxArgs{
+					From:     suite.address,
+					Nonce:    getNonce(suite.address.Bytes()),
+					GasLimit: 100_000,
+					GasPrice: big.NewInt(10),
+					ChainID:  chainCfg.ChainID,
+					Amount:   big.NewInt(1),
+					To:       &randomAddr,
+				}
+
+				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
+
+				ethMsg := evmtypes.NewTx(&ethTxParams)
+				err = ethMsg.Sign(msgSigner, suite.signer)
+				suite.Require().NoError(err)
+
+				msg, err = ethMsg.AsMessage(msgSigner, nil)
+				suite.Require().NoError(err)
+			},
+			expErr:          false,
+			expGasUsed:      21000,
+			expLaterBalance: ptr(1_789_999),
+		},
+		{
+			name: "fail - intrinsic gas check",
 			malleate: func() {
 				suite.FundDefaultAddress(1_000_000)
 
@@ -859,11 +896,12 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				msg, err = ethMsg.AsMessage(msgSigner, nil)
 				suite.Require().NoError(err)
 			},
-			expErr:         true,
-			expErrContains: core.ErrIntrinsicGas.Error(),
+			expErr:          true,
+			expErrContains:  core.ErrIntrinsicGas.Error(),
+			expLaterBalance: ptr(1_000_000),
 		},
 		{
-			name:                  "failed to commit state DB",
+			name:                  "fail - failed to commit state DB",
 			simulateCommitDbError: true,
 			malleate: func() {
 				suite.FundDefaultAddress(1_000_000)
@@ -893,8 +931,9 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				msg, err = ethMsg.AsMessage(msgSigner, nil)
 				suite.Require().NoError(err)
 			},
-			expErr:         true,
-			expErrContains: "failed to commit stateDB",
+			expErr:          true,
+			expErrContains:  "failed to commit stateDB",
+			expLaterBalance: ptr(1_000_000),
 		},
 	}
 
@@ -920,6 +959,12 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 			}
 
 			res, err := suite.app.EvmKeeper.ApplyMessageWithConfig(suite.ctx, msg, nil, true, config, txConfig)
+
+			defer func() {
+				if tc.expLaterBalance != nil {
+					suite.Equal(*tc.expLaterBalance, suite.app.BankKeeper.GetBalance(suite.ctx, suite.address.Bytes(), keeperParams.EvmDenom).Amount.Int64())
+				}
+			}()
 
 			if tc.expErr {
 				if res != nil {

@@ -43,6 +43,7 @@ func (scd DLSetupContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 
 	// reset previous run
 	scd.ek.SetFlagSenderNonceIncreasedByAnteHandle(newCtx, false)
+	scd.ek.SetFlagSenderPaidTxFeeInAnteHandle(newCtx, false)
 
 	return next(newCtx, tx, simulate)
 }

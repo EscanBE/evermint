@@ -538,7 +538,15 @@ func (s *DLTestSuite) Test_DLDeductFeeDecorator() {
 			}
 
 			tt.decoratorSpec.WithDecorator(
-				duallane.NewDualLaneDeductFeeDecorator(sdkauthante.NewDeductFeeDecorator(s.App().AccountKeeper(), s.App().BankKeeper(), s.App().FeeGrantKeeper(), s.ATS.HandlerOptions.TxFeeChecker)),
+				duallane.NewDualLaneDeductFeeDecorator(
+					*s.App().EvmKeeper(),
+					sdkauthante.NewDeductFeeDecorator(
+						s.App().AccountKeeper(),
+						s.App().BankKeeper(),
+						s.App().FeeGrantKeeper(),
+						s.ATS.HandlerOptions.TxFeeChecker,
+					),
+				),
 			)
 
 			if tt.onSuccess != nil {

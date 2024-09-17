@@ -14,12 +14,14 @@ import (
 
 	dlanteutils "github.com/EscanBE/evermint/v12/app/antedl/utils"
 	evertypes "github.com/EscanBE/evermint/v12/types"
+	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 )
 
 type DLDeductFeeDecorator struct {
+	ek evmkeeper.Keeper
 	cd sdkauthante.DeductFeeDecorator
 }
 
@@ -28,14 +30,20 @@ type DLDeductFeeDecorator struct {
 // It does nothing but forward to SDK DeductFeeDecorator.
 // As the fee checker we are using is DualLaneFeeChecker so Ethereum Tx fee checker already included correctly.
 func NewDualLaneDeductFeeDecorator(
+	ek evmkeeper.Keeper,
 	cd sdkauthante.DeductFeeDecorator,
 ) DLDeductFeeDecorator {
 	return DLDeductFeeDecorator{
+		ek: ek,
 		cd: cd,
 	}
 }
 
 func (dfd DLDeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	if dlanteutils.HasSingleEthereumMessage(tx) {
+		dfd.ek.SetFlagSenderPaidTxFeeInAnteHandle(ctx, true)
+	}
+
 	return dfd.cd.AnteHandle(ctx, tx, simulate, next)
 }
 
