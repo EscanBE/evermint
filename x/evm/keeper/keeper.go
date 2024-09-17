@@ -273,6 +273,22 @@ func (k Keeper) IsSenderNonceIncreasedByAnteHandle(ctx sdk.Context) bool {
 	return k.genericGetBoolFlagTransient(ctx, evmtypes.KeyTransientFlagIncreasedSenderNonce)
 }
 
+// SetFlagSenderPaidTxFeeInAnteHandle sets the flag whether the sender has paid for tx fee, which deducted by AnteHandler.
+// This logic is needed because unlike go-ethereum which send buys gas right before state transition,
+// we deduct fee using Deduct Fee Decorator, So if sender not paid the tx fee,
+// the refund logic will not add balance to the sender account.
+// Because in theory, only transaction going through AnteHandler while system call like `x/erc20` does not.
+func (k Keeper) SetFlagSenderPaidTxFeeInAnteHandle(ctx sdk.Context, paid bool) {
+	k.genericSetBoolFlagTransient(ctx, evmtypes.KeyTransientSenderPaidFee, paid)
+}
+
+// IsSenderPaidTxFeeInAnteHandle returns the flag whether the sender had paid for tx fee in AnteHandler.
+// This is used to prevent adding balance into the sender account during refund mechanism
+// if the sender didn't pay the tx fee.
+func (k Keeper) IsSenderPaidTxFeeInAnteHandle(ctx sdk.Context) bool {
+	return k.genericGetBoolFlagTransient(ctx, evmtypes.KeyTransientSenderPaidFee)
+}
+
 // SetFlagEnableNoBaseFee sets the flag whether to enable no-base-fee of EVM config.
 // Go-Ethereum used this setting for `eth_call` and smt like that.
 func (k Keeper) SetFlagEnableNoBaseFee(ctx sdk.Context, enable bool) {
