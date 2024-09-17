@@ -234,7 +234,9 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		gasPool = core.GasPool(msg.Gas())
 	}
 
-	execResult, err := ApplyMessage(evm, msg, &gasPool)
+	execResult, err := ApplyMessage(evm, msg, &gasPool, func(st *StateTransition) {
+		st.SenderPaidTheFee = k.IsSenderPaidTxFeeInAnteHandle(ctx)
+	})
 	if err != nil {
 		return nil, err
 	}

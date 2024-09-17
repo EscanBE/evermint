@@ -60,6 +60,14 @@ type StateTransition struct {
 	data       []byte
 	state      vm.StateDB
 	evm        *vm.EVM
+
+	// extra fields for Evermint
+
+	/**
+	 * SenderPaidTheFee is a flag that indicates if the sender paid the fee in the AnteHandle.
+	 * It is used to avoid refund gas to the sender which transition does not come from a tx, like system call from `x/erc20`.
+	 */
+	SenderPaidTheFee bool
 }
 
 // NewStateTransition initialises and returns a new state transition object.
@@ -84,8 +92,12 @@ func NewStateTransition(evm *vm.EVM, msg core.Message, gp *core.GasPool) *StateT
 // the gas used (which includes gas refunds) and an error if it failed. An error always
 // indicates a core error meaning that the message would always fail for that particular
 // state and would never be accepted within a block.
-func ApplyMessage(evm *vm.EVM, msg core.Message, gp *core.GasPool) (*core.ExecutionResult, error) {
-	return NewStateTransition(evm, msg, gp).TransitionDb()
+func ApplyMessage(evm *vm.EVM, msg core.Message, gp *core.GasPool, beforeRun func(transition *StateTransition)) (*core.ExecutionResult, error) {
+	st := NewStateTransition(evm, msg, gp)
+	if beforeRun != nil {
+		beforeRun(st)
+	}
+	return st.TransitionDb()
 }
 
 // to returns the recipient of the message.
@@ -290,9 +302,13 @@ func (st *StateTransition) refundGas(refundQuotient uint64) {
 	}
 	st.gas += refund
 
-	// Return ETH for remaining gas, exchanged at the original rate.
-	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
-	st.state.AddBalance(st.msg.From(), remaining)
+	if st.SenderPaidTheFee {
+		// only refund fee to sender if the sender paid the fee in the AnteHandle
+
+		// Return ETH for remaining gas, exchanged at the original rate.
+		remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
+		st.state.AddBalance(st.msg.From(), remaining)
+	}
 
 	// Also return remaining gas to the block gas counter so it is
 	// available for the next transaction.
