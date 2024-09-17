@@ -28,7 +28,7 @@ func NewAnteHandler(options HandlerOptions) sdk.AnteHandler {
 			duallane.NewDualLaneTxTimeoutHeightDecorator(sdkauthante.NewTxTimeoutHeightDecorator()),
 			duallane.NewDualLaneValidateMemoDecorator(sdkauthante.NewValidateMemoDecorator(options.AccountKeeper)),
 			duallane.NewDualLaneConsumeTxSizeGasDecorator(sdkauthante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper)),
-			duallane.NewDualLaneDeductFeeDecorator(sdkauthante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, options.TxFeeChecker)),
+			duallane.NewDualLaneDeductFeeDecorator(*options.EvmKeeper, sdkauthante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, options.TxFeeChecker)),
 			duallane.NewDualLaneSetPubKeyDecorator(sdkauthante.NewSetPubKeyDecorator(options.AccountKeeper)), // SetPubKeyDecorator must be called before all signature verification decorators
 			duallane.NewDualLaneValidateSigCountDecorator(sdkauthante.NewValidateSigCountDecorator(options.AccountKeeper)),
 			duallane.NewDualLaneSigGasConsumeDecorator(sdkauthante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer)),
