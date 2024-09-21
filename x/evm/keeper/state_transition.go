@@ -298,8 +298,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 
 	// The dirty states in `StateDB` is either committed or discarded after return
 	if commit {
-		// TODO ES: enable delete empty object?
-		if err := stateDB.CommitMultiStore(false); err != nil {
+		if err := stateDB.CommitMultiStore(true); err != nil {
 			return nil, errorsmod.Wrap(err, "failed to commit stateDB")
 		}
 	}
