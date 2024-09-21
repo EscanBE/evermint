@@ -150,7 +150,9 @@ func (s *ELTestSuite) Test_ELExecWithoutErrorDecorator() {
 			cachedCtx, _ := s.Ctx().CacheContext()
 
 			tt.decoratorSpec.WithDecorator(
-				evmlane.NewEvmLaneExecWithoutErrorDecorator(*s.App().AccountKeeper(), *s.App().EvmKeeper()),
+				evmlane.NewEvmLaneExecWithoutErrorDecorator(
+					*s.App().AccountKeeper(), s.App().BankKeeper(), *s.App().EvmKeeper(),
+				),
 			)
 
 			if tt.reCheckTx {

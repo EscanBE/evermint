@@ -41,6 +41,12 @@ func GenerateAddress() common.Address {
 	return addr
 }
 
+// GenerateHash generates an Ethereum hash.
+func GenerateHash() common.Hash {
+	_, pk := NewAddrKey()
+	return common.BytesToHash(pk.Bytes())
+}
+
 var _ keyring.Signer = &Signer{}
 
 // Signer defines a type that is used on testing for signing MsgEthereumTx

@@ -3,11 +3,13 @@ package evmlane
 import (
 	"errors"
 
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+
 	errorsmod "cosmossdk.io/errors"
 
 	dlanteutils "github.com/EscanBE/evermint/v12/app/antedl/utils"
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -15,11 +17,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
+	corevm "github.com/ethereum/go-ethereum/core/vm"
 )
 
 type ELExecWithoutErrorDecorator struct {
 	ak authkeeper.AccountKeeper
+	bk bankkeeper.Keeper
 	ek evmkeeper.Keeper
 }
 
@@ -27,9 +30,10 @@ type ELExecWithoutErrorDecorator struct {
 // This decorator only executes in (re)check-tx and simulation mode.
 //   - If the input transaction is a Cosmos transaction, it calls next ante handler.
 //   - If the input transaction is an Ethereum transaction, it runs simulate the state transition to ensure tx can be executed.
-func NewEvmLaneExecWithoutErrorDecorator(ak authkeeper.AccountKeeper, ek evmkeeper.Keeper) ELExecWithoutErrorDecorator {
+func NewEvmLaneExecWithoutErrorDecorator(ak authkeeper.AccountKeeper, bk bankkeeper.Keeper, ek evmkeeper.Keeper) ELExecWithoutErrorDecorator {
 	return ELExecWithoutErrorDecorator{
 		ak: ak,
+		bk: bk,
 		ek: ek,
 	}
 }
@@ -72,13 +76,11 @@ func (ed ELExecWithoutErrorDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, sim
 		ed.ek.SetFlagSenderNonceIncreasedByAnteHandle(simulationCtx, false)
 	}
 
-	var evm *vm.EVM
+	var evm *corevm.EVM
 	{ // initialize EVM
-		txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(simulationCtx.HeaderHash()))
-		txConfig = txConfig.WithTxTypeFromMessage(ethCoreMsg)
-		stateDB := statedb.New(simulationCtx, &ed.ek, txConfig)
+		stateDB := evmvm.NewStateDB(simulationCtx, &ed.ek, ed.ak, ed.bk)
 		evmParams := ed.ek.GetParams(simulationCtx)
-		evmCfg := &statedb.EVMConfig{
+		evmCfg := &evmvm.EVMConfig{
 			Params:      evmParams,
 			ChainConfig: evmParams.ChainConfig.EthereumConfig(ed.ek.ChainID()),
 			CoinBase:    common.Address{},
