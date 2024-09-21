@@ -327,6 +327,7 @@ func (k Keeper) GetAccountStorage(ctx sdk.Context, address common.Address) evmty
 //   - Nonce is zero
 //   - Balance is zero
 //   - CodeHash is empty
+//   - No state
 func (k *Keeper) IsEmptyAccount(ctx sdk.Context, addr common.Address) bool {
 	if codeHash := k.GetCodeHash(ctx, addr.Bytes()); !evmtypes.IsEmptyCodeHash(codeHash) {
 		return false
@@ -337,6 +338,15 @@ func (k *Keeper) IsEmptyAccount(ctx sdk.Context, addr common.Address) bool {
 	}
 
 	if acc := k.accountKeeper.GetAccount(ctx, addr.Bytes()); acc != nil && acc.GetSequence() > 0 {
+		return false
+	}
+
+	var anyState bool
+	k.ForEachStorage(ctx, addr, func(key, value common.Hash) bool {
+		anyState = true
+		return false
+	})
+	if anyState {
 		return false
 	}
 

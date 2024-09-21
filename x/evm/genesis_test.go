@@ -148,7 +148,7 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 			vmdb = suite.StateDB()
 
 			tc.malleate()
-			err := vmdb.CommitMultiStore(false)
+			err := vmdb.CommitMultiStore(true)
 			suite.Require().NoError(err)
 
 			if tc.expPanic {

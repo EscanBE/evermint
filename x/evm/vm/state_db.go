@@ -452,7 +452,7 @@ func (d *cStateDb) Exist(address common.Address) bool {
 }
 
 // Empty returns whether the given account is empty. Empty
-// is defined according to EIP161 (balance = nonce = code = 0).
+// is defined according to EIP161 (balance = nonce = code = state/storage = 0).
 func (d *cStateDb) Empty(address common.Address) bool {
 	return d.evmKeeper.IsEmptyAccount(d.currentCtx, address)
 }

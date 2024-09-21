@@ -279,7 +279,7 @@ func (suite *KeeperTestSuite) TestQueryStorage() {
 
 			vmdb := suite.StateDB()
 			tc.malleate(vmdb)
-			suite.Require().NoError(vmdb.CommitMultiStore(false))
+			suite.Require().NoError(vmdb.CommitMultiStore(true))
 
 			res, err := suite.queryClient.Storage(suite.ctx, req)
 
@@ -337,7 +337,7 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 
 			vmdb := suite.StateDB()
 			tc.malleate(vmdb)
-			suite.Require().NoError(vmdb.CommitMultiStore(false))
+			suite.Require().NoError(vmdb.CommitMultiStore(true))
 
 			res, err := suite.queryClient.Code(suite.ctx, req)
 
@@ -399,7 +399,7 @@ func (suite *KeeperTestSuite) TestQueryTxLogs() {
 
 			vmdb := evmvm.NewStateDB(suite.ctx, suite.app.EvmKeeper, suite.app.AccountKeeper, suite.app.BankKeeper)
 			tc.malleate(vmdb)
-			suite.Require().NoError(vmdb.CommitMultiStore(false))
+			suite.Require().NoError(vmdb.CommitMultiStore(true))
 
 			logs := vmdb.GetTransactionLogs()
 			suite.Require().Equal(expLogs, logs)
@@ -859,7 +859,7 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 				// increase nonce to avoid address collision
 				vmdb := suite.StateDB()
 				vmdb.SetNonce(suite.address, vmdb.GetNonce(suite.address)+1)
-				suite.Require().NoError(vmdb.CommitMultiStore(false))
+				suite.Require().NoError(vmdb.CommitMultiStore(true))
 
 				contractAddr := suite.DeployTestContract(suite.T(), suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
 				suite.Commit()
@@ -927,7 +927,7 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 				// increase nonce to avoid address collision
 				vmdb := suite.StateDB()
 				vmdb.SetNonce(suite.address, vmdb.GetNonce(suite.address)+1)
-				suite.Require().NoError(vmdb.CommitMultiStore(false))
+				suite.Require().NoError(vmdb.CommitMultiStore(true))
 
 				chainID := suite.app.EvmKeeper.ChainID()
 				nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
@@ -1101,7 +1101,7 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 				// increase nonce to avoid address collision
 				vmdb := suite.StateDB()
 				vmdb.SetNonce(suite.address, vmdb.GetNonce(suite.address)+1)
-				suite.Require().NoError(vmdb.CommitMultiStore(false))
+				suite.Require().NoError(vmdb.CommitMultiStore(true))
 
 				contractAddr := suite.DeployTestContract(suite.T(), suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
 				suite.Commit()

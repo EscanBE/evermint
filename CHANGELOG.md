@@ -68,6 +68,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (eip712) [#158](https://github.com/EscanBE/evermint/pull/158) Cleanup EIP-712, remove `ExtensionOptionsWeb3Tx` and the custom Cosmos AnteHandler
 - (eip712) [#159](https://github.com/EscanBE/evermint/pull/159) Cleanup EIP-712, remove the legacy handler
 - (evm) [#160](https://github.com/EscanBE/evermint/pull/160) Use Ethereum Tx marshalled binary instead of local maintained TxData
+- (evm) [#168](https://github.com/EscanBE/evermint/pull/168) Remove empty account upon commit (EIP-158)
 
 # Cosmos-SDK v0.47
 
