@@ -1,8 +1,10 @@
 package keeper
 
 import (
-	"math"
+	"fmt"
 	"math/big"
+
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 
 	cmttypes "github.com/cometbft/cometbft/types"
 
@@ -10,13 +12,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	evertypes "github.com/EscanBE/evermint/v12/types"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
+	corevm "github.com/ethereum/go-ethereum/core/vm"
 )
 
 // NewEVM generates a go-ethereum VM from the provided Message fields and the chain parameters
@@ -27,15 +28,15 @@ import (
 // NOTE: the RANDOM opcode is currently not supported since it requires
 // RANDAO implementation. See https://github.com/evmos/ethermint/pull/1520#pullrequestreview-1200504697
 // for more information.
-
+// TODO ES: support RANDOM opcode
 func (k *Keeper) NewEVM(
 	ctx sdk.Context,
 	msg core.Message,
-	cfg *statedb.EVMConfig,
-	tracer vm.EVMLogger,
-	stateDB vm.StateDB,
-) *vm.EVM {
-	blockCtx := vm.BlockContext{
+	cfg *evmvm.EVMConfig,
+	tracer corevm.EVMLogger,
+	stateDB corevm.StateDB,
+) *corevm.EVM {
+	blockCtx := corevm.BlockContext{
 		CanTransfer: core.CanTransfer,
 		Transfer:    core.Transfer,
 		GetHash:     k.GetHashFn(ctx),
@@ -50,17 +51,33 @@ func (k *Keeper) NewEVM(
 
 	txCtx := core.NewEVMTxContext(msg)
 	if tracer == nil {
-		tracer = k.Tracer(ctx, msg, cfg.ChainConfig)
+		tracer = evmtypes.NewTracer(k.tracer, msg, cfg.ChainConfig, ctx.BlockHeight())
 	}
-	vmConfig := k.VMConfig(ctx, cfg, tracer)
-	return vm.NewEVM(blockCtx, txCtx, stateDB, cfg.ChainConfig, vmConfig)
+
+	coreVmConfig := corevm.Config{
+		Debug: func() bool {
+			if tracer != nil {
+				if _, ok := tracer.(evmtypes.NoOpTracer); !ok {
+					return true
+				}
+			}
+			return false
+		}(),
+		Tracer:    tracer,
+		NoBaseFee: cfg.NoBaseFee || k.IsNoBaseFeeEnabled(ctx),
+		ExtraEips: cfg.Params.EIPs(),
+	}
+
+	return corevm.NewEVM(blockCtx, txCtx, stateDB, cfg.ChainConfig, coreVmConfig)
 }
 
-// GetHashFn implements vm.GetHashFunc for Ethermint. It handles 3 cases:
+// GetHashFn implements vm.GetHashFunc for Evermint. It handles 3 cases:
 //  1. The requested height matches the current height from context (and thus same epoch number)
-//  2. The requested height is from an previous height from the same chain epoch
+//  2. The requested height is from a previous height from the same chain epoch
 //  3. The requested height is from a height greater than the latest one
-func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
+//
+// TODO ES: improve this
+func (k Keeper) GetHashFn(ctx sdk.Context) corevm.GetHashFunc {
 	return func(height uint64) common.Hash {
 		h, err := evertypes.SafeInt64(height)
 		if err != nil {
@@ -70,8 +87,8 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 
 		switch {
 		case ctx.BlockHeight() == h:
-			// Case 1: The requested height matches the one from the context so we can retrieve the header
-			// hash directly from the context.
+			// Case 1: The requested height matches the one from the context,
+			// so we can retrieve the header hash directly from the context.
 			// Note: The headerHash is only set at begin block, it will be nil in case of a query context
 			headerHash := ctx.HeaderHash()
 			if len(headerHash) != 0 {
@@ -134,7 +151,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*e
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to load evm config")
 	}
-	txConfig := k.TxConfig(ctx, tx.Hash())
+	txConfig := k.NewTxConfig(ctx, tx)
 
 	// get the signer according to the chain rules from the config and block height
 	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(ctx.BlockHeight()))
@@ -162,14 +179,13 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*e
 }
 
 // ApplyMessage calls ApplyMessageWithConfig with an empty TxConfig.
-func (k *Keeper) ApplyMessage(ctx sdk.Context, msg core.Message, tracer vm.EVMLogger, commit bool) (*evmtypes.MsgEthereumTxResponse, error) {
+func (k *Keeper) ApplyMessage(ctx sdk.Context, msg core.Message, tracer corevm.EVMLogger, commit bool) (*evmtypes.MsgEthereumTxResponse, error) {
 	cfg, err := k.EVMConfig(ctx, sdk.ConsAddress(ctx.BlockHeader().ProposerAddress), k.eip155ChainID)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to load evm config")
 	}
 
-	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
-	txConfig = txConfig.WithTxTypeFromMessage(msg)
+	txConfig := k.NewTxConfigFromMessage(ctx, msg)
 	return k.ApplyMessageWithConfig(ctx, msg, tracer, commit, cfg, txConfig)
 }
 
@@ -179,7 +195,7 @@ func (k *Keeper) ApplyMessage(ctx sdk.Context, msg core.Message, tracer vm.EVMLo
 //
 // # Reverted state
 //
-// The snapshot and rollback are supported by the `statedb.StateDB`.
+// The snapshot and rollback are supported by the `legacy_statedb.StateDB`.
 //
 // # Different Callers
 //
@@ -213,10 +229,10 @@ func (k *Keeper) ApplyMessage(ctx sdk.Context, msg core.Message, tracer vm.EVMLo
 // If commit is true, the `StateDB` will be committed, otherwise discarded.
 func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 	msg core.Message,
-	tracer vm.EVMLogger,
+	tracer corevm.EVMLogger,
 	commit bool,
-	cfg *statedb.EVMConfig,
-	txConfig statedb.TxConfig,
+	cfg *evmvm.EVMConfig,
+	txConfig evmvm.TxConfig,
 ) (*evmtypes.MsgEthereumTxResponse, error) {
 	// return error if contract creation or call are disabled through governance
 	if !cfg.Params.EnableCreate && msg.To() == nil {
@@ -225,7 +241,8 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		return nil, errorsmod.Wrap(evmtypes.ErrCallDisabled, "failed to call contract")
 	}
 
-	stateDB := statedb.New(ctx, k, txConfig)
+	stateDB := evmvm.NewStateDB(ctx, k, k.accountKeeper, k.bankKeeper)
+	// stateDB := statedb.New(ctx, k, txConfig)
 	evm := k.NewEVM(ctx, msg, cfg, tracer, stateDB)
 
 	var gasPool core.GasPool
@@ -249,10 +266,18 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 	}
 
 	var txType uint8
-	if txConfig.TxType < 0 || txConfig.TxType > math.MaxUint8 {
+	if txConfig.TxType == nil {
 		panic("require tx type set")
-	} else {
-		txType = uint8(txConfig.TxType)
+	}
+	switch *txConfig.TxType {
+	case ethtypes.DynamicFeeTxType:
+		txType = ethtypes.DynamicFeeTxType
+	case ethtypes.AccessListTxType:
+		txType = ethtypes.AccessListTxType
+	case ethtypes.LegacyTxType:
+		txType = ethtypes.LegacyTxType
+	default:
+		panic(fmt.Sprintf("invalid tx type: %d", *txConfig.TxType))
 	}
 
 	receipt := ethtypes.Receipt{
@@ -262,7 +287,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		Status:            0,   // to be filled below
 		CumulativeGasUsed: cumulativeGasUsed,
 		Bloom:             ethtypes.Bloom{}, // compute bellow
-		Logs:              stateDB.Logs(),
+		Logs:              stateDB.GetTransactionLogs(),
 	}
 	if execResult.Err == nil {
 		receipt.Status = ethtypes.ReceiptStatusSuccessful
@@ -273,7 +298,8 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 
 	// The dirty states in `StateDB` is either committed or discarded after return
 	if commit {
-		if err := stateDB.Commit(); err != nil {
+		// TODO ES: enable delete empty object?
+		if err := stateDB.CommitMultiStore(false); err != nil {
 			return nil, errorsmod.Wrap(err, "failed to commit stateDB")
 		}
 	}

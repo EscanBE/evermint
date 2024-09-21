@@ -2,6 +2,8 @@ package keeper_test
 
 import (
 	_ "embed"
+	"github.com/EscanBE/evermint/v12/testutil"
+	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	"math/big"
 
 	storetypes "cosmossdk.io/store/types"
@@ -12,7 +14,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -158,22 +159,19 @@ func (suite *KeeperTestSuite) TestGetAccountStorage() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetAccountOrEmpty() {
-	empty := statedb.Account{
-		Balance:  new(big.Int),
-		CodeHash: evmtypes.EmptyCodeHash,
-	}
-
-	supply := big.NewInt(100)
-	contractAddr := suite.DeployTestContract(suite.T(), suite.address, supply)
+func (suite *KeeperTestSuite) TestIsEmptyAccount() {
+	contractAddr := suite.DeployTestContract(suite.T(), suite.address, common.Big1)
+	randomAddr1 := utiltx.GenerateAddress()
+	randomAddr2 := utiltx.GenerateAddress()
 
 	testCases := []struct {
 		name     string
 		addr     common.Address
+		malleate func()
 		expEmpty bool
 	}{
 		{
-			name:     "unexisting account - get empty",
+			name:     "non-existing account",
 			addr:     common.Address{},
 			expEmpty: true,
 		},
@@ -182,16 +180,40 @@ func (suite *KeeperTestSuite) TestGetAccountOrEmpty() {
 			addr:     contractAddr,
 			expEmpty: false,
 		},
+		{
+			name: "account with balance",
+			addr: randomAddr1,
+			malleate: func() {
+				err := testutil.FundAccount(
+					suite.ctx,
+					suite.app.BankKeeper,
+					randomAddr1.Bytes(),
+					sdk.NewCoins(sdk.NewInt64Coin(constants.BaseDenom, 1)),
+				)
+				suite.Require().NoError(err)
+			},
+			expEmpty: false,
+		},
+		{
+			name: "account with nonce",
+			addr: randomAddr2,
+			malleate: func() {
+				acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, randomAddr2.Bytes())
+				err := acc.SetSequence(1)
+				suite.Require().NoError(err)
+				suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
+			},
+			expEmpty: false,
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			res := suite.app.EvmKeeper.GetAccountOrEmpty(suite.ctx, tc.addr)
-			if tc.expEmpty {
-				suite.Require().Equal(empty, res)
-			} else {
-				suite.Require().NotEqual(empty, res)
+			if tc.malleate != nil {
+				tc.malleate()
 			}
+			gotEmpty := suite.app.EvmKeeper.IsEmptyAccount(suite.ctx, tc.addr)
+			suite.Require().Equal(tc.expEmpty, gotEmpty)
 		})
 	}
 }

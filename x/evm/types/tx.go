@@ -6,7 +6,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/vm"
+	corevm "github.com/ethereum/go-ethereum/core/vm"
 )
 
 // EvmTxArgs encapsulates all possible params to create all EVM txs types.
@@ -42,7 +42,7 @@ func (m *MsgEthereumTxResponse) Return() []byte {
 // Revert returns the concrete revert reason if the execution is aborted by `REVERT`
 // opcode. Note the reason can be nil if no data supplied with revert opcode.
 func (m *MsgEthereumTxResponse) Revert() []byte {
-	if m.VmError != vm.ErrExecutionReverted.Error() {
+	if m.VmError != corevm.ErrExecutionReverted.Error() {
 		return nil
 	}
 	return common.CopyBytes(m.Ret)

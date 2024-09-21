@@ -6,10 +6,10 @@ import (
 	"time"
 
 	evertypes "github.com/EscanBE/evermint/v12/types"
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 
 	"github.com/EscanBE/evermint/v12/server/config"
 	"github.com/EscanBE/evermint/v12/testutil"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -36,8 +36,8 @@ func (suite *KeeperTestSuite) Commit() {
 	suite.queryClient = evmtypes.NewQueryClient(queryHelper)
 }
 
-func (suite *KeeperTestSuite) StateDB() *statedb.StateDB {
-	return statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(suite.ctx.HeaderHash())))
+func (suite *KeeperTestSuite) StateDB() evmvm.CStateDB {
+	return evmvm.NewStateDB(suite.ctx, suite.app.EvmKeeper, suite.app.AccountKeeper, suite.app.BankKeeper)
 }
 
 // DeployTestContract deploy a test erc20 contract and returns the contract address

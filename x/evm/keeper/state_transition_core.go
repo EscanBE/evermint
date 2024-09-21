@@ -25,7 +25,7 @@ import (
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/vm"
+	corevm "github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/params"
 )
 
@@ -58,8 +58,8 @@ type StateTransition struct {
 	initialGas uint64
 	value      *big.Int
 	data       []byte
-	state      vm.StateDB
-	evm        *vm.EVM
+	state      corevm.StateDB
+	evm        *corevm.EVM
 
 	// extra fields for Evermint
 
@@ -71,7 +71,7 @@ type StateTransition struct {
 }
 
 // NewStateTransition initialises and returns a new state transition object.
-func NewStateTransition(evm *vm.EVM, msg core.Message, gp *core.GasPool) *StateTransition {
+func NewStateTransition(evm *corevm.EVM, msg core.Message, gp *core.GasPool) *StateTransition {
 	return &StateTransition{
 		gp:        gp,
 		evm:       evm,
@@ -92,7 +92,7 @@ func NewStateTransition(evm *vm.EVM, msg core.Message, gp *core.GasPool) *StateT
 // the gas used (which includes gas refunds) and an error if it failed. An error always
 // indicates a core error meaning that the message would always fail for that particular
 // state and would never be accepted within a block.
-func ApplyMessage(evm *vm.EVM, msg core.Message, gp *core.GasPool, beforeRun func(transition *StateTransition)) (*core.ExecutionResult, error) {
+func ApplyMessage(evm *corevm.EVM, msg core.Message, gp *core.GasPool, beforeRun func(transition *StateTransition)) (*core.ExecutionResult, error) {
 	st := NewStateTransition(evm, msg, gp)
 	if beforeRun != nil {
 		beforeRun(st)
@@ -224,7 +224,7 @@ func (st *StateTransition) TransitionDb() (*core.ExecutionResult, error) {
 
 	var (
 		msg              = st.msg
-		sender           = vm.AccountRef(msg.From())
+		sender           = corevm.AccountRef(msg.From())
 		rules            = st.evm.ChainConfig().Rules(st.evm.Context.BlockNumber, st.evm.Context.Random != nil)
 		contractCreation = msg.To() == nil
 	)
@@ -246,7 +246,7 @@ func (st *StateTransition) TransitionDb() (*core.ExecutionResult, error) {
 
 	// Set up the initial access list.
 	if rules.IsBerlin {
-		st.state.PrepareAccessList(msg.From(), msg.To(), vm.ActivePrecompiles(rules), msg.AccessList())
+		st.state.PrepareAccessList(msg.From(), msg.To(), corevm.ActivePrecompiles(rules), msg.AccessList())
 	}
 	var (
 		ret   []byte

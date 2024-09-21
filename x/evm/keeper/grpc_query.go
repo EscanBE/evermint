@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 	"math/big"
 	"time"
 
@@ -25,11 +26,10 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
+	corevm "github.com/ethereum/go-ethereum/core/vm"
 	ethparams "github.com/ethereum/go-ethereum/params"
 
 	evertypes "github.com/EscanBE/evermint/v12/types"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
@@ -51,15 +51,18 @@ func (k Keeper) Account(c context.Context, req *evmtypes.QueryAccountRequest) (*
 		)
 	}
 
+	ctx := sdk.UnwrapSDKContext(c)
 	addr := common.HexToAddress(req.Address)
 
-	ctx := sdk.UnwrapSDKContext(c)
-	acct := k.GetAccountOrEmpty(ctx, addr)
+	var nonce uint64
+	if acc := k.accountKeeper.GetAccount(ctx, addr.Bytes()); acc != nil {
+		nonce = acc.GetSequence()
+	}
 
 	return &evmtypes.QueryAccountResponse{
-		Balance:  acct.Balance.String(),
-		CodeHash: common.BytesToHash(acct.CodeHash).Hex(),
-		Nonce:    acct.Nonce,
+		Nonce:    nonce,
+		Balance:  k.GetBalance(ctx, addr).String(),
+		CodeHash: k.GetCodeHash(ctx, addr.Bytes()).Hex(),
 	}, nil
 }
 
@@ -146,10 +149,10 @@ func (k Keeper) Balance(c context.Context, req *evmtypes.QueryBalanceRequest) (*
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	balanceInt := k.GetBalance(ctx, common.HexToAddress(req.Address))
+	balance := k.GetBalance(ctx, common.HexToAddress(req.Address))
 
 	return &evmtypes.QueryBalanceResponse{
-		Balance: balanceInt.String(),
+		Balance: balance.String(),
 	}, nil
 }
 
@@ -195,11 +198,11 @@ func (k Keeper) Code(c context.Context, req *evmtypes.QueryCodeRequest) (*evmtyp
 	ctx := sdk.UnwrapSDKContext(c)
 
 	address := common.HexToAddress(req.Address)
-	acct := k.GetAccountWithoutBalance(ctx, address)
+	codeHash := k.GetCodeHash(ctx, address.Bytes())
 
 	var code []byte
-	if acct != nil && acct.IsContract() {
-		code = k.GetCode(ctx, common.BytesToHash(acct.CodeHash))
+	if !evmtypes.IsEmptyCodeHash(codeHash) {
+		code = k.GetCode(ctx, codeHash)
 	}
 
 	return &evmtypes.QueryCodeResponse{
@@ -250,7 +253,7 @@ func (k Keeper) EthCall(c context.Context, req *evmtypes.EthCallRequest) (*evmty
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash())).WithTxTypeFromMessage(msg)
+	txConfig := k.NewTxConfigFromMessage(ctx, msg)
 
 	// pass false to not commit StateDB
 	res, err := k.ApplyMessageWithConfig(ctx, msg, nil, false, cfg, txConfig)
@@ -323,8 +326,6 @@ func (k Keeper) EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*e
 	nonce := k.GetNonce(ctx, args.GetFrom())
 	args.Nonce = (*hexutil.Uint64)(&nonce)
 
-	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
-
 	// convert the tx args to an ethereum message
 	msg, err := args.ToMessage(req.GasCap, cfg.BaseFee)
 	if err != nil {
@@ -350,7 +351,8 @@ func (k Keeper) EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*e
 			msg.AccessList(),
 			msg.IsFake(),
 		)
-		txConfig = txConfig.WithTxTypeFromMessage(msg)
+
+		txConfig := k.NewTxConfigFromMessage(ctx, msg)
 
 		// pass false to not commit StateDB
 		rsp, err = k.ApplyMessageWithConfig(ctx, msg, nil, false, cfg, txConfig)
@@ -377,8 +379,8 @@ func (k Keeper) EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*e
 		}
 
 		if failed {
-			if result != nil && result.VmError != vm.ErrOutOfGas.Error() {
-				if result.VmError == vm.ErrExecutionReverted.Error() {
+			if result != nil && result.VmError != corevm.ErrOutOfGas.Error() {
+				if result.VmError == corevm.ErrExecutionReverted.Error() {
 					return nil, evmtypes.NewExecErrorWithReason(result.Ret)
 				}
 				return nil, errors.New(result.VmError)
@@ -434,8 +436,7 @@ func (k Keeper) TraceTx(c context.Context, req *evmtypes.QueryTraceTxRequest) (*
 
 	cfg.BaseFee = k.feeMarketKeeper.GetBaseFee(ctx).BigInt()
 
-	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
-
+	txConfig := k.NewTxConfig(ctx, nil)
 	for i, tx := range req.Predecessors {
 		ethTx := tx.AsTransaction()
 		msg, err := ethTx.AsMessage(signer, cfg.BaseFee)
@@ -444,7 +445,7 @@ func (k Keeper) TraceTx(c context.Context, req *evmtypes.QueryTraceTxRequest) (*
 		}
 		txConfig.TxHash = ethTx.Hash()
 		txConfig.TxIndex = uint(i)
-		txConfig = txConfig.WithTxTypeFromMessage(msg)
+		txConfig = txConfig.WithTxTypeFromTransaction(ethTx)
 
 		// reset gas meter per transaction to avoid stacking the gas used of every predecessor in the same gas meter
 		ctx = ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(msg.Gas()))
@@ -538,12 +539,13 @@ func (k Keeper) TraceBlock(c context.Context, req *evmtypes.QueryTraceBlockReque
 	txsLength := len(req.Txs)
 	results := make([]*evmtypes.TxTraceResult, 0, txsLength)
 
-	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
+	txConfig := k.NewTxConfig(ctx, nil)
 	for i, tx := range req.Txs {
 		result := evmtypes.TxTraceResult{}
 		ethTx := tx.AsTransaction()
 		txConfig.TxHash = ethTx.Hash()
 		txConfig.TxIndex = uint(i)
+		txConfig = txConfig.WithTxTypeFromTransaction(ethTx)
 		traceResult, logIndex, err := k.traceTx(ctx, cfg, txConfig, signer, ethTx, req.TraceConfig, true, nil)
 		if err != nil {
 			result.Error = err.Error()
@@ -567,8 +569,8 @@ func (k Keeper) TraceBlock(c context.Context, req *evmtypes.QueryTraceBlockReque
 // traceTx do trace on one transaction, it returns a tuple: (traceResult, nextLogIndex, error).
 func (k *Keeper) traceTx(
 	ctx sdk.Context,
-	cfg *statedb.EVMConfig,
-	txConfig statedb.TxConfig,
+	cfg *evmvm.EVMConfig,
+	txConfig evmvm.TxConfig,
 	signer ethtypes.Signer,
 	tx *ethtypes.Transaction,
 	traceConfig *evmtypes.TraceConfig,
@@ -582,11 +584,13 @@ func (k *Keeper) traceTx(
 		err       error
 		timeout   = defaultTraceTimeout
 	)
+
+	txConfig = txConfig.WithTxTypeFromTransaction(tx)
+
 	msg, err := tx.AsMessage(signer, cfg.BaseFee)
 	if err != nil {
 		return nil, 0, status.Error(codes.Internal, err.Error())
 	}
-	txConfig = txConfig.WithTxTypeFromMessage(msg)
 
 	if traceConfig == nil {
 		traceConfig = &evmtypes.TraceConfig{}

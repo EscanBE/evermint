@@ -7,7 +7,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/core/vm"
+	corevm "github.com/ethereum/go-ethereum/core/vm"
 )
 
 var (
@@ -100,8 +100,8 @@ func validateEIPs(i interface{}) error {
 	}
 
 	for _, eip := range eips {
-		if !vm.ValidEip(int(eip)) {
-			return fmt.Errorf("EIP %d is not activateable, valid EIPS are: %s", eip, vm.ActivateableEips())
+		if !corevm.ValidEip(int(eip)) {
+			return fmt.Errorf("EIP %d is not activateable, valid EIPS are: %s", eip, corevm.ActivateableEips())
 		}
 	}
 

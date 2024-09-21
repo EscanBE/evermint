@@ -1,6 +1,7 @@
 package evm_test
 
 import (
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 	"math/big"
 
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	"github.com/EscanBE/evermint/v12/x/evm"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
@@ -20,7 +20,7 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 
 	address := common.HexToAddress(privkey.PubKey().Address().String())
 
-	var vmdb *statedb.StateDB
+	var vmdb evmvm.CStateDB
 
 	testCases := []struct {
 		name     string
@@ -148,7 +148,7 @@ func (suite *EvmTestSuite) TestInitGenesis() {
 			vmdb = suite.StateDB()
 
 			tc.malleate()
-			err := vmdb.Commit()
+			err := vmdb.CommitMultiStore(false)
 			suite.Require().NoError(err)
 
 			if tc.expPanic {
