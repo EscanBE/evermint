@@ -434,7 +434,7 @@ func (suite *KeeperTestSuite) TestCommittedState() {
 
 	vmdb := suite.StateDB()
 	vmdb.SetState(suite.address, key, value1)
-	err := vmdb.CommitMultiStore(false)
+	err := vmdb.CommitMultiStore(true)
 	suite.Require().NoError(err)
 
 	vmdb = suite.StateDB()
@@ -443,7 +443,7 @@ func (suite *KeeperTestSuite) TestCommittedState() {
 	suite.Require().Equal(value2, tmp)
 	tmp = vmdb.GetCommittedState(suite.address, key)
 	suite.Require().Equal(value1, tmp)
-	err = vmdb.CommitMultiStore(false)
+	err = vmdb.CommitMultiStore(true)
 	suite.Require().NoError(err)
 
 	vmdb = suite.StateDB()
@@ -462,7 +462,7 @@ func (suite *KeeperTestSuite) TestSuicide() {
 		db.SetState(suite.address, common.BytesToHash([]byte(fmt.Sprintf("key%d", i))), common.BytesToHash([]byte(fmt.Sprintf("value%d", i))))
 	}
 
-	suite.Require().NoError(db.CommitMultiStore(false))
+	suite.Require().NoError(db.CommitMultiStore(true))
 	db = suite.StateDB()
 
 	// Generate 2nd address
@@ -485,7 +485,7 @@ func (suite *KeeperTestSuite) TestSuicide() {
 	suite.Require().Equal(true, db.HasSuicided(suite.address))
 
 	// Commit state
-	suite.Require().NoError(db.CommitMultiStore(false))
+	suite.Require().NoError(db.CommitMultiStore(true))
 	db = suite.StateDB()
 
 	// Check code is deleted

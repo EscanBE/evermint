@@ -50,7 +50,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 				stateDB := suite.StateDB()
 				ok := stateDB.Suicide(erc20)
 				suite.Require().True(ok)
-				suite.Require().NoError(stateDB.CommitMultiStore(false))
+				suite.Require().NoError(stateDB.CommitMultiStore(true))
 			},
 			extra:          func() {},
 			expPass:        true,
@@ -316,7 +316,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 				stateDB := suite.StateDB()
 				ok := stateDB.Suicide(erc20)
 				suite.Require().True(ok)
-				suite.Require().NoError(stateDB.CommitMultiStore(false))
+				suite.Require().NoError(stateDB.CommitMultiStore(true))
 			},
 			extra:          func() {},
 			contractType:   contractMinterBurner,
@@ -674,7 +674,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeIBCVoucher() {
 				stateDB := suite.StateDB()
 				ok := stateDB.Suicide(erc20)
 				suite.Require().True(ok)
-				suite.Require().NoError(stateDB.CommitMultiStore(false))
+				suite.Require().NoError(stateDB.CommitMultiStore(true))
 			},
 			extra:          func() {},
 			expPass:        true,

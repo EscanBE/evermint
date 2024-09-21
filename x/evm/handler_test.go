@@ -688,7 +688,7 @@ func (suite *EvmTestSuite) TestContractDeploymentRevert() {
 			// simulate nonce increment and flag set in ante handler
 			db := suite.StateDB()
 			db.SetNonce(suite.from, nonce+1)
-			suite.Require().NoError(db.CommitMultiStore(false))
+			suite.Require().NoError(db.CommitMultiStore(true))
 			suite.app.EvmKeeper.SetFlagSenderNonceIncreasedByAnteHandle(suite.ctx, true)
 
 			rsp, err := k.EthereumTx(suite.ctx, tx)
