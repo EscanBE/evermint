@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 	"math"
 	"math/big"
 
@@ -12,7 +13,6 @@ import (
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -443,8 +443,9 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 			suite.ctx = suite.ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(ethTx.Gas()))
 
 			if tc.simulateCommitDbError {
-				suite.StateDB().ToggleStateDBPreventCommit(true)
-				defer suite.StateDB().ToggleStateDBPreventCommit(false)
+				stateDb := suite.StateDB()
+				stateDb.ForTest_ToggleStateDBPreventCommit(true)
+				defer stateDb.ForTest_ToggleStateDBPreventCommit(false)
 			}
 
 			res, err := suite.app.EvmKeeper.ApplyTransaction(suite.ctx, ethTx)
@@ -481,7 +482,8 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 
 func (suite *KeeperTestSuite) TestApplyMessage() {
 	var (
-		msg          core.Message
+		ethTx        *ethtypes.Transaction
+		baseFee      *big.Int
 		err          error
 		keeperParams evmtypes.Params
 		signer       ethtypes.Signer
@@ -500,18 +502,15 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 		{
 			name: "message applied ok",
 			malleate: func() {
-				msg, err = newNativeMessage(
+				ethTx, baseFee, err = newNativeTransaction(
 					getNonce(suite.address.Bytes()),
-					suite.ctx.BlockHeight(),
 					suite.address,
-					chainCfg,
 					suite.signer,
 					signer,
 					ethtypes.AccessListTxType,
 					nil,
 					nil,
 				)
-				suite.Require().NoError(err)
 			},
 			expErr:     false,
 			expGasUsed: ethparams.TxGas,
@@ -543,9 +542,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
-				var err error
-				msg, err = ethMsg.AsMessage(msgSigner, nil)
-				suite.Require().NoError(err)
+				ethTx = ethMsg.AsTransaction()
 			},
 			expErr:     false,
 			expGasUsed: 21000,
@@ -577,8 +574,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 				err := ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
-				msg, err = ethMsg.AsMessage(msgSigner, nil)
-				suite.Require().NoError(err)
+				ethTx = ethMsg.AsTransaction()
 			},
 			expErr:     false,
 			expGasUsed: 21_000, // consume just enough gas
@@ -611,8 +607,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
-				msg, err = ethMsg.AsMessage(msgSigner, nil)
-				suite.Require().NoError(err)
+				ethTx = ethMsg.AsTransaction()
 			},
 			expErr:         true,
 			expErrContains: core.ErrIntrinsicGas.Error(),
@@ -645,8 +640,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
-				msg, err = ethMsg.AsMessage(msgSigner, nil)
-				suite.Require().NoError(err)
+				ethTx = ethMsg.AsTransaction()
 			},
 			expErr:         true,
 			expErrContains: "failed to commit stateDB",
@@ -660,15 +654,19 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 			keeperParams = suite.app.EvmKeeper.GetParams(suite.ctx)
 			chainCfg = keeperParams.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
 			signer = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
+			baseFee = nil
 
 			tc.malleate()
-			suite.ctx = suite.ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(msg.Gas()))
+			suite.ctx = suite.ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(ethTx.Gas()))
 
 			if tc.simulateCommitDbError {
-				suite.StateDB().ToggleStateDBPreventCommit(true)
-				defer suite.StateDB().ToggleStateDBPreventCommit(false)
+				stateDb := suite.StateDB()
+				stateDb.ForTest_ToggleStateDBPreventCommit(true)
+				defer stateDb.ForTest_ToggleStateDBPreventCommit(false)
 			}
 
+			msg, err := ethTx.AsMessage(signer, baseFee)
+			suite.Require().NoError(err)
 			res, err := suite.app.EvmKeeper.ApplyMessage(suite.ctx, msg, nil, true)
 
 			if tc.expErr {
@@ -697,13 +695,15 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 
 func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 	var (
-		msg          core.Message
+		ethTx *ethtypes.Transaction
+		//msg          core.Message
 		err          error
-		config       *statedb.EVMConfig
+		config       *evmvm.EVMConfig
 		keeperParams evmtypes.Params
 		signer       ethtypes.Signer
-		txConfig     statedb.TxConfig
+		txConfig     evmvm.TxConfig
 		chainCfg     *ethparams.ChainConfig
+		baseFee      *big.Int
 	)
 
 	ptr := func(i int64) *int64 { return &i }
@@ -720,11 +720,9 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 		{
 			name: "pass - message applied ok",
 			malleate: func() {
-				msg, err = newNativeMessage(
+				ethTx, baseFee, err = newNativeTransaction(
 					getNonce(suite.address.Bytes()),
-					suite.ctx.BlockHeight(),
 					suite.address,
-					chainCfg,
 					suite.signer,
 					signer,
 					ethtypes.AccessListTxType,
@@ -740,11 +738,9 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 			name: "fail - call contract tx with config param EnableCall = false",
 			malleate: func() {
 				config.Params.EnableCall = false
-				msg, err = newNativeMessage(
+				ethTx, baseFee, err = newNativeTransaction(
 					getNonce(suite.address.Bytes()),
-					suite.ctx.BlockHeight(),
 					suite.address,
-					chainCfg,
 					suite.signer,
 					signer,
 					ethtypes.AccessListTxType,
@@ -759,7 +755,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 		{
 			name: "fail - create contract tx with config param EnableCreate = false",
 			malleate: func() {
-				msg, err = suite.createContractGethMsg(getNonce(suite.address.Bytes()), signer, chainCfg, big.NewInt(1))
+				ethTx, err = suite.createContractGethMsg(getNonce(suite.address.Bytes()), signer, big.NewInt(1))
 				suite.Require().NoError(err)
 				config.Params.EnableCreate = false
 			},
@@ -793,8 +789,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
-				msg, err = ethMsg.AsMessage(msgSigner, nil)
-				suite.Require().NoError(err)
+				ethTx = ethMsg.AsTransaction()
 			},
 			expErr:          false,
 			expGasUsed:      21000,
@@ -827,8 +822,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
-				msg, err = ethMsg.AsMessage(msgSigner, nil)
-				suite.Require().NoError(err)
+				ethTx = ethMsg.AsTransaction()
 			},
 			expErr:          false,
 			expGasUsed:      21_000, // consume just enough gas
@@ -859,8 +853,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
-				msg, err = ethMsg.AsMessage(msgSigner, nil)
-				suite.Require().NoError(err)
+				ethTx = ethMsg.AsTransaction()
 			},
 			expErr:          false,
 			expGasUsed:      21000,
@@ -893,8 +886,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
-				msg, err = ethMsg.AsMessage(msgSigner, nil)
-				suite.Require().NoError(err)
+				ethTx = ethMsg.AsTransaction()
 			},
 			expErr:          true,
 			expErrContains:  core.ErrIntrinsicGas.Error(),
@@ -928,8 +920,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
 
-				msg, err = ethMsg.AsMessage(msgSigner, nil)
-				suite.Require().NoError(err)
+				ethTx = ethMsg.AsTransaction()
 			},
 			expErr:          true,
 			expErrContains:  "failed to commit stateDB",
@@ -948,16 +939,20 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 			keeperParams = suite.app.EvmKeeper.GetParams(suite.ctx)
 			chainCfg = keeperParams.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
 			signer = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
+			baseFee = nil
 
 			tc.malleate()
-			txConfig = suite.app.EvmKeeper.TxConfig(suite.ctx, common.Hash{}).WithTxTypeFromMessage(msg)
-			suite.ctx = suite.ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(msg.Gas()))
+			txConfig = suite.app.EvmKeeper.NewTxConfig(suite.ctx, ethTx)
+			suite.ctx = suite.ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(ethTx.Gas()))
 
 			if tc.simulateCommitDbError {
-				suite.StateDB().ToggleStateDBPreventCommit(true)
-				defer suite.StateDB().ToggleStateDBPreventCommit(false)
+				stateDb := suite.StateDB()
+				stateDb.ForTest_ToggleStateDBPreventCommit(true)
+				defer stateDb.ForTest_ToggleStateDBPreventCommit(false)
 			}
 
+			msg, err := ethTx.AsMessage(signer, baseFee)
+			suite.Require().NoError(err)
 			res, err := suite.app.EvmKeeper.ApplyMessageWithConfig(suite.ctx, msg, nil, true, config, txConfig)
 
 			defer func() {
@@ -990,14 +985,13 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 	}
 }
 
-func (suite *KeeperTestSuite) createContractGethMsg(nonce uint64, signer ethtypes.Signer, cfg *ethparams.ChainConfig, gasPrice *big.Int) (core.Message, error) {
+func (suite *KeeperTestSuite) createContractGethMsg(nonce uint64, signer ethtypes.Signer, gasPrice *big.Int) (*ethtypes.Transaction, error) {
 	ethMsg, err := suite.createContractMsgTx(nonce, signer, gasPrice)
 	if err != nil {
 		return nil, err
 	}
 
-	msgSigner := ethtypes.MakeSigner(cfg, big.NewInt(suite.ctx.BlockHeight()))
-	return ethMsg.AsMessage(msgSigner, nil)
+	return ethMsg.AsTransaction(), nil
 }
 
 func (suite *KeeperTestSuite) createContractMsgTx(nonce uint64, signer ethtypes.Signer, gasPrice *big.Int) (*evmtypes.MsgEthereumTx, error) {

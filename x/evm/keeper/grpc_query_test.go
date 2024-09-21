@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"encoding/json"
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 	"math/big"
 
 	storetypes "cosmossdk.io/store/types"
@@ -13,14 +14,13 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/vm"
+	corevm "github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	ethlogger "github.com/ethereum/go-ethereum/eth/tracers/logger"
 	ethparams "github.com/ethereum/go-ethereum/params"
 
 	"github.com/EscanBE/evermint/v12/server/config"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
@@ -245,12 +245,12 @@ func (suite *KeeperTestSuite) TestQueryStorage() {
 
 	testCases := []struct {
 		name     string
-		malleate func(vm.StateDB)
+		malleate func(corevm.StateDB)
 		expPass  bool
 	}{
 		{
 			name: "fail - invalid address",
-			malleate: func(vm.StateDB) {
+			malleate: func(corevm.StateDB) {
 				req = &evmtypes.QueryStorageRequest{
 					Address: invalidAddress,
 				}
@@ -259,7 +259,7 @@ func (suite *KeeperTestSuite) TestQueryStorage() {
 		},
 		{
 			name: "pass",
-			malleate: func(vmdb vm.StateDB) {
+			malleate: func(vmdb corevm.StateDB) {
 				key := common.BytesToHash([]byte("key"))
 				value := common.BytesToHash([]byte("value"))
 				expValue = value.String()
@@ -279,7 +279,7 @@ func (suite *KeeperTestSuite) TestQueryStorage() {
 
 			vmdb := suite.StateDB()
 			tc.malleate(vmdb)
-			suite.Require().NoError(vmdb.Commit())
+			suite.Require().NoError(vmdb.CommitMultiStore(false))
 
 			res, err := suite.queryClient.Storage(suite.ctx, req)
 
@@ -303,12 +303,12 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 
 	testCases := []struct {
 		name     string
-		malleate func(vm.StateDB)
+		malleate func(corevm.StateDB)
 		expPass  bool
 	}{
 		{
 			name: "fail - invalid address",
-			malleate: func(vm.StateDB) {
+			malleate: func(corevm.StateDB) {
 				req = &evmtypes.QueryCodeRequest{
 					Address: invalidAddress,
 				}
@@ -319,7 +319,7 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 		},
 		{
 			name: "pass",
-			malleate: func(vmdb vm.StateDB) {
+			malleate: func(vmdb corevm.StateDB) {
 				expCode = []byte("code")
 				vmdb.SetCode(suite.address, expCode)
 
@@ -337,7 +337,7 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 
 			vmdb := suite.StateDB()
 			tc.malleate(vmdb)
-			suite.Require().NoError(vmdb.Commit())
+			suite.Require().NoError(vmdb.CommitMultiStore(false))
 
 			res, err := suite.queryClient.Code(suite.ctx, req)
 
@@ -361,17 +361,17 @@ func (suite *KeeperTestSuite) TestQueryTxLogs() {
 
 	testCases := []struct {
 		name     string
-		malleate func(vm.StateDB)
+		malleate func(corevm.StateDB)
 	}{
 		{
 			name: "pass - empty logs",
-			malleate: func(vm.StateDB) {
-				expLogs = nil
+			malleate: func(corevm.StateDB) {
+				expLogs = []*ethtypes.Log{}
 			},
 		},
 		{
 			name: "pass - correct log",
-			malleate: func(vmdb vm.StateDB) {
+			malleate: func(vmdb corevm.StateDB) {
 				expLogs = []*ethtypes.Log{
 					{
 						Address:     suite.address,
@@ -397,11 +397,11 @@ func (suite *KeeperTestSuite) TestQueryTxLogs() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			vmdb := statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewTxConfig(common.BytesToHash(suite.ctx.HeaderHash()), txHash, txIndex, logIndex))
+			vmdb := evmvm.NewStateDB(suite.ctx, suite.app.EvmKeeper, suite.app.AccountKeeper, suite.app.BankKeeper)
 			tc.malleate(vmdb)
-			suite.Require().NoError(vmdb.Commit())
+			suite.Require().NoError(vmdb.CommitMultiStore(false))
 
-			logs := vmdb.Logs()
+			logs := vmdb.GetTransactionLogs()
 			suite.Require().Equal(expLogs, logs)
 		})
 	}
@@ -859,7 +859,7 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 				// increase nonce to avoid address collision
 				vmdb := suite.StateDB()
 				vmdb.SetNonce(suite.address, vmdb.GetNonce(suite.address)+1)
-				suite.Require().NoError(vmdb.Commit())
+				suite.Require().NoError(vmdb.CommitMultiStore(false))
 
 				contractAddr := suite.DeployTestContract(suite.T(), suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
 				suite.Commit()
@@ -927,7 +927,7 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 				// increase nonce to avoid address collision
 				vmdb := suite.StateDB()
 				vmdb.SetNonce(suite.address, vmdb.GetNonce(suite.address)+1)
-				suite.Require().NoError(vmdb.Commit())
+				suite.Require().NoError(vmdb.CommitMultiStore(false))
 
 				chainID := suite.app.EvmKeeper.ChainID()
 				nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
@@ -1101,7 +1101,7 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 				// increase nonce to avoid address collision
 				vmdb := suite.StateDB()
 				vmdb.SetNonce(suite.address, vmdb.GetNonce(suite.address)+1)
-				suite.Require().NoError(vmdb.Commit())
+				suite.Require().NoError(vmdb.CommitMultiStore(false))
 
 				contractAddr := suite.DeployTestContract(suite.T(), suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
 				suite.Commit()

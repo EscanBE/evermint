@@ -27,6 +27,7 @@ const (
 	codeErrGasOverflow
 	codeErrInvalidAccount
 	codeErrInvalidGasLimit
+	codeErrEngineFailure
 )
 
 var (
@@ -74,6 +75,9 @@ var (
 
 	// ErrInvalidGasLimit returns an error if gas limit value is invalid
 	ErrInvalidGasLimit = errorsmod.Register(ModuleName, codeErrInvalidGasLimit, "invalid gas limit")
+
+	// ErrEngineFailure returns an error if the EVM execution engine fails
+	ErrEngineFailure = errorsmod.Register(ModuleName, codeErrEngineFailure, "EVM execution engine failure")
 )
 
 // NewExecErrorWithReason unpacks the revert return bytes and returns a wrapped error

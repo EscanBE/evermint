@@ -76,5 +76,5 @@ func BinSearch(lo, hi uint64, executable func(uint64) (bool, *MsgEthereumTxRespo
 
 // IsEmptyCodeHash returns true if the given code hash is the empty code hash
 func IsEmptyCodeHash(codeHash common.Hash) bool {
-	return bytes.Equal(codeHash.Bytes(), EmptyCodeHash)
+	return codeHash == (common.Hash{}) || bytes.Equal(codeHash.Bytes(), EmptyCodeHash)
 }

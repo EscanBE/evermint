@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-package statedb
+package vm
 
 import (
 	"github.com/ethereum/go-ethereum/common"
@@ -52,6 +52,23 @@ func newAccessList() *accessList {
 	return &accessList{
 		addresses: make(map[common.Address]int),
 	}
+}
+
+// Copy creates an independent copy of an accessList.
+func (a *accessList) Copy() *accessList {
+	cp := newAccessList()
+	for k, v := range a.addresses {
+		cp.addresses[k] = v
+	}
+	cp.slots = make([]map[common.Hash]struct{}, len(a.slots))
+	for i, slotMap := range a.slots {
+		newSlotmap := make(map[common.Hash]struct{}, len(slotMap))
+		for k := range slotMap {
+			newSlotmap[k] = struct{}{}
+		}
+		cp.slots[i] = newSlotmap
+	}
+	return cp
 }
 
 // AddAddress adds an address to the access list, and returns 'true' if the operation
@@ -95,6 +112,7 @@ func (al *accessList) AddSlot(address common.Address, slot common.Hash) (addrCha
 // operations.
 func (al *accessList) DeleteSlot(address common.Address, slot common.Hash) {
 	idx, addrOk := al.addresses[address]
+	// There are two ways this can fail
 	if !addrOk {
 		panic("reverting slot change, address not present in list")
 	}

@@ -1,12 +1,12 @@
 package keeper_test
 
 import (
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 	"math/big"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
@@ -17,7 +17,7 @@ func (suite *KeeperTestSuite) TestEthereumTx() {
 		err             error
 		msg             *evmtypes.MsgEthereumTx
 		signer          ethtypes.Signer
-		vmdb            *statedb.StateDB
+		vmdb            evmvm.CStateDB
 		expectedGasUsed uint64
 	)
 

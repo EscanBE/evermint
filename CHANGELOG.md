@@ -41,6 +41,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - (ante) [#164](https://github.com/EscanBE/evermint/pull/164) Introduce Dual-Lane AnteHandler
 - (ante) [#165](https://github.com/EscanBE/evermint/pull/165) Simulate EVM txs before accept mempool
+- (evm) [#167](https://github.com/EscanBE/evermint/pull/167) Introduce Context-based StateDB
 
 ### Improvement
 

@@ -4,15 +4,17 @@ import (
 	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/vm"
+	"github.com/ethereum/go-ethereum/core"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 )
 
 // EVMConfig creates the EVMConfig based on current state
-func (k *Keeper) EVMConfig(ctx sdk.Context, proposerAddress sdk.ConsAddress, chainID *big.Int) (*statedb.EVMConfig, error) {
+func (k *Keeper) EVMConfig(ctx sdk.Context, proposerAddress sdk.ConsAddress, chainID *big.Int) (*evmvm.EVMConfig, error) {
 	params := k.GetParams(ctx)
 	ethCfg := params.ChainConfig.EthereumConfig(chainID)
 
@@ -23,7 +25,7 @@ func (k *Keeper) EVMConfig(ctx sdk.Context, proposerAddress sdk.ConsAddress, cha
 	}
 
 	baseFee := k.GetBaseFee(ctx)
-	return &statedb.EVMConfig{
+	return &evmvm.EVMConfig{
 		Params:      params,
 		ChainConfig: ethCfg,
 		CoinBase:    coinbase,
@@ -32,30 +34,39 @@ func (k *Keeper) EVMConfig(ctx sdk.Context, proposerAddress sdk.ConsAddress, cha
 	}, nil
 }
 
-// TxConfig loads `TxConfig` from current transient storage
-func (k *Keeper) TxConfig(ctx sdk.Context, txHash common.Hash) statedb.TxConfig {
-	return statedb.NewTxConfig(
-		common.BytesToHash(ctx.HeaderHash()),              // BlockHash
-		txHash,                                            // TxHash
-		uint(k.GetTxCountTransient(ctx)-1),                // TxIndex
-		uint(k.GetCumulativeLogCountTransient(ctx, true)), // LogIndex
-	)
+// NewTxConfig loads `TxConfig` from current transient storage.
+// Note: if tx is nil, the tx hash and tx type is not set in the TxConfig.
+func (k *Keeper) NewTxConfig(ctx sdk.Context, tx *ethtypes.Transaction) evmvm.TxConfig {
+	txConfig := evmvm.TxConfig{
+		BlockHash: common.BytesToHash(ctx.HeaderHash()),
+		TxHash:    common.Hash{},
+		TxIndex:   uint(k.GetTxCountTransient(ctx) - 1),
+		LogIndex:  uint(k.GetCumulativeLogCountTransient(ctx, true)),
+		TxType:    nil,
+	}
+
+	if tx != nil {
+		txConfig.TxHash = tx.Hash()
+		txConfig = txConfig.WithTxTypeFromTransaction(tx)
+	}
+
+	return txConfig
 }
 
-// VMConfig creates an EVM configuration from the debug setting and the extra EIPs enabled on the
-// module parameters. The config generated uses the default JumpTable from the EVM.
-func (k Keeper) VMConfig(ctx sdk.Context, cfg *statedb.EVMConfig, tracer vm.EVMLogger) vm.Config {
-	var debug bool
-	if tracer != nil {
-		if _, ok := tracer.(evmtypes.NoOpTracer); !ok {
-			debug = true
-		}
+// NewTxConfigFromMessage loads `TxConfig` from current transient storage, based on the input core message.
+// Note: since the message does not contain the tx hash, it is not set in the TxConfig.
+func (k *Keeper) NewTxConfigFromMessage(ctx sdk.Context, msg core.Message) evmvm.TxConfig {
+	txConfig := evmvm.TxConfig{
+		BlockHash: common.BytesToHash(ctx.HeaderHash()),
+		TxHash:    common.Hash{},
+		TxIndex:   uint(k.GetTxCountTransient(ctx) - 1),
+		LogIndex:  uint(k.GetCumulativeLogCountTransient(ctx, true)),
+		TxType:    nil,
 	}
 
-	return vm.Config{
-		Debug:     debug,
-		Tracer:    tracer,
-		NoBaseFee: cfg.NoBaseFee || k.IsNoBaseFeeEnabled(ctx),
-		ExtraEips: cfg.Params.EIPs(),
+	if msg != nil {
+		txConfig = txConfig.WithTxTypeFromMessage(msg)
 	}
+
+	return txConfig
 }

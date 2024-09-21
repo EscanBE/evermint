@@ -14,19 +14,14 @@ import (
 
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	evertypes "github.com/EscanBE/evermint/v12/types"
 	"github.com/EscanBE/evermint/v12/utils"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
-	ethparams "github.com/ethereum/go-ethereum/params"
-
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
 // Keeper grants access to the EVM module state and implements the go-ethereum StateDB interface.
@@ -206,13 +201,6 @@ func (k Keeper) SetLogCountForCurrentTxTransient(ctx sdk.Context, count uint64) 
 	store.Set(evmtypes.TxLogCountTransientKey(txIdx), sdk.Uint64ToBigEndian(count))
 }
 
-// GetLogCountForTdxIndexTransient returns log count for tx by index from the transient store.
-func (k Keeper) GetLogCountForTdxIndexTransient(ctx sdk.Context, txIdx uint64) uint64 {
-	store := ctx.TransientStore(k.transientKey)
-	bz := store.Get(evmtypes.TxLogCountTransientKey(txIdx))
-	return sdk.BigEndianToUint64(bz)
-}
-
 // GetCumulativeLogCountTransient returns the total log count for all transactions in the current block.
 func (k Keeper) GetCumulativeLogCountTransient(ctx sdk.Context, exceptCurrent bool) uint64 {
 	store := ctx.TransientStore(k.transientKey)
@@ -335,44 +323,29 @@ func (k Keeper) GetAccountStorage(ctx sdk.Context, address common.Address) evmty
 // Account
 // ----------------------------------------------------------------------------
 
-// Tracer return a default vm.Tracer based on current keeper state
-func (k Keeper) Tracer(ctx sdk.Context, msg core.Message, ethCfg *ethparams.ChainConfig) vm.EVMLogger {
-	return evmtypes.NewTracer(k.tracer, msg, ethCfg, ctx.BlockHeight())
-}
-
-// GetAccountWithoutBalance load nonce and codehash without balance,
-// more efficient in cases where balance is not needed.
-func (k *Keeper) GetAccountWithoutBalance(ctx sdk.Context, addr common.Address) *statedb.Account {
-	cosmosAddr := sdk.AccAddress(addr.Bytes())
-	acct := k.accountKeeper.GetAccount(ctx, cosmosAddr)
-	if acct == nil {
-		return nil
+// IsEmptyAccount returns true if the account is empty, decided by:
+//   - Nonce is zero
+//   - Balance is zero
+//   - CodeHash is empty
+func (k *Keeper) IsEmptyAccount(ctx sdk.Context, addr common.Address) bool {
+	if codeHash := k.GetCodeHash(ctx, addr.Bytes()); !evmtypes.IsEmptyCodeHash(codeHash) {
+		return false
 	}
 
-	return &statedb.Account{
-		Nonce:    acct.GetSequence(),
-		CodeHash: k.GetCodeHash(ctx, addr.Bytes()).Bytes(),
-	}
-}
-
-// GetAccountOrEmpty returns empty account if not exist
-func (k *Keeper) GetAccountOrEmpty(ctx sdk.Context, addr common.Address) statedb.Account {
-	acct := k.GetAccount(ctx, addr)
-	if acct != nil {
-		return *acct
+	if coins := k.bankKeeper.GetAllBalances(ctx, addr.Bytes()); !coins.IsZero() {
+		return false
 	}
 
-	// empty account
-	return statedb.Account{
-		Balance:  new(big.Int),
-		CodeHash: evmtypes.EmptyCodeHash,
+	if acc := k.accountKeeper.GetAccount(ctx, addr.Bytes()); acc != nil && acc.GetSequence() > 0 {
+		return false
 	}
+
+	return true
 }
 
 // GetNonce returns the sequence number of an account, returns 0 if not exists.
 func (k *Keeper) GetNonce(ctx sdk.Context, addr common.Address) uint64 {
-	cosmosAddr := sdk.AccAddress(addr.Bytes())
-	acct := k.accountKeeper.GetAccount(ctx, cosmosAddr)
+	acct := k.accountKeeper.GetAccount(ctx, addr.Bytes())
 	if acct == nil {
 		return 0
 	}
@@ -380,17 +353,15 @@ func (k *Keeper) GetNonce(ctx sdk.Context, addr common.Address) uint64 {
 	return acct.GetSequence()
 }
 
-// GetBalance load account's balance of gas token
+// GetBalance returns account token balance based on EVM denom.
 func (k *Keeper) GetBalance(ctx sdk.Context, addr common.Address) *big.Int {
 	cosmosAddr := sdk.AccAddress(addr.Bytes())
 	evmParams := k.GetParams(ctx)
-	evmDenom := evmParams.GetEvmDenom()
 	// if node is pruned, params is empty. Return invalid value
-	if evmDenom == "" {
+	if evmParams.EvmDenom == "" {
 		return big.NewInt(-1)
 	}
-	coin := k.bankKeeper.GetBalance(ctx, cosmosAddr, evmDenom)
-	return coin.Amount.BigInt()
+	return k.bankKeeper.GetBalance(ctx, cosmosAddr, evmParams.EvmDenom).Amount.BigInt()
 }
 
 // GetBaseFee returns current base fee.

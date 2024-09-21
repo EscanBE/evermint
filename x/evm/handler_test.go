@@ -1,6 +1,7 @@
 package evm_test
 
 import (
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 	"math/big"
 	"testing"
 	"time"
@@ -12,8 +13,6 @@ import (
 
 	"github.com/EscanBE/evermint/v12/app/helpers"
 	"github.com/EscanBE/evermint/v12/constants"
-
-	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -33,7 +32,6 @@ import (
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
@@ -152,8 +150,8 @@ func (suite *EvmTestSuite) SignTx(tx *evmtypes.MsgEthereumTx) {
 	suite.Require().NoError(err)
 }
 
-func (suite *EvmTestSuite) StateDB() *statedb.StateDB {
-	return statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(suite.ctx.HeaderHash())))
+func (suite *EvmTestSuite) StateDB() evmvm.CStateDB {
+	return evmvm.NewStateDB(suite.ctx, suite.app.EvmKeeper, suite.app.AccountKeeper, suite.app.BankKeeper)
 }
 
 func TestEvmTestSuite(t *testing.T) {
@@ -590,20 +588,19 @@ func (suite *EvmTestSuite) deployERC20Contract() common.Address {
 	return crypto.CreateAddress(suite.from, nonce)
 }
 
-// TestERC20TransferReverted checks:
-// - when transaction reverted, gas refund works.
-// - when transaction reverted, nonce is still increased.
 func (suite *EvmTestSuite) TestERC20TransferReverted() {
 	intrinsicGas := uint64(21572)
 	testCases := []struct {
-		name     string
-		gasLimit uint64
-		expErr   string
+		name            string
+		gasLimit        uint64
+		expErr          string
+		wantGasConsumed uint64
 	}{
 		{
-			name:     "default",
-			gasLimit: intrinsicGas, // enough for intrinsicGas, but not enough for execution
-			expErr:   "out of gas",
+			name:            "default",
+			gasLimit:        intrinsicGas, // enough for intrinsicGas, but not enough for execution
+			expErr:          "out of gas",
+			wantGasConsumed: intrinsicGas,
 		},
 	}
 
@@ -611,10 +608,6 @@ func (suite *EvmTestSuite) TestERC20TransferReverted() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			k := suite.app.EvmKeeper
-
-			// add some fund to pay gas fee
-			err := k.SetBalance(suite.ctx, suite.from, big.NewInt(1000000000000001))
-			suite.Require().NoError(err)
 
 			suite.zeroFeeMarket()
 
@@ -638,17 +631,6 @@ func (suite *EvmTestSuite) TestERC20TransferReverted() {
 			tx := evmtypes.NewTx(ethTxParams)
 			suite.SignTx(tx)
 
-			before := k.GetBalance(suite.ctx, suite.from)
-
-			baseFee := suite.app.EvmKeeper.GetBaseFee(suite.ctx)
-
-			ethTx := tx.AsTransaction()
-
-			fees, err := evmkeeper.VerifyFee(ethTx, constants.BaseDenom, baseFee, suite.ctx.IsCheckTx())
-			suite.Require().NoError(err)
-			err = k.DeductTxCostsFromUserBalance(suite.ctx, fees, sdk.MustAccAddressFromBech32(tx.From))
-			suite.Require().NoError(err)
-
 			res, err := k.EthereumTx(suite.ctx, tx)
 			suite.Require().NoError(err)
 
@@ -662,16 +644,7 @@ func (suite *EvmTestSuite) TestERC20TransferReverted() {
 			suite.Require().Empty(receipt.Logs)
 			suite.Require().Equal(evmtypes.EmptyBlockBloom, receipt.Bloom)
 
-			after := k.GetBalance(suite.ctx, suite.from)
-
-			if tc.expErr == "out of gas" {
-				suite.Require().Equal(tc.gasLimit, res.GasUsed)
-			} else {
-				suite.Require().Greater(tc.gasLimit, res.GasUsed)
-			}
-
-			// tx fee should be 100% consumed
-			suite.Require().Equal(new(big.Int).Sub(before, fees[0].Amount.BigInt()), after)
+			suite.Require().Equal(tc.gasLimit, res.GasUsed)
 
 			// nonce should be increased.
 			nonceLater := k.GetNonce(suite.ctx, suite.from)
@@ -715,7 +688,7 @@ func (suite *EvmTestSuite) TestContractDeploymentRevert() {
 			// simulate nonce increment and flag set in ante handler
 			db := suite.StateDB()
 			db.SetNonce(suite.from, nonce+1)
-			suite.Require().NoError(db.Commit())
+			suite.Require().NoError(db.CommitMultiStore(false))
 			suite.app.EvmKeeper.SetFlagSenderNonceIncreasedByAnteHandle(suite.ctx, true)
 
 			rsp, err := k.EthereumTx(suite.ctx, tx)

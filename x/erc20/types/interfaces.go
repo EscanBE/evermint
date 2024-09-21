@@ -8,9 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/vm"
+	corevm "github.com/ethereum/go-ethereum/core/vm"
 
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
@@ -24,9 +23,9 @@ type AccountKeeper interface {
 // EVMKeeper defines the expected EVM keeper interface used on erc20
 type EVMKeeper interface {
 	GetParams(ctx sdk.Context) evmtypes.Params
-	GetAccountWithoutBalance(ctx sdk.Context, addr common.Address) *statedb.Account
+	IsEmptyAccount(ctx sdk.Context, addr common.Address) bool
 	EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*evmtypes.EstimateGasResponse, error)
-	ApplyMessage(ctx sdk.Context, msg core.Message, tracer vm.EVMLogger, commit bool) (*evmtypes.MsgEthereumTxResponse, error)
+	ApplyMessage(ctx sdk.Context, msg core.Message, tracer corevm.EVMLogger, commit bool) (*evmtypes.MsgEthereumTxResponse, error)
 	SetFlagEnableNoBaseFee(ctx sdk.Context, enable bool)
 	IsNoBaseFeeEnabled(ctx sdk.Context) bool
 }
