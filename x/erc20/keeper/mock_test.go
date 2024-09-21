@@ -7,13 +7,12 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/vm"
+	corevm "github.com/ethereum/go-ethereum/core/vm"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -29,12 +28,9 @@ func (m *MockEVMKeeper) GetParams(_ sdk.Context) evmtypes.Params {
 	return args.Get(0).(evmtypes.Params)
 }
 
-func (m *MockEVMKeeper) GetAccountWithoutBalance(_ sdk.Context, _ common.Address) *statedb.Account {
+func (m *MockEVMKeeper) IsEmptyAccount(_ sdk.Context, _ common.Address) bool {
 	args := m.Called(mock.Anything, mock.Anything)
-	if args.Get(0) == nil {
-		return nil
-	}
-	return args.Get(0).(*statedb.Account)
+	return args.Get(0).(bool)
 }
 
 func (m *MockEVMKeeper) EstimateGas(_ context.Context, _ *evmtypes.EthCallRequest) (*evmtypes.EstimateGasResponse, error) {
@@ -45,7 +41,7 @@ func (m *MockEVMKeeper) EstimateGas(_ context.Context, _ *evmtypes.EthCallReques
 	return args.Get(0).(*evmtypes.EstimateGasResponse), args.Error(1)
 }
 
-func (m *MockEVMKeeper) ApplyMessage(_ sdk.Context, _ core.Message, _ vm.EVMLogger, _ bool) (*evmtypes.MsgEthereumTxResponse, error) {
+func (m *MockEVMKeeper) ApplyMessage(_ sdk.Context, _ core.Message, _ corevm.EVMLogger, _ bool) (*evmtypes.MsgEthereumTxResponse, error) {
 	args := m.Called(mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 
 	if args.Get(0) == nil {

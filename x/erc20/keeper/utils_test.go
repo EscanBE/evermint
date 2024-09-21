@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"bytes"
 	"encoding/json"
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 	"math/big"
 	"strconv"
 	"time"
@@ -21,7 +22,6 @@ import (
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	teststypes "github.com/EscanBE/evermint/v12/types/tests"
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -242,8 +242,8 @@ func (suite *KeeperTestSuite) SetupIBCTest() {
 
 var timeoutHeight = clienttypes.NewHeight(1000, 1000)
 
-func (suite *KeeperTestSuite) StateDB() *statedb.StateDB {
-	return statedb.New(suite.ctx, suite.app.EvmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(suite.ctx.HeaderHash())))
+func (suite *KeeperTestSuite) StateDB() evmvm.CStateDB {
+	return evmvm.NewStateDB(suite.ctx, suite.app.EvmKeeper, suite.app.AccountKeeper, suite.app.BankKeeper)
 }
 
 func (suite *KeeperTestSuite) MintFeeCollector(coins sdk.Coins) {

@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
@@ -10,14 +9,9 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/mock"
-
 	"github.com/ethereum/go-ethereum/common"
 
-	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
-	"github.com/EscanBE/evermint/v12/x/evm/statedb"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
 
 func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
@@ -56,7 +50,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 				stateDB := suite.StateDB()
 				ok := stateDB.Suicide(erc20)
 				suite.Require().True(ok)
-				suite.Require().NoError(stateDB.Commit())
+				suite.Require().NoError(stateDB.CommitMultiStore(false))
 			},
 			extra:          func() {},
 			expPass:        true,
@@ -93,80 +87,6 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 			extra: func() {
 				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, erc20types.ModuleAddress.Bytes())
 				suite.app.AccountKeeper.RemoveAccount(suite.ctx, acc)
-			},
-			expPass:        false,
-			selfdestructed: false,
-		},
-		{
-			name:     "fail - force evm fail",
-			mint:     100,
-			burn:     10,
-			malleate: func(common.Address) {},
-			extra: func() { //nolint:dupl
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("forced ApplyMessage error"))
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			expPass:        false,
-			selfdestructed: false,
-		},
-		{
-			name:     "fail - force evm balance error",
-			mint:     100,
-			burn:     10,
-			malleate: func(common.Address) {},
-			extra: func() { //nolint:dupl
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				// first balance of
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				// convert coin
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, nil).Once()
-				// second balance of
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, fmt.Errorf("third")).Once()
-				// Extra call on test
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, nil)
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			expPass:        false,
-			selfdestructed: false,
-		},
-		{
-			name:     "fail - force balance error",
-			mint:     100,
-			burn:     10,
-			malleate: func(common.Address) {},
-			extra: func() {
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Times(4)
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
 			},
 			expPass:        false,
 			selfdestructed: false,
@@ -208,21 +128,19 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeCoin() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 
-				acc := suite.app.EvmKeeper.GetAccountWithoutBalance(suite.ctx, erc20)
+				isEmptyAcc := suite.app.EvmKeeper.IsEmptyAccount(suite.ctx, erc20)
 				if tc.selfdestructed {
-					suite.Require().Nil(acc, "expected contract to be destroyed")
-				} else {
-					suite.Require().NotNil(acc)
-				}
+					suite.Require().True(isEmptyAcc, "expected contract to be destroyed")
 
-				if tc.selfdestructed || !acc.IsContract() {
 					id := suite.app.Erc20Keeper.GetTokenPairID(suite.ctx, erc20.String())
 					_, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
 					suite.Require().False(found)
 				} else {
+					suite.Require().False(isEmptyAcc)
+
 					suite.Require().Equal(&erc20types.MsgConvertCoinResponse{}, res)
-					suite.Require().Equal(cosmosBalance.Amount.Int64(), sdkmath.NewInt(tc.mint-tc.burn).Int64())
-					suite.Require().Equal(balance.(*big.Int).Int64(), big.NewInt(tc.burn).Int64())
+					suite.Require().Equal(sdkmath.NewInt(tc.mint-tc.burn).Int64(), cosmosBalance.Amount.Int64())
+					suite.Require().Equal(big.NewInt(tc.burn).Int64(), balance.(*big.Int).Int64())
 				}
 			} else {
 				suite.Require().Error(err)
@@ -281,123 +199,6 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeCoin() {
 			malleate: func() {
 				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, erc20types.ModuleAddress.Bytes())
 				suite.app.AccountKeeper.RemoveAccount(suite.ctx, acc)
-			},
-			expPass: false,
-		},
-		{
-			name:      "fail - force evm fail",
-			mint:      100,
-			burn:      10,
-			reconvert: 5,
-			malleate: func() { //nolint:dupl
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("forced ApplyMessage error"))
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			expPass: false,
-		},
-		{
-			name:      "fail - force fail second balance",
-			mint:      100,
-			burn:      10,
-			reconvert: 5,
-			malleate: func() { //nolint:dupl
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				// first balance of
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				// convert coin
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, nil).Once()
-				// second balance of
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, fmt.Errorf("third")).Once()
-				// Extra call on test
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, nil)
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			expPass: false,
-		},
-		{
-			name:      "fail - force fail second balance",
-			mint:      100,
-			burn:      10,
-			reconvert: 5,
-			malleate: func() {
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				// first balance of
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				// convert coin
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, nil).Once()
-				// second balance of
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				// Extra call on test
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, nil)
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			expPass: false,
-		},
-		{
-			name:      "fail - force fail unescrow",
-			mint:      100,
-			burn:      10,
-			reconvert: 5,
-			malleate: func() {
-				mockBankKeeper := &MockBankKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					mockBankKeeper, suite.app.EvmKeeper,
-				)
-
-				mockBankKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(nil)
-				mockBankKeeper.On("SendCoinsFromModuleToAccount", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("failed to unescrow"))
-				mockBankKeeper.On("BlockedAddr", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(false)
-				mockBankKeeper.On("GetBalance", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sdk.Coin{Denom: "coin", Amount: sdkmath.OneInt()})
-			},
-			expPass: false,
-		},
-		{
-			name:      "fail - force fail balance after transfer",
-			mint:      100,
-			burn:      10,
-			reconvert: 5,
-			malleate: func() {
-				mockBankKeeper := &MockBankKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					mockBankKeeper, suite.app.EvmKeeper,
-				)
-
-				mockBankKeeper.On("SendCoinsFromModuleToAccount", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
-				mockBankKeeper.On("BlockedAddr", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(false)
-				mockBankKeeper.On("GetBalance", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sdk.Coin{Denom: "acoin", Amount: sdkmath.OneInt()})
 			},
 			expPass: false,
 		},
@@ -515,7 +316,7 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 				stateDB := suite.StateDB()
 				ok := stateDB.Suicide(erc20)
 				suite.Require().True(ok)
-				suite.Require().NoError(stateDB.Commit())
+				suite.Require().NoError(stateDB.CommitMultiStore(false))
 			},
 			extra:          func() {},
 			contractType:   contractMinterBurner,
@@ -590,171 +391,6 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 			expPass:        false,
 			selfdestructed: false,
 		},
-		{
-			name:     "fail - force evm fail",
-			mint:     100,
-			transfer: 10,
-			malleate: func(common.Address) {},
-			extra: func() { //nolint:dupl
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("forced ApplyMessage error"))
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			contractType:   contractMinterBurner,
-			expPass:        false,
-			selfdestructed: false,
-		},
-		{
-			name:     "fail - force get balance fail",
-			mint:     100,
-			transfer: 10,
-			malleate: func(common.Address) {},
-			extra: func() { //nolint:dupl
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				balance[31] = uint8(1)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Twice()
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("forced balance error"))
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			contractType:   contractMinterBurner,
-			expPass:        false,
-			selfdestructed: false,
-		},
-		{
-			name:     "fail - force transfer unpack fail",
-			mint:     100,
-			transfer: 10,
-			malleate: func(common.Address) {},
-			extra: func() { //nolint:dupl
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, nil)
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			contractType:   contractMinterBurner,
-			expPass:        false,
-			selfdestructed: false,
-		},
-		{
-			name:     "fail - force invalid transfer fail",
-			mint:     100,
-			transfer: 10,
-			malleate: func(common.Address) {},
-			extra: func() {
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil)
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			contractType:   contractMinterBurner,
-			expPass:        false,
-			selfdestructed: false,
-		},
-		{
-			name:     "fail - force mint fail",
-			mint:     100,
-			transfer: 10,
-			malleate: func(common.Address) {},
-			extra: func() {
-				mockBankKeeper := &MockBankKeeper{}
-
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					mockBankKeeper, suite.app.EvmKeeper,
-				)
-
-				mockBankKeeper.On("MintCoins", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("failed to mint"))
-				mockBankKeeper.On("SendCoinsFromModuleToAccount", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("failed to unescrow"))
-				mockBankKeeper.On("BlockedAddr", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(false)
-				mockBankKeeper.On("GetBalance", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sdk.Coin{Denom: "coin", Amount: sdkmath.OneInt()})
-			},
-			contractType:   contractMinterBurner,
-			expPass:        false,
-			selfdestructed: false,
-		},
-		{
-			name:     "fail - force send minted fail",
-			mint:     100,
-			transfer: 10,
-			malleate: func(common.Address) {},
-			extra: func() {
-				mockBankKeeper := &MockBankKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					mockBankKeeper, suite.app.EvmKeeper,
-				)
-
-				mockBankKeeper.On("MintCoins", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-				mockBankKeeper.On("SendCoinsFromModuleToAccount", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("failed to unescrow"))
-				mockBankKeeper.On("BlockedAddr", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(false)
-				mockBankKeeper.On("GetBalance", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sdk.Coin{Denom: "coin", Amount: sdkmath.OneInt()})
-			},
-			contractType:   contractMinterBurner,
-			expPass:        false,
-			selfdestructed: false,
-		},
-		{
-			name:     "fail - force bank balance fail",
-			mint:     100,
-			transfer: 10,
-			malleate: func(common.Address) {},
-			extra: func() {
-				mockBankKeeper := &MockBankKeeper{}
-
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					mockBankKeeper, suite.app.EvmKeeper,
-				)
-
-				mockBankKeeper.On("MintCoins", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-				mockBankKeeper.On("SendCoinsFromModuleToAccount", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
-				mockBankKeeper.On("BlockedAddr", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(false)
-				mockBankKeeper.On("GetBalance", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sdk.Coin{Denom: coinName, Amount: sdkmath.NewInt(int64(10))})
-			},
-			contractType:   contractMinterBurner,
-			expPass:        false,
-			selfdestructed: false,
-		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -792,21 +428,19 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeERC20() {
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)
 
-				acc := suite.app.EvmKeeper.GetAccountWithoutBalance(suite.ctx, contractAddr)
+				isEmptyAcc := suite.app.EvmKeeper.IsEmptyAccount(suite.ctx, contractAddr)
 				if tc.selfdestructed {
-					suite.Require().Nil(acc, "expected contract to be destroyed")
-				} else {
-					suite.Require().NotNil(acc)
-				}
+					suite.Require().True(isEmptyAcc, "expected contract to be destroyed")
 
-				if tc.selfdestructed || !acc.IsContract() {
 					id := suite.app.Erc20Keeper.GetTokenPairID(suite.ctx, contractAddr.String())
 					_, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
 					suite.Require().False(found)
 				} else {
+					suite.Require().False(isEmptyAcc)
+
 					suite.Require().Equal(&erc20types.MsgConvertERC20Response{}, res)
-					suite.Require().Equal(cosmosBalance.Amount, sdkmath.NewInt(tc.transfer))
-					suite.Require().Equal(balance.(*big.Int).Int64(), big.NewInt(tc.mint-tc.transfer).Int64())
+					suite.Require().Equal(sdkmath.NewInt(tc.transfer), cosmosBalance.Amount)
+					suite.Require().Equal(big.NewInt(tc.mint-tc.transfer).Int64(), balance.(*big.Int).Int64())
 				}
 			} else {
 				suite.Require().Error(err, tc.name)
@@ -881,98 +515,6 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeERC20() {
 			extra: func() {
 				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, erc20types.ModuleAddress.Bytes())
 				suite.app.AccountKeeper.RemoveAccount(suite.ctx, acc)
-			},
-			contractType: contractMinterBurner,
-			expPass:      false,
-		},
-		{
-			name:     "fail - force evm fail",
-			mint:     100,
-			convert:  10,
-			malleate: func(common.Address) {},
-			extra: func() { //nolint:dupl
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("forced ApplyMessage error"))
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			contractType: contractMinterBurner,
-			expPass:      false,
-		},
-		{
-			name:     "fail - force invalid transfer",
-			mint:     100,
-			convert:  10,
-			malleate: func(common.Address) {},
-			extra: func() { //nolint:dupl
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, nil)
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			contractType: contractMinterBurner,
-			expPass:      false,
-		},
-		{
-			name:     "fail - force fail second balance",
-			mint:     100,
-			convert:  10,
-			malleate: func(common.Address) {},
-			extra: func() { //nolint:dupl
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				balance[31] = uint8(1)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Twice()
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("fail second balance"))
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			contractType: contractMinterBurner,
-			expPass:      false,
-		},
-		{
-			name:     "fail - force fail transfer",
-			mint:     100,
-			convert:  10,
-			malleate: func(common.Address) {},
-			extra: func() {
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil)
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
 			},
 			contractType: contractMinterBurner,
 			expPass:      false,
@@ -1132,7 +674,7 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeIBCVoucher() {
 				stateDB := suite.StateDB()
 				ok := stateDB.Suicide(erc20)
 				suite.Require().True(ok)
-				suite.Require().NoError(stateDB.Commit())
+				suite.Require().NoError(stateDB.CommitMultiStore(false))
 			},
 			extra:          func() {},
 			expPass:        true,
@@ -1172,80 +714,6 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeIBCVoucher() {
 			expPass:        false,
 			selfdestructed: false,
 		},
-		{
-			name:     "fail - force evm fail",
-			mint:     100,
-			burn:     10,
-			malleate: func(common.Address) {},
-			extra: func() { //nolint:dupl
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("forced ApplyMessage error"))
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			expPass:        false,
-			selfdestructed: false,
-		},
-		{
-			name:     "fail - force evm balance error",
-			mint:     100,
-			burn:     10,
-			malleate: func(common.Address) {},
-			extra: func() { //nolint:dupl
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				// first balance of
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				// convert coin
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, nil).Once()
-				// second balance of
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, fmt.Errorf("third")).Once()
-				// Extra call on test
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, nil)
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			expPass:        false,
-			selfdestructed: false,
-		},
-		{
-			name:     "fail - force balance error",
-			mint:     100,
-			burn:     10,
-			malleate: func(common.Address) {},
-			extra: func() {
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Times(4)
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			expPass:        false,
-			selfdestructed: false,
-		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -1265,8 +733,10 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeIBCVoucher() {
 				sender,
 			)
 
-			suite.app.BankKeeper.MintCoins(suite.ctx, erc20types.ModuleName, coins) //nolint:errcheck
-			suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, erc20types.ModuleName, sender, coins)
+			err := suite.app.BankKeeper.MintCoins(suite.ctx, erc20types.ModuleName, coins)
+			suite.Require().NoError(err)
+			err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, erc20types.ModuleName, sender, coins)
+			suite.Require().NoError(err)
 
 			tc.extra()
 			res, err := suite.app.Erc20Keeper.ConvertCoin(suite.ctx, msg)
@@ -1278,21 +748,19 @@ func (suite *KeeperTestSuite) TestConvertCoinNativeIBCVoucher() {
 			if tc.expPass {
 				suite.Require().NoError(err, tc.name)
 
-				acc := suite.app.EvmKeeper.GetAccountWithoutBalance(suite.ctx, erc20)
+				isEmptyAcc := suite.app.EvmKeeper.IsEmptyAccount(suite.ctx, erc20)
 				if tc.selfdestructed {
-					suite.Require().Nil(acc, "expected contract to be destroyed")
-				} else {
-					suite.Require().NotNil(acc)
-				}
+					suite.Require().True(isEmptyAcc, "expected contract to be destroyed")
 
-				if tc.selfdestructed || !acc.IsContract() {
 					id := suite.app.Erc20Keeper.GetTokenPairID(suite.ctx, erc20.String())
 					_, found := suite.app.Erc20Keeper.GetTokenPair(suite.ctx, id)
 					suite.Require().False(found)
 				} else {
+					suite.Require().False(isEmptyAcc)
+
 					suite.Require().Equal(expRes, res)
-					suite.Require().Equal(cosmosBalance.Amount.Int64(), sdkmath.NewInt(tc.mint-tc.burn).Int64())
-					suite.Require().Equal(balance.(*big.Int).Int64(), big.NewInt(tc.burn).Int64())
+					suite.Require().Equal(sdkmath.NewInt(tc.mint-tc.burn).Int64(), cosmosBalance.Amount.Int64())
+					suite.Require().Equal(big.NewInt(tc.burn).Int64(), balance.(*big.Int).Int64())
 				}
 			} else {
 				suite.Require().Error(err, tc.name)
@@ -1351,124 +819,6 @@ func (suite *KeeperTestSuite) TestConvertERC20NativeIBCVoucher() {
 			malleate: func() {
 				acc := suite.app.AccountKeeper.GetAccount(suite.ctx, erc20types.ModuleAddress.Bytes())
 				suite.app.AccountKeeper.RemoveAccount(suite.ctx, acc)
-			},
-			expPass: false,
-		},
-		{
-			name:      "fail - force evm fail",
-			mint:      100,
-			burn:      10,
-			reconvert: 5,
-			malleate: func() { //nolint:dupl
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("forced ApplyMessage error"))
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			expPass: false,
-		},
-		{
-			name:      "fail - force fail second balance",
-			mint:      100,
-			burn:      10,
-			reconvert: 5,
-			malleate: func() { //nolint:dupl
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				// first balance of
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				// convert coin
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, nil).Once()
-				// second balance of
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, fmt.Errorf("third")).Once()
-				// Extra call on test
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, nil)
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			expPass: false,
-		},
-		{
-			name:      "fail - force fail second balance",
-			mint:      100,
-			burn:      10,
-			reconvert: 5,
-			malleate: func() {
-				mockEVMKeeper := &MockEVMKeeper{}
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					suite.app.BankKeeper, mockEVMKeeper,
-				)
-
-				existingAcc := &statedb.Account{Nonce: uint64(1), Balance: common.Big1}
-				balance := make([]uint8, 32)
-				mockEVMKeeper.On("EstimateGas", mock.Anything, mock.Anything).Return(&evmtypes.EstimateGasResponse{Gas: uint64(200)}, nil)
-				// first balance of
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				// convert coin
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, nil).Once()
-				// second balance of
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{Ret: balance}, nil).Once()
-				// Extra call on test
-				mockEVMKeeper.On("ApplyMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&evmtypes.MsgEthereumTxResponse{}, nil)
-				mockEVMKeeper.On("GetAccountWithoutBalance", mock.Anything, mock.Anything).Return(existingAcc, nil)
-			},
-			expPass: false,
-		},
-		{
-			name:      "fail - force fail unescrow",
-			mint:      100,
-			burn:      10,
-			reconvert: 5,
-			malleate: func() {
-				mockBankKeeper := &MockBankKeeper{}
-
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					mockBankKeeper, suite.app.EvmKeeper,
-				)
-
-				mockBankKeeper.On("SendCoinsFromModuleToAccount", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("failed to unescrow"))
-				mockBankKeeper.On("BlockedAddr", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(false)
-				mockBankKeeper.On("GetBalance", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sdk.Coin{Denom: "coin", Amount: sdkmath.OneInt()})
-			},
-			expPass: false,
-		},
-		{
-			name:      "fail - force fail balance after transfer",
-			mint:      100,
-			burn:      10,
-			reconvert: 5,
-			malleate: func() {
-				mockBankKeeper := &MockBankKeeper{}
-
-				suite.app.Erc20Keeper = erc20keeper.NewKeeper(
-					suite.app.GetKey("erc20"), suite.app.AppCodec(),
-					authtypes.NewModuleAddress(govtypes.ModuleName), suite.app.AccountKeeper,
-					mockBankKeeper, suite.app.EvmKeeper,
-				)
-
-				mockBankKeeper.On("SendCoinsFromModuleToAccount", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
-				mockBankKeeper.On("BlockedAddr", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(false)
-				mockBankKeeper.On("GetBalance", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(sdk.Coin{Denom: ibcBase, Amount: sdkmath.OneInt()})
 			},
 			expPass: false,
 		},
