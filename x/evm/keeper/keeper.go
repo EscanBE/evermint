@@ -117,6 +117,9 @@ func (k *Keeper) WithChainID(ctx sdk.Context) {
 
 // ChainID returns the EIP155 chain ID for the EVM context
 func (k Keeper) ChainID() *big.Int {
+	if k.eip155ChainID == nil || k.eip155ChainID.Sign() == 0 {
+		panic("chain ID not set")
+	}
 	return k.eip155ChainID
 }
 
