@@ -111,7 +111,6 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*e
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to return ethereum transaction as core message")
 	}
-	txConfig = txConfig.WithTxTypeFromMessage(msg)
 
 	// pass true to commit the StateDB
 	res, err := k.ApplyMessageWithConfig(ctx, msg, nil, true, cfg, txConfig)

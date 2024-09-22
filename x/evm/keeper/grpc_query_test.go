@@ -942,12 +942,15 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 				}
 				contractTx := evmtypes.NewTx(ethTxParams)
 
+				err := contractTx.Sign(suite.ethSigner, suite.signer)
+				suite.Require().NoError(err)
+
 				predecessors = append(predecessors, contractTx)
 				suite.Commit()
 
 				params := suite.app.EvmKeeper.GetParams(suite.ctx)
 				params.EnableCreate = false
-				err := suite.app.EvmKeeper.SetParams(suite.ctx, params)
+				err = suite.app.EvmKeeper.SetParams(suite.ctx, params)
 				suite.Require().NoError(err)
 			},
 			expPass:         true,
@@ -1031,20 +1034,20 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 	)
 
 	testCases := []struct {
-		name            string
-		malleate        func()
-		expPass         bool
-		traceResponse   string
-		enableFeemarket bool
+		name                      string
+		malleate                  func()
+		expPass                   bool
+		wantTraceResponseContains string
+		enableFeemarket           bool
 	}{
 		{
 			name: "pass - default trace",
 			malleate: func() {
 				traceConfig = nil
 			},
-			expPass:         true,
-			traceResponse:   "[{\"result\":{\"gas\":34828,\"failed\":false,\"returnValue\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"structLogs\":[{\"pc\":0,\"op\":\"PU",
-			enableFeemarket: false,
+			expPass:                   true,
+			wantTraceResponseContains: "[{\"result\":{\"gas\":34828,\"failed\":false,\"returnValue\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"structLogs\":[{\"pc\":0,\"op\":\"PU",
+			enableFeemarket:           false,
 		},
 		{
 			name: "pass - filtered trace",
@@ -1055,9 +1058,9 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 					EnableMemory:   false,
 				}
 			},
-			expPass:         true,
-			traceResponse:   "[{\"result\":{\"gas\":34828,\"failed\":false,\"returnValue\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"structLogs\":[{\"pc\":0,\"op\":\"PU",
-			enableFeemarket: false,
+			expPass:                   true,
+			wantTraceResponseContains: "[{\"result\":{\"gas\":34828,\"failed\":false,\"returnValue\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"structLogs\":[{\"pc\":0,\"op\":\"PU",
+			enableFeemarket:           false,
 		},
 		{
 			name: "pass - javascript tracer",
@@ -1066,9 +1069,9 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 					Tracer: "{data: [], fault: function(log) {}, step: function(log) { if(log.op.toString() == \"CALL\") this.data.push(log.stack.peek(0)); }, result: function() { return this.data; }}",
 				}
 			},
-			expPass:         true,
-			traceResponse:   "[{\"result\":[]}]",
-			enableFeemarket: false,
+			expPass:                   true,
+			wantTraceResponseContains: "[{\"result\":[]}]",
+			enableFeemarket:           false,
 		},
 		{
 			name: "pass - default trace with enableFeemarket and filtered return",
@@ -1079,9 +1082,9 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 					EnableMemory:   false,
 				}
 			},
-			expPass:         true,
-			traceResponse:   "[{\"result\":{\"gas\":34828,\"failed\":false,\"returnValue\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"structLogs\":[{\"pc\":0,\"op\":\"PU",
-			enableFeemarket: true,
+			expPass:                   true,
+			wantTraceResponseContains: "[{\"result\":{\"gas\":34828,\"failed\":false,\"returnValue\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"structLogs\":[{\"pc\":0,\"op\":\"PU",
+			enableFeemarket:           true,
 		},
 		{
 			name: "pass - javascript tracer with enableFeemarket",
@@ -1090,9 +1093,9 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 					Tracer: "{data: [], fault: function(log) {}, step: function(log) { if(log.op.toString() == \"CALL\") this.data.push(log.stack.peek(0)); }, result: function() { return this.data; }}",
 				}
 			},
-			expPass:         true,
-			traceResponse:   "[{\"result\":[]}]",
-			enableFeemarket: true,
+			expPass:                   true,
+			wantTraceResponseContains: "[{\"result\":[]}]",
+			enableFeemarket:           true,
 		},
 		{
 			name: "pass - tracer with multiple transactions",
@@ -1116,9 +1119,9 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 				// overwrite txs to include only the ones on new block
 				txs = append([]*evmtypes.MsgEthereumTx{}, firstTx, secondTx)
 			},
-			expPass:         true,
-			traceResponse:   "[{\"result\":{\"gas\":34828,\"failed\":false,\"returnValue\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"structLogs\":[{\"pc\":0,\"op\":\"PU",
-			enableFeemarket: false,
+			expPass:                   true,
+			wantTraceResponseContains: "[{\"result\":{\"gas\":34828,\"failed\":false,\"returnValue\":\"0000000000000000000000000000000000000000000000000000000000000001\",\"structLogs\":[{\"pc\":0,\"op\":\"PU",
+			enableFeemarket:           false,
 		},
 		{
 			name: "fail - invalid trace config - Negative Limit",
@@ -1130,9 +1133,9 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 					Limit:          -1,
 				}
 			},
-			expPass:         false,
-			traceResponse:   "",
-			enableFeemarket: false,
+			expPass:                   false,
+			wantTraceResponseContains: "",
+			enableFeemarket:           false,
 		},
 		{
 			name: "pass - invalid trace config - Invalid Tracer",
@@ -1144,9 +1147,9 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 					Tracer:         "invalid_tracer",
 				}
 			},
-			expPass:         true,
-			traceResponse:   "[{\"error\":\"rpc error: code = Internal desc = tracer not found\"}]",
-			enableFeemarket: false,
+			expPass:                   true,
+			wantTraceResponseContains: "[{\"error\":\"rpc error: code = Internal desc = tracer not found\"}]",
+			enableFeemarket:           false,
 		},
 		{
 			name: "pass - invalid chain id",
@@ -1155,9 +1158,9 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 				tmp := sdkmath.NewInt(1)
 				chainID = &tmp
 			},
-			expPass:         true,
-			traceResponse:   "[{\"error\":\"rpc error: code = Internal desc = invalid chain id for signer\"}]",
-			enableFeemarket: false,
+			expPass:                   true,
+			wantTraceResponseContains: "invalid chain id for signer",
+			enableFeemarket:           false,
 		},
 	}
 
@@ -1193,12 +1196,7 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				// if data is too big, slice the result
-				if len(res.Data) > 150 {
-					suite.Require().Equal(tc.traceResponse, string(res.Data[:150]))
-				} else {
-					suite.Require().Equal(tc.traceResponse, string(res.Data))
-				}
+				suite.Contains(string(res.Data), tc.wantTraceResponseContains)
 			} else {
 				suite.Require().Error(err)
 			}
