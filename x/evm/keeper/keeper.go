@@ -159,6 +159,12 @@ func (k Keeper) SetBlockHashForCurrentBlockAndPruneOld(ctx sdk.Context) {
 
 	store := ctx.KVStore(k.storeKey)
 	key := evmtypes.BlockHashKey(uint64(height))
+	if store.Has(key) {
+		// since this method can be called in multiple places,
+		// so this micro optimization is needed to avoid duplicate computation
+		return
+	}
+
 	store.Set(key, ctx.HeaderHash())
 
 	heightToPrune := height - 256
