@@ -442,17 +442,16 @@ func (k Keeper) TraceTx(c context.Context, req *evmtypes.QueryTraceTxRequest) (*
 		ethTx := tx.AsTransaction()
 		msg, err := ethTx.AsMessage(signer, cfg.BaseFee)
 		if err != nil {
-			continue
+			return nil, status.Error(codes.Internal, errorsmod.Wrapf(err, "failed to convert tx %s to message", ethTx.Hash().Hex()).Error())
 		}
 		txConfig.TxHash = ethTx.Hash()
 		txConfig.TxIndex = uint(i)
 		txConfig = txConfig.WithTxTypeFromTransaction(ethTx)
 
-		// reset gas meter per transaction to avoid stacking the gas used of every predecessor in the same gas meter
-		ctx = ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(msg.Gas()))
-		ctx = k.SetupExecutionContext(ctx, msg.Gas(), ethTx.Type())
+		ctx = k.SetupExecutionContext(ctx, ethTx)
 		rsp, err := k.ApplyMessageWithConfig(ctx, msg, evmtypes.NewNoOpTracer(), true, cfg, txConfig)
 		if err != nil {
+			// TODO: simulate failed tx as this is possible
 			continue
 		}
 		k.ResetGasMeterAndConsumeGas(ctx, rsp.GasUsed)
@@ -573,7 +572,7 @@ func (k *Keeper) traceTx(
 	cfg *evmvm.EVMConfig,
 	txConfig evmvm.TxConfig,
 	signer ethtypes.Signer,
-	tx *ethtypes.Transaction,
+	ethTx *ethtypes.Transaction,
 	traceConfig *evmtypes.TraceConfig,
 	commitMessage bool,
 	tracerJSONConfig json.RawMessage,
@@ -586,11 +585,11 @@ func (k *Keeper) traceTx(
 		timeout   = defaultTraceTimeout
 	)
 
-	txConfig = txConfig.WithTxTypeFromTransaction(tx)
+	txConfig = txConfig.WithTxTypeFromTransaction(ethTx)
 
-	msg, err := tx.AsMessage(signer, cfg.BaseFee)
+	msg, err := ethTx.AsMessage(signer, cfg.BaseFee)
 	if err != nil {
-		return nil, 0, status.Error(codes.Internal, err.Error())
+		return nil, 0, status.Error(codes.Internal, errorsmod.Wrapf(err, "failed to convert tx %s to message", ethTx.Hash().Hex()).Error())
 	}
 
 	if traceConfig == nil {
@@ -643,9 +642,7 @@ func (k *Keeper) traceTx(
 		}
 	}()
 
-	// reset gas meter per transaction to avoid stacking the gas used of every predecessor in the same gas meter
-	ctx = ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(msg.Gas()))
-	ctx = k.SetupExecutionContext(ctx, msg.Gas(), tx.Type())
+	ctx = k.SetupExecutionContext(ctx, ethTx)
 	res, err := k.ApplyMessageWithConfig(ctx, msg, tracer, commitMessage, cfg, txConfig)
 	if err != nil {
 		return nil, 0, status.Error(codes.Internal, err.Error())
