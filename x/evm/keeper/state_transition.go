@@ -4,20 +4,17 @@ import (
 	"fmt"
 	"math/big"
 
-	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
-
-	cmttypes "github.com/cometbft/cometbft/types"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	corevm "github.com/ethereum/go-ethereum/core/vm"
+
+	evertypes "github.com/EscanBE/evermint/v12/types"
+	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 )
 
 // NewEVM generates a go-ethereum VM from the provided Message fields and the chain parameters
@@ -71,12 +68,7 @@ func (k *Keeper) NewEVM(
 	return corevm.NewEVM(blockCtx, txCtx, stateDB, cfg.ChainConfig, coreVmConfig)
 }
 
-// GetHashFn implements vm.GetHashFunc for Evermint. It handles 3 cases:
-//  1. The requested height matches the current height from context (and thus same epoch number)
-//  2. The requested height is from a previous height from the same chain epoch
-//  3. The requested height is from a height greater than the latest one
-//
-// TODO ES: improve this
+// GetHashFn implements vm.GetHashFunc for Evermint.
 func (k Keeper) GetHashFn(ctx sdk.Context) corevm.GetHashFunc {
 	return func(height uint64) common.Hash {
 		h, err := evertypes.SafeInt64(height)
@@ -85,47 +77,7 @@ func (k Keeper) GetHashFn(ctx sdk.Context) corevm.GetHashFunc {
 			return common.Hash{}
 		}
 
-		switch {
-		case ctx.BlockHeight() == h:
-			// Case 1: The requested height matches the one from the context,
-			// so we can retrieve the header hash directly from the context.
-			// Note: The headerHash is only set at begin block, it will be nil in case of a query context
-			headerHash := ctx.HeaderHash()
-			if len(headerHash) != 0 {
-				return common.BytesToHash(headerHash)
-			}
-
-			// only recompute the hash if not set (eg: checkTxState)
-			contextBlockHeader := ctx.BlockHeader()
-			header, err := cmttypes.HeaderFromProto(&contextBlockHeader)
-			if err != nil {
-				k.Logger(ctx).Error("failed to cast CometBFT header from proto", "error", err)
-				return common.Hash{}
-			}
-
-			headerHash = header.Hash()
-			return common.BytesToHash(headerHash)
-
-		case ctx.BlockHeight() > h:
-			// Case 2: if the chain is not the current height we need to retrieve the hash from the store for the
-			// current chain epoch. This only applies if the current height is greater than the requested height.
-			histInfo, err := k.stakingKeeper.GetHistoricalInfo(ctx, h)
-			if err != nil {
-				k.Logger(ctx).Debug("historical info not found", "height", h, "error", err)
-				return common.Hash{}
-			}
-
-			header, err := cmttypes.HeaderFromProto(&histInfo.Header)
-			if err != nil {
-				k.Logger(ctx).Error("failed to cast CometBFT header from proto", "error", err)
-				return common.Hash{}
-			}
-
-			return common.BytesToHash(header.Hash())
-		default:
-			// Case 3: heights greater than the current one returns an empty hash.
-			return common.Hash{}
-		}
+		return k.GetBlockHashByBlockNumber(ctx, h)
 	}
 }
 

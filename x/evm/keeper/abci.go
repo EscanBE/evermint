@@ -2,15 +2,17 @@ package keeper
 
 import (
 	storetypes "cosmossdk.io/store/types"
-	"github.com/EscanBE/evermint/v12/utils"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
+	"github.com/EscanBE/evermint/v12/utils"
 )
 
 // BeginBlock sets the sdk Context and EIP155 chain id to the Keeper.
 func (k *Keeper) BeginBlock(ctx sdk.Context) {
 	k.WithChainID(ctx)
+	k.SetBlockHashForCurrentBlockAndPruneOld(ctx)
 }
 
 // EndBlock also retrieves the bloom filter value from the transient store and commits it to the

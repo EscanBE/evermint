@@ -2,11 +2,19 @@ package keeper_test
 
 import (
 	"fmt"
-	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 	"math"
 	"math/big"
 
 	storetypes "cosmossdk.io/store/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	ethparams "github.com/ethereum/go-ethereum/params"
 
 	"github.com/EscanBE/evermint/v12/constants"
 	"github.com/EscanBE/evermint/v12/testutil"
@@ -14,23 +22,15 @@ import (
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	"github.com/cometbft/cometbft/crypto/tmhash"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	cmttypes "github.com/cometbft/cometbft/types"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	ethparams "github.com/ethereum/go-ethereum/params"
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 )
 
 func (suite *KeeperTestSuite) TestGetHashFn() {
-	header := suite.ctx.BlockHeader()
-	h, _ := cmttypes.HeaderFromProto(&header)
-	hash := h.Hash()
+	blockHash := func(seed byte) []byte {
+		hash := make([]byte, 32)
+		hash[0] = seed
+		return hash
+	}
 
 	testCases := []struct {
 		name     string
@@ -39,67 +39,39 @@ func (suite *KeeperTestSuite) TestGetHashFn() {
 		expHash  common.Hash
 	}{
 		{
-			name:   "case 1.1: context hash cached",
+			name:   "pass - current block hash",
 			height: uint64(suite.ctx.BlockHeight()),
 			malleate: func() {
-				suite.ctx = suite.ctx.WithHeaderHash(tmhash.Sum([]byte("header")))
+				suite.ctx = suite.ctx.WithHeaderHash(blockHash(1))
+				suite.app.EvmKeeper.SetBlockHashForCurrentBlockAndPruneOld(suite.ctx)
 			},
-			expHash: common.BytesToHash(tmhash.Sum([]byte("header"))),
+			expHash: common.BytesToHash(blockHash(1)),
 		},
 		{
-			name:   "case 1.2: failed to cast CometBFT header",
+			name:   "pass - previous block hash",
 			height: uint64(suite.ctx.BlockHeight()),
 			malleate: func() {
-				header := tmproto.Header{}
-				header.Height = suite.ctx.BlockHeight()
-				suite.ctx = suite.ctx.WithBlockHeader(header)
-			},
-			expHash: common.Hash{},
-		},
-		{
-			name:   "case 1.3: hash calculated from CometBFT header",
-			height: uint64(suite.ctx.BlockHeight()),
-			malleate: func() {
-				suite.ctx = suite.ctx.WithBlockHeader(header)
-			},
-			expHash: common.BytesToHash(hash),
-		},
-		{
-			name:   "case 2.1: height lower than current one, hist info not found",
-			height: 1,
-			malleate: func() {
-				suite.ctx = suite.ctx.WithBlockHeight(10)
-			},
-			expHash: common.Hash{},
-		},
-		{
-			name:   "case 2.2: height lower than current one, invalid hist info header",
-			height: 1,
-			malleate: func() {
-				err := suite.app.StakingKeeper.SetHistoricalInfo(suite.ctx, 1, &stakingtypes.HistoricalInfo{})
-				suite.Require().NoError(err)
-				suite.ctx = suite.ctx.WithBlockHeight(10)
-			},
-			expHash: common.Hash{},
-		},
-		{
-			name:   "case 2.3: height lower than current one, calculated from hist info header",
-			height: 1,
-			malleate: func() {
-				histInfo := &stakingtypes.HistoricalInfo{
-					Header: header,
+				{
+					// set app hash to ctx header hash
+					// because Commit using AppHash as hash and
+					// FinalizeBlock calls begin block which set the header hash
+					suite.ctx = suite.ctx.WithHeaderHash(suite.ctx.BlockHeader().AppHash)
 				}
-				err := suite.app.StakingKeeper.SetHistoricalInfo(suite.ctx, 1, histInfo)
-				suite.Require().NoError(err)
-				suite.ctx = suite.ctx.WithBlockHeight(10)
+				suite.Commit()
+
+				suite.ctx = suite.ctx.WithHeaderHash(blockHash(3))
+				suite.app.EvmKeeper.SetBlockHashForCurrentBlockAndPruneOld(suite.ctx)
 			},
-			expHash: common.BytesToHash(hash),
+			expHash: common.HexToHash("0xa172cedcae47474b615c54d510a5d84a8dea3032e958587430b413538be3f333"),
 		},
 		{
-			name:     "case 3: height greater than current one",
-			height:   200,
-			malleate: func() {},
-			expHash:  common.Hash{},
+			name:   "pass - height greater than current one, returns empty",
+			height: uint64(suite.ctx.BlockHeight()) + 1,
+			malleate: func() {
+				suite.ctx = suite.ctx.WithHeaderHash(blockHash(4))
+				suite.app.EvmKeeper.SetBlockHashForCurrentBlockAndPruneOld(suite.ctx)
+			},
+			expHash: common.Hash{},
 		},
 	}
 
