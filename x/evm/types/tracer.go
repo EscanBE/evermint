@@ -61,51 +61,29 @@ func NewNoOpTracer() *NoOpTracer {
 }
 
 // CaptureStart implements vm.Tracer interface
-//
-//nolint:revive // allow unused parameters to indicate expected signature
-func (dt NoOpTracer) CaptureStart(env *corevm.EVM,
-	from common.Address,
-	to common.Address,
-	create bool,
-	input []byte,
-	gas uint64,
-	value *big.Int) {
+func (dt NoOpTracer) CaptureStart(_ *corevm.EVM, _, _ common.Address, _ bool, _ []byte, _ uint64, _ *big.Int) {
 }
 
 // CaptureState implements vm.Tracer interface
-//
-//nolint:revive // allow unused parameters to indicate expected signature
-func (dt NoOpTracer) CaptureState(pc uint64, op corevm.OpCode, gas, cost uint64, scope *corevm.ScopeContext, rData []byte, depth int, err error) {
+func (dt NoOpTracer) CaptureState(_ uint64, _ corevm.OpCode, _, _ uint64, _ *corevm.ScopeContext, _ []byte, _ int, _ error) {
 }
 
 // CaptureFault implements vm.Tracer interface
-//
-//nolint:revive // allow unused parameters to indicate expected signature
-func (dt NoOpTracer) CaptureFault(pc uint64, op corevm.OpCode, gas, cost uint64, scope *corevm.ScopeContext, depth int, err error) {
+func (dt NoOpTracer) CaptureFault(_ uint64, _ corevm.OpCode, _, _ uint64, _ *corevm.ScopeContext, _ int, _ error) {
 }
 
 // CaptureEnd implements vm.Tracer interface
-//
-//nolint:revive // allow unused parameters to indicate expected signature
-func (dt NoOpTracer) CaptureEnd(output []byte, gasUsed uint64, tm time.Duration, err error) {}
+func (dt NoOpTracer) CaptureEnd(_ []byte, _ uint64, _ time.Duration, _ error) {}
 
 // CaptureEnter implements vm.Tracer interface
-//
-//nolint:revive // allow unused parameters to indicate expected signature
-func (dt NoOpTracer) CaptureEnter(typ corevm.OpCode, from common.Address, to common.Address, input []byte, gas uint64, value *big.Int) {
+func (dt NoOpTracer) CaptureEnter(_ corevm.OpCode, _ common.Address, _ common.Address, _ []byte, _ uint64, _ *big.Int) {
 }
 
 // CaptureExit implements vm.Tracer interface
-//
-//nolint:revive // allow unused parameters to indicate expected signature
-func (dt NoOpTracer) CaptureExit(output []byte, gasUsed uint64, err error) {}
+func (dt NoOpTracer) CaptureExit(_ []byte, _ uint64, _ error) {}
 
 // CaptureTxStart implements vm.Tracer interface
-//
-//nolint:revive // allow unused parameters to indicate expected signature
-func (dt NoOpTracer) CaptureTxStart(gasLimit uint64) {}
+func (dt NoOpTracer) CaptureTxStart(_ uint64) {}
 
 // CaptureTxEnd implements vm.Tracer interface
-//
-//nolint:revive // allow unused parameters to indicate expected signature
-func (dt NoOpTracer) CaptureTxEnd(restGas uint64) {}
+func (dt NoOpTracer) CaptureTxEnd(_ uint64) {}

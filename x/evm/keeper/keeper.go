@@ -123,11 +123,6 @@ func (k Keeper) ChainID() *big.Int {
 	return k.eip155ChainID
 }
 
-// GetAuthority returns the x/evm module authority address
-func (k Keeper) GetAuthority() sdk.AccAddress {
-	return k.authority
-}
-
 // ----------------------------------------------------------------------------
 // Block
 // ----------------------------------------------------------------------------

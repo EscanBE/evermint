@@ -13,10 +13,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// TransactionArgs represents the arguments to construct a new transaction
-// or a message call using JSON-RPC.
-// Duplicate struct definition since geth struct is in internal package
-// Ref: https://github.com/ethereum/go-ethereum/blob/release/1.10.4/internal/ethapi/transaction_args.go#L36
+// TransactionArgs represents the arguments to construct a new transaction or a message call using JSON-RPC.
 type TransactionArgs struct {
 	From                 *common.Address `json:"from"`
 	To                   *common.Address `json:"to"`
@@ -40,16 +37,26 @@ type TransactionArgs struct {
 
 // String return the struct in a string format
 func (args *TransactionArgs) String() string {
-	// Todo: There is currently a bug with hexutil.Big when the value its nil, printing would trigger an exception
-	return fmt.Sprintf("TransactionArgs{From:%v, To:%v, Gas:%v,"+
-		" Nonce:%v, Data:%v, Input:%v, AccessList:%v}",
+	hexUtilBigString := func(n *hexutil.Big) string {
+		if n == nil {
+			return "<nil>"
+		}
+		return n.String()
+	}
+	return fmt.Sprintf("TransactionArgs{From:%v, To:%v, Gas:%v, GasPrices: %s, MaxFeePerGas: %s, MaxPriorityFeePerGas: %s, Value: %s, Nonce:%v, Data:%v, Input:%v, AccessList:%v, ChainID: %s}",
 		args.From,
 		args.To,
 		args.Gas,
+		hexUtilBigString(args.GasPrice),
+		hexUtilBigString(args.MaxFeePerGas),
+		hexUtilBigString(args.MaxPriorityFeePerGas),
+		hexUtilBigString(args.Value),
 		args.Nonce,
 		args.Data,
 		args.Input,
-		args.AccessList)
+		args.AccessList,
+		hexUtilBigString(args.ChainID),
+	)
 }
 
 // ToTransaction converts the arguments to an ethereum transaction.

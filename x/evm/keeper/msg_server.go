@@ -28,10 +28,10 @@ import (
 
 var _ evmtypes.MsgServer = &Keeper{}
 
-// EthereumTx implements the gRPC MsgServer interface. It receives a transaction which is then
-// executed (i.e applied) against the go-ethereum EVM. The provided SDK Context is set to the Keeper
-// so that it can implements and call the StateDB methods without receiving it as a function
-// parameter.
+// EthereumTx implements the gRPC MsgServer interface.
+// It receives a transaction which is then executed (eg: applied) using the go-ethereum EVM.
+// The provided SDK Context is set to the Keeper
+// so that it can implement and call the StateDB methods without receiving it as a function parameter.
 func (k *Keeper) EthereumTx(goCtx context.Context, msg *evmtypes.MsgEthereumTx) (*evmtypes.MsgEthereumTxResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
