@@ -28,6 +28,7 @@ const (
 	prefixStorage
 	prefixParams
 	prefixCodeHash
+	prefixBlockHash
 )
 
 // prefix bytes for the EVM transient store
@@ -47,10 +48,11 @@ const (
 
 // KVStore key prefixes
 var (
-	KeyPrefixCode     = []byte{prefixCode}
-	KeyPrefixStorage  = []byte{prefixStorage}
-	KeyPrefixParams   = []byte{prefixParams}
-	KeyPrefixCodeHash = []byte{prefixCodeHash}
+	KeyPrefixCode      = []byte{prefixCode}
+	KeyPrefixStorage   = []byte{prefixStorage}
+	KeyPrefixParams    = []byte{prefixParams}
+	KeyPrefixCodeHash  = []byte{prefixCodeHash}
+	KeyPrefixBlockHash = []byte{prefixBlockHash}
 )
 
 // Transient Store key prefixes
@@ -76,6 +78,12 @@ func AddressStoragePrefix(address common.Address) []byte {
 // StateKey defines the full key under which an account state is stored.
 func StateKey(address common.Address, key []byte) []byte {
 	return append(AddressStoragePrefix(address), key...)
+}
+
+// BlockHashKey returns the key for the block hash with the given height.
+// Note: only most-recent 256 block hashes are stored.
+func BlockHashKey(height uint64) []byte {
+	return append(KeyPrefixBlockHash, sdk.Uint64ToBigEndian(height)...)
 }
 
 func TxGasTransientKey(txIdx uint64) []byte {
