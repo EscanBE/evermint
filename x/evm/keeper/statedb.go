@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	storetypes "cosmossdk.io/store/types"
 	"fmt"
+
+	storetypes "cosmossdk.io/store/types"
 
 	"cosmossdk.io/store/prefix"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"

@@ -2,9 +2,10 @@ package keeper_test
 
 import (
 	_ "embed"
+	"math/big"
+
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	"math/big"
 
 	storetypes "cosmossdk.io/store/types"
 

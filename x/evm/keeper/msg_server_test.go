@@ -1,8 +1,9 @@
 package keeper_test
 
 import (
-	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 	"math/big"
+
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"

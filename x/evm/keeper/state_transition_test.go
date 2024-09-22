@@ -668,7 +668,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 	var (
 		ethTx *ethtypes.Transaction
-		//msg          core.Message
+		// msg          core.Message
 		err          error
 		config       *evmvm.EVMConfig
 		keeperParams evmtypes.Params

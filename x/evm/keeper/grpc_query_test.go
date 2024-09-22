@@ -2,8 +2,9 @@ package keeper_test
 
 import (
 	"encoding/json"
-	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 	"math/big"
+
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 
 	storetypes "cosmossdk.io/store/types"
 

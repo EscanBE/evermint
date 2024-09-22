@@ -3,10 +3,11 @@ package keeper_test
 import (
 	"bytes"
 	"encoding/json"
-	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 	"math/big"
 	"strconv"
 	"time"
+
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 
 	sdkmath "cosmossdk.io/math"
 
