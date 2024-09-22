@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 	"math/big"
 	"time"
+
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 
 	errorsmod "cosmossdk.io/errors"
 

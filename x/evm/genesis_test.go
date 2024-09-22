@@ -1,8 +1,9 @@
 package evm_test
 
 import (
-	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 	"math/big"
+
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 

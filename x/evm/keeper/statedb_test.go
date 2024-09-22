@@ -2,8 +2,9 @@ package keeper_test
 
 import (
 	"fmt"
-	"github.com/EscanBE/evermint/v12/x/evm/vm"
 	"math/big"
+
+	"github.com/EscanBE/evermint/v12/x/evm/vm"
 
 	"cosmossdk.io/store/prefix"
 	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"

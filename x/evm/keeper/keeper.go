@@ -117,12 +117,19 @@ func (k *Keeper) WithChainID(ctx sdk.Context) {
 
 // ChainID returns the EIP155 chain ID for the EVM context
 func (k Keeper) ChainID() *big.Int {
+	if k.eip155ChainID == nil || k.eip155ChainID.Sign() == 0 {
+		panic("chain ID not set")
+	}
 	return k.eip155ChainID
 }
 
+// GetAuthority returns the x/evm module authority address
+func (k Keeper) GetAuthority() sdk.AccAddress {
+	return k.authority
+}
+
 // ----------------------------------------------------------------------------
-// Block Bloom
-// Required by Web3 API.
+// Block
 // ----------------------------------------------------------------------------
 
 // EmitBlockBloomEvent emit block bloom events
@@ -142,9 +149,42 @@ func (k Keeper) EmitBlockBloomEvent(ctx sdk.Context, bloom ethtypes.Bloom) {
 	)
 }
 
-// GetAuthority returns the x/evm module authority address
-func (k Keeper) GetAuthority() sdk.AccAddress {
-	return k.authority
+// SetBlockHashForCurrentBlockAndPruneOld stores the block hash of current block into KVStore,
+// and prunes the block hash of the 256th block before the current block.
+func (k Keeper) SetBlockHashForCurrentBlockAndPruneOld(ctx sdk.Context) {
+	height := ctx.BlockHeight()
+	if height == 0 {
+		return
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	key := evmtypes.BlockHashKey(uint64(height))
+	store.Set(key, ctx.HeaderHash())
+
+	heightToPrune := height - 256
+	if heightToPrune > 0 {
+		keyToPrune := evmtypes.BlockHashKey(uint64(heightToPrune))
+		store.Delete(keyToPrune)
+	}
+}
+
+// GetBlockHashByBlockNumber returns the block hash by block number.
+func (k Keeper) GetBlockHashByBlockNumber(ctx sdk.Context, height int64) common.Hash {
+	if height <= 0 {
+		return common.Hash{}
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	key := evmtypes.BlockHashKey(uint64(height))
+
+	bz := store.Get(key)
+	if len(bz) == 0 {
+		if height == ctx.BlockHeight() {
+			panic(fmt.Sprintf("block hash not found for current block %d", height))
+		}
+		return common.Hash{}
+	}
+	return common.BytesToHash(bz)
 }
 
 // ----------------------------------------------------------------------------
@@ -386,6 +426,7 @@ func (k Keeper) GetBaseFee(ctx sdk.Context) sdkmath.Int {
 //   - Set the failed receipt for the current transaction, assume tx failed
 func (k Keeper) SetupExecutionContext(ctx sdk.Context, txGas uint64, txType uint8) sdk.Context {
 	ctx = utils.UseZeroGasConfig(ctx)
+	k.SetBlockHashForCurrentBlockAndPruneOld(ctx)
 	k.IncreaseTxCountTransient(ctx)
 	k.SetGasUsedForCurrentTxTransient(ctx, txGas)
 

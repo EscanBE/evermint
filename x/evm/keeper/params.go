@@ -33,5 +33,5 @@ func (k Keeper) SetParams(ctx sdk.Context, params evmtypes.Params) error {
 }
 
 func (k Keeper) GetChainConfig(ctx sdk.Context) *ethparams.ChainConfig {
-	return k.GetParams(ctx).ChainConfig.EthereumConfig(k.eip155ChainID)
+	return k.GetParams(ctx).ChainConfig.EthereumConfig(k.ChainID())
 }

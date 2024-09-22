@@ -1,10 +1,11 @@
 package evm_test
 
 import (
-	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 	"math/big"
 	"testing"
 	"time"
+
+	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
