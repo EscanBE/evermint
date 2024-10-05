@@ -128,7 +128,6 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 				_, err := RegisterBlockMultipleTxs(client, height, []cmttypes.Tx{txBz, txBz2})
 				suite.Require().NoError(err)
 				RegisterTraceTransactionWithPredecessors(queryClient, msgEthereumTx, []*evmtypes.MsgEthereumTx{msgEthereumTx})
-				RegisterConsensusParams(client, height)
 			},
 			block: &cmttypes.Block{Header: cmttypes.Header{Height: 1, ChainID: ChainID}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz, txBz2}}},
 			responseBlock: []*abci.ExecTxResult{
@@ -185,7 +184,6 @@ func (suite *BackendTestSuite) TestTraceTransaction() {
 				_, err := RegisterBlock(client, height, txBz)
 				suite.Require().NoError(err)
 				RegisterTraceTransaction(queryClient, msgEthereumTx)
-				RegisterConsensusParams(client, height)
 			},
 			block: &cmttypes.Block{Header: cmttypes.Header{Height: 1}, Data: cmttypes.Data{Txs: []cmttypes.Tx{txBz}}},
 			responseBlock: []*abci.ExecTxResult{
@@ -268,10 +266,7 @@ func (suite *BackendTestSuite) TestTraceBlock() {
 			name: "fail - cannot unmarshal data",
 			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				client := suite.backend.clientCtx.Client.(*mocks.Client)
-				var height int64 = 1
 				RegisterTraceBlock(queryClient, []*evmtypes.MsgEthereumTx{msgEthTx})
-				RegisterConsensusParams(client, height)
 			},
 			expTraceResults: []*evmtypes.TxTraceResult{},
 			resBlock:        &resBlockFilled,
