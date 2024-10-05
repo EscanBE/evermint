@@ -280,7 +280,7 @@ func (e *PublicAPI) Call(args evmtypes.TransactionArgs,
 		return []byte{}, err
 	}
 
-	return (hexutil.Bytes)(data.Ret), nil
+	return data.Ret, nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////

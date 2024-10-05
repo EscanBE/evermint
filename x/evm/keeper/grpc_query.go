@@ -13,8 +13,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/EscanBE/evermint/v12/utils"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	"github.com/ethereum/go-ethereum/eth/tracers"
 	"github.com/ethereum/go-ethereum/eth/tracers/logger"
 
@@ -239,7 +237,7 @@ func (k Keeper) EthCall(c context.Context, req *evmtypes.EthCallRequest) (*evmty
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	cfg, err := k.EVMConfig(ctx, GetProposerAddress(ctx, req.ProposerAddress), chainID)
+	cfg, err := k.EVMConfig(ctx, nil, chainID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -317,7 +315,7 @@ func (k Keeper) EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*e
 	}
 
 	gasCap = hi
-	cfg, err := k.EVMConfig(ctx, GetProposerAddress(ctx, req.ProposerAddress), chainID)
+	cfg, err := k.EVMConfig(ctx, nil, chainID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to load evm config")
 	}
@@ -418,16 +416,11 @@ func (k Keeper) TraceTx(c context.Context, req *evmtypes.QueryTraceTxRequest) (*
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 	ctx = utils.UseZeroGasConfig(ctx)
 
-	// Only the block max gas from the consensus params is needed to calculate base fee
-	ctx = ctx.WithConsensusParams(tmproto.ConsensusParams{
-		Block: &tmproto.BlockParams{MaxGas: req.BlockMaxGas},
-	})
-
 	chainID, err := getChainID(ctx, req.ChainId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	cfg, err := k.EVMConfig(ctx, GetProposerAddress(ctx, req.ProposerAddress), chainID)
+	cfg, err := k.EVMConfig(ctx, req.ProposerAddress, chainID)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to load evm config: %s", err.Error())
 	}
@@ -517,17 +510,12 @@ func (k Keeper) TraceBlock(c context.Context, req *evmtypes.QueryTraceBlockReque
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 	ctx = utils.UseZeroGasConfig(ctx)
 
-	// Only the block max gas from the consensus params is needed to calculate base fee
-	ctx = ctx.WithConsensusParams(tmproto.ConsensusParams{
-		Block: &tmproto.BlockParams{MaxGas: req.BlockMaxGas},
-	})
-
 	chainID, err := getChainID(ctx, req.ChainId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	cfg, err := k.EVMConfig(ctx, GetProposerAddress(ctx, req.ProposerAddress), chainID)
+	cfg, err := k.EVMConfig(ctx, req.ProposerAddress, chainID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to load evm config")
 	}

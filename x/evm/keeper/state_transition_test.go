@@ -20,7 +20,6 @@ import (
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 )
@@ -93,16 +92,35 @@ func (suite *KeeperTestSuite) TestGetCoinbaseAddress() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		wantErr  bool
+		wantAddr common.Address
 	}{
 		{
 			name: "fail - validator not found",
 			malleate: func() {
 				header := suite.ctx.BlockHeader()
+				header.ProposerAddress = []byte{0x1}
+				suite.ctx = suite.ctx.WithBlockHeader(header)
+			},
+			wantErr: true,
+		},
+		{
+			name: "pass - empty proposer address will returns empty address",
+			malleate: func() {
+				header := suite.ctx.BlockHeader()
 				header.ProposerAddress = []byte{}
 				suite.ctx = suite.ctx.WithBlockHeader(header)
 			},
-			expPass: false,
+			wantAddr: common.Address{},
+		},
+		{
+			name: "pass - empty proposer address (20 bytes) will returns empty address",
+			malleate: func() {
+				header := suite.ctx.BlockHeader()
+				header.ProposerAddress = make([]byte, 20)
+				suite.ctx = suite.ctx.WithBlockHeader(header)
+			},
+			wantAddr: common.Address{},
 		},
 		{
 			name: "pass",
@@ -131,7 +149,7 @@ func (suite *KeeperTestSuite) TestGetCoinbaseAddress() {
 
 				suite.Require().NotEmpty(suite.ctx.BlockHeader().ProposerAddress)
 			},
-			expPass: true,
+			wantAddr: valOpAddr,
 		},
 	}
 
@@ -141,13 +159,15 @@ func (suite *KeeperTestSuite) TestGetCoinbaseAddress() {
 
 			tc.malleate()
 			header := suite.ctx.BlockHeader()
+
 			coinbase, err := suite.app.EvmKeeper.GetCoinbaseAddress(suite.ctx, header.ProposerAddress)
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().Equal(valOpAddr, coinbase)
-			} else {
+			if tc.wantErr {
 				suite.Require().Error(err)
+				return
 			}
+
+			suite.Require().NoError(err)
+			suite.Require().Equal(tc.wantAddr, coinbase)
 		})
 	}
 }
@@ -333,6 +353,46 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 				ethMsg = evmtypes.NewTx(&ethTxParams)
 				err = ethMsg.Sign(msgSigner, suite.signer)
 				suite.Require().NoError(err)
+			},
+			expErr:     false,
+			expGasUsed: 21_000, // consume just enough gas
+		},
+		{
+			name: "allow empty proposer address",
+			malleate: func() {
+				err = testutil.FundModuleAccount(
+					suite.ctx,
+					suite.app.BankKeeper,
+					authtypes.FeeCollectorName,
+					sdk.NewCoins(evertypes.NewBaseCoinInt64(1_000_000)),
+				)
+				suite.Require().NoError(err)
+
+				suite.FundDefaultAddress(1_000_000)
+
+				randomAddr, _ := utiltx.NewAddrKey()
+
+				ethTxParams := evmtypes.EvmTxArgs{
+					From:      suite.address,
+					Nonce:     getNonce(suite.address.Bytes()),
+					GasLimit:  100_000,
+					Input:     nil,
+					GasFeeCap: nil,
+					GasPrice:  big.NewInt(10),
+					ChainID:   chainCfg.ChainID,
+					Amount:    big.NewInt(1),
+					GasTipCap: nil,
+					To:        &randomAddr,
+					Accesses:  nil,
+				}
+
+				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
+
+				ethMsg = evmtypes.NewTx(&ethTxParams)
+				err = ethMsg.Sign(msgSigner, suite.signer)
+				suite.Require().NoError(err)
+
+				suite.ctx = suite.ctx.WithProposer(sdk.ConsAddress{})
 			},
 			expErr:     false,
 			expGasUsed: 21_000, // consume just enough gas
@@ -980,36 +1040,4 @@ func (suite *KeeperTestSuite) createContractMsgTx(nonce uint64, signer ethtypes.
 	suite.Require().NoError(err)
 
 	return ethMsg, ethMsg.Sign(signer, suite.signer)
-}
-
-func (suite *KeeperTestSuite) TestGetProposerAddress() {
-	var a sdk.ConsAddress
-	address := sdk.ConsAddress(suite.address.Bytes())
-	proposerAddress := sdk.ConsAddress(suite.ctx.BlockHeader().ProposerAddress)
-	testCases := []struct {
-		name   string
-		adr    sdk.ConsAddress
-		expAdr sdk.ConsAddress
-	}{
-		{
-			name:   "proposer address provided",
-			adr:    address,
-			expAdr: address,
-		},
-		{
-			name:   "nil proposer address provided",
-			adr:    nil,
-			expAdr: proposerAddress,
-		},
-		{
-			name:   "typed nil proposer address provided",
-			adr:    a,
-			expAdr: proposerAddress,
-		},
-	}
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.Require().Equal(tc.expAdr, evmkeeper.GetProposerAddress(suite.ctx, tc.adr))
-		})
-	}
 }

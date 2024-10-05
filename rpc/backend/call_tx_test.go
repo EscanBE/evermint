@@ -406,7 +406,6 @@ func (suite *BackendTestSuite) TestSendRawTransaction() {
 }
 
 func (suite *BackendTestSuite) TestDoCall() {
-	_, bz := suite.buildEthereumTx()
 	gasPrice := (*hexutil.Big)(big.NewInt(1))
 	toAddr := utiltx.GenerateAddress()
 	chainID := (*hexutil.Big)(suite.backend.chainID)
@@ -437,10 +436,7 @@ func (suite *BackendTestSuite) TestDoCall() {
 		{
 			name: "fail - Invalid request",
 			registerMock: func() {
-				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				_, err := RegisterBlock(client, 1, bz)
-				suite.Require().NoError(err)
 				RegisterEthCallError(queryClient, &evmtypes.EthCallRequest{Args: argsBz, ChainId: suite.backend.chainID.Int64()})
 			},
 			blockNum: rpctypes.BlockNumber(1),
@@ -451,10 +447,7 @@ func (suite *BackendTestSuite) TestDoCall() {
 		{
 			name: "pass - Returned transaction response",
 			registerMock: func() {
-				client := suite.backend.clientCtx.Client.(*mocks.Client)
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				_, err := RegisterBlock(client, 1, bz)
-				suite.Require().NoError(err)
 				RegisterEthCall(queryClient, &evmtypes.EthCallRequest{Args: argsBz, ChainId: suite.backend.chainID.Int64()})
 			},
 			blockNum: rpctypes.BlockNumber(1),

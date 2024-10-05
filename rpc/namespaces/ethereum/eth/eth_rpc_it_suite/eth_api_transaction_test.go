@@ -1041,3 +1041,86 @@ func (suite *EthRpcTestSuite) Test_SendTransaction() {
 		})
 	}
 }
+
+func (suite *EthRpcTestSuite) Test_EthCall() {
+	sender := suite.CITS.WalletAccounts.Number(1)
+	contractAddr := sender.ComputeContractAddress(0)
+	var number byte = 0x7
+
+	defaultTxArgs := func() evmtypes.TransactionArgs {
+		txArgs := evmtypes.TransactionArgs{
+			From: sender.GetEthAddressP(),
+			To:   &contractAddr,
+		}
+
+		gas := hexutil.Uint64(210_000)
+		txArgs.Gas = &gas
+
+		txArgs.GasPrice = (*hexutil.Big)(big.NewInt(1e9))
+
+		data, err := integration_test_util.Contract1Storage.ABI.Pack("retrieve")
+		suite.Require().NoError(err)
+		txArgs.Data = (*hexutil.Bytes)(&data)
+
+		return txArgs
+	}()
+
+	// begin test
+
+	testCases := []struct {
+		name       string
+		txArgs     evmtypes.TransactionArgs
+		preRunFunc func(suite *EthRpcTestSuite)
+		wantErr    bool
+	}{
+		{
+			name:   "pass - can do eth_call",
+			txArgs: defaultTxArgs,
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			{
+				newContractAddress, _, resDeliver, err := suite.CITS.TxDeploy1StorageContract(sender)
+				suite.Commit()
+				suite.Require().NoError(err)
+				suite.Require().NotNil(resDeliver)
+				suite.NotEmpty(resDeliver.EthTxHash)
+				suite.Empty(resDeliver.EvmError)
+				suite.Require().Equal(contractAddr, newContractAddress)
+			}
+			{
+				data, err := integration_test_util.Contract1Storage.ABI.Pack("store", big.NewInt(int64(number)))
+				suite.Require().NoError(err)
+				_, resDeliver, err := suite.CITS.TxSendEvmTx(suite.Ctx(), sender, &contractAddr, nil, data)
+				suite.Require().NoError(err)
+				suite.Require().NotNil(resDeliver)
+				suite.NotEmpty(resDeliver.EthTxHash)
+				suite.Empty(resDeliver.EvmError)
+				suite.Commit()
+			}
+
+			if tc.preRunFunc != nil {
+				tc.preRunFunc(suite)
+			}
+
+			blockNumber := rpctypes.BlockNumber(suite.CITS.GetLatestBlockHeight())
+			bz, err := suite.GetEthPublicAPI().Call(tc.txArgs, rpctypes.BlockNumberOrHash{
+				BlockNumber: &blockNumber,
+			}, nil)
+			if tc.wantErr {
+				suite.Require().Error(err)
+				return
+			}
+
+			suite.Require().NoError(err)
+			suite.Require().NotNil(bz)
+
+			wantRes := make([]byte, 32)
+			wantRes[31] = number
+			suite.Equal(bz, hexutil.Bytes(wantRes))
+		})
+	}
+}
