@@ -92,16 +92,35 @@ func (suite *KeeperTestSuite) TestGetCoinbaseAddress() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		wantErr  bool
+		wantAddr common.Address
 	}{
 		{
 			name: "fail - validator not found",
 			malleate: func() {
 				header := suite.ctx.BlockHeader()
+				header.ProposerAddress = []byte{0x1}
+				suite.ctx = suite.ctx.WithBlockHeader(header)
+			},
+			wantErr: true,
+		},
+		{
+			name: "pass - empty proposer address will returns empty address",
+			malleate: func() {
+				header := suite.ctx.BlockHeader()
 				header.ProposerAddress = []byte{}
 				suite.ctx = suite.ctx.WithBlockHeader(header)
 			},
-			expPass: false,
+			wantAddr: common.Address{},
+		},
+		{
+			name: "pass - empty proposer address (20 bytes) will returns empty address",
+			malleate: func() {
+				header := suite.ctx.BlockHeader()
+				header.ProposerAddress = make([]byte, 20)
+				suite.ctx = suite.ctx.WithBlockHeader(header)
+			},
+			wantAddr: common.Address{},
 		},
 		{
 			name: "pass",
@@ -130,7 +149,7 @@ func (suite *KeeperTestSuite) TestGetCoinbaseAddress() {
 
 				suite.Require().NotEmpty(suite.ctx.BlockHeader().ProposerAddress)
 			},
-			expPass: true,
+			wantAddr: valOpAddr,
 		},
 	}
 
@@ -140,13 +159,15 @@ func (suite *KeeperTestSuite) TestGetCoinbaseAddress() {
 
 			tc.malleate()
 			header := suite.ctx.BlockHeader()
+
 			coinbase, err := suite.app.EvmKeeper.GetCoinbaseAddress(suite.ctx, header.ProposerAddress)
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().Equal(valOpAddr, coinbase)
-			} else {
+			if tc.wantErr {
 				suite.Require().Error(err)
+				return
 			}
+
+			suite.Require().NoError(err)
+			suite.Require().Equal(tc.wantAddr, coinbase)
 		})
 	}
 }
