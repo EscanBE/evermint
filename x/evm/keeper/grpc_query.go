@@ -13,8 +13,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/EscanBE/evermint/v12/utils"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	"github.com/ethereum/go-ethereum/eth/tracers"
 	"github.com/ethereum/go-ethereum/eth/tracers/logger"
 
@@ -418,11 +416,6 @@ func (k Keeper) TraceTx(c context.Context, req *evmtypes.QueryTraceTxRequest) (*
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 	ctx = utils.UseZeroGasConfig(ctx)
 
-	// Only the block max gas from the consensus params is needed to calculate base fee
-	ctx = ctx.WithConsensusParams(tmproto.ConsensusParams{
-		Block: &tmproto.BlockParams{MaxGas: req.BlockMaxGas},
-	})
-
 	chainID, err := getChainID(ctx, req.ChainId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -516,11 +509,6 @@ func (k Keeper) TraceBlock(c context.Context, req *evmtypes.QueryTraceBlockReque
 	ctx = ctx.WithBlockTime(req.BlockTime)
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 	ctx = utils.UseZeroGasConfig(ctx)
-
-	// Only the block max gas from the consensus params is needed to calculate base fee
-	ctx = ctx.WithConsensusParams(tmproto.ConsensusParams{
-		Block: &tmproto.BlockParams{MaxGas: req.BlockMaxGas},
-	})
 
 	chainID, err := getChainID(ctx, req.ChainId)
 	if err != nil {
