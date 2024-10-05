@@ -99,7 +99,7 @@ func (k Keeper) GetHashFn(ctx sdk.Context) corevm.GetHashFunc {
 //
 // For relevant discussion see: https://github.com/cosmos/cosmos-sdk/discussions/9072
 func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*evmtypes.MsgEthereumTxResponse, error) {
-	cfg, err := k.EVMConfig(ctx, sdk.ConsAddress(ctx.BlockHeader().ProposerAddress), k.ChainID())
+	cfg, err := k.EVMConfig(ctx, nil, k.ChainID())
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to load evm config")
 	}
@@ -131,7 +131,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*e
 
 // ApplyMessage calls ApplyMessageWithConfig with an empty TxConfig.
 func (k *Keeper) ApplyMessage(ctx sdk.Context, msg core.Message, tracer corevm.EVMLogger, commit bool) (*evmtypes.MsgEthereumTxResponse, error) {
-	cfg, err := k.EVMConfig(ctx, sdk.ConsAddress(ctx.BlockHeader().ProposerAddress), k.ChainID())
+	cfg, err := k.EVMConfig(ctx, nil, k.ChainID())
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to load evm config")
 	}

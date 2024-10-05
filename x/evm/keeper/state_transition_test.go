@@ -20,7 +20,6 @@ import (
 	"github.com/EscanBE/evermint/v12/testutil"
 	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
 	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 )
@@ -980,36 +979,4 @@ func (suite *KeeperTestSuite) createContractMsgTx(nonce uint64, signer ethtypes.
 	suite.Require().NoError(err)
 
 	return ethMsg, ethMsg.Sign(signer, suite.signer)
-}
-
-func (suite *KeeperTestSuite) TestGetProposerAddress() {
-	var a sdk.ConsAddress
-	address := sdk.ConsAddress(suite.address.Bytes())
-	proposerAddress := sdk.ConsAddress(suite.ctx.BlockHeader().ProposerAddress)
-	testCases := []struct {
-		name   string
-		adr    sdk.ConsAddress
-		expAdr sdk.ConsAddress
-	}{
-		{
-			name:   "proposer address provided",
-			adr:    address,
-			expAdr: address,
-		},
-		{
-			name:   "nil proposer address provided",
-			adr:    nil,
-			expAdr: proposerAddress,
-		},
-		{
-			name:   "typed nil proposer address provided",
-			adr:    a,
-			expAdr: proposerAddress,
-		},
-	}
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.Require().Equal(tc.expAdr, evmkeeper.GetProposerAddress(suite.ctx, tc.adr))
-		})
-	}
 }

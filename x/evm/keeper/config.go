@@ -14,12 +14,12 @@ import (
 )
 
 // EVMConfig creates the EVMConfig based on current state
-func (k *Keeper) EVMConfig(ctx sdk.Context, proposerAddress sdk.ConsAddress, chainID *big.Int) (*evmvm.EVMConfig, error) {
+func (k *Keeper) EVMConfig(ctx sdk.Context, overrideProposerAddress sdk.ConsAddress, chainID *big.Int) (*evmvm.EVMConfig, error) {
 	params := k.GetParams(ctx)
 	ethCfg := params.ChainConfig.EthereumConfig(chainID)
 
 	// get the coinbase address from the block proposer
-	coinbase, err := k.GetCoinbaseAddress(ctx, proposerAddress)
+	coinbase, err := k.GetCoinbaseAddress(ctx, overrideProposerAddress)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to obtain coinbase address")
 	}
