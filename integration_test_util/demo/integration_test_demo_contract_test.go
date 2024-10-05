@@ -25,7 +25,7 @@ func (suite *DemoTestSuite) Test_Contract_DeployContracts() {
 		suite.assertContractCode(newContractAddress)
 	})
 
-	suite.Run("1-create.sol", func() {
+	suite.Run("1-storage.sol", func() {
 		deployer := suite.CITS.WalletAccounts.Number(2)
 
 		newContractAddress, _, resDeliver, err := suite.CITS.TxDeploy1StorageContract(deployer)

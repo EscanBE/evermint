@@ -358,6 +358,46 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 			expGasUsed: 21_000, // consume just enough gas
 		},
 		{
+			name: "allow empty proposer address",
+			malleate: func() {
+				err = testutil.FundModuleAccount(
+					suite.ctx,
+					suite.app.BankKeeper,
+					authtypes.FeeCollectorName,
+					sdk.NewCoins(evertypes.NewBaseCoinInt64(1_000_000)),
+				)
+				suite.Require().NoError(err)
+
+				suite.FundDefaultAddress(1_000_000)
+
+				randomAddr, _ := utiltx.NewAddrKey()
+
+				ethTxParams := evmtypes.EvmTxArgs{
+					From:      suite.address,
+					Nonce:     getNonce(suite.address.Bytes()),
+					GasLimit:  100_000,
+					Input:     nil,
+					GasFeeCap: nil,
+					GasPrice:  big.NewInt(10),
+					ChainID:   chainCfg.ChainID,
+					Amount:    big.NewInt(1),
+					GasTipCap: nil,
+					To:        &randomAddr,
+					Accesses:  nil,
+				}
+
+				msgSigner := ethtypes.MakeSigner(chainCfg, big.NewInt(suite.ctx.BlockHeight()))
+
+				ethMsg = evmtypes.NewTx(&ethTxParams)
+				err = ethMsg.Sign(msgSigner, suite.signer)
+				suite.Require().NoError(err)
+
+				suite.ctx = suite.ctx.WithProposer(sdk.ConsAddress{})
+			},
+			expErr:     false,
+			expGasUsed: 21_000, // consume just enough gas
+		},
+		{
 			name: "fail intrinsic gas check, consume all remaining gas",
 			malleate: func() {
 				suite.FundDefaultAddress(1_000_000)
