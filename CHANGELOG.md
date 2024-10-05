@@ -52,6 +52,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evm) [#163](https://github.com/EscanBE/evermint/pull/163) Remove support for unprotected txs and cleanup deprecated proto
 - (evm) [#170](https://github.com/EscanBE/evermint/pull/170) Minor improvement
 - (evm) [#171](https://github.com/EscanBE/evermint/pull/171) Refactor code relates to `proposer address` in `x/evm`
+- (evm) [#172](https://github.com/EscanBE/evermint/pull/172) Remove unnecessary `block-max-gas` arg in some requests (continue #127)
 
 ### Bug Fixes
 
