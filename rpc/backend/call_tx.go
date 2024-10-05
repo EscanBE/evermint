@@ -12,7 +12,6 @@ import (
 	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -311,17 +310,10 @@ func (b *Backend) EstimateGas(args evmtypes.TransactionArgs, blockNrOptional *rp
 		return 0, err
 	}
 
-	header, err := b.CometBFTBlockByNumber(blockNr)
-	if err != nil {
-		// the error message imitates geth behavior
-		return 0, errors.New("header not found")
-	}
-
 	req := evmtypes.EthCallRequest{
-		Args:            bz,
-		GasCap:          b.RPCGasCap(),
-		ProposerAddress: sdk.ConsAddress(header.Block.ProposerAddress),
-		ChainId:         b.chainID.Int64(),
+		Args:    bz,
+		GasCap:  b.RPCGasCap(),
+		ChainId: b.chainID.Int64(),
 	}
 
 	// From ContextWithHeight: if the provided height is 0,
@@ -343,17 +335,11 @@ func (b *Backend) DoCall(
 	if err != nil {
 		return nil, err
 	}
-	header, err := b.CometBFTBlockByNumber(blockNr)
-	if err != nil {
-		// the error message imitates geth behavior
-		return nil, errors.New("header not found")
-	}
 
 	req := evmtypes.EthCallRequest{
-		Args:            bz,
-		GasCap:          b.RPCGasCap(),
-		ProposerAddress: sdk.ConsAddress(header.Block.ProposerAddress),
-		ChainId:         b.chainID.Int64(),
+		Args:    bz,
+		GasCap:  b.RPCGasCap(),
+		ChainId: b.chainID.Int64(),
 	}
 
 	// From ContextWithHeight: if the provided height is 0,

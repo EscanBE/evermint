@@ -6218,11 +6218,10 @@ func (x *fastReflection_QueryParamsResponse) ProtoMethods() *protoiface.Methods 
 }
 
 var (
-	md_EthCallRequest                  protoreflect.MessageDescriptor
-	fd_EthCallRequest_args             protoreflect.FieldDescriptor
-	fd_EthCallRequest_gas_cap          protoreflect.FieldDescriptor
-	fd_EthCallRequest_proposer_address protoreflect.FieldDescriptor
-	fd_EthCallRequest_chain_id         protoreflect.FieldDescriptor
+	md_EthCallRequest          protoreflect.MessageDescriptor
+	fd_EthCallRequest_args     protoreflect.FieldDescriptor
+	fd_EthCallRequest_gas_cap  protoreflect.FieldDescriptor
+	fd_EthCallRequest_chain_id protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -6230,7 +6229,6 @@ func init() {
 	md_EthCallRequest = File_ethermint_evm_v1_query_proto.Messages().ByName("EthCallRequest")
 	fd_EthCallRequest_args = md_EthCallRequest.Fields().ByName("args")
 	fd_EthCallRequest_gas_cap = md_EthCallRequest.Fields().ByName("gas_cap")
-	fd_EthCallRequest_proposer_address = md_EthCallRequest.Fields().ByName("proposer_address")
 	fd_EthCallRequest_chain_id = md_EthCallRequest.Fields().ByName("chain_id")
 }
 
@@ -6311,12 +6309,6 @@ func (x *fastReflection_EthCallRequest) Range(f func(protoreflect.FieldDescripto
 			return
 		}
 	}
-	if len(x.ProposerAddress) != 0 {
-		value := protoreflect.ValueOfBytes(x.ProposerAddress)
-		if !f(fd_EthCallRequest_proposer_address, value) {
-			return
-		}
-	}
 	if x.ChainId != int64(0) {
 		value := protoreflect.ValueOfInt64(x.ChainId)
 		if !f(fd_EthCallRequest_chain_id, value) {
@@ -6342,8 +6334,6 @@ func (x *fastReflection_EthCallRequest) Has(fd protoreflect.FieldDescriptor) boo
 		return len(x.Args) != 0
 	case "ethermint.evm.v1.EthCallRequest.gas_cap":
 		return x.GasCap != uint64(0)
-	case "ethermint.evm.v1.EthCallRequest.proposer_address":
-		return len(x.ProposerAddress) != 0
 	case "ethermint.evm.v1.EthCallRequest.chain_id":
 		return x.ChainId != int64(0)
 	default:
@@ -6366,8 +6356,6 @@ func (x *fastReflection_EthCallRequest) Clear(fd protoreflect.FieldDescriptor) {
 		x.Args = nil
 	case "ethermint.evm.v1.EthCallRequest.gas_cap":
 		x.GasCap = uint64(0)
-	case "ethermint.evm.v1.EthCallRequest.proposer_address":
-		x.ProposerAddress = nil
 	case "ethermint.evm.v1.EthCallRequest.chain_id":
 		x.ChainId = int64(0)
 	default:
@@ -6392,9 +6380,6 @@ func (x *fastReflection_EthCallRequest) Get(descriptor protoreflect.FieldDescrip
 	case "ethermint.evm.v1.EthCallRequest.gas_cap":
 		value := x.GasCap
 		return protoreflect.ValueOfUint64(value)
-	case "ethermint.evm.v1.EthCallRequest.proposer_address":
-		value := x.ProposerAddress
-		return protoreflect.ValueOfBytes(value)
 	case "ethermint.evm.v1.EthCallRequest.chain_id":
 		value := x.ChainId
 		return protoreflect.ValueOfInt64(value)
@@ -6422,8 +6407,6 @@ func (x *fastReflection_EthCallRequest) Set(fd protoreflect.FieldDescriptor, val
 		x.Args = value.Bytes()
 	case "ethermint.evm.v1.EthCallRequest.gas_cap":
 		x.GasCap = value.Uint()
-	case "ethermint.evm.v1.EthCallRequest.proposer_address":
-		x.ProposerAddress = value.Bytes()
 	case "ethermint.evm.v1.EthCallRequest.chain_id":
 		x.ChainId = value.Int()
 	default:
@@ -6450,8 +6433,6 @@ func (x *fastReflection_EthCallRequest) Mutable(fd protoreflect.FieldDescriptor)
 		panic(fmt.Errorf("field args of message ethermint.evm.v1.EthCallRequest is not mutable"))
 	case "ethermint.evm.v1.EthCallRequest.gas_cap":
 		panic(fmt.Errorf("field gas_cap of message ethermint.evm.v1.EthCallRequest is not mutable"))
-	case "ethermint.evm.v1.EthCallRequest.proposer_address":
-		panic(fmt.Errorf("field proposer_address of message ethermint.evm.v1.EthCallRequest is not mutable"))
 	case "ethermint.evm.v1.EthCallRequest.chain_id":
 		panic(fmt.Errorf("field chain_id of message ethermint.evm.v1.EthCallRequest is not mutable"))
 	default:
@@ -6471,8 +6452,6 @@ func (x *fastReflection_EthCallRequest) NewField(fd protoreflect.FieldDescriptor
 		return protoreflect.ValueOfBytes(nil)
 	case "ethermint.evm.v1.EthCallRequest.gas_cap":
 		return protoreflect.ValueOfUint64(uint64(0))
-	case "ethermint.evm.v1.EthCallRequest.proposer_address":
-		return protoreflect.ValueOfBytes(nil)
 	case "ethermint.evm.v1.EthCallRequest.chain_id":
 		return protoreflect.ValueOfInt64(int64(0))
 	default:
@@ -6551,10 +6530,6 @@ func (x *fastReflection_EthCallRequest) ProtoMethods() *protoiface.Methods {
 		if x.GasCap != 0 {
 			n += 1 + runtime.Sov(uint64(x.GasCap))
 		}
-		l = len(x.ProposerAddress)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
 		if x.ChainId != 0 {
 			n += 1 + runtime.Sov(uint64(x.ChainId))
 		}
@@ -6590,14 +6565,7 @@ func (x *fastReflection_EthCallRequest) ProtoMethods() *protoiface.Methods {
 		if x.ChainId != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.ChainId))
 			i--
-			dAtA[i] = 0x20
-		}
-		if len(x.ProposerAddress) > 0 {
-			i -= len(x.ProposerAddress)
-			copy(dAtA[i:], x.ProposerAddress)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.ProposerAddress)))
-			i--
-			dAtA[i] = 0x1a
+			dAtA[i] = 0x18
 		}
 		if x.GasCap != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.GasCap))
@@ -6714,40 +6682,6 @@ func (x *fastReflection_EthCallRequest) ProtoMethods() *protoiface.Methods {
 					}
 				}
 			case 3:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field ProposerAddress", wireType)
-				}
-				var byteLen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					byteLen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if byteLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + byteLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.ProposerAddress = append(x.ProposerAddress[:0], dAtA[iNdEx:postIndex]...)
-				if x.ProposerAddress == nil {
-					x.ProposerAddress = []byte{}
-				}
-				iNdEx = postIndex
-			case 4:
 				if wireType != 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field ChainId", wireType)
 				}
@@ -11356,10 +11290,8 @@ type EthCallRequest struct {
 	Args []byte `protobuf:"bytes,1,opt,name=args,proto3" json:"args,omitempty"`
 	// gas_cap defines the default gas cap to be used
 	GasCap uint64 `protobuf:"varint,2,opt,name=gas_cap,json=gasCap,proto3" json:"gas_cap,omitempty"`
-	// proposer_address of the requested block in hex format
-	ProposerAddress []byte `protobuf:"bytes,3,opt,name=proposer_address,json=proposerAddress,proto3" json:"proposer_address,omitempty"`
 	// chain_id is the eip155 chain id parsed from the requested block header
-	ChainId int64 `protobuf:"varint,4,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
+	ChainId int64 `protobuf:"varint,3,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
 }
 
 func (x *EthCallRequest) Reset() {
@@ -11394,13 +11326,6 @@ func (x *EthCallRequest) GetGasCap() uint64 {
 		return x.GasCap
 	}
 	return 0
-}
-
-func (x *EthCallRequest) GetProposerAddress() []byte {
-	if x != nil {
-		return x.ProposerAddress
-	}
-	return nil
 }
 
 func (x *EthCallRequest) GetChainId() int64 {
@@ -11610,7 +11535,7 @@ type QueryTraceBlockRequest struct {
 	BlockHash string `protobuf:"bytes,6,opt,name=block_hash,json=blockHash,proto3" json:"block_hash,omitempty"`
 	// block_time of the traced block
 	BlockTime *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=block_time,json=blockTime,proto3" json:"block_time,omitempty"`
-	// proposer_address is the address of the requested block
+	// proposer_address is the proposer of the requested block
 	ProposerAddress []byte `protobuf:"bytes,8,opt,name=proposer_address,json=proposerAddress,proto3" json:"proposer_address,omitempty"`
 	// chain_id is the eip155 chain id parsed from the requested block header
 	ChainId int64 `protobuf:"varint,9,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
@@ -11876,18 +11801,12 @@ var file_ethermint_evm_v1_query_proto_rawDesc = []byte{
 	0x6e, 0x73, 0x65, 0x12, 0x36, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x65, 0x74, 0x68, 0x65, 0x72, 0x6d, 0x69, 0x6e, 0x74, 0x2e,
 	0x65, 0x76, 0x6d, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42, 0x04, 0xc8,
-	0xde, 0x1f, 0x00, 0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x22, 0xb7, 0x01, 0x0a, 0x0e,
-	0x45, 0x74, 0x68, 0x43, 0x61, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12,
-	0x0a, 0x04, 0x61, 0x72, 0x67, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x61, 0x72,
-	0x67, 0x73, 0x12, 0x17, 0x0a, 0x07, 0x67, 0x61, 0x73, 0x5f, 0x63, 0x61, 0x70, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x04, 0x52, 0x06, 0x67, 0x61, 0x73, 0x43, 0x61, 0x70, 0x12, 0x5d, 0x0a, 0x10, 0x70,
-	0x72, 0x6f, 0x70, 0x6f, 0x73, 0x65, 0x72, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18,
-	0x03, 0x20, 0x01, 0x28, 0x0c, 0x42, 0x32, 0xfa, 0xde, 0x1f, 0x2e, 0x67, 0x69, 0x74, 0x68, 0x75,
-	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x63, 0x6f, 0x73,
-	0x6d, 0x6f, 0x73, 0x2d, 0x73, 0x64, 0x6b, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x43, 0x6f,
-	0x6e, 0x73, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x52, 0x0f, 0x70, 0x72, 0x6f, 0x70, 0x6f,
-	0x73, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x19, 0x0a, 0x08, 0x63, 0x68,
-	0x61, 0x69, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x04, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x63, 0x68,
+	0xde, 0x1f, 0x00, 0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x22, 0x58, 0x0a, 0x0e, 0x45,
+	0x74, 0x68, 0x43, 0x61, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a,
+	0x04, 0x61, 0x72, 0x67, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x61, 0x72, 0x67,
+	0x73, 0x12, 0x17, 0x0a, 0x07, 0x67, 0x61, 0x73, 0x5f, 0x63, 0x61, 0x70, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x04, 0x52, 0x06, 0x67, 0x61, 0x73, 0x43, 0x61, 0x70, 0x12, 0x19, 0x0a, 0x08, 0x63, 0x68,
+	0x61, 0x69, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x63, 0x68,
 	0x61, 0x69, 0x6e, 0x49, 0x64, 0x22, 0x27, 0x0a, 0x13, 0x45, 0x73, 0x74, 0x69, 0x6d, 0x61, 0x74,
 	0x65, 0x47, 0x61, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x10, 0x0a, 0x03,
 	0x67, 0x61, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x03, 0x67, 0x61, 0x73, 0x22, 0xf4,

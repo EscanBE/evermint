@@ -237,7 +237,7 @@ func (k Keeper) EthCall(c context.Context, req *evmtypes.EthCallRequest) (*evmty
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	cfg, err := k.EVMConfig(ctx, req.ProposerAddress, chainID)
+	cfg, err := k.EVMConfig(ctx, nil, chainID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -315,7 +315,7 @@ func (k Keeper) EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*e
 	}
 
 	gasCap = hi
-	cfg, err := k.EVMConfig(ctx, req.ProposerAddress, chainID)
+	cfg, err := k.EVMConfig(ctx, nil, chainID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to load evm config")
 	}
