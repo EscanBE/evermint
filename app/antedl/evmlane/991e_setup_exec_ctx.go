@@ -1,7 +1,6 @@
 package evmlane
 
 import (
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	dlanteutils "github.com/EscanBE/evermint/v12/app/antedl/utils"
@@ -29,9 +28,7 @@ func (sed ELSetupExecutionDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 	}
 
 	ethTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx).AsTransaction()
-	sed.ek.SetupExecutionContext(ctx, ethTx.Gas(), ethTx.Type())
-
-	newCtx = ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(ethTx.Gas()))
+	newCtx = sed.ek.SetupExecutionContext(ctx, ethTx)
 
 	return next(newCtx, tx, simulate)
 }

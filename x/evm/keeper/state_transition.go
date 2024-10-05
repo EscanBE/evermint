@@ -88,8 +88,8 @@ func (k Keeper) GetHashFn(ctx sdk.Context) corevm.GetHashFunc {
 //
 // Ethereum consumes gas according to the EVM opcodes instead of general reads and writes to store. Because of this, the
 // state transition needs to ignore the SDK gas consumption mechanism defined by the GasKVStore and instead consume the
-// amount of gas used by the VM execution. The amount of gas used is tracked by the EVM and returned in the execution
-// result.
+// amount of gas used by the VM execution.
+// The amount of gas used is tracked by the EVM and returning within the execution result.
 //
 // Prior to the execution, the starting tx gas meter is saved and replaced with an infinite gas meter in a new context
 // in order to ignore the SDK gas consumption config values (read, write, has, delete).
@@ -111,7 +111,6 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*e
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to return ethereum transaction as core message")
 	}
-	txConfig = txConfig.WithTxTypeFromMessage(msg)
 
 	// pass true to commit the StateDB
 	res, err := k.ApplyMessageWithConfig(ctx, msg, nil, true, cfg, txConfig)
@@ -147,30 +146,14 @@ func (k *Keeper) ApplyMessage(ctx sdk.Context, msg core.Message, tracer corevm.E
 //
 // # Reverted state
 //
-// The snapshot and rollback are supported by the `legacy_statedb.StateDB`.
+// The snapshot and rollback are supported by the `Context-based StateDB`.
 //
 // # Different Callers
 //
 // It's called in three scenarios:
 // 1. `ApplyTransaction`, in the transaction processing flow.
 // 2. `EthCall/EthEstimateGas` grpc query handler.
-// 3. Called by other native modules directly.
-//
-// # Prechecks and Preprocessing
-//
-// All relevant state transition prechecks for the MsgEthereumTx are performed on the AnteHandler,
-// prior to running the transaction against the state. The prechecks run are the following:
-//
-// 1. the nonce of the message caller is correct
-// 2. caller has enough balance to cover transaction fee(gaslimit * gasprice)
-// 3. the amount of gas required is available in the block
-// 4. the purchased gas is enough to cover intrinsic usage
-// 5. there is no overflow when calculating intrinsic gas
-// 6. caller has enough balance to cover asset transfer for **topmost** call
-//
-// The preprocessing steps performed by the AnteHandler are:
-//
-// 1. set up the initial access list (iff fork > Berlin)
+// 3. Called by other native modules directly (system call).
 //
 // # Tracer parameter
 //

@@ -40,7 +40,7 @@ func UnwrapEthereumMsg(tx *sdk.Tx, ethHash common.Hash) (*MsgEthereumTx, error) 
 		return nil, fmt.Errorf("invalid tx: nil")
 	}
 
-	if msgs := (*tx).GetMsgs(); len(msgs) > 0 {
+	if msgs := (*tx).GetMsgs(); len(msgs) == 1 {
 		ethMsg, ok := msgs[0].(*MsgEthereumTx)
 		if !ok {
 			return nil, fmt.Errorf("invalid tx type: %T", tx)

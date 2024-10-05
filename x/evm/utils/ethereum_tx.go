@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"math"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
@@ -33,20 +32,6 @@ func EthTxEffectiveGasPrice(tx *ethtypes.Transaction, baseFee sdkmath.Int) *big.
 // EthTxEffectiveFee is `EthTxEffectiveGasPrice * tx.Gas`
 func EthTxEffectiveFee(tx *ethtypes.Transaction, baseFee sdkmath.Int) *big.Int {
 	return mul(EthTxEffectiveGasPrice(tx, baseFee), new(big.Int).SetUint64(tx.Gas()))
-}
-
-// EthTxPriority returns the priority of a given Ethereum tx.
-func EthTxPriority(tx *ethtypes.Transaction, baseFee sdkmath.Int) (priority int64) {
-	gasPrice := EthTxEffectiveGasPrice(tx, baseFee)
-
-	priority = math.MaxInt64
-
-	// safety check
-	if gasPrice.IsInt64() {
-		priority = gasPrice.Int64()
-	}
-
-	return priority
 }
 
 func add(a, b *big.Int) *big.Int {

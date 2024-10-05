@@ -7,6 +7,7 @@ import (
 )
 
 // GetCoinbaseAddress returns the block proposer's validator operator address.
+// TODO ES: (long comment) store this per block height to avoid querying the staking module, as well as reduce number of parameters required for `eth_*` calls. After removed, cleanup the unused functions like `GetProposerAddress`
 func (k Keeper) GetCoinbaseAddress(ctx sdk.Context, proposerAddress sdk.ConsAddress) (common.Address, error) {
 	validator, err := k.stakingKeeper.GetValidatorByConsAddr(ctx, GetProposerAddress(ctx, proposerAddress))
 	if err != nil {

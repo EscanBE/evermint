@@ -46,25 +46,27 @@ func (suite *TxArgsTestSuite) TestTxArgsString() {
 		expectedString string
 	}{
 		{
-			"empty tx args",
-			evmtypes.TransactionArgs{},
-			"TransactionArgs{From:<nil>, To:<nil>, Gas:<nil>, Nonce:<nil>, Data:<nil>, Input:<nil>, AccessList:<nil>}",
+			name:           "empty tx args",
+			txArgs:         evmtypes.TransactionArgs{},
+			expectedString: "TransactionArgs{From:<nil>, To:<nil>, Gas:<nil>, GasPrices: <nil>, MaxFeePerGas: <nil>, MaxPriorityFeePerGas: <nil>, Value: <nil>, Nonce:<nil>, Data:<nil>, Input:<nil>, AccessList:<nil>, ChainID: <nil>}",
 		},
 		{
-			"tx args with fields",
-			evmtypes.TransactionArgs{
+			name: "tx args with fields",
+			txArgs: evmtypes.TransactionArgs{
 				From:       &suite.addr,
 				To:         &suite.addr,
 				Gas:        &suite.hexUint64,
+				GasPrice:   &suite.hexBigInt,
 				Nonce:      &suite.hexUint64,
 				Input:      &suite.hexInputBytes,
 				Data:       &suite.hexDataBytes,
 				AccessList: &ethtypes.AccessList{},
 			},
-			fmt.Sprintf("TransactionArgs{From:%v, To:%v, Gas:%v, Nonce:%v, Data:%v, Input:%v, AccessList:%v}",
+			expectedString: fmt.Sprintf("TransactionArgs{From:%v, To:%v, Gas:%v, GasPrices: %v, MaxFeePerGas: <nil>, MaxPriorityFeePerGas: <nil>, Value: <nil>, Nonce:%v, Data:%v, Input:%v, AccessList:%v, ChainID: <nil>}",
 				&suite.addr,
 				&suite.addr,
 				&suite.hexUint64,
+				&suite.hexBigInt,
 				&suite.hexUint64,
 				&suite.hexDataBytes,
 				&suite.hexInputBytes,
@@ -72,8 +74,10 @@ func (suite *TxArgsTestSuite) TestTxArgsString() {
 		},
 	}
 	for _, tc := range testCases {
-		outputString := tc.txArgs.String()
-		suite.Require().Equal(outputString, tc.expectedString)
+		suite.Run(tc.name, func() {
+			outputString := tc.txArgs.String()
+			suite.Require().Equal(tc.expectedString, outputString)
+		})
 	}
 }
 
@@ -83,12 +87,12 @@ func (suite *TxArgsTestSuite) TestConvertTxArgsEthTx() {
 		txArgs evmtypes.TransactionArgs
 	}{
 		{
-			"empty tx args",
-			evmtypes.TransactionArgs{},
+			name:   "empty tx args",
+			txArgs: evmtypes.TransactionArgs{},
 		},
 		{
-			"no nil args",
-			evmtypes.TransactionArgs{
+			name: "no nil args",
+			txArgs: evmtypes.TransactionArgs{
 				From:                 &suite.addr,
 				To:                   &suite.addr,
 				Gas:                  &suite.hexUint64,
@@ -104,8 +108,8 @@ func (suite *TxArgsTestSuite) TestConvertTxArgsEthTx() {
 			},
 		},
 		{
-			"max fee per gas nil, but access list not nil",
-			evmtypes.TransactionArgs{
+			name: "max fee per gas nil, but access list not nil",
+			txArgs: evmtypes.TransactionArgs{
 				From:                 &suite.addr,
 				To:                   &suite.addr,
 				Gas:                  &suite.hexUint64,
@@ -122,8 +126,10 @@ func (suite *TxArgsTestSuite) TestConvertTxArgsEthTx() {
 		},
 	}
 	for _, tc := range testCases {
-		res := tc.txArgs.ToTransaction()
-		suite.Require().NotNil(res)
+		suite.Run(tc.name, func() {
+			res := tc.txArgs.ToTransaction()
+			suite.Require().NotNil(res)
+		})
 	}
 }
 

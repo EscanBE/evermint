@@ -47,7 +47,8 @@ func (k *Keeper) NewTxConfig(ctx sdk.Context, tx *ethtypes.Transaction) evmvm.Tx
 
 	if tx != nil {
 		txConfig.TxHash = tx.Hash()
-		txConfig = txConfig.WithTxTypeFromTransaction(tx)
+		txType := tx.Type()
+		txConfig.TxType = &txType
 	}
 
 	return txConfig
@@ -65,7 +66,16 @@ func (k *Keeper) NewTxConfigFromMessage(ctx sdk.Context, msg core.Message) evmvm
 	}
 
 	if msg != nil {
-		txConfig = txConfig.WithTxTypeFromMessage(msg)
+		txType := func() uint8 {
+			if msg.GasTipCap() != nil || msg.GasFeeCap() != nil {
+				return ethtypes.DynamicFeeTxType
+			}
+			if msg.AccessList() != nil {
+				return ethtypes.AccessListTxType
+			}
+			return ethtypes.LegacyTxType
+		}()
+		txConfig.TxType = &txType
 	}
 
 	return txConfig

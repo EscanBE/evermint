@@ -123,11 +123,6 @@ func (k Keeper) ChainID() *big.Int {
 	return k.eip155ChainID
 }
 
-// GetAuthority returns the x/evm module authority address
-func (k Keeper) GetAuthority() sdk.AccAddress {
-	return k.authority
-}
-
 // ----------------------------------------------------------------------------
 // Block
 // ----------------------------------------------------------------------------
@@ -159,6 +154,12 @@ func (k Keeper) SetBlockHashForCurrentBlockAndPruneOld(ctx sdk.Context) {
 
 	store := ctx.KVStore(k.storeKey)
 	key := evmtypes.BlockHashKey(uint64(height))
+	if store.Has(key) {
+		// since this method can be called in multiple places,
+		// so this micro optimization is needed to avoid duplicate computation
+		return
+	}
+
 	store.Set(key, ctx.HeaderHash())
 
 	heightToPrune := height - 256
@@ -421,32 +422,42 @@ func (k Keeper) GetBaseFee(ctx sdk.Context) sdkmath.Int {
 
 // SetupExecutionContext setups the execution context for the EVM transaction execution:
 //   - Use zero gas config
+//   - Replace the gas meter with `infinite gas meter with limit`
+//   - Set the block hash for the current block
 //   - Increase the count of transaction being processed in the current block
 //   - Set the gas used for the current transaction, assume tx failed so gas used = tx gas
 //   - Set the failed receipt for the current transaction, assume tx failed
-func (k Keeper) SetupExecutionContext(ctx sdk.Context, txGas uint64, txType uint8) sdk.Context {
+//
+// This should be called before the EVM transaction execution for traditional/valid Ethereum transactions
+// like `x/evm` module's MsgEthereumTx.
+// For the abnormal cases like system calls from `x/erc20` module, this should not be called.
+func (k Keeper) SetupExecutionContext(ctx sdk.Context, ethTx *ethtypes.Transaction) sdk.Context {
 	ctx = utils.UseZeroGasConfig(ctx)
+	ctx = ctx.WithGasMeter(evertypes.NewInfiniteGasMeterWithLimit(ethTx.Gas()))
 	k.SetBlockHashForCurrentBlockAndPruneOld(ctx)
 	k.IncreaseTxCountTransient(ctx)
-	k.SetGasUsedForCurrentTxTransient(ctx, txGas)
+	k.SetGasUsedForCurrentTxTransient(ctx, ethTx.Gas())
 
-	bzFailedReceipt := func() []byte {
-		failedReceipt := &ethtypes.Receipt{
-			Type:              txType,
-			PostState:         nil,
-			Status:            ethtypes.ReceiptStatusFailed,
-			CumulativeGasUsed: k.GetCumulativeLogCountTransient(ctx, false),
-			Bloom:             ethtypes.Bloom{}, // compute below
-			Logs:              []*ethtypes.Log{},
-		}
-		failedReceipt.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{failedReceipt})
-		bzReceipt, err := failedReceipt.MarshalBinary()
-		if err != nil {
-			panic(errorsmod.Wrap(err, "failed to marshal receipt"))
-		}
-		return bzReceipt
-	}()
-	k.SetTxReceiptForCurrentTxTransient(ctx, bzFailedReceipt)
+	{
+		// manually construct the assume-failed receipt for the transaction
+		bzFailedReceipt := func() []byte {
+			failedReceipt := &ethtypes.Receipt{
+				Type:              ethTx.Type(),
+				PostState:         nil,
+				Status:            ethtypes.ReceiptStatusFailed,
+				CumulativeGasUsed: k.GetCumulativeLogCountTransient(ctx, false),
+				Bloom:             ethtypes.Bloom{}, // compute below
+				Logs:              []*ethtypes.Log{},
+			}
+			failedReceipt.Bloom = ethtypes.CreateBloom(ethtypes.Receipts{failedReceipt})
+			bzReceipt, err := failedReceipt.MarshalBinary()
+			if err != nil {
+				panic(errorsmod.Wrap(err, "failed to marshal receipt"))
+			}
+			return bzReceipt
+		}()
+		k.SetTxReceiptForCurrentTxTransient(ctx, bzFailedReceipt)
+	}
 
 	return ctx
 }
