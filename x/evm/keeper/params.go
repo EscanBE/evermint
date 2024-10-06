@@ -35,3 +35,30 @@ func (k Keeper) SetParams(ctx sdk.Context, params evmtypes.Params) error {
 func (k Keeper) GetChainConfig(ctx sdk.Context) *ethparams.ChainConfig {
 	return k.GetParams(ctx).ChainConfig.EthereumConfig(k.ChainID())
 }
+
+// SetEip155ChainId sets the EIP155 chain id into KVStore.
+func (k Keeper) SetEip155ChainId(ctx sdk.Context, chainId evmtypes.Eip155ChainId) {
+	if err := chainId.Validate(); err != nil {
+		panic(err)
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	bz := sdk.Uint64ToBigEndian(chainId.BigInt().Uint64())
+	store.Set(evmtypes.KeyEip155ChainId, bz)
+}
+
+// GetEip155ChainId returns the EIP155 chain id from KVStore.
+func (k Keeper) GetEip155ChainId(ctx sdk.Context) evmtypes.Eip155ChainId {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(evmtypes.KeyEip155ChainId)
+	v := sdk.BigEndianToUint64(bz)
+	if v == 0 {
+		panic("chain ID not set")
+	}
+
+	var chainId evmtypes.Eip155ChainId
+	if err := (&chainId).FromUint64(v); err != nil {
+		panic(err)
+	}
+	return chainId
+}

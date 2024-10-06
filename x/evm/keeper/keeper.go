@@ -50,7 +50,7 @@ type Keeper struct {
 	feeMarketKeeper evmtypes.FeeMarketKeeper
 
 	// chain ID number obtained from the context's chain id
-	eip155ChainID *big.Int
+	eip155ChainID *big.Int // TODO ES: remove
 
 	// Tracer used to collect execution traces from the EVM transaction execution
 	tracer string
@@ -102,6 +102,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // WithChainID sets the chain id to the local variable in the keeper
+// TODO ES: use new method to set chain id
 func (k *Keeper) WithChainID(ctx sdk.Context) {
 	chainID, err := evertypes.ParseChainID(ctx.ChainID())
 	if err != nil {
@@ -116,6 +117,7 @@ func (k *Keeper) WithChainID(ctx sdk.Context) {
 }
 
 // ChainID returns the EIP155 chain ID for the EVM context
+// TODO ES: remove
 func (k Keeper) ChainID() *big.Int {
 	if k.eip155ChainID == nil || k.eip155ChainID.Sign() == 0 {
 		panic("chain ID not set")

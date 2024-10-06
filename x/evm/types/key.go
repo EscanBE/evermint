@@ -29,6 +29,7 @@ const (
 	prefixParams
 	prefixCodeHash
 	prefixBlockHash
+	prefixEip155ChainId
 )
 
 // prefix bytes for the EVM transient store
@@ -54,6 +55,10 @@ var (
 	KeyPrefixCodeHash  = []byte{prefixCodeHash}
 	KeyPrefixBlockHash = []byte{prefixBlockHash}
 )
+
+// KVStore key prefixes
+
+var KeyEip155ChainId = []byte{prefixEip155ChainId}
 
 // Transient Store key prefixes
 var (
