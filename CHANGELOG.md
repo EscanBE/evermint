@@ -74,6 +74,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (eip712) [#159](https://github.com/EscanBE/evermint/pull/159) Cleanup EIP-712, remove the legacy handler
 - (evm) [#160](https://github.com/EscanBE/evermint/pull/160) Use Ethereum Tx marshalled binary instead of local maintained TxData
 - (evm) [#168](https://github.com/EscanBE/evermint/pull/168) Remove empty account upon commit (EIP-158)
+- (deps) [#174](https://github.com/EscanBE/evermint/pull/174) Bumps Cosmos-SDK v0.50.10, IBC v8.5.1
 
 # Cosmos-SDK v0.47
 
