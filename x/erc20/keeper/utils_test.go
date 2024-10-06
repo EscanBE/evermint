@@ -134,7 +134,7 @@ func (suite *KeeperTestSuite) DoSetupTest() {
 		suite.validator = validators[1]
 	}
 
-	suite.ethSigner = ethtypes.LatestSignerForChainID(s.app.EvmKeeper.ChainID())
+	suite.ethSigner = ethtypes.LatestSignerForChainID(s.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt())
 
 	if suite.suiteIBCTesting {
 		suite.SetupIBCTest()
@@ -255,7 +255,7 @@ func (suite *KeeperTestSuite) MintFeeCollector(coins sdk.Coins) {
 }
 
 func (suite *KeeperTestSuite) sendTx(contractAddr, from common.Address, transferData []byte) *evmtypes.MsgEthereumTx {
-	chainID := suite.app.EvmKeeper.ChainID()
+	chainID := suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt()
 
 	args, err := json.Marshal(&evmtypes.TransactionArgs{To: &contractAddr, From: &from, Data: (*hexutil.Bytes)(&transferData)})
 	suite.Require().NoError(err)

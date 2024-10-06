@@ -108,7 +108,7 @@ func (suite *KeeperTestSuite) setupRegisterCoin(metadata banktypes.Metadata) *er
 	return pair
 }
 
-func (suite KeeperTestSuite) TestRegisterCoin() { //nolint:govet // we can copy locks here because it is a test
+func (suite *KeeperTestSuite) TestRegisterCoin() {
 	metadata := banktypes.Metadata{
 		Description: "description",
 		Base:        cosmosTokenBase,
@@ -138,7 +138,8 @@ func (suite KeeperTestSuite) TestRegisterCoin() { //nolint:govet // we can copy 
 			malleate: func() {
 				params := erc20types.DefaultParams()
 				params.EnableErc20 = false
-				suite.app.Erc20Keeper.SetParams(suite.ctx, params) //nolint:errcheck
+				err := suite.app.Erc20Keeper.SetParams(suite.ctx, params) //nolint:errcheck
+				suite.Require().NoError(err)
 			},
 			expPass: false,
 		},
@@ -254,7 +255,7 @@ func (suite KeeperTestSuite) TestRegisterCoin() { //nolint:govet // we can copy 
 	}
 }
 
-func (suite KeeperTestSuite) TestRegisterERC20() { //nolint:govet // we can copy locks here because it is a test
+func (suite *KeeperTestSuite) TestRegisterERC20() {
 	var (
 		contractAddr common.Address
 		pair         erc20types.TokenPair
@@ -344,7 +345,7 @@ func (suite KeeperTestSuite) TestRegisterERC20() { //nolint:govet // we can copy
 	}
 }
 
-func (suite KeeperTestSuite) TestToggleConverision() { //nolint:govet // we can copy locks here because it is a test
+func (suite *KeeperTestSuite) TestToggleConverision() {
 	var (
 		contractAddr common.Address
 		id           []byte

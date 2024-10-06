@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/big"
 
 	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
@@ -777,7 +778,6 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 		txMsg             *evmtypes.MsgEthereumTx
 		traceConfig       *evmtypes.TraceConfig
 		predecessors      []*evmtypes.MsgEthereumTx
-		chainID           *sdkmath.Int
 		backupCtx         sdk.Context
 		backupQueryClient evmtypes.QueryClient
 	)
@@ -929,7 +929,7 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 				vmdb.SetNonce(suite.address, vmdb.GetNonce(suite.address)+1)
 				suite.Require().NoError(vmdb.CommitMultiStore(true))
 
-				chainID := suite.app.EvmKeeper.ChainID()
+				chainID := suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt()
 				nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 				data := evmtypes.ERC20Contract.Bin
 				ethTxParams := &evmtypes.EvmTxArgs{
@@ -961,8 +961,11 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 			malleate: func() {
 				traceConfig = nil
 				predecessors = []*evmtypes.MsgEthereumTx{}
-				tmp := sdkmath.NewInt(1)
-				chainID = &tmp
+
+				eip155ChainId := suite.app.EvmKeeper.GetEip155ChainId(backupCtx)
+				err := (&eip155ChainId).FromUint64(eip155ChainId.BigInt().Uint64() + 1)
+				suite.Require().NoError(err)
+				suite.app.EvmKeeper.SetEip155ChainId(backupCtx, eip155ChainId)
 			},
 			expPass:         false,
 			traceResponse:   "",
@@ -994,9 +997,6 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 				Predecessors: predecessors,
 			}
 
-			if chainID != nil {
-				traceReq.ChainId = chainID.Int64()
-			}
 			res, err := backupQueryClient.TraceTx(backupCtx, &traceReq)
 
 			if tc.expPass {
@@ -1015,8 +1015,6 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 			} else {
 				suite.Require().Error(err)
 			}
-			// Reset for next test case
-			chainID = nil
 		})
 	}
 
@@ -1027,7 +1025,6 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 	var (
 		txs               []*evmtypes.MsgEthereumTx
 		traceConfig       *evmtypes.TraceConfig
-		chainID           *sdkmath.Int
 		backupCtx         sdk.Context
 		backupQueryClient evmtypes.QueryClient
 	)
@@ -1154,8 +1151,11 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 			name: "pass - invalid chain id",
 			malleate: func() {
 				traceConfig = nil
-				tmp := sdkmath.NewInt(1)
-				chainID = &tmp
+
+				eip155ChainId := suite.app.EvmKeeper.GetEip155ChainId(backupCtx)
+				err := (&eip155ChainId).FromUint64(eip155ChainId.BigInt().Uint64() + 1)
+				suite.Require().NoError(err)
+				suite.app.EvmKeeper.SetEip155ChainId(backupCtx, eip155ChainId)
 			},
 			expPass:                   true,
 			wantTraceResponseContains: "invalid chain id for signer",
@@ -1187,20 +1187,20 @@ func (suite *KeeperTestSuite) TestTraceBlock() {
 				TraceConfig: traceConfig,
 			}
 
-			if chainID != nil {
-				traceReq.ChainId = chainID.Int64()
-			}
-
 			res, err := backupQueryClient.TraceBlock(backupCtx, &traceReq)
+			fmt.Println("err", err)
+			if res == nil {
+				fmt.Println("res is nil")
+			} else {
+				fmt.Println("res is not nil:", res, string(res.Data))
+			}
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Contains(string(res.Data), tc.wantTraceResponseContains)
+				suite.Containsf(string(res.Data), tc.wantTraceResponseContains, "data: %s", string(res.Data))
 			} else {
 				suite.Require().Error(err)
 			}
-			// Reset for next case
-			chainID = nil
 		})
 	}
 

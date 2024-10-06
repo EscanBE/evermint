@@ -311,9 +311,8 @@ func (b *Backend) EstimateGas(args evmtypes.TransactionArgs, blockNrOptional *rp
 	}
 
 	req := evmtypes.EthCallRequest{
-		Args:    bz,
-		GasCap:  b.RPCGasCap(),
-		ChainId: b.chainID.Int64(),
+		Args:   bz,
+		GasCap: b.RPCGasCap(),
 	}
 
 	// From ContextWithHeight: if the provided height is 0,
@@ -337,9 +336,8 @@ func (b *Backend) DoCall(
 	}
 
 	req := evmtypes.EthCallRequest{
-		Args:    bz,
-		GasCap:  b.RPCGasCap(),
-		ChainId: b.chainID.Int64(),
+		Args:   bz,
+		GasCap: b.RPCGasCap(),
 	}
 
 	// From ContextWithHeight: if the provided height is 0,

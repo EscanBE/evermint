@@ -1,7 +1,10 @@
 package keeper_test
 
 import (
+	"math/big"
 	"reflect"
+
+	"github.com/EscanBE/evermint/v12/constants"
 
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 )
@@ -89,4 +92,31 @@ func (suite *KeeperTestSuite) TestParams() {
 			suite.Require().Equal(tc.expected, outcome)
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) Test_GetSetEip155ChainId() {
+	suite.Run("get while not set will panic", func() {
+		suite.app.EvmKeeper.ForTest_RemoveEip155ChainId(suite.ctx)
+		suite.Require().Panics(func() {
+			_ = suite.app.EvmKeeper.GetEip155ChainId(suite.ctx)
+		})
+	})
+
+	suite.Run("can get/set", func() {
+		var originalChainId int64 = constants.TestnetEIP155ChainId
+
+		for i := 0; i < 5; i++ {
+			cid := originalChainId + int64(i)
+			eip155ChainId := evmtypes.Eip155ChainId(*big.NewInt(cid))
+			suite.app.EvmKeeper.SetEip155ChainId(suite.ctx, eip155ChainId)
+			suite.Equal(eip155ChainId, suite.app.EvmKeeper.GetEip155ChainId(suite.ctx))
+		}
+	})
+
+	suite.Run("set invalid will panic", func() {
+		suite.Require().Panics(func() {
+			eip155ChainId := evmtypes.Eip155ChainId(*big.NewInt(-1))
+			suite.app.EvmKeeper.SetEip155ChainId(suite.ctx, eip155ChainId)
+		})
+	})
 }

@@ -53,7 +53,7 @@ func (ed ELExecWithoutErrorDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, sim
 	}
 
 	baseFee := ed.ek.GetBaseFee(ctx)
-	signer := ethtypes.LatestSignerForChainID(ed.ek.ChainID())
+	signer := ethtypes.LatestSignerForChainID(ed.ek.GetEip155ChainId(ctx).BigInt())
 
 	ethMsg := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 	ethTx := ethMsg.AsTransaction()
@@ -82,7 +82,7 @@ func (ed ELExecWithoutErrorDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, sim
 		evmParams := ed.ek.GetParams(simulationCtx)
 		evmCfg := &evmvm.EVMConfig{
 			Params:      evmParams,
-			ChainConfig: evmParams.ChainConfig.EthereumConfig(ed.ek.ChainID()),
+			ChainConfig: evmParams.ChainConfig.EthereumConfig(ed.ek.GetEip155ChainId(ctx).BigInt()),
 			CoinBase:    common.Address{},
 			BaseFee:     baseFee.BigInt(),
 			NoBaseFee:   false,

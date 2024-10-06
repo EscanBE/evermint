@@ -89,7 +89,7 @@ func (vbd DLValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simul
 	enableCreate := evmParams.GetEnableCreate()
 	enableCall := evmParams.GetEnableCall()
 	evmDenom := evmParams.GetEvmDenom()
-	signer := ethtypes.LatestSignerForChainID(vbd.ek.ChainID())
+	signer := ethtypes.LatestSignerForChainID(vbd.ek.GetEip155ChainId(ctx).BigInt())
 	baseFee := vbd.ek.GetBaseFee(ctx)
 
 	ethTx := msgEthTx.AsTransaction()

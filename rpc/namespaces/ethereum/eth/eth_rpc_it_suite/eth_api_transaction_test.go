@@ -66,7 +66,7 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByHash() {
 		suite.Equal(hexutil.Uint64(sentEthTx.Type()), gotTx.Type)
 		suite.Empty(gotTx.Accesses)
 		if suite.NotNil(gotTx.ChainID) {
-			suite.Equal(((*hexutil.Big)(suite.App().EvmKeeper().ChainID())).String(), gotTx.ChainID.String())
+			suite.Equal(((*hexutil.Big)(suite.App().EvmKeeper().GetEip155ChainId(suite.Ctx()).BigInt())).String(), gotTx.ChainID.String())
 		}
 		v, r, s := sentEthMsg.AsTransaction().RawSignatureValues()
 		if suite.NotNil(gotTx.V) {
@@ -172,7 +172,7 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByHash() {
 			suite.Equal(hexutil.Uint64(sentEthTx.Type()), gotTx.Type)
 			suite.Empty(gotTx.Accesses)
 			if suite.NotNil(gotTx.ChainID) {
-				suite.Equal(((*hexutil.Big)(suite.App().EvmKeeper().ChainID())).String(), gotTx.ChainID.String())
+				suite.Equal(((*hexutil.Big)(suite.App().EvmKeeper().GetEip155ChainId(suite.Ctx()).BigInt())).String(), gotTx.ChainID.String())
 			}
 			v, r, s := sentEthTx.RawSignatureValues()
 			if suite.NotNil(gotTx.V) {
@@ -231,7 +231,7 @@ func (suite *EthRpcTestSuite) Test_GetTransactionByHash() {
 		suite.Equal(hexutil.Uint64(sentEthTx.Type()), gotTx.Type)
 		suite.Empty(gotTx.Accesses)
 		if suite.NotNil(gotTx.ChainID) {
-			suite.Equal(((*hexutil.Big)(suite.App().EvmKeeper().ChainID())).String(), gotTx.ChainID.String())
+			suite.Equal(((*hexutil.Big)(suite.App().EvmKeeper().GetEip155ChainId(suite.Ctx()).BigInt())).String(), gotTx.ChainID.String())
 		}
 		v, r, s := sentEthTx.RawSignatureValues()
 		if suite.NotNil(gotTx.V) {
@@ -774,7 +774,7 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 			Input:     nil,
 			GasFeeCap: gasFeeCap,
 			GasPrice:  nil,
-			ChainID:   suite.App().EvmKeeper().ChainID(),
+			ChainID:   suite.App().EvmKeeper().GetEip155ChainId(suite.Ctx()).BigInt(),
 			Amount:    big.NewInt(1),
 			GasTipCap: gasTipCap,
 			To:        &to,
@@ -797,7 +797,7 @@ func (suite *EthRpcTestSuite) Test_SendRawTransaction() {
 			Input:     nil,
 			GasFeeCap: nil,
 			GasPrice:  baseFee.BigInt(),
-			ChainID:   suite.App().EvmKeeper().ChainID(),
+			ChainID:   suite.App().EvmKeeper().GetEip155ChainId(suite.Ctx()).BigInt(),
 			Amount:    big.NewInt(1),
 			GasTipCap: nil,
 			To:        &to,
@@ -971,7 +971,7 @@ func (suite *EthRpcTestSuite) Test_SendTransaction() {
 			Data:       nil,
 			Input:      nil,
 			AccessList: nil,
-			ChainID:    (*hexutil.Big)(suite.App().EvmKeeper().ChainID()),
+			ChainID:    (*hexutil.Big)(suite.App().EvmKeeper().GetEip155ChainId(suite.Ctx()).BigInt()),
 		}
 	}
 

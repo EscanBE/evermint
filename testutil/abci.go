@@ -104,7 +104,7 @@ func DeliverEthTx(
 ) (sdk.Context, abci.ExecTxResult, error) {
 	txConfig := chainApp.GetTxConfig()
 
-	ethTx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msg)
+	ethTx, err := tx.PrepareEthTx(ctx, txConfig, chainApp, priv, msg)
 	if err != nil {
 		return ctx, abci.ExecTxResult{}, err
 	}
@@ -141,13 +141,14 @@ func CheckTx(
 
 // CheckEthTx checks a Ethereum tx for a given set of msgs
 func CheckEthTx(
+	ctx sdk.Context,
 	chainApp *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
 	msg sdk.Msg,
 ) (abci.ResponseCheckTx, error) {
 	txConfig := chainApp.GetTxConfig()
 
-	ethTx, err := tx.PrepareEthTx(txConfig, chainApp, priv, msg)
+	ethTx, err := tx.PrepareEthTx(ctx, txConfig, chainApp, priv, msg)
 	if err != nil {
 		return abci.ResponseCheckTx{}, err
 	}

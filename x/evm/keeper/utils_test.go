@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) StateDB() evmvm.CStateDB {
 
 // DeployTestContract deploy a test erc20 contract and returns the contract address
 func (suite *KeeperTestSuite) DeployTestContract(t require.TestingT, owner common.Address, supply *big.Int) common.Address {
-	chainID := suite.app.EvmKeeper.ChainID()
+	chainID := suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt()
 
 	ctorArgs, err := evmtypes.ERC20Contract.ABI.Pack("", owner, supply)
 	require.NoError(t, err)
@@ -95,7 +95,7 @@ func (suite *KeeperTestSuite) DeployTestContract(t require.TestingT, owner commo
 }
 
 func (suite *KeeperTestSuite) TransferERC20Token(t require.TestingT, contractAddr, from, to common.Address, amount *big.Int) *evmtypes.MsgEthereumTx {
-	chainID := suite.app.EvmKeeper.ChainID()
+	chainID := suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt()
 
 	transferData, err := evmtypes.ERC20Contract.ABI.Pack("transfer", to, amount)
 	require.NoError(t, err)
@@ -145,7 +145,7 @@ func (suite *KeeperTestSuite) TransferERC20Token(t require.TestingT, contractAdd
 
 // DeployTestMessageCall deploy a test erc20 contract and returns the contract address
 func (suite *KeeperTestSuite) DeployTestMessageCall(t require.TestingT) common.Address {
-	chainID := suite.app.EvmKeeper.ChainID()
+	chainID := suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt()
 
 	data := evmtypes.TestMessageCall.Bin
 	args, err := json.Marshal(&evmtypes.TransactionArgs{

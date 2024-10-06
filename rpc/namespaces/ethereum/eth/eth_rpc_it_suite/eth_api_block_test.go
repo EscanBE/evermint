@@ -285,7 +285,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 					}
 					if suite.NotNil(txData["chainId"]) {
 						if suite.IsType("string", txData["chainId"]) {
-							suite.Equal(fmt.Sprintf("0x%x", suite.App().EvmKeeper().ChainID().Int64()), txData["chainId"])
+							suite.Equal(fmt.Sprintf("0x%x", suite.App().EvmKeeper().GetEip155ChainId(suite.Ctx()).BigInt().Int64()), txData["chainId"])
 						}
 					}
 					v, r, s := tx.RawSignatureValues()
@@ -415,7 +415,7 @@ func (suite *EthRpcTestSuite) Test_GetBlockByNumberAndHash() {
 
 		evmTxArgs := &evmtypes.EvmTxArgs{
 			From:      sender.GetEthAddress(),
-			ChainID:   evmKeeper.ChainID(),
+			ChainID:   evmKeeper.GetEip155ChainId(suite.Ctx()).BigInt(),
 			Nonce:     nonceSender,
 			GasLimit:  300_000,
 			GasFeeCap: suite.App().FeeMarketKeeper().GetBaseFee(suite.Ctx()).BigInt(),
