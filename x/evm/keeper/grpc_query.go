@@ -233,11 +233,7 @@ func (k Keeper) EthCall(c context.Context, req *evmtypes.EthCallRequest) (*evmty
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	chainID, err := getChainID(ctx, req.ChainId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-	cfg, err := k.EVMConfig(ctx, nil, chainID)
+	cfg, err := k.EVMConfig(ctx, nil)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -272,17 +268,12 @@ func (k Keeper) EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*e
 	ctx := sdk.UnwrapSDKContext(c)
 	ctx = utils.UseZeroGasConfig(ctx)
 
-	chainID, err := getChainID(ctx, req.ChainId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-
 	if req.GasCap < ethparams.TxGas {
 		return nil, status.Error(codes.InvalidArgument, "gas cap cannot be lower than 21,000")
 	}
 
 	var args evmtypes.TransactionArgs
-	err = json.Unmarshal(req.Args, &args)
+	err := json.Unmarshal(req.Args, &args)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -315,7 +306,7 @@ func (k Keeper) EstimateGas(c context.Context, req *evmtypes.EthCallRequest) (*e
 	}
 
 	gasCap = hi
-	cfg, err := k.EVMConfig(ctx, nil, chainID)
+	cfg, err := k.EVMConfig(ctx, nil)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to load evm config")
 	}
@@ -416,11 +407,7 @@ func (k Keeper) TraceTx(c context.Context, req *evmtypes.QueryTraceTxRequest) (*
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 	ctx = utils.UseZeroGasConfig(ctx)
 
-	chainID, err := getChainID(ctx, req.ChainId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-	cfg, err := k.EVMConfig(ctx, req.ProposerAddress, chainID)
+	cfg, err := k.EVMConfig(ctx, req.ProposerAddress)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to load evm config: %s", err.Error())
 	}
@@ -510,12 +497,7 @@ func (k Keeper) TraceBlock(c context.Context, req *evmtypes.QueryTraceBlockReque
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 	ctx = utils.UseZeroGasConfig(ctx)
 
-	chainID, err := getChainID(ctx, req.ChainId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	cfg, err := k.EVMConfig(ctx, req.ProposerAddress, chainID)
+	cfg, err := k.EVMConfig(ctx, req.ProposerAddress)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to load evm config")
 	}
@@ -658,12 +640,4 @@ func (k Keeper) BaseFee(c context.Context, _ *evmtypes.QueryBaseFeeRequest) (*ev
 	return &evmtypes.QueryBaseFeeResponse{
 		BaseFee: baseFee,
 	}, nil
-}
-
-// getChainID parse chainID from current context if not provided
-func getChainID(ctx sdk.Context, chainID int64) (*big.Int, error) {
-	if chainID == 0 {
-		return evertypes.ParseChainID(ctx.ChainID())
-	}
-	return big.NewInt(chainID), nil
 }

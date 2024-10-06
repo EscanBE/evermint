@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"math/big"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -14,10 +12,9 @@ import (
 )
 
 // EVMConfig creates the EVMConfig based on current state
-// TODO ES: remove chain-id from the function signature
-func (k *Keeper) EVMConfig(ctx sdk.Context, overrideProposerAddress sdk.ConsAddress, chainID *big.Int) (*evmvm.EVMConfig, error) {
+func (k *Keeper) EVMConfig(ctx sdk.Context, overrideProposerAddress sdk.ConsAddress) (*evmvm.EVMConfig, error) {
 	params := k.GetParams(ctx)
-	ethCfg := params.ChainConfig.EthereumConfig(chainID)
+	ethCfg := params.ChainConfig.EthereumConfig(k.GetEip155ChainId(ctx).BigInt())
 
 	// get the coinbase address from the block proposer
 	coinbase, err := k.GetCoinbaseAddress(ctx, overrideProposerAddress)

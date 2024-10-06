@@ -235,7 +235,7 @@ func (suite *KeeperTestSuite) TestEVMConfig() {
 	suite.app.EvmKeeper.SetFlagEnableNoBaseFee(suite.ctx, true)
 
 	proposerAddress := suite.ctx.BlockHeader().ProposerAddress
-	cfg, err := suite.app.EvmKeeper.EVMConfig(suite.ctx, proposerAddress, big.NewInt(constants.TestnetEIP155ChainId))
+	cfg, err := suite.app.EvmKeeper.EVMConfig(suite.ctx, proposerAddress)
 	suite.Require().NoError(err)
 	suite.Equal(evmtypes.DefaultParams(), cfg.Params)
 	suite.Equal(big.NewInt(0), cfg.BaseFee)
@@ -965,7 +965,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 			suite.SetupTest()
 
 			proposerAddress := suite.ctx.BlockHeader().ProposerAddress
-			config, err = suite.app.EvmKeeper.EVMConfig(suite.ctx, proposerAddress, big.NewInt(constants.TestnetEIP155ChainId))
+			config, err = suite.app.EvmKeeper.EVMConfig(suite.ctx, proposerAddress)
 			suite.Require().NoError(err)
 
 			keeperParams = suite.app.EvmKeeper.GetParams(suite.ctx)
