@@ -437,7 +437,7 @@ func (suite *BackendTestSuite) TestDoCall() {
 			name: "fail - Invalid request",
 			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterEthCallError(queryClient, &evmtypes.EthCallRequest{Args: argsBz, ChainId: suite.backend.chainID.Int64()})
+				RegisterEthCallError(queryClient, &evmtypes.EthCallRequest{Args: argsBz})
 			},
 			blockNum: rpctypes.BlockNumber(1),
 			callArgs: callArgs,
@@ -448,7 +448,7 @@ func (suite *BackendTestSuite) TestDoCall() {
 			name: "pass - Returned transaction response",
 			registerMock: func() {
 				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
-				RegisterEthCall(queryClient, &evmtypes.EthCallRequest{Args: argsBz, ChainId: suite.backend.chainID.Int64()})
+				RegisterEthCall(queryClient, &evmtypes.EthCallRequest{Args: argsBz})
 			},
 			blockNum: rpctypes.BlockNumber(1),
 			callArgs: callArgs,
