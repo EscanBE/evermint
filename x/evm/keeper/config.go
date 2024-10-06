@@ -14,6 +14,7 @@ import (
 )
 
 // EVMConfig creates the EVMConfig based on current state
+// TODO ES: remove chain-id from the function signature
 func (k *Keeper) EVMConfig(ctx sdk.Context, overrideProposerAddress sdk.ConsAddress, chainID *big.Int) (*evmvm.EVMConfig, error) {
 	params := k.GetParams(ctx)
 	ethCfg := params.ChainConfig.EthereumConfig(chainID)

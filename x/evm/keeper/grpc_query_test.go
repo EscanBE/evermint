@@ -929,7 +929,7 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 				vmdb.SetNonce(suite.address, vmdb.GetNonce(suite.address)+1)
 				suite.Require().NoError(vmdb.CommitMultiStore(true))
 
-				chainID := suite.app.EvmKeeper.ChainID()
+				chainID := suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt()
 				nonce := suite.app.EvmKeeper.GetNonce(suite.ctx, suite.address)
 				data := evmtypes.ERC20Contract.Bin
 				ethTxParams := &evmtypes.EvmTxArgs{

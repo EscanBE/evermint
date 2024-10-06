@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/EscanBE/evermint/v12/constants"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
@@ -33,7 +34,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params evmtypes.Params) error {
 }
 
 func (k Keeper) GetChainConfig(ctx sdk.Context) *ethparams.ChainConfig {
-	return k.GetParams(ctx).ChainConfig.EthereumConfig(k.ChainID())
+	return k.GetParams(ctx).ChainConfig.EthereumConfig(k.GetEip155ChainId(ctx).BigInt())
 }
 
 // SetEip155ChainId sets the EIP155 chain id into KVStore.
@@ -61,4 +62,15 @@ func (k Keeper) GetEip155ChainId(ctx sdk.Context) evmtypes.Eip155ChainId {
 		panic(err)
 	}
 	return chainId
+}
+
+// ForTest_RemoveEip155ChainId removes the EIP155 chain id from KVStore and returns it.
+// NOTE: for testing purpose only.
+func (k Keeper) ForTest_RemoveEip155ChainId(ctx sdk.Context) {
+	if ctx.ChainID() == constants.MainnetFullChainId {
+		panic("cannot call on mainnet")
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(evmtypes.KeyEip155ChainId)
 }

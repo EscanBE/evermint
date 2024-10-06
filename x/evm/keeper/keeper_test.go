@@ -14,7 +14,6 @@ import (
 	"github.com/EscanBE/evermint/v12/constants"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -30,6 +29,12 @@ func (suite *KeeperTestSuite) TestWithChainID() {
 		{
 			name:       "fail - chainID is empty",
 			chainID:    "",
+			expChainID: 0,
+			expPanic:   true,
+		},
+		{
+			name:       "fail - chainID is zero",
+			chainID:    "chain_0-1",
 			expChainID: 0,
 			expPanic:   true,
 		},
@@ -61,17 +66,18 @@ func (suite *KeeperTestSuite) TestWithChainID() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			keeper := evmkeeper.Keeper{}
+			suite.app.EvmKeeper.ForTest_RemoveEip155ChainId(suite.ctx)
+
 			ctx := suite.ctx.WithChainID(tc.chainID)
 
 			if tc.expPanic {
 				suite.Require().Panics(func() {
-					keeper.WithChainID(ctx)
+					suite.app.EvmKeeper.WithChainID(ctx)
 				})
 			} else {
 				suite.Require().NotPanics(func() {
-					keeper.WithChainID(ctx)
-					suite.Require().Equal(tc.expChainID, keeper.ChainID().Int64())
+					suite.app.EvmKeeper.WithChainID(ctx)
+					suite.Require().Equal(tc.expChainID, suite.app.EvmKeeper.GetEip155ChainId(ctx).BigInt().Int64())
 				})
 			}
 		})

@@ -48,7 +48,7 @@ func (svd DLSigVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, sim
 		return svd.cd.AnteHandle(ctx, tx, simulate, next)
 	}
 
-	chainID := svd.ek.ChainID()
+	chainID := svd.ek.GetEip155ChainId(ctx).BigInt()
 	signer := ethtypes.LatestSignerForChainID(chainID)
 
 	msgEthTx := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)

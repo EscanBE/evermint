@@ -129,7 +129,7 @@ func (suite *EvmTestSuite) DoSetupTest() {
 	err = suite.app.StakingKeeper.SetValidator(suite.ctx, validator)
 	suite.Require().NoError(err)
 
-	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
+	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt())
 
 	coins := sdk.NewCoins(sdk.NewCoin(constants.BaseDenom, sdkmath.NewInt(100000000000000)))
 	err = suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, coins)

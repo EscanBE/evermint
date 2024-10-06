@@ -65,8 +65,8 @@ var _ = Describe("Feemarket", func() {
 					func(malleate getprices) {
 						p := malleate()
 						to := utiltx.GenerateAddress()
-						msgEthereumTx := buildEthTx(privKey, &to, p.gasLimit, p.gasPrice, p.gasFeeCap, p.gasTipCap, p.accesses)
-						res, err := testutil.CheckEthTx(s.app, privKey, msgEthereumTx)
+						msgEthereumTx := buildEthTx(s.ctx, privKey, &to, p.gasLimit, p.gasPrice, p.gasFeeCap, p.gasTipCap, p.accesses)
+						res, err := testutil.CheckEthTx(s.ctx, s.app, privKey, msgEthereumTx)
 						Expect(err).To(BeNil())
 						Expect(res.IsOK()).To(Equal(true), "transaction should have succeeded", res.GetLog())
 					},
@@ -81,8 +81,8 @@ var _ = Describe("Feemarket", func() {
 					func(malleate getprices) {
 						p := malleate()
 						to := utiltx.GenerateAddress()
-						msgEthereumTx := buildEthTx(privKey, &to, p.gasLimit, p.gasPrice, p.gasFeeCap, p.gasTipCap, p.accesses)
-						res, err := testutil.CheckEthTx(s.app, privKey, msgEthereumTx)
+						msgEthereumTx := buildEthTx(s.ctx, privKey, &to, p.gasLimit, p.gasPrice, p.gasFeeCap, p.gasTipCap, p.accesses)
+						res, err := testutil.CheckEthTx(s.ctx, s.app, privKey, msgEthereumTx)
 						Expect(err).ToNot(BeNil(), "transaction should have failed", res.GetLog())
 					},
 					Entry("legacy tx", func() txParams {
@@ -100,7 +100,7 @@ var _ = Describe("Feemarket", func() {
 					func(malleate getprices) {
 						p := malleate()
 						to := utiltx.GenerateAddress()
-						msgEthereumTx := buildEthTx(privKey, &to, p.gasLimit, p.gasPrice, p.gasFeeCap, p.gasTipCap, p.accesses)
+						msgEthereumTx := buildEthTx(s.ctx, privKey, &to, p.gasLimit, p.gasPrice, p.gasFeeCap, p.gasTipCap, p.accesses)
 						newCtx, res, err := testutil.DeliverEthTx(s.ctx, s.app, privKey, msgEthereumTx)
 						s.ctx = newCtx
 						Expect(err).To(BeNil())
@@ -117,7 +117,7 @@ var _ = Describe("Feemarket", func() {
 					func(malleate getprices) {
 						p := malleate()
 						to := utiltx.GenerateAddress()
-						msgEthereumTx := buildEthTx(privKey, &to, p.gasLimit, p.gasPrice, p.gasFeeCap, p.gasTipCap, p.accesses)
+						msgEthereumTx := buildEthTx(s.ctx, privKey, &to, p.gasLimit, p.gasPrice, p.gasFeeCap, p.gasTipCap, p.accesses)
 						_, res, err := testutil.DeliverEthTx(s.ctx, s.app, privKey, msgEthereumTx)
 						Expect(err).ToNot(BeNil(), "transaction should have failed", res.GetLog())
 					},
@@ -220,6 +220,7 @@ func getNonce(addressBytes []byte) uint64 {
 }
 
 func buildEthTx(
+	ctx sdk.Context,
 	priv *ethsecp256k1.PrivKey,
 	to *common.Address,
 	gasLimit uint64,
@@ -228,7 +229,7 @@ func buildEthTx(
 	gasTipCap *big.Int,
 	accesses *ethtypes.AccessList,
 ) *evmtypes.MsgEthereumTx {
-	chainID := s.app.EvmKeeper.ChainID()
+	chainID := s.app.EvmKeeper.GetEip155ChainId(ctx).BigInt()
 	from := common.BytesToAddress(priv.PubKey().Address().Bytes())
 	nonce := getNonce(from.Bytes())
 	data := make([]byte, 0)

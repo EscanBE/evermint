@@ -79,7 +79,7 @@ func (suite *KeeperTestSuite) SetupApp(checkTx bool) {
 
 	encodingConfig := chainapp.RegisterEncodingConfig()
 	suite.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
-	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
+	suite.ethSigner = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt())
 	suite.appCodec = encodingConfig.Codec
 	suite.denom = evmtypes.DefaultEVMDenom
 }
@@ -192,6 +192,7 @@ func getNonce(addressBytes []byte) uint64 {
 }
 
 func buildEthTx(
+	ctx sdk.Context,
 	priv *ethsecp256k1.PrivKey,
 	to *common.Address,
 	gasPrice *big.Int,
@@ -199,7 +200,7 @@ func buildEthTx(
 	gasTipCap *big.Int,
 	accesses *ethtypes.AccessList,
 ) *evmtypes.MsgEthereumTx {
-	chainID := s.app.EvmKeeper.ChainID()
+	chainID := s.app.EvmKeeper.GetEip155ChainId(ctx).BigInt()
 	from := common.BytesToAddress(priv.PubKey().Address().Bytes())
 	nonce := getNonce(from.Bytes())
 	data := make([]byte, 0)

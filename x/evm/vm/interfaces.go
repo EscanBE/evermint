@@ -1,8 +1,6 @@
 package vm
 
 import (
-	"math/big"
-
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -10,7 +8,7 @@ import (
 
 type EvmKeeper interface {
 	GetParams(ctx sdk.Context) (params evmtypes.Params)
-	ChainID() *big.Int
+	GetEip155ChainId(ctx sdk.Context) evmtypes.Eip155ChainId
 	ForEachStorage(ctx sdk.Context, addr common.Address, cb func(key, value common.Hash) bool)
 	DeleteCodeHash(ctx sdk.Context, addr []byte)
 	SetState(ctx sdk.Context, addr common.Address, key common.Hash, value []byte)

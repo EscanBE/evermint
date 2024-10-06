@@ -150,7 +150,7 @@ func BenchmarkApplyTransaction(b *testing.B) {
 	suite := KeeperTestSuite{}
 	suite.SetupTestWithT(b)
 
-	ethSigner := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
+	ethSigner := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt())
 
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -177,7 +177,7 @@ func BenchmarkApplyTransactionWithLegacyTx(b *testing.B) {
 	suite := KeeperTestSuite{}
 	suite.SetupTestWithT(b)
 
-	ethSigner := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
+	ethSigner := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt())
 
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -204,7 +204,7 @@ func BenchmarkApplyTransactionWithDynamicFeeTx(b *testing.B) {
 	suite := KeeperTestSuite{enableFeemarket: true}
 	suite.SetupTestWithT(b)
 
-	ethSigner := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
+	ethSigner := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt())
 
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -232,7 +232,7 @@ func BenchmarkApplyMessage(b *testing.B) {
 	suite := KeeperTestSuite{}
 	suite.SetupTestWithT(b)
 
-	signer := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
+	signer := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt())
 
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -267,7 +267,7 @@ func BenchmarkApplyMessageWithLegacyTx(b *testing.B) {
 	suite := KeeperTestSuite{}
 	suite.SetupTestWithT(b)
 
-	signer := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
+	signer := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt())
 
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -301,7 +301,7 @@ func BenchmarkApplyMessageWithDynamicFeeTx(b *testing.B) {
 	suite := KeeperTestSuite{enableFeemarket: true}
 	suite.SetupTestWithT(b)
 
-	signer := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
+	signer := ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt())
 
 	b.ResetTimer()
 	b.ReportAllocs()

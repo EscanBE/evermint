@@ -467,7 +467,7 @@ func (suite *KeeperTestSuite) TestApplyTransaction() {
 			suite.Require().NoError(err)
 
 			keeperParams = suite.app.EvmKeeper.GetParams(suite.ctx)
-			chainCfg = keeperParams.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
+			chainCfg = keeperParams.ChainConfig.EthereumConfig(suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt())
 
 			tc.malleate()
 
@@ -684,8 +684,8 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 			suite.SetupTest()
 
 			keeperParams = suite.app.EvmKeeper.GetParams(suite.ctx)
-			chainCfg = keeperParams.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
-			signer = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
+			chainCfg = keeperParams.ChainConfig.EthereumConfig(suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt())
+			signer = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt())
 			baseFee = nil
 
 			tc.malleate()
@@ -969,8 +969,8 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 			suite.Require().NoError(err)
 
 			keeperParams = suite.app.EvmKeeper.GetParams(suite.ctx)
-			chainCfg = keeperParams.ChainConfig.EthereumConfig(suite.app.EvmKeeper.ChainID())
-			signer = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.ChainID())
+			chainCfg = keeperParams.ChainConfig.EthereumConfig(suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt())
+			signer = ethtypes.LatestSignerForChainID(suite.app.EvmKeeper.GetEip155ChainId(suite.ctx).BigInt())
 			baseFee = nil
 
 			tc.malleate()

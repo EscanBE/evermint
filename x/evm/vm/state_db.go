@@ -126,7 +126,7 @@ func NewStateDB(
 		bankKeeper:    bankKeeper,
 
 		evmDenom:    evmParams.EvmDenom,
-		chainConfig: evmParams.ChainConfig.EthereumConfig(ethKeeper.ChainID()),
+		chainConfig: evmParams.ChainConfig.EthereumConfig(ethKeeper.GetEip155ChainId(ctx).BigInt()),
 
 		touched:          newAccountTracker(),
 		refund:           0,

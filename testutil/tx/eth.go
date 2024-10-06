@@ -28,6 +28,7 @@ import (
 // PrepareEthTx creates an ethereum tx and signs it with the provided message and private key.
 // It returns the signed transaction and an error
 func PrepareEthTx(
+	ctx sdk.Context,
 	txCfg client.TxConfig,
 	chainApp *chainapp.Evermint,
 	priv cryptotypes.PrivKey,
@@ -35,7 +36,7 @@ func PrepareEthTx(
 ) (authsigning.Tx, error) {
 	txBuilder := txCfg.NewTxBuilder()
 
-	signer := ethtypes.LatestSignerForChainID(chainApp.EvmKeeper.ChainID())
+	signer := ethtypes.LatestSignerForChainID(chainApp.EvmKeeper.GetEip155ChainId(ctx).BigInt())
 	txFee := sdk.Coins{}
 
 	// Sign messages and compute gas/fees.
@@ -99,7 +100,7 @@ func CreateEthTx(
 ) (*evmtypes.MsgEthereumTx, error) {
 	toAddr := common.BytesToAddress(dest.Bytes())
 	fromAddr := common.BytesToAddress(from.Bytes())
-	chainID := chainApp.EvmKeeper.ChainID()
+	chainID := chainApp.EvmKeeper.GetEip155ChainId(ctx).BigInt()
 
 	// When we send multiple Ethereum Tx's in one Cosmos Tx, we need to increment the nonce for each one.
 	nonce := chainApp.EvmKeeper.GetNonce(ctx, fromAddr) + uint64(nonceIncrement)
@@ -118,7 +119,7 @@ func CreateEthTx(
 
 	// If we are creating multiple eth Tx's with different senders, we need to sign here rather than later.
 	if privKey != nil {
-		signer := ethtypes.LatestSignerForChainID(chainApp.EvmKeeper.ChainID())
+		signer := ethtypes.LatestSignerForChainID(chainApp.EvmKeeper.GetEip155ChainId(ctx).BigInt())
 		err := msgEthereumTx.Sign(signer, NewSigner(privKey))
 		if err != nil {
 			return nil, err

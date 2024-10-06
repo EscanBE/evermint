@@ -96,6 +96,7 @@ func (suite *KeeperTestSuite) TestParams() {
 
 func (suite *KeeperTestSuite) Test_GetSetEip155ChainId() {
 	suite.Run("get while not set will panic", func() {
+		suite.app.EvmKeeper.ForTest_RemoveEip155ChainId(suite.ctx)
 		suite.Require().Panics(func() {
 			_ = suite.app.EvmKeeper.GetEip155ChainId(suite.ctx)
 		})

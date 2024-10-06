@@ -411,7 +411,7 @@ func (suite *ChainIntegrationTestSuite) prepareMsgEthereumTx(ctx sdk.Context, se
 
 	evmTxArgs := &evmtypes.EvmTxArgs{
 		From:      from,
-		ChainID:   suite.ChainApp.EvmKeeper().ChainID(),
+		ChainID:   suite.ChainApp.EvmKeeper().GetEip155ChainId(ctx).BigInt(),
 		Nonce:     suite.ChainApp.EvmKeeper().GetNonce(ctx, from),
 		GasLimit:  gas,
 		GasFeeCap: suite.ChainApp.FeeMarketKeeper().GetBaseFee(ctx).BigInt(),
