@@ -265,6 +265,8 @@ require (
 replace (
 	// use cosmos fork of keyring
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
+	// go-ethereum fork with custom-precompiled-contract support
+	github.com/ethereum/go-ethereum => github.com/EscanBE/go-ethereum-for-evermint v1.10.27
 	// Security Advisory https://github.com/advisories/GHSA-h395-qcrw-5vmq
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.1
 	// replace broken goleveldb
