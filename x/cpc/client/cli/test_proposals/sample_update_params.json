@@ -1,0 +1,16 @@
+{
+    "messages": [
+        {
+            "@type": "/evermint.cpc.v1.MsgUpdateParams",
+            "authority": "evm10d07y265gmmuvt4z0w9aw880jnsr700jjc5n8f",
+            "new_params":{
+                "protocol_version": 1,
+                "whitelisted_deployers": ["evm1cqetlv987ntelz7s6ntvv95ltrns9qt6lqulcz"]
+            }
+        }
+    ],
+    "metadata": "",
+    "deposit": "1000000000000000000wei",
+    "title": "Proposal Title",
+    "summary": "Use this command to submit: evmd tx gov submit-proposal sample_update_params.json --from validator --gas auto --gas-prices 1000000000wei --yes"
+}
