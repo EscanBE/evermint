@@ -80,13 +80,6 @@ func (d *cStateDb) ForTest_GetOriginalContext() sdk.Context {
 	return d.originalCtx
 }
 
-// ForTest_GetCurrentContext is a test-only method that returns the current context.
-//
-//goland:noinspection GoSnakeCaseUsage
-func (d *cStateDb) ForTest_GetCurrentContext() sdk.Context {
-	return d.currentCtx
-}
-
 // ForTest_GetEvmDenom is a test-only method that returns the EVM denomination.
 //
 //goland:noinspection GoSnakeCaseUsage

@@ -108,7 +108,7 @@ func (suite *StateDbIntegrationTestSuite) TestNewStateDB() {
 
 		suite.Less(
 			originalBalance,
-			suite.CITS.ChainApp.BankKeeper().GetBalance(stateDB.(evmvm.CStateDB).ForTest_GetCurrentContext(), account.GetCosmosAddress(), suite.CStateDB.ForTest_GetEvmDenom()).Amount.Int64(),
+			suite.CITS.ChainApp.BankKeeper().GetBalance(stateDB.(evmvm.CStateDB).GetCurrentContext(), account.GetCosmosAddress(), suite.CStateDB.ForTest_GetEvmDenom()).Amount.Int64(),
 			"balance within StateDB context should be changed",
 		)
 
@@ -163,7 +163,7 @@ func (suite *StateDbIntegrationTestSuite) TestCreateAccount() {
 
 		existingWallet := suite.CITS.WalletAccounts.Number(1)
 
-		existingAccount := suite.App().AccountKeeper().GetAccount(suite.CStateDB.ForTest_GetCurrentContext(), existingWallet.GetCosmosAddress())
+		existingAccount := suite.App().AccountKeeper().GetAccount(suite.CStateDB.GetCurrentContext(), existingWallet.GetCosmosAddress())
 
 		suite.StateDB.CreateAccount(existingWallet.GetEthAddress())
 
@@ -182,7 +182,7 @@ func (suite *StateDbIntegrationTestSuite) TestCreateAccount() {
 
 		existingWallet := suite.CITS.WalletAccounts.Number(1)
 
-		existingAccount := suite.App().AccountKeeper().GetAccount(suite.CStateDB.ForTest_GetCurrentContext(), existingWallet.GetCosmosAddress())
+		existingAccount := suite.App().AccountKeeper().GetAccount(suite.CStateDB.GetCurrentContext(), existingWallet.GetCosmosAddress())
 
 		originalBalance := suite.App().BankKeeper().GetBalance(suite.Ctx(), existingAccount.GetAddress(), suite.CStateDB.ForTest_GetEvmDenom())
 		suite.Require().False(originalBalance.IsZero())
@@ -261,7 +261,7 @@ func (suite *StateDbIntegrationTestSuite) TestCreateAccount() {
 }
 
 func (suite *StateDbIntegrationTestSuite) TestDestroyAccount() {
-	curCtx := suite.CStateDB.ForTest_GetCurrentContext()
+	curCtx := suite.CStateDB.GetCurrentContext()
 
 	moduleAccount := suite.App().AccountKeeper().GetModuleAccount(curCtx, authtypes.FeeCollectorName)
 	suite.Require().NotNil(moduleAccount)
@@ -746,12 +746,12 @@ func (suite *StateDbIntegrationTestSuite) TestSetCode() {
 	codeHash1, code1 := RandomContractCode()
 	codeHash2, code2 := RandomContractCode()
 
-	contract1 := suite.App().AccountKeeper().GetAccount(suite.CStateDB.ForTest_GetCurrentContext(), wallet.GetCosmosAddress())
+	contract1 := suite.App().AccountKeeper().GetAccount(suite.CStateDB.GetCurrentContext(), wallet.GetCosmosAddress())
 
 	suite.StateDB.SetCode(common.BytesToAddress(contract1.GetAddress().Bytes()), code1)
 	suite.StateDB.SetCode(nonExistsWallet.GetEthAddress(), code2)
 
-	contract2WasNotExistsBefore := suite.App().AccountKeeper().GetAccount(suite.CStateDB.ForTest_GetCurrentContext(), nonExistsWallet.GetCosmosAddress()) // contract created from void
+	contract2WasNotExistsBefore := suite.App().AccountKeeper().GetAccount(suite.CStateDB.GetCurrentContext(), nonExistsWallet.GetCosmosAddress()) // contract created from void
 	suite.Require().NotNil(contract2WasNotExistsBefore, "contract should be created")
 
 	err := suite.CStateDB.CommitMultiStore(true) // commit cache multi-store within the StateDB
@@ -860,13 +860,13 @@ func (suite *StateDbIntegrationTestSuite) TestGetCommittedState() {
 	suite.Equal(hash2, stateDB.GetCommittedState(wallet4.GetEthAddress(), hash1))
 
 	suite.Run("should returns state in original context, not current one", func() {
-		suite.App().EvmKeeper().SetState(stateDB.(evmvm.CStateDB).ForTest_GetCurrentContext(), wallet2.GetEthAddress(), hash1, evmvm.GenerateHash().Bytes())
+		suite.App().EvmKeeper().SetState(stateDB.(evmvm.CStateDB).GetCurrentContext(), wallet2.GetEthAddress(), hash1, evmvm.GenerateHash().Bytes())
 
 		suite.Equal(hash2, stateDB.GetCommittedState(wallet2.GetEthAddress(), hash1))
 	})
 
 	suite.Run("should returns empty state for deleted account no matter store data still exists", func() {
-		currentCtx := stateDB.(evmvm.CStateDB).ForTest_GetCurrentContext()
+		currentCtx := stateDB.(evmvm.CStateDB).GetCurrentContext()
 
 		getCommittedState := func() common.Hash {
 			return stateDB.GetCommittedState(wallet2.GetEthAddress(), hash1)
@@ -882,7 +882,7 @@ func (suite *StateDbIntegrationTestSuite) TestGetCommittedState() {
 	})
 
 	suite.Run("get state of new account of re-made", func() {
-		currentCtx := stateDB.(evmvm.CStateDB).ForTest_GetCurrentContext()
+		currentCtx := stateDB.(evmvm.CStateDB).GetCurrentContext()
 
 		getCommittedState := func() common.Hash {
 			return stateDB.GetCommittedState(wallet4.GetEthAddress(), hash1)
@@ -905,7 +905,7 @@ func (suite *StateDbIntegrationTestSuite) TestGetCommittedState() {
 	})
 
 	suite.Run("get state of new account", func() {
-		currentCtx := stateDB.(evmvm.CStateDB).ForTest_GetCurrentContext()
+		currentCtx := stateDB.(evmvm.CStateDB).GetCurrentContext()
 
 		nonExistsWallet := integration_test_util.NewTestAccount(suite.T(), nil)
 
@@ -959,7 +959,7 @@ func (suite *StateDbIntegrationTestSuite) TestGetState() {
 
 	suite.Run("should returns state of current context, not original one", func() {
 		newState := evmvm.GenerateHash()
-		suite.App().EvmKeeper().SetState(stateDB.(evmvm.CStateDB).ForTest_GetCurrentContext(), wallet2.GetEthAddress(), hash1, newState.Bytes())
+		suite.App().EvmKeeper().SetState(stateDB.(evmvm.CStateDB).GetCurrentContext(), wallet2.GetEthAddress(), hash1, newState.Bytes())
 
 		suite.Equal(newState, stateDB.GetState(wallet2.GetEthAddress(), hash1))
 		suite.NotEqual(hash2, stateDB.GetState(wallet2.GetEthAddress(), hash1))
@@ -967,7 +967,7 @@ func (suite *StateDbIntegrationTestSuite) TestGetState() {
 
 	/* This test was disabled because this implementation only persist state by address so previous state will being maintained
 	suite.Run("should returns empty state for deleted account no matter store data still exists", func() {
-		currentCtx := stateDB.(xethvm.CStateDB).ForTest_GetCurrentContext()
+		currentCtx := stateDB.(xethvm.CStateDB).GetCurrentContext()
 
 		getState := func() common.Hash {
 			return stateDB.GetState(wallet2.GetEthAddress(), hash1)
@@ -984,7 +984,7 @@ func (suite *StateDbIntegrationTestSuite) TestGetState() {
 	*/
 
 	suite.Run("get state of new account of re-made", func() {
-		currentCtx := stateDB.(evmvm.CStateDB).ForTest_GetCurrentContext()
+		currentCtx := stateDB.(evmvm.CStateDB).GetCurrentContext()
 
 		getState := func() common.Hash {
 			return stateDB.GetState(wallet4.GetEthAddress(), hash1)
@@ -1008,7 +1008,7 @@ func (suite *StateDbIntegrationTestSuite) TestGetState() {
 	})
 
 	suite.Run("get state of new account", func() {
-		currentCtx := stateDB.(evmvm.CStateDB).ForTest_GetCurrentContext()
+		currentCtx := stateDB.(evmvm.CStateDB).GetCurrentContext()
 
 		nonExistsWallet := integration_test_util.NewTestAccount(suite.T(), nil)
 
@@ -1075,7 +1075,7 @@ func (suite *StateDbIntegrationTestSuite) TestSetState() {
 	})
 
 	suite.Run("should create new account for deleted account", func() {
-		currentCtx := stateDB.(evmvm.CStateDB).ForTest_GetCurrentContext()
+		currentCtx := stateDB.(evmvm.CStateDB).GetCurrentContext()
 
 		getState := func() common.Hash {
 			return stateDB.GetState(wallet2.GetEthAddress(), hash1)
@@ -1100,7 +1100,7 @@ func (suite *StateDbIntegrationTestSuite) TestSetState() {
 	})
 
 	suite.Run("state of new account of re-made", func() {
-		currentCtx := stateDB.(evmvm.CStateDB).ForTest_GetCurrentContext()
+		currentCtx := stateDB.(evmvm.CStateDB).GetCurrentContext()
 
 		getState := func() common.Hash {
 			return stateDB.GetState(wallet4.GetEthAddress(), hash1)
@@ -1299,9 +1299,9 @@ func (suite *StateDbIntegrationTestSuite) TestSelfDestruct() {
 
 		// backup account
 		cbDB := stateDB.(evmvm.CStateDB)
-		account1 := suite.App().AccountKeeper().GetAccount(cbDB.ForTest_GetCurrentContext(), wallet1.GetCosmosAddress())
+		account1 := suite.App().AccountKeeper().GetAccount(cbDB.GetCurrentContext(), wallet1.GetCosmosAddress())
 		suite.Require().NotNil(account1)
-		account2 := suite.App().AccountKeeper().GetAccount(cbDB.ForTest_GetCurrentContext(), wallet2.GetCosmosAddress())
+		account2 := suite.App().AccountKeeper().GetAccount(cbDB.GetCurrentContext(), wallet2.GetCosmosAddress())
 		suite.Require().NotNil(account2)
 
 		err = stateDB.(evmvm.CStateDB).CommitMultiStore(true) // commit cache multi-store within the StateDB
@@ -1666,7 +1666,7 @@ func (suite *StateDbIntegrationTestSuite) TestSnapshotAndRevert() {
 			suite.StateDB.CreateAccount(nonExistsWalletBeforeCheckpoint.GetEthAddress())
 			suite.Require().True(suite.StateDB.Exist(nonExistsWalletBeforeCheckpoint.GetEthAddress()))
 
-			existingAccountBeforeCheckpoint := suite.App().AccountKeeper().GetAccount(suite.CStateDB.ForTest_GetCurrentContext(), existingWalletBeforeCheckpoint.GetCosmosAddress())
+			existingAccountBeforeCheckpoint := suite.App().AccountKeeper().GetAccount(suite.CStateDB.GetCurrentContext(), existingWalletBeforeCheckpoint.GetCosmosAddress())
 			suite.Require().NotNil(existingAccountBeforeCheckpoint)
 			suite.CStateDB.DestroyAccount(common.BytesToAddress(existingAccountBeforeCheckpoint.GetAddress()))
 
@@ -1797,12 +1797,12 @@ func (suite *StateDbIntegrationTestSuite) TestCommitMultiStore() {
 	// transfer all non-EVM coins out to procedure case empty account
 	for _, coin := range suite.App().
 		BankKeeper().
-		GetAllBalances(suite.CStateDB.ForTest_GetCurrentContext(), existingWallet3.GetCosmosAddress()) {
+		GetAllBalances(suite.CStateDB.GetCurrentContext(), existingWallet3.GetCosmosAddress()) {
 		if coin.GetDenom() == suite.CStateDB.ForTest_GetEvmDenom() {
 			continue
 		}
 
-		err := suite.App().BankKeeper().SendCoinsFromAccountToModule(suite.CStateDB.ForTest_GetCurrentContext(), existingWallet3.GetCosmosAddress(), evmtypes.ModuleName, sdk.NewCoins(coin))
+		err := suite.App().BankKeeper().SendCoinsFromAccountToModule(suite.CStateDB.GetCurrentContext(), existingWallet3.GetCosmosAddress(), evmtypes.ModuleName, sdk.NewCoins(coin))
 		suite.Require().NoError(err)
 	}
 
