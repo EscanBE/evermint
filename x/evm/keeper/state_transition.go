@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
+	cpckeeper "github.com/EscanBE/evermint/v12/x/cpc/keeper"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -65,7 +66,33 @@ func (k *Keeper) NewEVM(
 		ExtraEips: cfg.Params.EIPs(),
 	}
 
-	return corevm.NewEVM(blockCtx, txCtx, stateDB, cfg.ChainConfig, coreVmConfig)
+	evm := corevm.NewEVM(blockCtx, txCtx, stateDB, cfg.ChainConfig, coreVmConfig)
+	{
+		// init the custom precompiled contracts
+		protocolVersion := k.cpcKeeper.GetProtocolCpcVersion(ctx)
+
+		var contracts []corevm.PrecompiledContract
+		for _, contract := range k.cpcKeeper.GetAllCustomPrecompiledContracts(ctx) {
+			executors := contract.GetMethodExecutors()
+			if len(executors) == 0 {
+				panic(fmt.Sprintf("no executors found for custom precompiled contract %s", contract.GetMetadata().Name))
+			}
+
+			var methods []corevm.CustomPrecompiledContractMethod
+			for _, executor := range executors {
+				methods = append(methods, cpckeeper.NewCustomPrecompiledContractMethod(
+					executor,
+					protocolVersion,
+				))
+			}
+
+			metadata := contract.GetMetadata()
+			contracts = append(contracts, corevm.NewCustomPrecompiledContract(common.BytesToAddress(metadata.Address), methods, metadata.Name))
+		}
+		evm = evm.WithCustomPrecompiledContract(contracts...)
+	}
+
+	return evm
 }
 
 // GetHashFn implements vm.GetHashFunc for Evermint.
