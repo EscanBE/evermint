@@ -1,0 +1,96 @@
+syntax = "proto3";
+package evermint.cpc.v1;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "evermint/cpc/v1/genesis.proto";
+import "evermint/cpc/v1/precompiles.proto";
+
+option go_package = "github.com/EscanBE/evermint/v12/x/cpc/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // CustomPrecompiledContracts queries the list of deployed custom precompiled contracts.
+  rpc CustomPrecompiledContracts(QueryCustomPrecompiledContractsRequest) returns (QueryCustomPrecompiledContractsResponse) {
+    option (google.api.http).get = "/evermint/cpc/v1/custom_precompiled_contracts";
+  }
+
+  // CustomPrecompiledContract queries the list of deployed custom precompiled contract.
+  rpc CustomPrecompiledContract(QueryCustomPrecompiledContractRequest) returns (QueryCustomPrecompiledContractResponse) {
+    option (google.api.http).get = "/evermint/cpc/v1/custom_precompiled_contract/{address}";
+  }
+
+  // Erc20CustomPrecompiledContractByDenom queries the list of deployed custom precompiled contract by denom.
+  rpc Erc20CustomPrecompiledContractByDenom(QueryErc20CustomPrecompiledContractByDenomRequest) returns (QueryErc20CustomPrecompiledContractByDenomResponse) {
+    option (google.api.http).get = "/evermint/cpc/v1/erc20_custom_precompiled_contract_by_denom/{min_denom}";
+  }
+
+  // Params queries the parameters of x/cpc module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/evermint/cpc/v1/params";
+  }
+}
+
+// QueryCustomPrecompiledContractsRequest is the request type for the Query/CustomPrecompiledContracts RPC
+// method.
+message QueryCustomPrecompiledContractsRequest {
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message WrappedCustomPrecompiledContractMeta {
+  // address is the ethereum hex address of the custom precompiled contract.
+  string address = 1;
+
+  // type_name is the friendly name of the custom precompiled contract type.
+  string type_name = 2;
+
+  // meta is the custom precompiled contract meta
+  CustomPrecompiledContractMeta meta = 3 [(gogoproto.nullable) = false];
+}
+
+// QueryCustomPrecompiledContractsResponse is the response type for the Query/CustomPrecompiledContracts RPC
+// method.
+message QueryCustomPrecompiledContractsResponse {
+  // contracts is a slice of deployed custom precompiled contracts.
+  repeated WrappedCustomPrecompiledContractMeta contracts = 1 [(gogoproto.nullable) = false];
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryCustomPrecompiledContractRequest is the request type for the Query/CustomPrecompiledContract RPC
+// method.
+message QueryCustomPrecompiledContractRequest {
+  // address is the ethereum hex address to query the custom precompiled contract for.
+  string address = 1;
+}
+
+// QueryCustomPrecompiledContractResponse is the response type for the Query/CustomPrecompiledContract RPC
+// method.
+message QueryCustomPrecompiledContractResponse {
+  // contract is the deployed custom precompiled contract
+  WrappedCustomPrecompiledContractMeta contract = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryErc20CustomPrecompiledContractByDenomRequest is the request type for the Query/Erc20CustomPrecompiledContractByDenom RPC
+// method.
+message QueryErc20CustomPrecompiledContractByDenomRequest {
+  // min_denom is the minimum denomination to query the custom precompiled contract for.
+  string min_denom = 1;
+}
+
+// QueryErc20CustomPrecompiledContractByDenomResponse is the response type for the Query/Erc20CustomPrecompiledContractByDenom RPC
+// method.
+message QueryErc20CustomPrecompiledContractByDenomResponse {
+  WrappedCustomPrecompiledContractMeta contract = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryParamsRequest defines the request type for querying x/cpc module parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for querying x/cpc module parameters.
+message QueryParamsResponse {
+  // params define the cpc module parameters.
+  Params params = 1 [(gogoproto.nullable) = false];
+}

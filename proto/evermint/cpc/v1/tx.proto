@@ -1,0 +1,60 @@
+syntax = "proto3";
+package evermint.cpc.v1;
+
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "evermint/cpc/v1/genesis.proto";
+
+option go_package = "github.com/EscanBE/evermint/v12/x/cpc/types";
+
+// Msg defines the x/cpc Msg service.
+service Msg {
+  // UpdateParams defined a governance operation for updating the x/cpc module parameters.
+  // The authority is hard-coded to the Cosmos SDK x/gov module account
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
+  // DeployErc20Contract defines a method deploying a new ERC20 contract.
+  rpc DeployErc20Contract(MsgDeployErc20ContractRequest) returns (MsgDeployErc20ContractResponse);
+}
+
+// MsgUpdateParams defines a Msg for updating the x/cpc module parameters.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address of the governance account.
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // new_params for the x/cpc module.
+  Params new_params = 2 [(gogoproto.nullable) = false];
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a
+// MsgUpdateParams message.
+message MsgUpdateParamsResponse {}
+
+// MsgDeployErc20ContractRequest defines a Msg for deploying a new ERC20 contract.
+message MsgDeployErc20ContractRequest {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address of the deployer account, must be available as whitelisted in module params.
+  string authority = 1;
+
+  // name is the name of the ERC20 token.
+  string name = 2;
+
+  // symbol is the symbol of the ERC20 token.
+  string symbol = 3;
+
+  // decimals is the number of decimals of the ERC20 token.
+  uint32 decimals = 4;
+
+  // min_denom is the minimum denomination of the ERC20 token.
+  string min_denom = 5;
+}
+
+// MsgDeployErc20ContractResponse defines the Msg/DeployErc20Contract response type.
+message MsgDeployErc20ContractResponse {
+  // contract_address is the address of the deployed ERC20 contract.
+  string contract_address = 1;
+}

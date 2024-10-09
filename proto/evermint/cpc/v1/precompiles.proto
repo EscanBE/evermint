@@ -1,0 +1,25 @@
+syntax = "proto3";
+package evermint.cpc.v1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/EscanBE/evermint/v12/x/cpc/types";
+
+// CustomPrecompiledContractMeta is metadata of the custom precompiled contract.
+// It is used to define the custom precompiled contract and its metadata.
+message CustomPrecompiledContractMeta {
+  // address is the address of the precompiled contract.
+  bytes address = 1;
+
+  // custom_precompiled_type presents the type of the precompiled contract, eg: erc20, staking,...
+  uint32 custom_precompiled_type = 2;
+
+  // name of the precompiled contract.
+  string name = 3;
+
+  // typed_meta is the json-encoded metadata of the precompiled contract, type-based.
+  string typed_meta = 4;
+
+  // disabled is the flag to disable the precompiled contract.
+  bool disabled = 5;
+}
