@@ -8,6 +8,8 @@ import (
 	"cosmossdk.io/x/upgrade"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/EscanBE/evermint/v12/app/params"
+	"github.com/EscanBE/evermint/v12/x/cpc"
+	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
 	"github.com/EscanBE/evermint/v12/x/erc20"
 	erc20client "github.com/EscanBE/evermint/v12/x/erc20/client"
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
@@ -71,6 +73,7 @@ var maccPerms = map[string][]string{
 	evmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance
 	erc20types.ModuleName:          {authtypes.Minter, authtypes.Burner},
 	vauthtypes.ModuleName:          {authtypes.Burner},
+	cpctypes.ModuleName:            {authtypes.Burner},
 }
 
 // ModuleBasics defines the module BasicManager is in charge of setting up basic,
@@ -109,6 +112,7 @@ var ModuleBasics = module.NewBasicManager(
 	feemarket.AppModuleBasic{},
 	erc20.AppModuleBasic{},
 	vauth.AppModuleBasic{},
+	cpc.AppModuleBasic{},
 	consensus.AppModuleBasic{},
 )
 
@@ -150,6 +154,7 @@ func appModules(
 		// Evermint app modules
 		erc20.NewAppModule(chainApp.Erc20Keeper, chainApp.AccountKeeper, chainApp.GetSubspace(erc20types.ModuleName)),
 		vauth.NewAppModule(appCodec, chainApp.VAuthKeeper),
+		cpc.NewAppModule(appCodec, chainApp.CPCKeeper, *chainApp.StakingKeeper),
 	}
 }
 
@@ -205,6 +210,7 @@ func orderBeginBlockers() []string {
 		// Evermint no-op modules
 		feemarkettypes.ModuleName,
 		vauthtypes.ModuleName,
+		cpctypes.ModuleName,
 		erc20types.ModuleName,
 	}
 }
@@ -250,6 +256,7 @@ func orderEndBlockers() []string {
 		// Evermint no-op modules
 		erc20types.ModuleName,
 		vauthtypes.ModuleName,
+		cpctypes.ModuleName,
 	}
 }
 
@@ -280,6 +287,7 @@ func orderInitBlockers() []string {
 		evmtypes.ModuleName,
 		erc20types.ModuleName,
 		vauthtypes.ModuleName,
+		cpctypes.ModuleName,
 		// NOTE: fee market module needs to be initialized before genutil module as gentx transactions use MinGasPriceDecorator.AnteHandle
 		feemarkettypes.ModuleName,
 		// end of Evermint modules

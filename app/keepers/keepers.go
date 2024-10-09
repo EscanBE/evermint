@@ -3,6 +3,9 @@ package keepers
 import (
 	"os"
 
+	cpckeeper "github.com/EscanBE/evermint/v12/x/cpc/keeper"
+	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
+
 	"github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -110,6 +113,7 @@ type AppKeepers struct {
 
 	// Evermint keepers
 	VAuthKeeper vauthkeeper.Keeper
+	CPCKeeper   cpckeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -404,6 +408,16 @@ func NewAppKeeper(
 			appKeepers.BankKeeper,
 			*appKeepers.EvmKeeper,
 		)
+
+		appKeepers.CPCKeeper = cpckeeper.NewKeeper(
+			appCodec,
+			keys[cpctypes.StoreKey],
+			authtypes.NewModuleAddress(govtypes.ModuleName),
+			appKeepers.AccountKeeper,
+			appKeepers.BankKeeper,
+		)
+
+		appKeepers.EvmKeeper.WithCpcKeeper(appKeepers.CPCKeeper)
 	}
 
 	{ // Create static IBC router, add transfer route, then set and seal it
