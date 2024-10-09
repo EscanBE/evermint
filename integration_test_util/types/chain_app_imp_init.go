@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
+
 	sdkdb "github.com/cosmos/cosmos-db"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 
@@ -366,6 +368,16 @@ func genesisStateWithValSet(chainCfg ChainConfig, disableCometBFT bool, testConf
 		if slashingGenesis != nil {
 			slashingGenesis.SigningInfos = signingInfos
 			genesisState[slashingtypes.ModuleName] = codec.MustMarshalJSON(slashingGenesis)
+		}
+	}
+
+	{
+		// x/cpc
+		var cpcGenesis *cpctypes.GenesisState
+		cpcGenesis = cpctypes.DefaultGenesis()
+		if cpcGenesis != nil {
+			cpcGenesis.DeployErc20Native = false
+			genesisState[cpctypes.ModuleName] = codec.MustMarshalJSON(cpcGenesis)
 		}
 	}
 

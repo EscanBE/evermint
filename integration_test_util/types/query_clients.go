@@ -3,6 +3,7 @@ package types
 //goland:noinspection SpellCheckingInspection
 import (
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
+	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
 	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
@@ -28,6 +29,7 @@ type QueryClients struct {
 	Distribution          disttypes.QueryClient
 	Erc20                 erc20types.QueryClient
 	EVM                   evmtypes.QueryClient
+	CPC                   cpctypes.QueryClient
 	GovV1                 govtypesv1.QueryClient
 	GovLegacy             govtypeslegacy.QueryClient
 	IbcTransfer           ibctransfertypes.QueryClient

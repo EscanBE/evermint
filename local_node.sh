@@ -86,6 +86,9 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	# Set gas limit in genesis
 	jq '.consensus_params["block"]["max_gas"]="10000000"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 
+	# Set deployer authority
+	DEPLOYER_ADDRESS=$("$BINARY" keys show "${KEYS[0]}" -a --keyring-backend $KEYRING --home "$HOMEDIR")
+	jq '.app_state["cpc"]["params"]["whitelisted_deployers"][0]="'$DEPLOYER_ADDRESS'"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 
 	if [[ $1 == "pending" ]]; then
 		if [[ "$OSTYPE" == "darwin"* ]]; then
