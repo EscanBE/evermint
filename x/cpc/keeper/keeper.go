@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"fmt"
+	distkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
@@ -21,6 +23,8 @@ type Keeper struct {
 	authority     sdk.AccAddress
 	accountKeeper authkeeper.AccountKeeper
 	bankKeeper    bankkeeper.Keeper
+	stakingKeeper stakingkeeper.Keeper
+	distKeeper    distkeeper.Keeper
 }
 
 // NewKeeper returns a new instance of the CPC keeper
@@ -30,6 +34,8 @@ func NewKeeper(
 	authority sdk.AccAddress,
 	ak authkeeper.AccountKeeper,
 	bk bankkeeper.Keeper,
+	sk stakingkeeper.Keeper,
+	dk distkeeper.Keeper,
 ) Keeper {
 	return Keeper{
 		cdc:           cdc,
@@ -37,6 +43,8 @@ func NewKeeper(
 		authority:     authority,
 		accountKeeper: ak,
 		bankKeeper:    bk,
+		stakingKeeper: sk,
+		distKeeper:    dk,
 	}
 }
 
