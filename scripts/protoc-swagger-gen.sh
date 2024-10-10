@@ -10,7 +10,6 @@ printf "version: v1\nname: buf.build/evmos/evmos\n" > "$SWAGGER_DIR/proto/buf.ya
 cp ./proto/buf.gen.swagger.yaml "$SWAGGER_DIR/proto/buf.gen.swagger.yaml"
 
 # copy existing proto files
-cp -r ./proto/evmos "$SWAGGER_DIR/proto"
 cp -r ./proto/ethermint "$SWAGGER_DIR/proto"
 cp -r ./proto/evermint "$SWAGGER_DIR/proto"
 
