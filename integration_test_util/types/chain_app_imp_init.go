@@ -24,7 +24,6 @@ import (
 	chainapp "github.com/EscanBE/evermint/v12/app"
 	"github.com/EscanBE/evermint/v12/constants"
 	itutilutils "github.com/EscanBE/evermint/v12/integration_test_util/utils"
-	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -348,16 +347,6 @@ func genesisStateWithValSet(chainCfg ChainConfig, disableCometBFT bool, testConf
 		if mintGenesis != nil {
 			mintGenesis.Params.MintDenom = chainCfg.BaseDenom
 			genesisState[minttypes.ModuleName] = codec.MustMarshalJSON(mintGenesis)
-		}
-	}
-
-	{
-		// x/erc20
-		var erc20Genesis *erc20types.GenesisState
-		erc20Genesis = erc20types.DefaultGenesisState()
-		if erc20Genesis != nil {
-			erc20Genesis.Params.EnableErc20 = true
-			genesisState[erc20types.ModuleName] = codec.MustMarshalJSON(erc20Genesis)
 		}
 	}
 

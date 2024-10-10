@@ -7,14 +7,6 @@
   },
   "apis": [
     {
-      "url": "./tmp-swagger-gen/evmos/erc20/v1/query.swagger.json",
-      "operationIds": {
-        "rename": {
-          "Params": "ERC20Params"
-        }
-      }
-    },
-    {
       "url": "./tmp-swagger-gen/ethermint/evm/v1/query.swagger.json",
       "operationIds": {
         "rename": {

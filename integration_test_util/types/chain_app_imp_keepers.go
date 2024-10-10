@@ -4,7 +4,6 @@ package types
 import (
 	feegrantkeeper "cosmossdk.io/x/feegrant/keeper"
 	cpckeeper "github.com/EscanBE/evermint/v12/x/cpc/keeper"
-	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	feemarketkeeper "github.com/EscanBE/evermint/v12/x/feemarket/keeper"
 	vauthkeeper "github.com/EscanBE/evermint/v12/x/vauth/keeper"
@@ -28,10 +27,6 @@ func (c chainAppImp) BankKeeper() bankkeeper.Keeper {
 
 func (c chainAppImp) DistributionKeeper() distkeeper.Keeper {
 	return c.app.DistrKeeper
-}
-
-func (c chainAppImp) Erc20Keeper() *erc20keeper.Keeper {
-	return &c.app.Erc20Keeper
 }
 
 func (c chainAppImp) EvmKeeper() *evmkeeper.Keeper {

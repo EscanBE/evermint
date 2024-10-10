@@ -68,9 +68,6 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 
 	srvflags "github.com/EscanBE/evermint/v12/server/flags"
-	"github.com/EscanBE/evermint/v12/x/erc20"
-	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
-	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarketkeeper "github.com/EscanBE/evermint/v12/x/feemarket/keeper"
@@ -109,7 +106,6 @@ type AppKeepers struct {
 	// Ethermint keepers
 	EvmKeeper       *evmkeeper.Keeper
 	FeeMarketKeeper feemarketkeeper.Keeper
-	Erc20Keeper     erc20keeper.Keeper
 
 	// Evermint keepers
 	VAuthKeeper vauthkeeper.Keeper
@@ -354,8 +350,7 @@ func NewAppKeeper(
 			// See: https://docs.cosmos.network/main/modules/gov#proposal-messages
 			govRouter := govv1beta1.NewRouter()
 			govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
-				AddRoute(sdkparamproposal.RouterKey, sdkparams.NewParamChangeProposalHandler(appKeepers.ParamsKeeper)).
-				AddRoute(erc20types.RouterKey, erc20.NewErc20ProposalHandler(&appKeepers.Erc20Keeper))
+				AddRoute(sdkparamproposal.RouterKey, sdkparams.NewParamChangeProposalHandler(appKeepers.ParamsKeeper))
 
 			// Set legacy router for backwards compatibility with gov v1beta1
 			appKeepers.GovKeeper.SetLegacyRouter(govRouter)
@@ -390,15 +385,6 @@ func NewAppKeeper(
 		}
 
 		appKeepers.FeeMarketKeeper = appKeepers.FeeMarketKeeper.WithEvmKeeper(appKeepers.EvmKeeper)
-
-		appKeepers.Erc20Keeper = erc20keeper.NewKeeper(
-			keys[erc20types.StoreKey],
-			appCodec,
-			authtypes.NewModuleAddress(govtypes.ModuleName),
-			appKeepers.AccountKeeper,
-			appKeepers.BankKeeper,
-			appKeepers.EvmKeeper,
-		)
 	}
 
 	{ // Create Evermint keepers
@@ -474,6 +460,6 @@ func initParamsKeeper(
 	paramsKeeper.Subspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable()) //nolint: staticcheck
 	paramsKeeper.Subspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())
 	// Evermint subspaces
-	paramsKeeper.Subspace(erc20types.ModuleName).WithKeyTable(erc20types.ParamKeyTable())
+	// (none)
 	return paramsKeeper
 }

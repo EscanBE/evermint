@@ -10,9 +10,6 @@ import (
 	"github.com/EscanBE/evermint/v12/app/params"
 	"github.com/EscanBE/evermint/v12/x/cpc"
 	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
-	"github.com/EscanBE/evermint/v12/x/erc20"
-	erc20client "github.com/EscanBE/evermint/v12/x/erc20/client"
-	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	"github.com/EscanBE/evermint/v12/x/evm"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/EscanBE/evermint/v12/x/feemarket"
@@ -71,7 +68,6 @@ var maccPerms = map[string][]string{
 	ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 	icatypes.ModuleName:            nil,
 	evmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance
-	erc20types.ModuleName:          {authtypes.Minter, authtypes.Burner},
 	vauthtypes.ModuleName:          {authtypes.Burner},
 	cpctypes.ModuleName:            {authtypes.Burner},
 }
@@ -90,10 +86,6 @@ var ModuleBasics = module.NewBasicManager(
 	gov.NewAppModuleBasic(
 		[]govclient.ProposalHandler{
 			sdkparamsclient.ProposalHandler,
-			// Evermint proposal types
-			erc20client.RegisterCoinProposalHandler,
-			erc20client.RegisterERC20ProposalHandler,
-			erc20client.ToggleTokenConversionProposalHandler,
 		},
 	),
 	sdkparams.AppModuleBasic{},
@@ -110,7 +102,6 @@ var ModuleBasics = module.NewBasicManager(
 	ica.AppModuleBasic{},
 	evm.AppModuleBasic{},
 	feemarket.AppModuleBasic{},
-	erc20.AppModuleBasic{},
 	vauth.AppModuleBasic{},
 	cpc.AppModuleBasic{},
 	consensus.AppModuleBasic{},
@@ -152,7 +143,6 @@ func appModules(
 		evm.NewAppModule(chainApp.EvmKeeper, chainApp.AccountKeeper, chainApp.GetSubspace(evmtypes.ModuleName)),
 		feemarket.NewAppModule(chainApp.FeeMarketKeeper, chainApp.GetSubspace(feemarkettypes.ModuleName)),
 		// Evermint app modules
-		erc20.NewAppModule(chainApp.Erc20Keeper, chainApp.AccountKeeper, chainApp.GetSubspace(erc20types.ModuleName)),
 		vauth.NewAppModule(appCodec, chainApp.VAuthKeeper),
 		cpc.NewAppModule(appCodec, chainApp.CPCKeeper, *chainApp.StakingKeeper),
 	}
@@ -211,7 +201,6 @@ func orderBeginBlockers() []string {
 		feemarkettypes.ModuleName,
 		vauthtypes.ModuleName,
 		cpctypes.ModuleName,
-		erc20types.ModuleName,
 	}
 }
 
@@ -254,7 +243,6 @@ func orderEndBlockers() []string {
 		upgradetypes.ModuleName,
 		consensusparamtypes.ModuleName,
 		// Evermint no-op modules
-		erc20types.ModuleName,
 		vauthtypes.ModuleName,
 		cpctypes.ModuleName,
 	}
@@ -285,7 +273,6 @@ func orderInitBlockers() []string {
 		crisistypes.ModuleName,
 		// Evermint modules
 		evmtypes.ModuleName,
-		erc20types.ModuleName,
 		vauthtypes.ModuleName,
 		cpctypes.ModuleName,
 		// NOTE: fee market module needs to be initialized before genutil module as gentx transactions use MinGasPriceDecorator.AnteHandle

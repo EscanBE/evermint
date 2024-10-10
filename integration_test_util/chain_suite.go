@@ -38,7 +38,6 @@ import (
 	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
 	rpcbackend "github.com/EscanBE/evermint/v12/rpc/backend"
 	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	cmtdb "github.com/cometbft/cometbft-db"
@@ -391,9 +390,6 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 	disttypes.RegisterQueryServer(queryHelper, distkeeper.NewQuerier(suite.ChainApp.DistributionKeeper()))
 	distributionQueryClient := disttypes.NewQueryClient(queryHelper)
 
-	erc20types.RegisterQueryServer(queryHelper, suite.ChainApp.Erc20Keeper())
-	erc20QueryClient := erc20types.NewQueryClient(queryHelper)
-
 	evmtypes.RegisterQueryServer(queryHelper, suite.ChainApp.EvmKeeper())
 	evmQueryClient := evmtypes.NewQueryClient(queryHelper)
 
@@ -476,7 +472,6 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 		Auth:                  authQueryClient,
 		Bank:                  bankQueryClient,
 		Distribution:          distributionQueryClient,
-		Erc20:                 erc20QueryClient,
 		EVM:                   evmQueryClient,
 		CPC:                   cpcQueryClient,
 		GovV1:                 govV1QueryClient,

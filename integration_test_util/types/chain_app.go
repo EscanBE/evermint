@@ -4,7 +4,6 @@ package types
 import (
 	feegrantkeeper "cosmossdk.io/x/feegrant/keeper"
 	cpckeeper "github.com/EscanBE/evermint/v12/x/cpc/keeper"
-	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	feemarketkeeper "github.com/EscanBE/evermint/v12/x/feemarket/keeper"
 	vauthkeeper "github.com/EscanBE/evermint/v12/x/vauth/keeper"
@@ -36,7 +35,6 @@ type ChainApp interface {
 	AccountKeeper() *authkeeper.AccountKeeper
 	BankKeeper() bankkeeper.Keeper
 	DistributionKeeper() distkeeper.Keeper
-	Erc20Keeper() *erc20keeper.Keeper
 	EvmKeeper() *evmkeeper.Keeper
 	FeeMarketKeeper() *feemarketkeeper.Keeper
 	GovKeeper() *govkeeper.Keeper
