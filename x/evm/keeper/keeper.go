@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/big"
 
+	cpckeeper "github.com/EscanBE/evermint/v12/x/cpc/keeper"
+
 	sdkmath "cosmossdk.io/math"
 
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -48,6 +50,8 @@ type Keeper struct {
 	stakingKeeper evmtypes.StakingKeeper
 	// fetch EIP1559 base fee and parameters
 	feeMarketKeeper evmtypes.FeeMarketKeeper
+	// fetch custom precompiled contracts
+	cpcKeeper cpckeeper.Keeper
 
 	// Tracer used to collect execution traces from the EVM transaction execution
 	tracer string
@@ -99,7 +103,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // WithChainID sets the chain id to the local variable in the keeper
-func (k *Keeper) WithChainID(ctx sdk.Context) {
+func (k Keeper) WithChainID(ctx sdk.Context) {
 	var chainId evmtypes.Eip155ChainId
 
 	if err := (&chainId).FromCosmosChainId(ctx.ChainID()); err != nil {
@@ -107,6 +111,11 @@ func (k *Keeper) WithChainID(ctx sdk.Context) {
 	}
 
 	k.SetEip155ChainId(ctx, chainId)
+}
+
+func (k *Keeper) WithCpcKeeper(ck cpckeeper.Keeper) *Keeper {
+	k.cpcKeeper = ck
+	return k
 }
 
 // ----------------------------------------------------------------------------

@@ -583,7 +583,7 @@ func (suite *KeeperTestSuite) TestEmpty() {
 				vmdb.AddBalance(randomAddr2, big.NewInt(1))
 
 				// delete account
-				ctx := vmdb.(vm.CStateDB).ForTest_GetCurrentContext()
+				ctx := vmdb.(vm.CStateDB).GetCurrentContext()
 				acc := suite.app.AccountKeeper.GetAccount(ctx, randomAddr2.Bytes())
 				suite.Require().NotNil(acc) // created by bank transfer
 				suite.app.AccountKeeper.RemoveAccount(ctx, acc)
@@ -598,7 +598,7 @@ func (suite *KeeperTestSuite) TestEmpty() {
 				vmdb.SetCode(randomAddr3, []byte("code"))
 
 				// delete account
-				ctx := vmdb.(vm.CStateDB).ForTest_GetCurrentContext()
+				ctx := vmdb.(vm.CStateDB).GetCurrentContext()
 				acc := suite.app.AccountKeeper.GetAccount(ctx, randomAddr3.Bytes())
 				suite.Require().NotNil(acc) // created by set code
 				suite.app.AccountKeeper.RemoveAccount(ctx, acc)

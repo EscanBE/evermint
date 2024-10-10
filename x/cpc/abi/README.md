@@ -1,0 +1,1 @@
+This folder contains ABI of the custom precompiled contracts.

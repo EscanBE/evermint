@@ -1,0 +1,25 @@
+syntax = "proto3";
+package evermint.cpc.v1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/EscanBE/evermint/v12/x/cpc/types";
+
+// GenesisState defines the module's genesis state.
+message GenesisState {
+  // deploy_erc20_native defines if the module should deploy the ERC20 contract for native coin.
+  // The denom of the native coin is the same as staking denom.
+  bool deploy_erc20_native = 1;
+
+  // params defines all the parameters of the module.
+  Params params = 2 [(gogoproto.nullable) = false];
+}
+
+// Params defines the cpc module params
+message Params {
+  // protocol_version is the protocol version of the cpc module
+  uint32 protocol_version = 1;
+
+  // whitelisted_deployers is the address of the accounts permitted to deploy the Custom Precompiled Contracts
+  repeated string whitelisted_deployers = 2;
+}

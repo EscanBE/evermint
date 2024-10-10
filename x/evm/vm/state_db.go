@@ -17,7 +17,6 @@ import (
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	ethparams "github.com/ethereum/go-ethereum/params"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
 )
@@ -38,6 +37,7 @@ type CStateDB interface {
 
 	CommitMultiStore(deleteEmptyObjects bool) error
 	IntermediateRoot(deleteEmptyObjects bool) (common.Hash, error)
+	GetCurrentContext() sdk.Context
 
 	DestroyAccount(acc common.Address)
 
@@ -59,7 +59,6 @@ type CStateDB interface {
 	ForTest_GetSnapshots() []RtStateDbSnapshot
 	ForTest_ToggleStateDBPreventCommit(prevent bool)
 	ForTest_GetOriginalContext() sdk.Context
-	ForTest_GetCurrentContext() sdk.Context
 	ForTest_GetEvmDenom() string
 	ForTest_IsCommitted() bool
 }
@@ -95,6 +94,8 @@ var preventCommit bool
 func (d *cStateDb) PrepareAccessList(sender common.Address, dest *common.Address, precompiles []common.Address, txAccesses ethtypes.AccessList) {
 	var coinbase common.Address // TODO ES: handle
 
+	// TODO ES: allow warmup Custom Precompiled Contracts
+
 	rules := d.chainConfig.Rules(big.NewInt(d.currentCtx.BlockHeight()), true)
 
 	d.prepareByGoEthereum(rules, sender, coinbase, dest, precompiles, txAccesses)
@@ -112,9 +113,6 @@ func NewStateDB(
 	accountKeeper authkeeper.AccountKeeper,
 	bankKeeper bankkeeper.Keeper,
 ) CStateDB {
-	// remove the event manager in order to prevent crappy events from being fired during state transition.
-	ctx = ctx.WithEventManager(evertypes.NewNoOpEventManager())
-
 	// fetching and cache x/evm params to prevent reload multiple time during execution
 	evmParams := ethKeeper.GetParams(ctx)
 
@@ -596,6 +594,11 @@ func (d *cStateDb) IntermediateRoot(deleteEmptyObjects bool) (common.Hash, error
 	}
 
 	return ethtypes.EmptyRootHash, nil
+}
+
+// GetCurrentContext exposes the current context.
+func (d *cStateDb) GetCurrentContext() sdk.Context {
+	return d.currentCtx
 }
 
 // computeCodeHash computes the code hash of the given code.

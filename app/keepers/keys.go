@@ -5,6 +5,7 @@ import (
 	evidencetypes "cosmossdk.io/x/evidence/types"
 	"cosmossdk.io/x/feegrant"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -46,7 +47,7 @@ func (appKeepers *AppKeepers) GenerateKeys() {
 		// ethermint keys
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
 		// evermint module keys
-		erc20types.StoreKey, vauthtypes.StoreKey,
+		erc20types.StoreKey, vauthtypes.StoreKey, cpctypes.StoreKey,
 	)
 
 	// Define transient store keys

@@ -16,6 +16,10 @@ import (
 	"time"
 	"unsafe"
 
+	cpckeeper "github.com/EscanBE/evermint/v12/x/cpc/keeper"
+
+	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
+
 	"cosmossdk.io/store/rootmulti"
 	storetypes "cosmossdk.io/store/types"
 
@@ -393,6 +397,9 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 	evmtypes.RegisterQueryServer(queryHelper, suite.ChainApp.EvmKeeper())
 	evmQueryClient := evmtypes.NewQueryClient(queryHelper)
 
+	cpctypes.RegisterQueryServer(queryHelper, cpckeeper.NewQueryServerImpl(*suite.ChainApp.CpcKeeper()))
+	cpcQueryClient := cpctypes.NewQueryClient(queryHelper)
+
 	feemarkettypes.RegisterQueryServer(queryHelper, suite.ChainApp.FeeMarketKeeper())
 	feeMarketQueryClient := feemarkettypes.NewQueryClient(queryHelper)
 
@@ -471,6 +478,7 @@ func (suite *ChainIntegrationTestSuite) QueryClientsAt(height int64) *itutiltype
 		Distribution:          distributionQueryClient,
 		Erc20:                 erc20QueryClient,
 		EVM:                   evmQueryClient,
+		CPC:                   cpcQueryClient,
 		GovV1:                 govV1QueryClient,
 		GovLegacy:             govLegacyQueryClient,
 		IbcTransfer:           ibcTransferQueryClient,

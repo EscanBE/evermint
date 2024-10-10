@@ -3,6 +3,7 @@ package types
 //goland:noinspection SpellCheckingInspection
 import (
 	feegrantkeeper "cosmossdk.io/x/feegrant/keeper"
+	cpckeeper "github.com/EscanBE/evermint/v12/x/cpc/keeper"
 	erc20keeper "github.com/EscanBE/evermint/v12/x/erc20/keeper"
 	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
 	feemarketkeeper "github.com/EscanBE/evermint/v12/x/feemarket/keeper"
@@ -45,6 +46,7 @@ type ChainApp interface {
 	StakingKeeper() *stakingkeeper.Keeper
 	FeeGrantKeeper() *feegrantkeeper.Keeper
 	VAuthKeeper() *vauthkeeper.Keeper
+	CpcKeeper() *cpckeeper.Keeper
 
 	// Tx
 
