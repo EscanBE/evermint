@@ -23,7 +23,6 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 
-	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
 	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
@@ -47,7 +46,7 @@ func (appKeepers *AppKeepers) GenerateKeys() {
 		// ethermint keys
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
 		// evermint module keys
-		erc20types.StoreKey, vauthtypes.StoreKey, cpctypes.StoreKey,
+		vauthtypes.StoreKey, cpctypes.StoreKey,
 	)
 
 	// Define transient store keys

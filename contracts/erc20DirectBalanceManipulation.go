@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	"github.com/ethereum/go-ethereum/common"
-
-	erc20types "github.com/EscanBE/evermint/v12/x/erc20/types"
 )
 
 // This is an evil token. Whenever an A -> B transfer is called,
@@ -18,14 +15,9 @@ var (
 
 	// ERC20DirectBalanceManipulationContract is the compiled erc20 contract
 	ERC20DirectBalanceManipulationContract evmtypes.CompiledContract
-
-	// ERC20DirectBalanceManipulationAddress is the erc20 module address
-	ERC20DirectBalanceManipulationAddress common.Address
 )
 
 func init() {
-	ERC20DirectBalanceManipulationAddress = erc20types.ModuleAddress
-
 	err := json.Unmarshal(ERC20DirectBalanceManipulationJSON, &ERC20DirectBalanceManipulationContract)
 	if err != nil {
 		panic(err)

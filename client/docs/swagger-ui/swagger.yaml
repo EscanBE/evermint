@@ -4,291 +4,6 @@ info:
   description: A REST interface for state queries and transactions
   version: 1.0.0
 paths:
-  /evmos/erc20/v1/params:
-    get:
-      summary: Params retrieves the erc20 module params
-      operationId: ERC20Params
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              params:
-                title: params are the erc20 module parameters
-                type: object
-                properties:
-                  enable_erc20:
-                    type: boolean
-                    description: >-
-                      enable_erc20 is the parameter to enable the conversion of
-                      Cosmos coins <--> ERC20 tokens.
-            description: |-
-              QueryParamsResponse is the response type for the Query/Params RPC
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      tags:
-        - Query
-  /evmos/erc20/v1/token_pairs:
-    get:
-      summary: TokenPairs retrieves registered token pairs
-      operationId: TokenPairs
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              token_pairs:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    erc20_address:
-                      type: string
-                      title: erc20_address is the hex address of ERC20 contract token
-                    denom:
-                      type: string
-                      title: >-
-                        denom defines the cosmos base denomination to be mapped
-                        to
-                    enabled:
-                      type: boolean
-                      title: enabled defines the token mapping enable status
-                    contract_owner:
-                      title: >-
-                        contract_owner is the an ENUM specifying the type of
-                        ERC20 owner (0 invalid, 1 ModuleAccount, 2 external
-                        address)
-                      type: string
-                      enum:
-                        - OWNER_UNSPECIFIED
-                        - OWNER_MODULE
-                        - OWNER_EXTERNAL
-                      default: OWNER_UNSPECIFIED
-                      description: |-
-                        Owner enumerates the ownership of a ERC20 contract.
-
-                         - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
-                         - OWNER_MODULE: OWNER_MODULE - erc20 is owned by the erc20 module account.
-                         - OWNER_EXTERNAL: OWNER_EXTERNAL - erc20 is owned by an external account.
-                  description: >-
-                    TokenPair defines an instance that records a pairing
-                    consisting of a native
-                     Cosmos Coin and an ERC20 token address.
-                title: >-
-                  token_pairs is a slice of registered token pairs for the erc20
-                  module
-              pagination:
-                description: pagination defines the pagination in the response.
-                type: object
-                properties:
-                  next_key:
-                    type: string
-                    format: byte
-                    description: |-
-                      next_key is the key to be passed to PageRequest.key to
-                      query the next page most efficiently. It will be empty if
-                      there are no more results.
-                  total:
-                    type: string
-                    format: uint64
-                    title: >-
-                      total is total number of results available if
-                      PageRequest.count_total
-
-                      was set, its value is undefined otherwise
-            description: >-
-              QueryTokenPairsResponse is the response type for the
-              Query/TokenPairs RPC
-
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: pagination.key
-          description: |-
-            key is a value returned in PageResponse.next_key to begin
-            querying the next page most efficiently. Only one of offset or key
-            should be set.
-          in: query
-          required: false
-          type: string
-          format: byte
-        - name: pagination.offset
-          description: >-
-            offset is a numeric offset that can be used when key is unavailable.
-
-            It is less efficient than using key. Only one of offset or key
-            should
-
-            be set.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.limit
-          description: >-
-            limit is the total number of results to be returned in the result
-            page.
-
-            If left empty it will default to a value to be set by each app.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.count_total
-          description: >-
-            count_total is set to true  to indicate that the result set should
-            include
-
-            a count of the total number of items available for pagination in
-            UIs.
-
-            count_total is only respected when offset is used. It is ignored
-            when key
-
-            is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
-      tags:
-        - Query
-  /evmos/erc20/v1/token_pairs/{token}:
-    get:
-      summary: TokenPair retrieves a registered token pair
-      operationId: TokenPair
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              token_pair:
-                type: object
-                properties:
-                  erc20_address:
-                    type: string
-                    title: erc20_address is the hex address of ERC20 contract token
-                  denom:
-                    type: string
-                    title: denom defines the cosmos base denomination to be mapped to
-                  enabled:
-                    type: boolean
-                    title: enabled defines the token mapping enable status
-                  contract_owner:
-                    title: >-
-                      contract_owner is the an ENUM specifying the type of ERC20
-                      owner (0 invalid, 1 ModuleAccount, 2 external address)
-                    type: string
-                    enum:
-                      - OWNER_UNSPECIFIED
-                      - OWNER_MODULE
-                      - OWNER_EXTERNAL
-                    default: OWNER_UNSPECIFIED
-                    description: |-
-                      Owner enumerates the ownership of a ERC20 contract.
-
-                       - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
-                       - OWNER_MODULE: OWNER_MODULE - erc20 is owned by the erc20 module account.
-                       - OWNER_EXTERNAL: OWNER_EXTERNAL - erc20 is owned by an external account.
-                description: >-
-                  TokenPair defines an instance that records a pairing
-                  consisting of a native
-                   Cosmos Coin and an ERC20 token address.
-                title: >-
-                  token_pairs returns the info about a registered token pair for
-                  the erc20 module
-            description: >-
-              QueryTokenPairResponse is the response type for the
-              Query/TokenPair RPC
-
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: token
-          description: >-
-            token identifier can be either the hex contract address of the ERC20
-            or the
-
-            Cosmos base denomination
-          in: path
-          required: true
-          type: string
-      tags:
-        - Query
   /evmos/evm/v1/account/{address}:
     get:
       summary: Account queries an Ethereum account.
@@ -1613,20 +1328,6 @@ paths:
           required: false
           type: string
           format: uint64
-        - name: proposer_address
-          description: proposer_address of the requested block in hex format.
-          in: query
-          required: false
-          type: string
-          format: byte
-        - name: chain_id
-          description: >-
-            chain_id is the eip155 chain id parsed from the requested block
-            header.
-          in: query
-          required: false
-          type: string
-          format: int64
       tags:
         - Query
   /evmos/evm/v1/eth_call:
@@ -1880,20 +1581,6 @@ paths:
           required: false
           type: string
           format: uint64
-        - name: proposer_address
-          description: proposer_address of the requested block in hex format.
-          in: query
-          required: false
-          type: string
-          format: byte
-        - name: chain_id
-          description: >-
-            chain_id is the eip155 chain id parsed from the requested block
-            header.
-          in: query
-          required: false
-          type: string
-          format: int64
       tags:
         - Query
   /evmos/evm/v1/params:
@@ -2881,25 +2568,11 @@ paths:
           type: string
           format: date-time
         - name: proposer_address
-          description: proposer_address is the address of the requested block.
+          description: proposer_address is the proposer of the requested block.
           in: query
           required: false
           type: string
           format: byte
-        - name: chain_id
-          description: >-
-            chain_id is the eip155 chain id parsed from the requested block
-            header.
-          in: query
-          required: false
-          type: string
-          format: int64
-        - name: block_max_gas
-          description: block_max_gas of the block of the requested transaction.
-          in: query
-          required: false
-          type: string
-          format: int64
       tags:
         - Query
   /evmos/evm/v1/trace_tx:
@@ -3339,20 +3012,6 @@ paths:
           required: false
           type: string
           format: byte
-        - name: chain_id
-          description: >-
-            chain_id is the the eip155 chain id parsed from the requested block
-            header.
-          in: query
-          required: false
-          type: string
-          format: int64
-        - name: block_max_gas
-          description: block_max_gas of the block of the requested transaction.
-          in: query
-          required: false
-          type: string
-          format: int64
       tags:
         - Query
   /evmos/evm/v1/validator_account/{cons_address}:
@@ -44357,592 +44016,6 @@ paths:
       tags:
         - Service
 definitions:
-  cosmos.base.query.v1beta1.PageRequest:
-    type: object
-    properties:
-      key:
-        type: string
-        format: byte
-        description: |-
-          key is a value returned in PageResponse.next_key to begin
-          querying the next page most efficiently. Only one of offset or key
-          should be set.
-      offset:
-        type: string
-        format: uint64
-        description: |-
-          offset is a numeric offset that can be used when key is unavailable.
-          It is less efficient than using key. Only one of offset or key should
-          be set.
-      limit:
-        type: string
-        format: uint64
-        description: >-
-          limit is the total number of results to be returned in the result
-          page.
-
-          If left empty it will default to a value to be set by each app.
-      count_total:
-        type: boolean
-        description: >-
-          count_total is set to true  to indicate that the result set should
-          include
-
-          a count of the total number of items available for pagination in UIs.
-
-          count_total is only respected when offset is used. It is ignored when
-          key
-
-          is set.
-      reverse:
-        type: boolean
-        description: >-
-          reverse is set to true if results are to be returned in the descending
-          order.
-
-
-          Since: cosmos-sdk 0.43
-    description: |-
-      message SomeRequest {
-               Foo some_parameter = 1;
-               PageRequest pagination = 2;
-       }
-    title: |-
-      PageRequest is to be embedded in gRPC request messages for efficient
-      pagination. Ex:
-  cosmos.base.query.v1beta1.PageResponse:
-    type: object
-    properties:
-      next_key:
-        type: string
-        format: byte
-        description: |-
-          next_key is the key to be passed to PageRequest.key to
-          query the next page most efficiently. It will be empty if
-          there are no more results.
-      total:
-        type: string
-        format: uint64
-        title: |-
-          total is total number of results available if PageRequest.count_total
-          was set, its value is undefined otherwise
-    description: |-
-      PageResponse is to be embedded in gRPC response messages where the
-      corresponding request message has used PageRequest.
-
-       message SomeResponse {
-               repeated Bar results = 1;
-               PageResponse page = 2;
-       }
-  evmos.erc20.v1.Owner:
-    type: string
-    enum:
-      - OWNER_UNSPECIFIED
-      - OWNER_MODULE
-      - OWNER_EXTERNAL
-    default: OWNER_UNSPECIFIED
-    description: |-
-      Owner enumerates the ownership of a ERC20 contract.
-
-       - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
-       - OWNER_MODULE: OWNER_MODULE - erc20 is owned by the erc20 module account.
-       - OWNER_EXTERNAL: OWNER_EXTERNAL - erc20 is owned by an external account.
-  evmos.erc20.v1.Params:
-    type: object
-    properties:
-      enable_erc20:
-        type: boolean
-        description: >-
-          enable_erc20 is the parameter to enable the conversion of Cosmos coins
-          <--> ERC20 tokens.
-    title: Params defines the erc20 module params
-  evmos.erc20.v1.QueryParamsResponse:
-    type: object
-    properties:
-      params:
-        title: params are the erc20 module parameters
-        type: object
-        properties:
-          enable_erc20:
-            type: boolean
-            description: >-
-              enable_erc20 is the parameter to enable the conversion of Cosmos
-              coins <--> ERC20 tokens.
-    description: |-
-      QueryParamsResponse is the response type for the Query/Params RPC
-      method.
-  evmos.erc20.v1.QueryTokenPairResponse:
-    type: object
-    properties:
-      token_pair:
-        type: object
-        properties:
-          erc20_address:
-            type: string
-            title: erc20_address is the hex address of ERC20 contract token
-          denom:
-            type: string
-            title: denom defines the cosmos base denomination to be mapped to
-          enabled:
-            type: boolean
-            title: enabled defines the token mapping enable status
-          contract_owner:
-            title: >-
-              contract_owner is the an ENUM specifying the type of ERC20 owner
-              (0 invalid, 1 ModuleAccount, 2 external address)
-            type: string
-            enum:
-              - OWNER_UNSPECIFIED
-              - OWNER_MODULE
-              - OWNER_EXTERNAL
-            default: OWNER_UNSPECIFIED
-            description: |-
-              Owner enumerates the ownership of a ERC20 contract.
-
-               - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
-               - OWNER_MODULE: OWNER_MODULE - erc20 is owned by the erc20 module account.
-               - OWNER_EXTERNAL: OWNER_EXTERNAL - erc20 is owned by an external account.
-        description: >-
-          TokenPair defines an instance that records a pairing consisting of a
-          native
-           Cosmos Coin and an ERC20 token address.
-        title: >-
-          token_pairs returns the info about a registered token pair for the
-          erc20 module
-    description: |-
-      QueryTokenPairResponse is the response type for the Query/TokenPair RPC
-      method.
-  evmos.erc20.v1.QueryTokenPairsResponse:
-    type: object
-    properties:
-      token_pairs:
-        type: array
-        items:
-          type: object
-          properties:
-            erc20_address:
-              type: string
-              title: erc20_address is the hex address of ERC20 contract token
-            denom:
-              type: string
-              title: denom defines the cosmos base denomination to be mapped to
-            enabled:
-              type: boolean
-              title: enabled defines the token mapping enable status
-            contract_owner:
-              title: >-
-                contract_owner is the an ENUM specifying the type of ERC20 owner
-                (0 invalid, 1 ModuleAccount, 2 external address)
-              type: string
-              enum:
-                - OWNER_UNSPECIFIED
-                - OWNER_MODULE
-                - OWNER_EXTERNAL
-              default: OWNER_UNSPECIFIED
-              description: |-
-                Owner enumerates the ownership of a ERC20 contract.
-
-                 - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
-                 - OWNER_MODULE: OWNER_MODULE - erc20 is owned by the erc20 module account.
-                 - OWNER_EXTERNAL: OWNER_EXTERNAL - erc20 is owned by an external account.
-          description: >-
-            TokenPair defines an instance that records a pairing consisting of a
-            native
-             Cosmos Coin and an ERC20 token address.
-        title: token_pairs is a slice of registered token pairs for the erc20 module
-      pagination:
-        description: pagination defines the pagination in the response.
-        type: object
-        properties:
-          next_key:
-            type: string
-            format: byte
-            description: |-
-              next_key is the key to be passed to PageRequest.key to
-              query the next page most efficiently. It will be empty if
-              there are no more results.
-          total:
-            type: string
-            format: uint64
-            title: >-
-              total is total number of results available if
-              PageRequest.count_total
-
-              was set, its value is undefined otherwise
-    description: |-
-      QueryTokenPairsResponse is the response type for the Query/TokenPairs RPC
-      method.
-  evmos.erc20.v1.TokenPair:
-    type: object
-    properties:
-      erc20_address:
-        type: string
-        title: erc20_address is the hex address of ERC20 contract token
-      denom:
-        type: string
-        title: denom defines the cosmos base denomination to be mapped to
-      enabled:
-        type: boolean
-        title: enabled defines the token mapping enable status
-      contract_owner:
-        title: >-
-          contract_owner is the an ENUM specifying the type of ERC20 owner (0
-          invalid, 1 ModuleAccount, 2 external address)
-        type: string
-        enum:
-          - OWNER_UNSPECIFIED
-          - OWNER_MODULE
-          - OWNER_EXTERNAL
-        default: OWNER_UNSPECIFIED
-        description: |-
-          Owner enumerates the ownership of a ERC20 contract.
-
-           - OWNER_UNSPECIFIED: OWNER_UNSPECIFIED defines an invalid/undefined owner.
-           - OWNER_MODULE: OWNER_MODULE - erc20 is owned by the erc20 module account.
-           - OWNER_EXTERNAL: OWNER_EXTERNAL - erc20 is owned by an external account.
-    description: >-
-      TokenPair defines an instance that records a pairing consisting of a
-      native
-       Cosmos Coin and an ERC20 token address.
-  google.protobuf.Any:
-    type: object
-    properties:
-      type_url:
-        type: string
-        description: >-
-          A URL/resource name that uniquely identifies the type of the
-          serialized
-
-          protocol buffer message. This string must contain at least
-
-          one "/" character. The last segment of the URL's path must represent
-
-          the fully qualified name of the type (as in
-
-          `path/google.protobuf.Duration`). The name should be in a canonical
-          form
-
-          (e.g., leading "." is not accepted).
-
-
-          In practice, teams usually precompile into the binary all types that
-          they
-
-          expect it to use in the context of Any. However, for URLs which use
-          the
-
-          scheme `http`, `https`, or no scheme, one can optionally set up a type
-
-          server that maps type URLs to message definitions as follows:
-
-
-          * If no scheme is provided, `https` is assumed.
-
-          * An HTTP GET on the URL must yield a [google.protobuf.Type][]
-            value in binary format, or produce an error.
-          * Applications are allowed to cache lookup results based on the
-            URL, or have them precompiled into a binary to avoid any
-            lookup. Therefore, binary compatibility needs to be preserved
-            on changes to types. (Use versioned type names to manage
-            breaking changes.)
-
-          Note: this functionality is not currently available in the official
-
-          protobuf release, and it is not used for type URLs beginning with
-
-          type.googleapis.com.
-
-
-          Schemes other than `http`, `https` (or the empty scheme) might be
-
-          used with implementation specific semantics.
-      value:
-        type: string
-        format: byte
-        description: >-
-          Must be a valid serialized protocol buffer of the above specified
-          type.
-    description: >-
-      `Any` contains an arbitrary serialized protocol buffer message along with
-      a
-
-      URL that describes the type of the serialized message.
-
-
-      Protobuf library provides support to pack/unpack Any values in the form
-
-      of utility functions or additional generated methods of the Any type.
-
-
-      Example 1: Pack and unpack a message in C++.
-
-          Foo foo = ...;
-          Any any;
-          any.PackFrom(foo);
-          ...
-          if (any.UnpackTo(&foo)) {
-            ...
-          }
-
-      Example 2: Pack and unpack a message in Java.
-
-          Foo foo = ...;
-          Any any = Any.pack(foo);
-          ...
-          if (any.is(Foo.class)) {
-            foo = any.unpack(Foo.class);
-          }
-          // or ...
-          if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-            foo = any.unpack(Foo.getDefaultInstance());
-          }
-
-      Example 3: Pack and unpack a message in Python.
-
-          foo = Foo(...)
-          any = Any()
-          any.Pack(foo)
-          ...
-          if any.Is(Foo.DESCRIPTOR):
-            any.Unpack(foo)
-            ...
-
-      Example 4: Pack and unpack a message in Go
-
-           foo := &pb.Foo{...}
-           any, err := anypb.New(foo)
-           if err != nil {
-             ...
-           }
-           ...
-           foo := &pb.Foo{}
-           if err := any.UnmarshalTo(foo); err != nil {
-             ...
-           }
-
-      The pack methods provided by protobuf library will by default use
-
-      'type.googleapis.com/full.type.name' as the type URL and the unpack
-
-      methods only use the fully qualified type name after the last '/'
-
-      in the type URL, for example "foo.bar.com/x/y.z" will yield type
-
-      name "y.z".
-
-
-      JSON
-
-
-      The JSON representation of an `Any` value uses the regular
-
-      representation of the deserialized, embedded message, with an
-
-      additional field `@type` which contains the type URL. Example:
-
-          package google.profile;
-          message Person {
-            string first_name = 1;
-            string last_name = 2;
-          }
-
-          {
-            "@type": "type.googleapis.com/google.profile.Person",
-            "firstName": <string>,
-            "lastName": <string>
-          }
-
-      If the embedded message type is well-known and has a custom JSON
-
-      representation, that representation will be embedded adding a field
-
-      `value` which holds the custom JSON in addition to the `@type`
-
-      field. Example (for message [google.protobuf.Duration][]):
-
-          {
-            "@type": "type.googleapis.com/google.protobuf.Duration",
-            "value": "1.212s"
-          }
-  grpc.gateway.runtime.Error:
-    type: object
-    properties:
-      error:
-        type: string
-      code:
-        type: integer
-        format: int32
-      message:
-        type: string
-      details:
-        type: array
-        items:
-          type: object
-          properties:
-            type_url:
-              type: string
-              description: >-
-                A URL/resource name that uniquely identifies the type of the
-                serialized
-
-                protocol buffer message. This string must contain at least
-
-                one "/" character. The last segment of the URL's path must
-                represent
-
-                the fully qualified name of the type (as in
-
-                `path/google.protobuf.Duration`). The name should be in a
-                canonical form
-
-                (e.g., leading "." is not accepted).
-
-
-                In practice, teams usually precompile into the binary all types
-                that they
-
-                expect it to use in the context of Any. However, for URLs which
-                use the
-
-                scheme `http`, `https`, or no scheme, one can optionally set up
-                a type
-
-                server that maps type URLs to message definitions as follows:
-
-
-                * If no scheme is provided, `https` is assumed.
-
-                * An HTTP GET on the URL must yield a [google.protobuf.Type][]
-                  value in binary format, or produce an error.
-                * Applications are allowed to cache lookup results based on the
-                  URL, or have them precompiled into a binary to avoid any
-                  lookup. Therefore, binary compatibility needs to be preserved
-                  on changes to types. (Use versioned type names to manage
-                  breaking changes.)
-
-                Note: this functionality is not currently available in the
-                official
-
-                protobuf release, and it is not used for type URLs beginning
-                with
-
-                type.googleapis.com.
-
-
-                Schemes other than `http`, `https` (or the empty scheme) might
-                be
-
-                used with implementation specific semantics.
-            value:
-              type: string
-              format: byte
-              description: >-
-                Must be a valid serialized protocol buffer of the above
-                specified type.
-          description: >-
-            `Any` contains an arbitrary serialized protocol buffer message along
-            with a
-
-            URL that describes the type of the serialized message.
-
-
-            Protobuf library provides support to pack/unpack Any values in the
-            form
-
-            of utility functions or additional generated methods of the Any
-            type.
-
-
-            Example 1: Pack and unpack a message in C++.
-
-                Foo foo = ...;
-                Any any;
-                any.PackFrom(foo);
-                ...
-                if (any.UnpackTo(&foo)) {
-                  ...
-                }
-
-            Example 2: Pack and unpack a message in Java.
-
-                Foo foo = ...;
-                Any any = Any.pack(foo);
-                ...
-                if (any.is(Foo.class)) {
-                  foo = any.unpack(Foo.class);
-                }
-                // or ...
-                if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                  foo = any.unpack(Foo.getDefaultInstance());
-                }
-
-            Example 3: Pack and unpack a message in Python.
-
-                foo = Foo(...)
-                any = Any()
-                any.Pack(foo)
-                ...
-                if any.Is(Foo.DESCRIPTOR):
-                  any.Unpack(foo)
-                  ...
-
-            Example 4: Pack and unpack a message in Go
-
-                 foo := &pb.Foo{...}
-                 any, err := anypb.New(foo)
-                 if err != nil {
-                   ...
-                 }
-                 ...
-                 foo := &pb.Foo{}
-                 if err := any.UnmarshalTo(foo); err != nil {
-                   ...
-                 }
-
-            The pack methods provided by protobuf library will by default use
-
-            'type.googleapis.com/full.type.name' as the type URL and the unpack
-
-            methods only use the fully qualified type name after the last '/'
-
-            in the type URL, for example "foo.bar.com/x/y.z" will yield type
-
-            name "y.z".
-
-
-            JSON
-
-
-            The JSON representation of an `Any` value uses the regular
-
-            representation of the deserialized, embedded message, with an
-
-            additional field `@type` which contains the type URL. Example:
-
-                package google.profile;
-                message Person {
-                  string first_name = 1;
-                  string last_name = 2;
-                }
-
-                {
-                  "@type": "type.googleapis.com/google.profile.Person",
-                  "firstName": <string>,
-                  "lastName": <string>
-                }
-
-            If the embedded message type is well-known and has a custom JSON
-
-            representation, that representation will be embedded adding a field
-
-            `value` which holds the custom JSON in addition to the `@type`
-
-            field. Example (for message [google.protobuf.Duration][]):
-
-                {
-                  "@type": "type.googleapis.com/google.protobuf.Duration",
-                  "value": "1.212s"
-                }
   ethermint.evm.v1.ChainConfig:
     type: object
     properties:
@@ -45591,6 +44664,345 @@ definitions:
         type: string
         title: tracer_json_config configures the tracer using a JSON string
     description: TraceConfig holds extra parameters to trace functions.
+  google.protobuf.Any:
+    type: object
+    properties:
+      type_url:
+        type: string
+        description: >-
+          A URL/resource name that uniquely identifies the type of the
+          serialized
+
+          protocol buffer message. This string must contain at least
+
+          one "/" character. The last segment of the URL's path must represent
+
+          the fully qualified name of the type (as in
+
+          `path/google.protobuf.Duration`). The name should be in a canonical
+          form
+
+          (e.g., leading "." is not accepted).
+
+
+          In practice, teams usually precompile into the binary all types that
+          they
+
+          expect it to use in the context of Any. However, for URLs which use
+          the
+
+          scheme `http`, `https`, or no scheme, one can optionally set up a type
+
+          server that maps type URLs to message definitions as follows:
+
+
+          * If no scheme is provided, `https` is assumed.
+
+          * An HTTP GET on the URL must yield a [google.protobuf.Type][]
+            value in binary format, or produce an error.
+          * Applications are allowed to cache lookup results based on the
+            URL, or have them precompiled into a binary to avoid any
+            lookup. Therefore, binary compatibility needs to be preserved
+            on changes to types. (Use versioned type names to manage
+            breaking changes.)
+
+          Note: this functionality is not currently available in the official
+
+          protobuf release, and it is not used for type URLs beginning with
+
+          type.googleapis.com.
+
+
+          Schemes other than `http`, `https` (or the empty scheme) might be
+
+          used with implementation specific semantics.
+      value:
+        type: string
+        format: byte
+        description: >-
+          Must be a valid serialized protocol buffer of the above specified
+          type.
+    description: >-
+      `Any` contains an arbitrary serialized protocol buffer message along with
+      a
+
+      URL that describes the type of the serialized message.
+
+
+      Protobuf library provides support to pack/unpack Any values in the form
+
+      of utility functions or additional generated methods of the Any type.
+
+
+      Example 1: Pack and unpack a message in C++.
+
+          Foo foo = ...;
+          Any any;
+          any.PackFrom(foo);
+          ...
+          if (any.UnpackTo(&foo)) {
+            ...
+          }
+
+      Example 2: Pack and unpack a message in Java.
+
+          Foo foo = ...;
+          Any any = Any.pack(foo);
+          ...
+          if (any.is(Foo.class)) {
+            foo = any.unpack(Foo.class);
+          }
+          // or ...
+          if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+            foo = any.unpack(Foo.getDefaultInstance());
+          }
+
+      Example 3: Pack and unpack a message in Python.
+
+          foo = Foo(...)
+          any = Any()
+          any.Pack(foo)
+          ...
+          if any.Is(Foo.DESCRIPTOR):
+            any.Unpack(foo)
+            ...
+
+      Example 4: Pack and unpack a message in Go
+
+           foo := &pb.Foo{...}
+           any, err := anypb.New(foo)
+           if err != nil {
+             ...
+           }
+           ...
+           foo := &pb.Foo{}
+           if err := any.UnmarshalTo(foo); err != nil {
+             ...
+           }
+
+      The pack methods provided by protobuf library will by default use
+
+      'type.googleapis.com/full.type.name' as the type URL and the unpack
+
+      methods only use the fully qualified type name after the last '/'
+
+      in the type URL, for example "foo.bar.com/x/y.z" will yield type
+
+      name "y.z".
+
+
+      JSON
+
+
+      The JSON representation of an `Any` value uses the regular
+
+      representation of the deserialized, embedded message, with an
+
+      additional field `@type` which contains the type URL. Example:
+
+          package google.profile;
+          message Person {
+            string first_name = 1;
+            string last_name = 2;
+          }
+
+          {
+            "@type": "type.googleapis.com/google.profile.Person",
+            "firstName": <string>,
+            "lastName": <string>
+          }
+
+      If the embedded message type is well-known and has a custom JSON
+
+      representation, that representation will be embedded adding a field
+
+      `value` which holds the custom JSON in addition to the `@type`
+
+      field. Example (for message [google.protobuf.Duration][]):
+
+          {
+            "@type": "type.googleapis.com/google.protobuf.Duration",
+            "value": "1.212s"
+          }
+  grpc.gateway.runtime.Error:
+    type: object
+    properties:
+      error:
+        type: string
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      details:
+        type: array
+        items:
+          type: object
+          properties:
+            type_url:
+              type: string
+              description: >-
+                A URL/resource name that uniquely identifies the type of the
+                serialized
+
+                protocol buffer message. This string must contain at least
+
+                one "/" character. The last segment of the URL's path must
+                represent
+
+                the fully qualified name of the type (as in
+
+                `path/google.protobuf.Duration`). The name should be in a
+                canonical form
+
+                (e.g., leading "." is not accepted).
+
+
+                In practice, teams usually precompile into the binary all types
+                that they
+
+                expect it to use in the context of Any. However, for URLs which
+                use the
+
+                scheme `http`, `https`, or no scheme, one can optionally set up
+                a type
+
+                server that maps type URLs to message definitions as follows:
+
+
+                * If no scheme is provided, `https` is assumed.
+
+                * An HTTP GET on the URL must yield a [google.protobuf.Type][]
+                  value in binary format, or produce an error.
+                * Applications are allowed to cache lookup results based on the
+                  URL, or have them precompiled into a binary to avoid any
+                  lookup. Therefore, binary compatibility needs to be preserved
+                  on changes to types. (Use versioned type names to manage
+                  breaking changes.)
+
+                Note: this functionality is not currently available in the
+                official
+
+                protobuf release, and it is not used for type URLs beginning
+                with
+
+                type.googleapis.com.
+
+
+                Schemes other than `http`, `https` (or the empty scheme) might
+                be
+
+                used with implementation specific semantics.
+            value:
+              type: string
+              format: byte
+              description: >-
+                Must be a valid serialized protocol buffer of the above
+                specified type.
+          description: >-
+            `Any` contains an arbitrary serialized protocol buffer message along
+            with a
+
+            URL that describes the type of the serialized message.
+
+
+            Protobuf library provides support to pack/unpack Any values in the
+            form
+
+            of utility functions or additional generated methods of the Any
+            type.
+
+
+            Example 1: Pack and unpack a message in C++.
+
+                Foo foo = ...;
+                Any any;
+                any.PackFrom(foo);
+                ...
+                if (any.UnpackTo(&foo)) {
+                  ...
+                }
+
+            Example 2: Pack and unpack a message in Java.
+
+                Foo foo = ...;
+                Any any = Any.pack(foo);
+                ...
+                if (any.is(Foo.class)) {
+                  foo = any.unpack(Foo.class);
+                }
+                // or ...
+                if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+                  foo = any.unpack(Foo.getDefaultInstance());
+                }
+
+            Example 3: Pack and unpack a message in Python.
+
+                foo = Foo(...)
+                any = Any()
+                any.Pack(foo)
+                ...
+                if any.Is(Foo.DESCRIPTOR):
+                  any.Unpack(foo)
+                  ...
+
+            Example 4: Pack and unpack a message in Go
+
+                 foo := &pb.Foo{...}
+                 any, err := anypb.New(foo)
+                 if err != nil {
+                   ...
+                 }
+                 ...
+                 foo := &pb.Foo{}
+                 if err := any.UnmarshalTo(foo); err != nil {
+                   ...
+                 }
+
+            The pack methods provided by protobuf library will by default use
+
+            'type.googleapis.com/full.type.name' as the type URL and the unpack
+
+            methods only use the fully qualified type name after the last '/'
+
+            in the type URL, for example "foo.bar.com/x/y.z" will yield type
+
+            name "y.z".
+
+
+            JSON
+
+
+            The JSON representation of an `Any` value uses the regular
+
+            representation of the deserialized, embedded message, with an
+
+            additional field `@type` which contains the type URL. Example:
+
+                package google.profile;
+                message Person {
+                  string first_name = 1;
+                  string last_name = 2;
+                }
+
+                {
+                  "@type": "type.googleapis.com/google.profile.Person",
+                  "firstName": <string>,
+                  "lastName": <string>
+                }
+
+            If the embedded message type is well-known and has a custom JSON
+
+            representation, that representation will be embedded adding a field
+
+            `value` which holds the custom JSON in addition to the `@type`
+
+            field. Example (for message [google.protobuf.Duration][]):
+
+                {
+                  "@type": "type.googleapis.com/google.protobuf.Duration",
+                  "value": "1.212s"
+                }
   ethermint.feemarket.v1.Params:
     type: object
     properties:
@@ -45663,6 +45075,83 @@ definitions:
     description: >-
       QueryProofExternalOwnedAccountResponse is the response type for the
       Query/ProofExternalOwnedAccount RPC method.
+  cosmos.base.query.v1beta1.PageRequest:
+    type: object
+    properties:
+      key:
+        type: string
+        format: byte
+        description: |-
+          key is a value returned in PageResponse.next_key to begin
+          querying the next page most efficiently. Only one of offset or key
+          should be set.
+      offset:
+        type: string
+        format: uint64
+        description: |-
+          offset is a numeric offset that can be used when key is unavailable.
+          It is less efficient than using key. Only one of offset or key should
+          be set.
+      limit:
+        type: string
+        format: uint64
+        description: >-
+          limit is the total number of results to be returned in the result
+          page.
+
+          If left empty it will default to a value to be set by each app.
+      count_total:
+        type: boolean
+        description: >-
+          count_total is set to true  to indicate that the result set should
+          include
+
+          a count of the total number of items available for pagination in UIs.
+
+          count_total is only respected when offset is used. It is ignored when
+          key
+
+          is set.
+      reverse:
+        type: boolean
+        description: >-
+          reverse is set to true if results are to be returned in the descending
+          order.
+
+
+          Since: cosmos-sdk 0.43
+    description: |-
+      message SomeRequest {
+               Foo some_parameter = 1;
+               PageRequest pagination = 2;
+       }
+    title: |-
+      PageRequest is to be embedded in gRPC request messages for efficient
+      pagination. Ex:
+  cosmos.base.query.v1beta1.PageResponse:
+    type: object
+    properties:
+      next_key:
+        type: string
+        format: byte
+        description: |-
+          next_key is the key to be passed to PageRequest.key to
+          query the next page most efficiently. It will be empty if
+          there are no more results.
+      total:
+        type: string
+        format: uint64
+        title: |-
+          total is total number of results available if PageRequest.count_total
+          was set, its value is undefined otherwise
+    description: |-
+      PageResponse is to be embedded in gRPC response messages where the
+      corresponding request message has used PageRequest.
+
+       message SomeResponse {
+               repeated Bar results = 1;
+               PageResponse page = 2;
+       }
   cosmos.base.v1beta1.Coin:
     type: object
     properties:
