@@ -43,6 +43,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (ante) [#165](https://github.com/EscanBE/evermint/pull/165) Simulate EVM txs before accept mempool
 - (evm) [#167](https://github.com/EscanBE/evermint/pull/167) Introduce Context-based StateDB
 - (evm) [#173](https://github.com/EscanBE/evermint/pull/173) Persist EIP-155 chain-id into store + simplify related logic
+- (evm) [#175](https://github.com/EscanBE/evermint/pull/175) Support precompiled contract using new module `x/cpc`
 
 ### Improvement
 
