@@ -76,6 +76,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evm) [#160](https://github.com/EscanBE/evermint/pull/160) Use Ethereum Tx marshalled binary instead of local maintained TxData
 - (evm) [#168](https://github.com/EscanBE/evermint/pull/168) Remove empty account upon commit (EIP-158)
 - (deps) [#174](https://github.com/EscanBE/evermint/pull/174) Bumps Cosmos-SDK v0.50.10, IBC v8.5.1
+- (erc20) [#176](https://github.com/EscanBE/evermint/pull/176) Remove unnecessary `x/erc20` module
 
 # Cosmos-SDK v0.47
 
