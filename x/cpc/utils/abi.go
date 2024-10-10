@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
@@ -25,6 +27,11 @@ func AbiEncodeUint256(num *big.Int) ([]byte, error) {
 // AbiEncodeBool encodes bool
 func AbiEncodeBool(b bool) ([]byte, error) {
 	return abiArgsSingleBool.Pack(b)
+}
+
+// AbiEncodeArrayOfAddresses encodes array of addresses
+func AbiEncodeArrayOfAddresses(addrs []common.Address) ([]byte, error) {
+	return abiArgsSingleArrayOfAddresses.Pack(addrs)
 }
 
 // AbiDecodeString decodes string
@@ -87,11 +94,27 @@ func AbiDecodeBool(bz []byte) (bool, error) {
 	return false, fmt.Errorf("is not a bool")
 }
 
+// AbiDecodeArrayOfAddresses decodes array of addresses
+func AbiDecodeArrayOfAddresses(bz []byte) ([]common.Address, error) {
+	res, err := abiArgsSingleArrayOfAddresses.Unpack(bz)
+	if err != nil {
+		return nil, err
+	}
+	if len(res) != 1 {
+		return nil, fmt.Errorf("is not an array of addresses or is multiple array of addresses")
+	}
+	if addrs, ok := res[0].([]common.Address); ok {
+		return addrs, nil
+	}
+	return nil, fmt.Errorf("is not an array of addresses")
+}
+
 var (
-	abiArgsSingleString  abi.Arguments
-	abiArgsSingleUint8   abi.Arguments
-	abiArgsSingleUint256 abi.Arguments
-	abiArgsSingleBool    abi.Arguments
+	abiArgsSingleString           abi.Arguments
+	abiArgsSingleUint8            abi.Arguments
+	abiArgsSingleUint256          abi.Arguments
+	abiArgsSingleBool             abi.Arguments
+	abiArgsSingleArrayOfAddresses abi.Arguments
 )
 
 func init() {
@@ -140,6 +163,18 @@ func init() {
 		abi.Argument{
 			Name: "pseudo",
 			Type: abiTypeBool,
+		},
+	}
+
+	abiTypeMultiAddresses, err := abi.NewType("address[]", "address[]", nil)
+	if err != nil {
+		panic(err)
+	}
+
+	abiArgsSingleArrayOfAddresses = abi.Arguments{
+		abi.Argument{
+			Name: "pseudo",
+			Type: abiTypeMultiAddresses,
 		},
 	}
 }

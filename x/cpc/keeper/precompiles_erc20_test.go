@@ -150,19 +150,16 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 	suite.Require().NoError(err)
 
 	suite.Run("pass - name()", func() {
-		res, err := suite.EthCallApply(suite.Ctx(), nil, contractAddr, []byte{0x06, 0xfd, 0xde, 0x03})
+		res, err := suite.EthCallApply(suite.Ctx(), nil, contractAddr, get4BytesSignature("name()"))
 		suite.Require().NoError(err)
-		fmt.Println(res)
-		fmt.Println(res.VmError)
 
 		gotName, err := cpcutils.AbiDecodeString(res.Ret)
-		if suite.NoError(err) {
-			suite.Equal(name, gotName)
-		}
+		suite.Require().NoError(err)
+		suite.Require().Equal(name, gotName)
 	})
 
 	suite.Run("pass - symbol()", func() {
-		res, err := suite.EthCallApply(suite.Ctx(), nil, contractAddr, []byte{0x95, 0xd8, 0x9b, 0x41})
+		res, err := suite.EthCallApply(suite.Ctx(), nil, contractAddr, get4BytesSignature("symbol()"))
 		suite.Require().NoError(err)
 
 		gotSymbol, err := cpcutils.AbiDecodeString(res.Ret)
@@ -172,7 +169,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 	})
 
 	suite.Run("pass - decimals()", func() {
-		res, err := suite.EthCallApply(suite.Ctx(), nil, contractAddr, []byte{0x31, 0x3c, 0xe5, 0x67})
+		res, err := suite.EthCallApply(suite.Ctx(), nil, contractAddr, get4BytesSignature("decimals()"))
 		suite.Require().NoError(err)
 
 		gotDecimals, err := cpcutils.AbiDecodeUint8(res.Ret)
@@ -182,7 +179,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 	})
 
 	suite.Run("pass - totalSupply()", func() {
-		res, err := suite.EthCallApply(suite.Ctx(), nil, contractAddr, []byte{0x18, 0x16, 0x0d, 0xdd})
+		res, err := suite.EthCallApply(suite.Ctx(), nil, contractAddr, get4BytesSignature("totalSupply()"))
 		suite.Require().NoError(err)
 
 		gotTotalSupply, err := cpcutils.AbiDecodeUint256(res.Ret)
@@ -193,7 +190,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 	})
 
 	suite.Run("pass - balanceOf(address)", func() {
-		input := simpleBuildContractInput([]byte{0x70, 0xa0, 0x82, 0x31}, account1.GetEthAddress())
+		input := simpleBuildContractInput(get4BytesSignature("balanceOf(address)"), account1.GetEthAddress())
 
 		res, err := suite.EthCallApply(suite.Ctx(), nil, contractAddr, input)
 		suite.Require().NoError(err)
@@ -221,7 +218,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 		balanceOfSenderBefore := balance(ctx, sender)
 		balanceOfReceiverBefore := balance(ctx, receiver)
 
-		input := simpleBuildContractInput([]byte{0x23, 0xb8, 0x72, 0xdd}, sender, receiver, amount)
+		input := simpleBuildContractInput(get4BytesSignature("transferFrom(address,address,uint256)"), sender, receiver, amount)
 
 		res, err := suite.EthCallApply(ctx, &sender, contractAddr, input)
 		suite.Require().NoError(err)
@@ -261,7 +258,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 		balanceOfSenderBefore := balance(ctx, sender)
 		balanceOfReceiverBefore := balance(ctx, receiver)
 
-		input := simpleBuildContractInput([]byte{0xa9, 0x05, 0x9c, 0xbb}, receiver, amount)
+		input := simpleBuildContractInput(get4BytesSignature("transfer(address,uint256)"), receiver, amount)
 
 		res, err := suite.EthCallApply(ctx, &sender, contractAddr, input)
 		suite.Require().NoError(err)
@@ -298,7 +295,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 		spender := common.BytesToAddress([]byte("spender"))
 		amount := big.NewInt(500)
 
-		input := simpleBuildContractInput([]byte{0x09, 0x5e, 0xa7, 0xb3}, spender, amount)
+		input := simpleBuildContractInput(get4BytesSignature("approve(address,uint256)"), spender, amount)
 
 		res, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
 		suite.Require().NoError(err)
@@ -329,7 +326,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 		spender := common.BytesToAddress([]byte("spender"))
 
 		allowance := func() *big.Int {
-			input := simpleBuildContractInput([]byte{0xdd, 0x62, 0xed, 0x3e}, owner, spender)
+			input := simpleBuildContractInput(get4BytesSignature("allowance(address,address)"), owner, spender)
 
 			res, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
 			suite.Require().NoError(err)
@@ -344,7 +341,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		// grant
 		amount := big.NewInt(500)
-		input := simpleBuildContractInput([]byte{0x09, 0x5e, 0xa7, 0xb3}, spender, amount)
+		input := simpleBuildContractInput(get4BytesSignature("approve(address,uint256)"), spender, amount)
 		_, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
 		suite.Require().NoError(err)
 
@@ -362,7 +359,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 		transferAmount := big.NewInt(250)
 
 		// grant
-		input := simpleBuildContractInput([]byte{0x09, 0x5e, 0xa7, 0xb3}, spender, grantAmount)
+		input := simpleBuildContractInput(get4BytesSignature("approve(address,uint256)"), spender, grantAmount)
 		_, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
 		suite.Require().NoError(err)
 
@@ -372,7 +369,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 		balanceOfSenderBefore := balance(ctx, owner)
 		balanceOfReceiverBefore := balance(ctx, receiver)
 
-		input = simpleBuildContractInput([]byte{0x23, 0xb8, 0x72, 0xdd}, owner, receiver, transferAmount)
+		input = simpleBuildContractInput(get4BytesSignature("transferFrom(address,address,uint256)"), owner, receiver, transferAmount)
 
 		res, err := suite.EthCallApply(ctx, &spender, contractAddr, input)
 		suite.Require().NoError(err)
@@ -400,7 +397,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 		transferAmount := big.NewInt(250)
 
 		// grant
-		input := simpleBuildContractInput([]byte{0x09, 0x5e, 0xa7, 0xb3}, spender, cpctypes.BigMaxUint256)
+		input := simpleBuildContractInput(get4BytesSignature("approve(address,uint256)"), spender, cpctypes.BigMaxUint256)
 		_, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
 		suite.Require().NoError(err)
 
@@ -408,7 +405,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 		balanceOfSenderBefore := balance(ctx, owner)
 		balanceOfReceiverBefore := balance(ctx, receiver)
 
-		input = simpleBuildContractInput([]byte{0x23, 0xb8, 0x72, 0xdd}, owner, receiver, transferAmount)
+		input = simpleBuildContractInput(get4BytesSignature("transferFrom(address,address,uint256)"), owner, receiver, transferAmount)
 
 		res, err := suite.EthCallApply(ctx, &spender, contractAddr, input)
 		suite.Require().NoError(err)
@@ -441,7 +438,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 		transferAmount := big.NewInt(500)
 
 		// grant
-		input := simpleBuildContractInput([]byte{0x09, 0x5e, 0xa7, 0xb3}, spender, grantAmount)
+		input := simpleBuildContractInput(get4BytesSignature("approve(address,uint256)"), spender, grantAmount)
 		_, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
 		suite.Require().NoError(err)
 
@@ -451,7 +448,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 		balanceOfSenderBefore := balance(ctx, owner)
 		balanceOfReceiverBefore := balance(ctx, receiver)
 
-		input = simpleBuildContractInput([]byte{0x23, 0xb8, 0x72, 0xdd}, owner, receiver, transferAmount)
+		input = simpleBuildContractInput(get4BytesSignature("transferFrom(address,address,uint256)"), owner, receiver, transferAmount)
 
 		res, err := suite.EthCallApply(ctx, &spender, contractAddr, input)
 		suite.Require().NoError(err)
@@ -479,7 +476,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 		balanceOfSenderBefore := balance(ctx, owner)
 		balanceOfReceiverBefore := balance(ctx, receiver)
 
-		input := simpleBuildContractInput([]byte{0x23, 0xb8, 0x72, 0xdd}, owner, receiver, amount)
+		input := simpleBuildContractInput(get4BytesSignature("transferFrom(address,address,uint256)"), owner, receiver, amount)
 
 		res, err := suite.EthCallApply(ctx, &spender, contractAddr, input)
 		suite.Require().NoError(err)
@@ -502,7 +499,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		balanceOfSenderBefore := balance(ctx, sender)
 
-		input := simpleBuildContractInput([]byte{0x23, 0xb8, 0x72, 0xdd}, sender, void, amount)
+		input := simpleBuildContractInput(get4BytesSignature("transferFrom(address,address,uint256)"), sender, void, amount)
 
 		res, err := suite.EthCallApply(ctx, &sender, contractAddr, input)
 		suite.Require().NoError(err)
@@ -521,7 +518,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		balanceOfSenderBefore := balance(ctx, sender)
 
-		input := simpleBuildContractInput([]byte{0xa9, 0x05, 0x9c, 0xbb}, void, amount)
+		input := simpleBuildContractInput(get4BytesSignature("transfer(address,uint256)"), void, amount)
 
 		res, err := suite.EthCallApply(ctx, &sender, contractAddr, input)
 		suite.Require().NoError(err)
@@ -539,7 +536,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		balanceOfBurnerBefore := balance(ctx, burner)
 
-		input := simpleBuildContractInput([]byte{0x79, 0xcc, 0x67, 0x90}, burner, burnAmount)
+		input := simpleBuildContractInput(get4BytesSignature("burnFrom(address,uint256)"), burner, burnAmount)
 
 		res, err := suite.EthCallApply(ctx, &burner, contractAddr, input)
 		suite.Require().NoError(err)
@@ -575,7 +572,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 		burnAmount := big.NewInt(250)
 
 		// grant
-		input := simpleBuildContractInput([]byte{0x09, 0x5e, 0xa7, 0xb3}, spender, grantAmount)
+		input := simpleBuildContractInput(get4BytesSignature("approve(address,uint256)"), spender, grantAmount)
 		_, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
 		suite.Require().NoError(err)
 
@@ -584,7 +581,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 		// spender burns on-behalf of owner
 		balanceOfOwnerBefore := balance(ctx, owner)
 
-		input = simpleBuildContractInput([]byte{0x79, 0xcc, 0x67, 0x90}, owner, burnAmount)
+		input = simpleBuildContractInput(get4BytesSignature("burnFrom(address,uint256)"), owner, burnAmount)
 
 		res, err := suite.EthCallApply(ctx, &spender, contractAddr, input)
 		suite.Require().NoError(err)
@@ -608,7 +605,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		balanceOfSenderBefore := balance(ctx, sender)
 
-		input := simpleBuildContractInput([]byte{0x42, 0x96, 0x6c, 0x68}, amount)
+		input := simpleBuildContractInput(get4BytesSignature("burn(uint256)"), amount)
 
 		res, err := suite.EthCallApply(ctx, &sender, contractAddr, input)
 		suite.Require().NoError(err)

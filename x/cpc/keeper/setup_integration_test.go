@@ -4,6 +4,8 @@ package keeper_test
 import (
 	"testing"
 
+	"github.com/ethereum/go-ethereum/crypto"
+
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -90,4 +92,8 @@ func (suite *CpcTestSuite) EthCallApply(ctx sdk.Context, from *common.Address, c
 	suite.Require().NoError(err)
 
 	return suite.App().EvmKeeper().ApplyMessage(ctx, msg, evmtypes.NewNoOpTracer(), true)
+}
+
+func get4BytesSignature(methodSig string) []byte {
+	return crypto.Keccak256([]byte(methodSig))[:4]
 }
