@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Msg_UpdateParams_FullMethodName        = "/evermint.cpc.v1.Msg/UpdateParams"
-	Msg_DeployErc20Contract_FullMethodName = "/evermint.cpc.v1.Msg/DeployErc20Contract"
+	Msg_UpdateParams_FullMethodName          = "/evermint.cpc.v1.Msg/UpdateParams"
+	Msg_DeployErc20Contract_FullMethodName   = "/evermint.cpc.v1.Msg/DeployErc20Contract"
+	Msg_DeployStakingContract_FullMethodName = "/evermint.cpc.v1.Msg/DeployStakingContract"
 )
 
 // MsgClient is the client API for Msg service.
@@ -32,6 +33,8 @@ type MsgClient interface {
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 	// DeployErc20Contract defines a method deploying a new ERC20 contract.
 	DeployErc20Contract(ctx context.Context, in *MsgDeployErc20ContractRequest, opts ...grpc.CallOption) (*MsgDeployErc20ContractResponse, error)
+	// DeployStakingContract defines a method deploying a new staking contract.
+	DeployStakingContract(ctx context.Context, in *MsgDeployStakingContractRequest, opts ...grpc.CallOption) (*MsgDeployStakingContractResponse, error)
 }
 
 type msgClient struct {
@@ -60,6 +63,15 @@ func (c *msgClient) DeployErc20Contract(ctx context.Context, in *MsgDeployErc20C
 	return out, nil
 }
 
+func (c *msgClient) DeployStakingContract(ctx context.Context, in *MsgDeployStakingContractRequest, opts ...grpc.CallOption) (*MsgDeployStakingContractResponse, error) {
+	out := new(MsgDeployStakingContractResponse)
+	err := c.cc.Invoke(ctx, Msg_DeployStakingContract_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility
@@ -69,6 +81,8 @@ type MsgServer interface {
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	// DeployErc20Contract defines a method deploying a new ERC20 contract.
 	DeployErc20Contract(context.Context, *MsgDeployErc20ContractRequest) (*MsgDeployErc20ContractResponse, error)
+	// DeployStakingContract defines a method deploying a new staking contract.
+	DeployStakingContract(context.Context, *MsgDeployStakingContractRequest) (*MsgDeployStakingContractResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }
 
@@ -81,6 +95,9 @@ func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*
 }
 func (UnimplementedMsgServer) DeployErc20Contract(context.Context, *MsgDeployErc20ContractRequest) (*MsgDeployErc20ContractResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeployErc20Contract not implemented")
+}
+func (UnimplementedMsgServer) DeployStakingContract(context.Context, *MsgDeployStakingContractRequest) (*MsgDeployStakingContractResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeployStakingContract not implemented")
 }
 func (UnimplementedMsgServer) mustEmbedUnimplementedMsgServer() {}
 
@@ -131,6 +148,24 @@ func _Msg_DeployErc20Contract_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_DeployStakingContract_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgDeployStakingContractRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).DeployStakingContract(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_DeployStakingContract_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).DeployStakingContract(ctx, req.(*MsgDeployStakingContractRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Msg_ServiceDesc is the grpc.ServiceDesc for Msg service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -145,6 +180,10 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeployErc20Contract",
 			Handler:    _Msg_DeployErc20Contract_Handler,
+		},
+		{
+			MethodName: "DeployStakingContract",
+			Handler:    _Msg_DeployStakingContract_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -41,5 +41,16 @@ func InitGenesis(
 		}
 	}
 
+	if data.DeployStakingContract {
+		meta := cpctypes.StakingCustomPrecompiledContractMeta{
+			Symbol:   strings.ToUpper(constants.SymbolDenom),
+			Decimals: constants.BaseDenomExponent,
+		}
+		_, err := k.DeployStakingCustomPrecompiledContract(ctx, meta)
+		if err != nil {
+			panic(fmt.Errorf("error deploying Staking Custom Precompiled Contract: %s", err))
+		}
+	}
+
 	return []abci.ValidatorUpdate{}
 }

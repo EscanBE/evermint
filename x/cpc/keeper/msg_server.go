@@ -45,15 +45,8 @@ func (k *msgServer) DeployErc20Contract(goCtx context.Context, req *cpctypes.Msg
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	moduleParams := k.GetParams(ctx)
 
-	var isWhitelisted bool
-	for _, whitelistedAddr := range moduleParams.WhitelistedDeployers {
-		if whitelistedAddr == req.Authority {
-			isWhitelisted = true
-			break
-		}
-	}
-	if !isWhitelisted {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority, must be whitelisted in module params: %s", req.Authority)
+	if err := validateDeployer(req.Authority, moduleParams); err != nil {
+		return nil, err
 	}
 
 	contractAddr, err := k.DeployErc20CustomPrecompiledContract(ctx, req.Name, cpctypes.Erc20CustomPrecompiledContractMeta{
@@ -68,4 +61,34 @@ func (k *msgServer) DeployErc20Contract(goCtx context.Context, req *cpctypes.Msg
 	return &cpctypes.MsgDeployErc20ContractResponse{
 		ContractAddress: contractAddr.Hex(),
 	}, nil
+}
+
+func (k *msgServer) DeployStakingContract(goCtx context.Context, req *cpctypes.MsgDeployStakingContractRequest) (*cpctypes.MsgDeployStakingContractResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	moduleParams := k.GetParams(ctx)
+
+	if err := validateDeployer(req.Authority, moduleParams); err != nil {
+		return nil, err
+	}
+
+	contractAddr, err := k.DeployStakingCustomPrecompiledContract(ctx, cpctypes.StakingCustomPrecompiledContractMeta{
+		Symbol:   req.Symbol,
+		Decimals: uint8(req.Decimals),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &cpctypes.MsgDeployStakingContractResponse{
+		ContractAddress: contractAddr.Hex(),
+	}, nil
+}
+
+func validateDeployer(authority string, moduleParams cpctypes.Params) error {
+	for _, whitelistedAddr := range moduleParams.WhitelistedDeployers {
+		if whitelistedAddr == authority {
+			return nil
+		}
+	}
+	return errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority, must be whitelisted in module params: %s", authority)
 }

@@ -35,6 +35,7 @@ func GetDeployTxCmd() *cobra.Command {
 
 	cmd.AddCommand(
 		NewDeployErc20ContractTxCmd(),
+		NewDeployStakingContractTxCmd(),
 	)
 
 	return cmd

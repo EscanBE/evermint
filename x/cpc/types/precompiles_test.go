@@ -223,3 +223,14 @@ func Test_CustomPrecompiledContractMeta_ERC20_Validate(t *testing.T) {
 		})
 	})
 }
+
+func Test_ConstantValues(t *testing.T) {
+	t.Run("CPC types", func(t *testing.T) {
+		require.Equal(t, uint32(1), CpcTypeErc20)
+		require.Equal(t, uint32(2), CpcTypeStaking)
+	})
+
+	t.Run("fixed CPC addresses", func(t *testing.T) {
+		require.Equal(t, common.HexToAddress("0xcc01000000000000000000000000000000000001"), CpcStakingFixedAddress)
+	})
+}

@@ -16,6 +16,9 @@ service Msg {
 
   // DeployErc20Contract defines a method deploying a new ERC20 contract.
   rpc DeployErc20Contract(MsgDeployErc20ContractRequest) returns (MsgDeployErc20ContractResponse);
+
+  // DeployStakingContract defines a method deploying a new staking contract.
+  rpc DeployStakingContract(MsgDeployStakingContractRequest) returns (MsgDeployStakingContractResponse);
 }
 
 // MsgUpdateParams defines a Msg for updating the x/cpc module parameters.
@@ -56,5 +59,25 @@ message MsgDeployErc20ContractRequest {
 // MsgDeployErc20ContractResponse defines the Msg/DeployErc20Contract response type.
 message MsgDeployErc20ContractResponse {
   // contract_address is the address of the deployed ERC20 contract.
+  string contract_address = 1;
+}
+
+// MsgDeployStakingContractRequest defines a Msg for deploying a new Staking contract.
+message MsgDeployStakingContractRequest {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address of the deployer account, must be available as whitelisted in module params.
+  string authority = 1;
+
+  // symbol is the symbol of the staking coin.
+  string symbol = 2;
+
+  // decimals is the number of decimals of the staking coin.
+  uint32 decimals = 3;
+}
+
+// MsgDeployErc20ContractResponse defines the Msg/DeployStakingContract response type.
+message MsgDeployStakingContractResponse {
+  // contract_address is the address of the deployed staking contract.
   string contract_address = 1;
 }
