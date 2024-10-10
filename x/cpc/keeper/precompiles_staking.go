@@ -5,6 +5,11 @@ import (
 	"errors"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
+
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	corevm "github.com/ethereum/go-ethereum/core/vm"
 
@@ -72,6 +77,9 @@ func NewStakingCustomPrecompiledContract(
 		&stakingCustomPrecompiledContractRoDelegatedValidators{contract: contract},
 		&stakingCustomPrecompiledContractRoDelegationOf{contract: contract},
 		&stakingCustomPrecompiledContractRoTotalDelegationOf{contract: contract},
+		&stakingCustomPrecompiledContractRwDelegate{contract: contract},
+		&stakingCustomPrecompiledContractRwUnDelegate{contract: contract},
+		&stakingCustomPrecompiledContractRwReDelegate{contract: contract},
 	}
 
 	return contract
@@ -95,6 +103,40 @@ func (m *stakingCustomPrecompiledContract) GetStakingMetadata() cpctypes.Staking
 	}
 	m.cacheStakingMetadata = &meta
 	return meta
+}
+
+func (m stakingCustomPrecompiledContract) emitsEventDelegate(delegator common.Address, validator common.Address, amount *big.Int, env cpcExecutorEnv) {
+	env.evm.StateDB.AddLog(&ethtypes.Log{
+		Address: cpctypes.CpcStakingFixedAddress,
+		Topics: []common.Hash{
+			common.HexToHash("0x510b11bb3f3c799b11307c01ab7db0d335683ef5b2da98f7697de744f465eacc"), // Delegate(address,address,uint256)
+			common.BytesToHash(delegator.Bytes()),
+			common.BytesToHash(validator.Bytes()),
+		},
+		Data: common.BytesToHash(amount.Bytes()).Bytes(),
+	})
+}
+
+func (m stakingCustomPrecompiledContract) emitsEventUnDelegate(delegator common.Address, validator common.Address, amount *big.Int, env cpcExecutorEnv) {
+	env.evm.StateDB.AddLog(&ethtypes.Log{
+		Address: cpctypes.CpcStakingFixedAddress,
+		Topics: []common.Hash{
+			common.HexToHash("0xbda8c0e95802a0e6788c3e9027292382d5a41b86556015f846b03a9874b2b827"), // Undelegate(address,address,uint256)
+			common.BytesToHash(delegator.Bytes()),
+			common.BytesToHash(validator.Bytes()),
+		},
+		Data: common.BytesToHash(amount.Bytes()).Bytes(),
+	})
+}
+
+func (m stakingCustomPrecompiledContract) emitsEventWithdrawReward(delegator common.Address, env cpcExecutorEnv) {
+	env.evm.StateDB.AddLog(&ethtypes.Log{
+		Address: cpctypes.CpcStakingFixedAddress,
+		Topics: []common.Hash{
+			common.HexToHash("0xad3280effbf87fab70b0874beff889ac20973904f4dbbfee71049520bdff7cdf"), // WithdrawReward(address)
+			common.BytesToHash(delegator.Bytes()),
+		},
+	})
 }
 
 // name()
@@ -319,4 +361,191 @@ func (e stakingCustomPrecompiledContractRoTotalDelegationOf) RequireGas() uint64
 
 func (e stakingCustomPrecompiledContractRoTotalDelegationOf) ReadOnly() bool {
 	return true
+}
+
+// delegate(address,uint256)
+
+var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRwDelegate{}
+
+type stakingCustomPrecompiledContractRwDelegate struct {
+	contract *stakingCustomPrecompiledContract
+}
+
+func (e stakingCustomPrecompiledContractRwDelegate) Execute(caller corevm.ContractRef, _ common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
+	if len(input) != 4+32 /*validator*/ +32 /*amount*/ {
+		return nil, cpctypes.ErrInvalidCpcInput
+	}
+
+	ctx := env.ctx
+	sk := e.contract.keeper.stakingKeeper
+
+	valAddr := common.BytesToAddress(input[4:36])
+	amount := new(big.Int).SetBytes(input[36:])
+	amount = new(big.Int).Abs(amount) // not necessary, but just in case
+	if amount.Sign() < 1 {
+		return nil, errorsmod.Wrap(cpctypes.ErrInvalidCpcInput, "delegate amount must be positive")
+	}
+
+	bondDenom, err := sk.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	valAddrCodec := sk.ValidatorAddressCodec()
+	valAddrStr, err := valAddrCodec.BytesToString(valAddr.Bytes())
+	if err != nil {
+		return nil, err
+	}
+
+	msgDelegate := stakingtypes.NewMsgDelegate(
+		sdk.AccAddress(caller.Address().Bytes()).String(), // delegator
+		valAddrStr, // validator
+		sdk.NewCoin(bondDenom, sdkmath.NewIntFromBigInt(amount)),
+	)
+	if _, err := stakingkeeper.NewMsgServerImpl(&e.contract.keeper.stakingKeeper).Delegate(ctx, msgDelegate); err != nil {
+		return nil, err
+	}
+
+	e.contract.emitsEventDelegate(caller.Address(), valAddr, amount, env)
+
+	return cpcutils.AbiEncodeBool(true)
+}
+
+func (e stakingCustomPrecompiledContractRwDelegate) Method4BytesSignatures() []byte {
+	return []byte{0x02, 0x6e, 0x40, 0x2b}
+}
+
+func (e stakingCustomPrecompiledContractRwDelegate) RequireGas() uint64 {
+	return 500_000
+}
+
+func (e stakingCustomPrecompiledContractRwDelegate) ReadOnly() bool {
+	return false
+}
+
+// undelegate(address,uint256)
+
+var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRwUnDelegate{}
+
+type stakingCustomPrecompiledContractRwUnDelegate struct {
+	contract *stakingCustomPrecompiledContract
+}
+
+func (e stakingCustomPrecompiledContractRwUnDelegate) Execute(caller corevm.ContractRef, _ common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
+	if len(input) != 4+32 /*validator*/ +32 /*amount*/ {
+		return nil, cpctypes.ErrInvalidCpcInput
+	}
+
+	ctx := env.ctx
+	sk := e.contract.keeper.stakingKeeper
+
+	valAddr := common.BytesToAddress(input[4:36])
+	amount := new(big.Int).SetBytes(input[36:])
+	amount = new(big.Int).Abs(amount) // not necessary, but just in case
+	if amount.Sign() < 1 {
+		return nil, errorsmod.Wrap(cpctypes.ErrInvalidCpcInput, "undelegate amount must be positive")
+	}
+
+	bondDenom, err := sk.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	valAddrCodec := sk.ValidatorAddressCodec()
+	valAddrStr, err := valAddrCodec.BytesToString(valAddr.Bytes())
+	if err != nil {
+		return nil, err
+	}
+
+	msgUnDelegate := stakingtypes.NewMsgUndelegate(
+		sdk.AccAddress(caller.Address().Bytes()).String(), // delegator
+		valAddrStr, // validator
+		sdk.NewCoin(bondDenom, sdkmath.NewIntFromBigInt(amount)),
+	)
+	if _, err := stakingkeeper.NewMsgServerImpl(&e.contract.keeper.stakingKeeper).Undelegate(ctx, msgUnDelegate); err != nil {
+		return nil, err
+	}
+
+	e.contract.emitsEventUnDelegate(caller.Address(), valAddr, amount, env)
+
+	return cpcutils.AbiEncodeBool(true)
+}
+
+func (e stakingCustomPrecompiledContractRwUnDelegate) Method4BytesSignatures() []byte {
+	return []byte{0x4d, 0x99, 0xdd, 0x16}
+}
+
+func (e stakingCustomPrecompiledContractRwUnDelegate) RequireGas() uint64 {
+	return 500_000
+}
+
+func (e stakingCustomPrecompiledContractRwUnDelegate) ReadOnly() bool {
+	return false
+}
+
+// redelegate(address,address,uint256)
+
+var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRwReDelegate{}
+
+type stakingCustomPrecompiledContractRwReDelegate struct {
+	contract *stakingCustomPrecompiledContract
+}
+
+func (e stakingCustomPrecompiledContractRwReDelegate) Execute(caller corevm.ContractRef, _ common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
+	if len(input) != 4+32 /*src validator*/ +32 /*dst validator*/ +32 /*amount*/ {
+		return nil, cpctypes.ErrInvalidCpcInput
+	}
+
+	ctx := env.ctx
+	sk := e.contract.keeper.stakingKeeper
+
+	srcValAddr := common.BytesToAddress(input[4:36])
+	dstValAddr := common.BytesToAddress(input[36:68])
+	amount := new(big.Int).SetBytes(input[68:])
+	amount = new(big.Int).Abs(amount) // not necessary, but just in case
+	if amount.Sign() < 1 {
+		return nil, errorsmod.Wrap(cpctypes.ErrInvalidCpcInput, "redelegate amount must be positive")
+	}
+
+	bondDenom, err := sk.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	valAddrCodec := sk.ValidatorAddressCodec()
+	srcValAddrStr, err := valAddrCodec.BytesToString(srcValAddr.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	dstValAddrStr, err := valAddrCodec.BytesToString(dstValAddr.Bytes())
+	if err != nil {
+		return nil, err
+	}
+
+	msgBeginRedelegate := stakingtypes.NewMsgBeginRedelegate(
+		sdk.AccAddress(caller.Address().Bytes()).String(), // delegator
+		srcValAddrStr, // source validator
+		dstValAddrStr, // destination validator
+		sdk.NewCoin(bondDenom, sdkmath.NewIntFromBigInt(amount)),
+	)
+	if _, err := stakingkeeper.NewMsgServerImpl(&e.contract.keeper.stakingKeeper).BeginRedelegate(ctx, msgBeginRedelegate); err != nil {
+		return nil, err
+	}
+
+	e.contract.emitsEventUnDelegate(caller.Address(), srcValAddr, amount, env)
+	e.contract.emitsEventDelegate(caller.Address(), dstValAddr, amount, env)
+
+	return cpcutils.AbiEncodeBool(true)
+}
+
+func (e stakingCustomPrecompiledContractRwReDelegate) Method4BytesSignatures() []byte {
+	return []byte{0x6b, 0xd8, 0xf8, 0x04}
+}
+
+func (e stakingCustomPrecompiledContractRwReDelegate) RequireGas() uint64 {
+	return 500_000
+}
+
+func (e stakingCustomPrecompiledContractRwReDelegate) ReadOnly() bool {
+	return false
 }

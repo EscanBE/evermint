@@ -152,6 +152,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 	suite.Run("pass - name()", func() {
 		res, err := suite.EthCallApply(suite.Ctx(), nil, contractAddr, get4BytesSignature("name()"))
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		gotName, err := cpcutils.AbiDecodeString(res.Ret)
 		suite.Require().NoError(err)
@@ -161,6 +162,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 	suite.Run("pass - symbol()", func() {
 		res, err := suite.EthCallApply(suite.Ctx(), nil, contractAddr, get4BytesSignature("symbol()"))
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		gotSymbol, err := cpcutils.AbiDecodeString(res.Ret)
 		if suite.NoError(err) {
@@ -171,6 +173,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 	suite.Run("pass - decimals()", func() {
 		res, err := suite.EthCallApply(suite.Ctx(), nil, contractAddr, get4BytesSignature("decimals()"))
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		gotDecimals, err := cpcutils.AbiDecodeUint8(res.Ret)
 		if suite.NoError(err) {
@@ -181,6 +184,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 	suite.Run("pass - totalSupply()", func() {
 		res, err := suite.EthCallApply(suite.Ctx(), nil, contractAddr, get4BytesSignature("totalSupply()"))
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		gotTotalSupply, err := cpcutils.AbiDecodeUint256(res.Ret)
 		if suite.NoError(err) {
@@ -194,6 +198,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		res, err := suite.EthCallApply(suite.Ctx(), nil, contractAddr, input)
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		gotBalance, err := cpcutils.AbiDecodeUint256(res.Ret)
 		if suite.NoError(err) {
@@ -222,6 +227,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		res, err := suite.EthCallApply(ctx, &sender, contractAddr, input)
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		gotSuccess, err := cpcutils.AbiDecodeBool(res.Ret)
 		if suite.NoError(err, res.VmError) {
@@ -262,6 +268,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		res, err := suite.EthCallApply(ctx, &sender, contractAddr, input)
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		gotSuccess, err := cpcutils.AbiDecodeBool(res.Ret)
 		if suite.NoError(err, res.VmError) {
@@ -299,6 +306,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		res, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		gotSuccess, err := cpcutils.AbiDecodeBool(res.Ret)
 		if suite.NoError(err, res.VmError) {
@@ -330,6 +338,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 			res, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
 			suite.Require().NoError(err)
+			suite.Empty(res.VmError)
 
 			allowance, err := cpcutils.AbiDecodeUint256(res.Ret)
 			suite.Require().NoError(err)
@@ -342,8 +351,9 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 		// grant
 		amount := big.NewInt(500)
 		input := simpleBuildContractInput(get4BytesSignature("approve(address,uint256)"), spender, amount)
-		_, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
+		res, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		// after grant
 		suite.Equal(amount.String(), allowance().String())
@@ -360,8 +370,9 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		// grant
 		input := simpleBuildContractInput(get4BytesSignature("approve(address,uint256)"), spender, grantAmount)
-		_, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
+		res, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		suite.Require().Equal(grantAmount.String(), suite.App().CpcKeeper().GetErc20CpcAllowance(ctx, owner, spender).String())
 
@@ -371,8 +382,9 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		input = simpleBuildContractInput(get4BytesSignature("transferFrom(address,address,uint256)"), owner, receiver, transferAmount)
 
-		res, err := suite.EthCallApply(ctx, &spender, contractAddr, input)
+		res, err = suite.EthCallApply(ctx, &spender, contractAddr, input)
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		gotSuccess, err := cpcutils.AbiDecodeBool(res.Ret)
 		if suite.NoError(err, res.VmError) {
@@ -398,8 +410,9 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		// grant
 		input := simpleBuildContractInput(get4BytesSignature("approve(address,uint256)"), spender, cpctypes.BigMaxUint256)
-		_, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
+		res, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		// spender transfer on-behalf of owner
 		balanceOfSenderBefore := balance(ctx, owner)
@@ -407,8 +420,9 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		input = simpleBuildContractInput(get4BytesSignature("transferFrom(address,address,uint256)"), owner, receiver, transferAmount)
 
-		res, err := suite.EthCallApply(ctx, &spender, contractAddr, input)
+		res, err = suite.EthCallApply(ctx, &spender, contractAddr, input)
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		gotSuccess, err := cpcutils.AbiDecodeBool(res.Ret)
 		if suite.NoError(err, res.VmError) {
@@ -439,8 +453,9 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		// grant
 		input := simpleBuildContractInput(get4BytesSignature("approve(address,uint256)"), spender, grantAmount)
-		_, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
+		res, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		suite.Require().Equal(grantAmount.String(), suite.App().CpcKeeper().GetErc20CpcAllowance(ctx, owner, spender).String())
 
@@ -450,7 +465,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		input = simpleBuildContractInput(get4BytesSignature("transferFrom(address,address,uint256)"), owner, receiver, transferAmount)
 
-		res, err := suite.EthCallApply(ctx, &spender, contractAddr, input)
+		res, err = suite.EthCallApply(ctx, &spender, contractAddr, input)
 		suite.Require().NoError(err)
 
 		suite.Contains(res.VmError, "ERC20InsufficientAllowance")
@@ -540,6 +555,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		res, err := suite.EthCallApply(ctx, &burner, contractAddr, input)
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		gotSuccess, err := cpcutils.AbiDecodeBool(res.Ret)
 		if suite.NoError(err, res.VmError) {
@@ -573,8 +589,9 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		// grant
 		input := simpleBuildContractInput(get4BytesSignature("approve(address,uint256)"), spender, grantAmount)
-		_, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
+		res, err := suite.EthCallApply(ctx, &owner, contractAddr, input)
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		suite.Require().Equal(grantAmount.String(), suite.App().CpcKeeper().GetErc20CpcAllowance(ctx, owner, spender).String())
 
@@ -583,8 +600,9 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		input = simpleBuildContractInput(get4BytesSignature("burnFrom(address,uint256)"), owner, burnAmount)
 
-		res, err := suite.EthCallApply(ctx, &spender, contractAddr, input)
+		res, err = suite.EthCallApply(ctx, &spender, contractAddr, input)
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		gotSuccess, err := cpcutils.AbiDecodeBool(res.Ret)
 		if suite.NoError(err, res.VmError) {
@@ -609,6 +627,7 @@ func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
 
 		res, err := suite.EthCallApply(ctx, &sender, contractAddr, input)
 		suite.Require().NoError(err)
+		suite.Empty(res.VmError)
 
 		gotSuccess, err := cpcutils.AbiDecodeBool(res.Ret)
 		if suite.NoError(err, res.VmError) {
