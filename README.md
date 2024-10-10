@@ -36,16 +36,17 @@ Many important pieces of code was replaced by Evermint, such as:
 - Data structure, code logic of `MsgEthereumTx` and some proto msgs were replaced.
 
 #### Some other features provided by Evermint:
-1. Command convert between 0x address and bech32 address, or any custom bech32 HRP
+1. Support [stateful precompiled contracts](https://github.com/EscanBE/evermint/pull/175)
+2. [Support vesting account creation](https://github.com/EscanBE/evermint/pull/144) with help from module `x/vauth`
+3. [Rename chain](https://github.com/EscanBE/evermint/blob/main/RENAME_CHAIN.md)
+4. [`snapshots` command](https://github.com/EscanBE/evermint/pull/12)
+5. [`inspect` command](https://github.com/EscanBE/evermint/pull/14)
+6. [Flag `--allow-insecure-unlock`](https://github.com/EscanBE/evermint/pull/142)
+7. Command convert between 0x address and bech32 address, or any custom bech32 HRP
 ```bash
 evmd convert-address evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz evmos
 # alias: "ca"
 ```
-2. [Rename chain](https://github.com/EscanBE/evermint/blob/main/RENAME_CHAIN.md)
-3. [Support vesting account creation](https://github.com/EscanBE/evermint/pull/144) with help from module `x/vauth`
-4. [`snapshots` command](https://github.com/EscanBE/evermint/pull/12)
-5. [`inspect` command](https://github.com/EscanBE/evermint/pull/14)
-6. [Flag `--allow-insecure-unlock`](https://github.com/EscanBE/evermint/pull/142)
 
 ### About Evmos
 _v12.1.6_
