@@ -13,9 +13,8 @@ interface IStakingCPC {
 
     /**
      * @dev Emitted when the delegator withdraw reward from a validator.
-     * Emits each time an account withdrawal reward, regardless number of validators.
      */
-    event WithdrawReward(address indexed delegator);
+    event WithdrawReward(address indexed delegator, address indexed validator, uint256 value);
 
     /**
      * @dev Returns the name of the contract.
@@ -98,7 +97,7 @@ interface IStakingCPC {
      *
      * Returns a boolean value indicating whether the operation succeeded.
      *
-     * Emits a (single) {WithdrawReward} event.
+     * Emits multiple {WithdrawReward} events, one per validator.
      */
     function withdrawRewards() external returns (bool);
 }

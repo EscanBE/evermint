@@ -744,17 +744,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract_reward() 
 		suite.Require().True(gotSuccess)
 
 		// check event
-		var receipt ethtypes.Receipt
-		err = receipt.UnmarshalBinary(res.MarshalledReceipt)
-		suite.Require().NoError(err)
-		if suite.Len(receipt.Logs, 1, "expect event WithdrawReward") {
-			log := receipt.Logs[0]
-			if suite.Len(log.Topics, 2, "expect 2 topics") {
-				// WithdrawReward event
-				suite.Equal("0xad3280effbf87fab70b0874beff889ac20973904f4dbbfee71049520bdff7cdf", log.Topics[0].String())
-				suite.Equal(account1.GetEthAddress().String(), common.BytesToAddress(log.Topics[1].Bytes()).String())
-			}
-		}
+		suite.requireEventsWithdrawReward(res.MarshalledReceipt, 1, account1.GetEthAddressP(), validator1.GetEthAddressP())
 
 		// check balance
 		newBalance := suite.App().BankKeeper().GetBalance(suite.Ctx(), account1.GetCosmosAddress(), bondDenom)
@@ -815,17 +805,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract_rewards()
 		suite.Require().True(gotSuccess)
 
 		// check event
-		var receipt ethtypes.Receipt
-		err = receipt.UnmarshalBinary(res.MarshalledReceipt)
-		suite.Require().NoError(err)
-		if suite.Len(receipt.Logs, 1, "expect event WithdrawReward") {
-			log := receipt.Logs[0]
-			if suite.Len(log.Topics, 2, "expect 2 topics") {
-				// WithdrawReward event
-				suite.Equal("0xad3280effbf87fab70b0874beff889ac20973904f4dbbfee71049520bdff7cdf", log.Topics[0].String())
-				suite.Equal(account1.GetEthAddress().String(), common.BytesToAddress(log.Topics[1].Bytes()).String())
-			}
-		}
+		suite.requireEventsWithdrawReward(res.MarshalledReceipt, 1, account1.GetEthAddressP(), nil)
 
 		// check balance
 		newBalance := suite.App().BankKeeper().GetBalance(suite.Ctx(), account1.GetCosmosAddress(), bondDenom)
@@ -834,4 +814,38 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract_rewards()
 			"balance should be increased because claimed reward: original %s vs %s later", originalBalance.Amount.String(), newBalance.Amount.String(),
 		)
 	})
+}
+
+func (suite *CpcTestSuite) requireEventsWithdrawReward(bzMarshalledReceipt []byte, wantCount int, wantDelegator, wantValidator *common.Address) {
+	var receipt ethtypes.Receipt
+	err := receipt.UnmarshalBinary(bzMarshalledReceipt)
+	suite.Require().NoError(err)
+	suite.Require().Lenf(receipt.Logs, wantCount, "expect event WithdrawReward")
+
+	var gotWithdrawRewardCount int
+	eventSig := common.HexToHash("0xad71f93891cecc86a28a627d5495c28fabbd31cdd2e93851b16ce3421fdab2e5")
+
+	for _, log := range receipt.Logs {
+		if log.Topics[0] != eventSig {
+			continue
+		}
+		gotWithdrawRewardCount++
+
+		suite.Require().Len(log.Topics, 3, "expect 3 topics")
+		suite.NotEqual(common.Hash{}, log.Topics[1])
+		if wantDelegator != nil {
+			suite.Equal(wantDelegator.String(), common.BytesToAddress(log.Topics[1].Bytes()).String())
+		}
+
+		suite.NotEqual(common.Hash{}, log.Topics[2])
+		if wantValidator != nil {
+			suite.Equal(wantValidator.String(), common.BytesToAddress(log.Topics[2].Bytes()).String())
+		}
+
+		if suite.NotEmpty(log.Data, "expect reward") {
+			suite.Equal(1, new(big.Int).SetBytes(log.Data).Sign(), "expect reward amount is positive")
+		}
+	}
+
+	suite.Require().Equalf(wantCount, gotWithdrawRewardCount, "expect %d WithdrawReward events but got %d", wantCount, gotWithdrawRewardCount)
 }

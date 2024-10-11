@@ -136,13 +136,98 @@ func (m stakingCustomPrecompiledContract) emitsEventUnDelegate(delegator common.
 	})
 }
 
-func (m stakingCustomPrecompiledContract) emitsEventWithdrawReward(delegator common.Address, env cpcExecutorEnv) {
+func (m stakingCustomPrecompiledContract) emitsEventWithdrawReward_(delegator common.Address, env cpcExecutorEnv) {
+	// TODO CPC: handle
 	env.evm.StateDB.AddLog(&ethtypes.Log{
 		Address: cpctypes.CpcStakingFixedAddress,
 		Topics: []common.Hash{
-			common.HexToHash("0xad3280effbf87fab70b0874beff889ac20973904f4dbbfee71049520bdff7cdf"), // WithdrawReward(address)
+			common.HexToHash("0xad71f93891cecc86a28a627d5495c28fabbd31cdd2e93851b16ce3421fdab2e5"), // WithdrawReward(address,address,uint256)
+			common.BytesToHash(delegator.Bytes()),
 			common.BytesToHash(delegator.Bytes()),
 		},
+		Data: common.BytesToHash(big.NewInt(0).Bytes()).Bytes(),
+	})
+}
+
+// emitsEventWithdrawReward emits WithdrawReward event based on sdk events emitted by the distribution module.
+func (m stakingCustomPrecompiledContract) emitsEventWithdrawReward(
+	em sdk.EventManagerI, originalEventCounts int, env cpcExecutorEnv,
+) error {
+	distWithdrawRewardEvents := m.getSdkWithdrawRewardEventsFromEventManager(em)
+	if len(distWithdrawRewardEvents) <= originalEventCounts {
+		return errorsmod.Wrapf(sdkerrors.ErrLogic, "no WithdrawReward event found")
+	}
+
+	if originalEventCounts > 0 {
+		// emit new events only to avoid re-emitting the same events which was already emitted
+		distWithdrawRewardEvents = distWithdrawRewardEvents[originalEventCounts:]
+	}
+
+	valAddrCodec := m.keeper.stakingKeeper.ValidatorAddressCodec()
+
+	bondDenom, err := m.keeper.stakingKeeper.BondDenom(env.ctx)
+	if err != nil {
+		return errorsmod.Wrapf(err, "failed to get bond denom")
+	}
+
+	for _, event := range distWithdrawRewardEvents {
+		avAmount := event.Attributes[sdk.AttributeKeyAmount]
+		coins, err := sdk.ParseCoinsNormalized(avAmount)
+		if err != nil {
+			return errorsmod.Wrapf(err, "failed to parse coins: %s", avAmount)
+		}
+
+		avDelegator := event.Attributes[disttypes.AttributeKeyDelegator]
+		delegatorAddr, err := sdk.AccAddressFromBech32(avDelegator)
+		if err != nil {
+			return errorsmod.Wrapf(err, "failed to parse delegator address: %s", avDelegator)
+		}
+
+		avValidator := event.Attributes[disttypes.AttributeKeyValidator]
+		valAddr, err := valAddrCodec.StringToBytes(avValidator)
+		if err != nil {
+			return errorsmod.Wrapf(err, "failed to convert validator address: %s", avValidator)
+		}
+
+		env.evm.StateDB.AddLog(&ethtypes.Log{
+			Address: cpctypes.CpcStakingFixedAddress,
+			Topics: []common.Hash{
+				common.HexToHash("0xad71f93891cecc86a28a627d5495c28fabbd31cdd2e93851b16ce3421fdab2e5"), // WithdrawReward(address,address,uint256)
+				common.BytesToHash(delegatorAddr.Bytes()),
+				common.BytesToHash(valAddr),
+			},
+			Data: common.BytesToHash(coins.AmountOf(bondDenom).BigInt().Bytes()).Bytes(),
+		})
+	}
+
+	return nil
+}
+
+func (m stakingCustomPrecompiledContract) getSdkWithdrawRewardEventsFromEventManager(em sdk.EventManagerI) []normalizedEvent {
+	return findEvents(em, func(event sdk.Event) *normalizedEvent {
+		if event.Type != disttypes.EventTypeWithdrawRewards || len(event.Attributes) != 3 {
+			return nil
+		}
+
+		ne := &normalizedEvent{
+			Type:       event.Type,
+			Attributes: make(map[string]string),
+		}
+		for _, attr := range event.Attributes {
+			switch attr.Key {
+			case sdk.AttributeKeyAmount, disttypes.AttributeKeyValidator, disttypes.AttributeKeyDelegator:
+				ne.Attributes[attr.Key] = attr.Value
+				break
+			default:
+				return nil // unknown attribute
+			}
+		}
+
+		if len(ne.Attributes) != 3 {
+			return nil
+		}
+
+		return ne
 	})
 }
 
@@ -683,6 +768,8 @@ func (e stakingCustomPrecompiledContractRwWithdrawReward) Execute(caller corevm.
 		return nil, err
 	}
 
+	originalSdkEventWithdrawRewardCount := len(e.contract.getSdkWithdrawRewardEventsFromEventManager(ctx.EventManager()))
+
 	msgWithdrawDelegatorReward := disttypes.NewMsgWithdrawDelegatorReward(
 		sdk.AccAddress(caller.Address().Bytes()).String(), // delegator
 		valAddrStr, //  validator
@@ -691,7 +778,9 @@ func (e stakingCustomPrecompiledContractRwWithdrawReward) Execute(caller corevm.
 		return nil, err
 	}
 
-	e.contract.emitsEventWithdrawReward(caller.Address(), env)
+	if err := e.contract.emitsEventWithdrawReward(ctx.EventManager(), originalSdkEventWithdrawRewardCount, env); err != nil {
+		return nil, errorsmod.Wrapf(err, "failed to emit WithdrawReward event")
+	}
 
 	return cpcutils.AbiEncodeBool(true)
 }
@@ -756,6 +845,8 @@ func (e stakingCustomPrecompiledContractRwWithdrawRewards) Execute(caller corevm
 		return cpcutils.AbiEncodeBool(false)
 	}
 
+	originalSdkEventWithdrawRewardCount := len(e.contract.getSdkWithdrawRewardEventsFromEventManager(ctx.EventManager()))
+
 	for _, valAddrStr := range toWithdraw {
 		msgWithdrawDelegatorReward := disttypes.NewMsgWithdrawDelegatorReward(
 			sdk.AccAddress(caller.Address().Bytes()).String(), // delegator
@@ -766,7 +857,9 @@ func (e stakingCustomPrecompiledContractRwWithdrawRewards) Execute(caller corevm
 		}
 	}
 
-	e.contract.emitsEventWithdrawReward(caller.Address(), env)
+	if err := e.contract.emitsEventWithdrawReward(ctx.EventManager(), originalSdkEventWithdrawRewardCount, env); err != nil {
+		return nil, errorsmod.Wrapf(err, "failed to emit WithdrawReward event")
+	}
 
 	return cpcutils.AbiEncodeBool(true)
 }
