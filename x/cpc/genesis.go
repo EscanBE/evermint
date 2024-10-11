@@ -43,7 +43,7 @@ func InitGenesis(
 
 	if data.DeployStakingContract {
 		meta := cpctypes.StakingCustomPrecompiledContractMeta{
-			Symbol:   strings.ToUpper(constants.SymbolDenom),
+			Symbol:   fmt.Sprintf("Staking-%s", strings.ToUpper(constants.SymbolDenom)),
 			Decimals: constants.BaseDenomExponent,
 		}
 		_, err := k.DeployStakingCustomPrecompiledContract(ctx, meta)

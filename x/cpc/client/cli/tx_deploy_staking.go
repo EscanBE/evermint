@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/EscanBE/evermint/v12/constants"
 
@@ -55,7 +56,7 @@ func NewDeployStakingContractTxCmd() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 
-	cmd.Flags().String(flagStakingSymbol, constants.SymbolDenom, "Symbol of the staking coin")
+	cmd.Flags().String(flagStakingSymbol, fmt.Sprintf("Staking-%s", strings.ToUpper(constants.SymbolDenom)), "Symbol of the staking coin")
 	cmd.Flags().Int64(flagStakingDecimals, constants.BaseDenomExponent, "Decimals of the staking coin")
 
 	return cmd
