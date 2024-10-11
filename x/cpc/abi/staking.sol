@@ -43,9 +43,19 @@ interface IStakingCPC {
     function delegationOf(address account, address validator) external view returns (uint256);
 
     /**
-     * @dev Returns the total delegation of an account accross all validators.
+     * @dev Returns the total delegation of an account across all validators.
      */
     function totalDelegationOf(address account) external view returns (uint256);
+
+    /**
+     * @dev Returns the delegation reward of an account on a validator.
+     */
+    function rewardOf(address account, address validator) external view returns (uint256);
+
+    /**
+     * @dev Returns the delegation reward of an account across all validators.
+     */
+    function rewardsOf(address account) external view returns (uint256);
 
     /**
      * @dev Delegate a `value` amount of staking coin from the caller's account to `validator`.
@@ -81,7 +91,7 @@ interface IStakingCPC {
      *
      * Emits a {WithdrawReward} event.
      */
-    function withdrawDelegatorReward(address validator) external returns (bool);
+    function withdrawReward(address validator) external returns (bool);
 
     /**
      * @dev Withdraw the caller's account staking reward from all delegated validators.
@@ -90,5 +100,5 @@ interface IStakingCPC {
      *
      * Emits a (single) {WithdrawReward} event.
      */
-    function withdrawDelegatorRewards() external returns (bool);
+    function withdrawRewards() external returns (bool);
 }

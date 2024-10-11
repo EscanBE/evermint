@@ -4,6 +4,9 @@ package keeper_test
 import (
 	"testing"
 
+	"github.com/EscanBE/evermint/v12/constants"
+	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
+
 	"github.com/ethereum/go-ethereum/crypto"
 
 	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
@@ -77,6 +80,17 @@ func (suite *CpcTestSuite) TearDownTest() {
 }
 
 func (suite *CpcTestSuite) TearDownSuite() {
+}
+
+func (suite *CpcTestSuite) SetupStakingCPC() {
+	stakingMeta := cpctypes.StakingCustomPrecompiledContractMeta{
+		Symbol:   constants.SymbolDenom,
+		Decimals: constants.BaseDenomExponent,
+	}
+
+	contractAddr, err := suite.App().CpcKeeper().DeployStakingCustomPrecompiledContract(suite.Ctx(), stakingMeta)
+	suite.Require().NoError(err)
+	suite.Equal(cpctypes.CpcStakingFixedAddress, contractAddr)
 }
 
 func (suite *CpcTestSuite) EthCallApply(ctx sdk.Context, from *common.Address, contractAddress common.Address, input []byte) (*evmtypes.MsgEthereumTxResponse, error) {

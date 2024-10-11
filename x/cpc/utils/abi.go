@@ -56,12 +56,12 @@ func AbiDecodeUint8(bz []byte) (uint8, error) {
 		return 0, err
 	}
 	if len(res) != 1 {
-		return 0, fmt.Errorf("is not a uint8 or is multiple uint8")
+		return 0, fmt.Errorf("is not an uint8 or is multiple uint8")
 	}
 	if num, ok := res[0].(uint8); ok {
 		return num, nil
 	}
-	return 0, fmt.Errorf("is not a uint8")
+	return 0, fmt.Errorf("is not an uint8")
 }
 
 // AbiDecodeUint256 decodes uint256
@@ -71,12 +71,12 @@ func AbiDecodeUint256(bz []byte) (*big.Int, error) {
 		return nil, err
 	}
 	if len(res) != 1 {
-		return nil, fmt.Errorf("is not a uint256 or is multiple uint256")
+		return nil, fmt.Errorf("is not an uint256 or is multiple uint256")
 	}
 	if num, ok := res[0].(*big.Int); ok {
 		return num, nil
 	}
-	return nil, fmt.Errorf("is not a uint256")
+	return nil, fmt.Errorf("is not an uint256")
 }
 
 // AbiDecodeBool decodes bool

@@ -9,7 +9,7 @@ import (
 // TxPrepareContextWithdrawDelegatorAndValidatorReward prepares context for withdraw delegator and validator reward.
 // It does create delegation, allocate reward, commit state and wait a few blocks for reward to increase.
 func (suite *ChainIntegrationTestSuite) TxPrepareContextWithdrawDelegatorAndValidatorReward(delegator *itutiltypes.TestAccount, delegate uint8, waitXBlocks uint8) (valAddr sdk.ValAddress) {
-	validatorAddr := suite.GetValidatorAddress(1)
+	validatorAddr := suite.ValidatorAccounts.Number(1).GetValidatorAddress() // suite.GetValidatorAddress(1)
 
 	val, err := suite.ChainApp.StakingKeeper().Validator(suite.CurrentContext, validatorAddr)
 	suite.Require().NoError(err)
@@ -25,9 +25,11 @@ func (suite *ChainIntegrationTestSuite) TxPrepareContextWithdrawDelegatorAndVali
 
 	suite.Commit()
 
+	valAddrStr, err := suite.ChainApp.StakingKeeper().ValidatorAddressCodec().BytesToString(validatorAddr)
+	suite.Require().NoError(err)
 	msgDelegate := &stakingtypes.MsgDelegate{
 		DelegatorAddress: delegator.GetCosmosAddress().String(),
-		ValidatorAddress: validatorAddr.String(),
+		ValidatorAddress: valAddrStr,
 		Amount:           delegationAmount,
 	}
 	_, _, err = suite.DeliverTx(suite.CurrentContext, delegator, nil, msgDelegate)
@@ -35,7 +37,8 @@ func (suite *ChainIntegrationTestSuite) TxPrepareContextWithdrawDelegatorAndVali
 	suite.Commit()
 
 	for c := 1; c <= int(waitXBlocks); c++ {
-		suite.ChainApp.DistributionKeeper().AllocateTokensToValidator(suite.CurrentContext, val, sdk.NewDecCoinsFromCoins(valReward))
+		err := suite.ChainApp.DistributionKeeper().AllocateTokensToValidator(suite.CurrentContext, val, sdk.NewDecCoinsFromCoins(valReward))
+		suite.Require().NoError(err)
 		suite.Commit()
 	}
 

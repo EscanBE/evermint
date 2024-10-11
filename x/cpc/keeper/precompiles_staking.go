@@ -5,6 +5,9 @@ import (
 	"errors"
 	"math/big"
 
+	distkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+
 	sdkmath "cosmossdk.io/math"
 
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
@@ -77,9 +80,13 @@ func NewStakingCustomPrecompiledContract(
 		&stakingCustomPrecompiledContractRoDelegatedValidators{contract: contract},
 		&stakingCustomPrecompiledContractRoDelegationOf{contract: contract},
 		&stakingCustomPrecompiledContractRoTotalDelegationOf{contract: contract},
+		&stakingCustomPrecompiledContractRoRewardOf{contract: contract},
+		&stakingCustomPrecompiledContractRoRewardsOf{contract: contract},
 		&stakingCustomPrecompiledContractRwDelegate{contract: contract},
 		&stakingCustomPrecompiledContractRwUnDelegate{contract: contract},
 		&stakingCustomPrecompiledContractRwReDelegate{contract: contract},
+		&stakingCustomPrecompiledContractRwWithdrawReward{contract: contract},
+		&stakingCustomPrecompiledContractRwWithdrawRewards{contract: contract},
 	}
 
 	return contract
@@ -363,6 +370,108 @@ func (e stakingCustomPrecompiledContractRoTotalDelegationOf) ReadOnly() bool {
 	return true
 }
 
+// rewardOf(address,address)
+
+var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRoRewardOf{}
+
+type stakingCustomPrecompiledContractRoRewardOf struct {
+	contract *stakingCustomPrecompiledContract
+}
+
+func (e stakingCustomPrecompiledContractRoRewardOf) Execute(_ corevm.ContractRef, _ common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
+	if len(input) != 4+32 /*account*/ +32 /*validator*/ {
+		return nil, cpctypes.ErrInvalidCpcInput
+	}
+
+	ctx := env.ctx
+	sk := e.contract.keeper.stakingKeeper
+	dk := e.contract.keeper.distKeeper
+
+	bondDenom, err := sk.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	delegatorAddr := common.BytesToAddress(input[4:36])
+	validatorAddr := common.BytesToAddress(input[36:])
+	valAddrCodec := sk.ValidatorAddressCodec()
+	valAddrStr, err := valAddrCodec.BytesToString(validatorAddr.Bytes())
+	if err != nil {
+		return nil, err
+	}
+
+	resReward, err := distkeeper.NewQuerier(dk).DelegationRewards(ctx, &disttypes.QueryDelegationRewardsRequest{
+		DelegatorAddress: sdk.AccAddress(delegatorAddr.Bytes()).String(),
+		ValidatorAddress: valAddrStr,
+	})
+	if err != nil {
+		if err == stakingtypes.ErrNoDelegation {
+			return cpcutils.AbiEncodeUint256(big.NewInt(0))
+		}
+		return nil, err
+	}
+
+	return cpcutils.AbiEncodeUint256(resReward.Rewards.AmountOf(bondDenom).TruncateInt().BigInt())
+}
+
+func (e stakingCustomPrecompiledContractRoRewardOf) Method4BytesSignatures() []byte {
+	return []byte{0x47, 0x32, 0xaa, 0x1d}
+}
+
+func (e stakingCustomPrecompiledContractRoRewardOf) RequireGas() uint64 {
+	return 0
+}
+
+func (e stakingCustomPrecompiledContractRoRewardOf) ReadOnly() bool {
+	return true
+}
+
+// rewardsOf(address)
+
+var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRoRewardsOf{}
+
+type stakingCustomPrecompiledContractRoRewardsOf struct {
+	contract *stakingCustomPrecompiledContract
+}
+
+func (e stakingCustomPrecompiledContractRoRewardsOf) Execute(_ corevm.ContractRef, _ common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
+	if len(input) != 4+32 /*account*/ {
+		return nil, cpctypes.ErrInvalidCpcInput
+	}
+
+	ctx := env.ctx
+	sk := e.contract.keeper.stakingKeeper
+	dk := e.contract.keeper.distKeeper
+
+	bondDenom, err := sk.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	delegatorAddr := common.BytesToAddress(input[4:36])
+
+	resRewards, err := distkeeper.NewQuerier(dk).DelegationTotalRewards(ctx, &disttypes.QueryDelegationTotalRewardsRequest{
+		DelegatorAddress: sdk.AccAddress(delegatorAddr.Bytes()).String(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return cpcutils.AbiEncodeUint256(resRewards.Total.AmountOf(bondDenom).TruncateInt().BigInt())
+}
+
+func (e stakingCustomPrecompiledContractRoRewardsOf) Method4BytesSignatures() []byte {
+	return []byte{0x47, 0x9b, 0xa7, 0xae}
+}
+
+func (e stakingCustomPrecompiledContractRoRewardsOf) RequireGas() uint64 {
+	return 0
+}
+
+func (e stakingCustomPrecompiledContractRoRewardsOf) ReadOnly() bool {
+	return true
+}
+
 // delegate(address,uint256)
 
 var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRwDelegate{}
@@ -416,7 +525,7 @@ func (e stakingCustomPrecompiledContractRwDelegate) Method4BytesSignatures() []b
 }
 
 func (e stakingCustomPrecompiledContractRwDelegate) RequireGas() uint64 {
-	return 500_000
+	return 300_000
 }
 
 func (e stakingCustomPrecompiledContractRwDelegate) ReadOnly() bool {
@@ -476,7 +585,7 @@ func (e stakingCustomPrecompiledContractRwUnDelegate) Method4BytesSignatures() [
 }
 
 func (e stakingCustomPrecompiledContractRwUnDelegate) RequireGas() uint64 {
-	return 500_000
+	return 200_000
 }
 
 func (e stakingCustomPrecompiledContractRwUnDelegate) ReadOnly() bool {
@@ -547,5 +656,129 @@ func (e stakingCustomPrecompiledContractRwReDelegate) RequireGas() uint64 {
 }
 
 func (e stakingCustomPrecompiledContractRwReDelegate) ReadOnly() bool {
+	return false
+}
+
+// withdrawReward(address)
+
+var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRwWithdrawReward{}
+
+type stakingCustomPrecompiledContractRwWithdrawReward struct {
+	contract *stakingCustomPrecompiledContract
+}
+
+func (e stakingCustomPrecompiledContractRwWithdrawReward) Execute(caller corevm.ContractRef, _ common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
+	if len(input) != 4+32 /*validator*/ {
+		return nil, cpctypes.ErrInvalidCpcInput
+	}
+
+	ctx := env.ctx
+	sk := e.contract.keeper.stakingKeeper
+	dk := e.contract.keeper.distKeeper
+
+	valAddr := common.BytesToAddress(input[4:])
+	valAddrCodec := sk.ValidatorAddressCodec()
+	valAddrStr, err := valAddrCodec.BytesToString(valAddr.Bytes())
+	if err != nil {
+		return nil, err
+	}
+
+	msgWithdrawDelegatorReward := disttypes.NewMsgWithdrawDelegatorReward(
+		sdk.AccAddress(caller.Address().Bytes()).String(), // delegator
+		valAddrStr, //  validator
+	)
+	if _, err := distkeeper.NewMsgServerImpl(dk).WithdrawDelegatorReward(ctx, msgWithdrawDelegatorReward); err != nil {
+		return nil, err
+	}
+
+	e.contract.emitsEventWithdrawReward(caller.Address(), env)
+
+	return cpcutils.AbiEncodeBool(true)
+}
+
+func (e stakingCustomPrecompiledContractRwWithdrawReward) Method4BytesSignatures() []byte {
+	return []byte{0xb8, 0x6e, 0x32, 0x1c}
+}
+
+func (e stakingCustomPrecompiledContractRwWithdrawReward) RequireGas() uint64 {
+	return 200_000
+}
+
+func (e stakingCustomPrecompiledContractRwWithdrawReward) ReadOnly() bool {
+	return false
+}
+
+// withdrawRewards()
+
+var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRwWithdrawRewards{}
+
+type stakingCustomPrecompiledContractRwWithdrawRewards struct {
+	contract *stakingCustomPrecompiledContract
+}
+
+func (e stakingCustomPrecompiledContractRwWithdrawRewards) Execute(caller corevm.ContractRef, _ common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
+	if len(input) != 4 {
+		return nil, cpctypes.ErrInvalidCpcInput
+	}
+
+	ctx := env.ctx
+	sk := e.contract.keeper.stakingKeeper
+	dk := e.contract.keeper.distKeeper
+
+	oneCoin := sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(e.contract.GetStakingMetadata().Decimals)), nil))
+	minimumWithdrawalAmount := oneCoin.QuoRaw(1_000)
+
+	bondDenom, err := sk.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	allRewards, err := distkeeper.NewQuerier(dk).DelegationTotalRewards(ctx, &disttypes.QueryDelegationTotalRewardsRequest{
+		DelegatorAddress: sdk.AccAddress(caller.Address().Bytes()).String(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(allRewards.Rewards) < 1 || allRewards.Total.IsZero() {
+		return cpcutils.AbiEncodeBool(false)
+	}
+
+	toWithdraw := make([]string, 0)
+	for _, reward := range allRewards.Rewards {
+		amount := reward.Reward.AmountOf(bondDenom).TruncateInt()
+		if amount.LT(minimumWithdrawalAmount) {
+			continue
+		}
+
+		toWithdraw = append(toWithdraw, reward.ValidatorAddress)
+	}
+	if len(toWithdraw) < 1 {
+		return cpcutils.AbiEncodeBool(false)
+	}
+
+	for _, valAddrStr := range toWithdraw {
+		msgWithdrawDelegatorReward := disttypes.NewMsgWithdrawDelegatorReward(
+			sdk.AccAddress(caller.Address().Bytes()).String(), // delegator
+			valAddrStr, //  validator
+		)
+		if _, err := distkeeper.NewMsgServerImpl(e.contract.keeper.distKeeper).WithdrawDelegatorReward(ctx, msgWithdrawDelegatorReward); err != nil {
+			return nil, err
+		}
+	}
+
+	e.contract.emitsEventWithdrawReward(caller.Address(), env)
+
+	return cpcutils.AbiEncodeBool(true)
+}
+
+func (e stakingCustomPrecompiledContractRwWithdrawRewards) Method4BytesSignatures() []byte {
+	return []byte{0xc7, 0xb8, 0x98, 0x1c}
+}
+
+func (e stakingCustomPrecompiledContractRwWithdrawRewards) RequireGas() uint64 {
+	return 400_000
+}
+
+func (e stakingCustomPrecompiledContractRwWithdrawRewards) ReadOnly() bool {
 	return false
 }
