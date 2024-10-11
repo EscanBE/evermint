@@ -299,7 +299,7 @@ func (e erc20CustomPrecompiledContractRoTotalSupply) Method4BytesSignatures() []
 }
 
 func (e erc20CustomPrecompiledContractRoTotalSupply) RequireGas() uint64 {
-	return 0
+	return 1000
 }
 
 func (e erc20CustomPrecompiledContractRoTotalSupply) ReadOnly() bool {
@@ -331,7 +331,7 @@ func (e erc20CustomPrecompiledContractRoBalanceOf) Method4BytesSignatures() []by
 }
 
 func (e erc20CustomPrecompiledContractRoBalanceOf) RequireGas() uint64 {
-	return 0
+	return 1000
 }
 
 func (e erc20CustomPrecompiledContractRoBalanceOf) ReadOnly() bool {
@@ -580,7 +580,7 @@ func (e erc20CustomPrecompiledContractRoAllowance) Method4BytesSignatures() []by
 }
 
 func (e erc20CustomPrecompiledContractRoAllowance) RequireGas() uint64 {
-	return 0
+	return 1000
 }
 
 func (e erc20CustomPrecompiledContractRoAllowance) ReadOnly() bool {

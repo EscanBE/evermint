@@ -268,7 +268,7 @@ func (e stakingCustomPrecompiledContractRoDelegatedValidators) Method4BytesSigna
 }
 
 func (e stakingCustomPrecompiledContractRoDelegatedValidators) RequireGas() uint64 {
-	return 0
+	return 10_000
 }
 
 func (e stakingCustomPrecompiledContractRoDelegatedValidators) ReadOnly() bool {
@@ -325,7 +325,7 @@ func (e stakingCustomPrecompiledContractRoDelegationOf) Method4BytesSignatures()
 }
 
 func (e stakingCustomPrecompiledContractRoDelegationOf) RequireGas() uint64 {
-	return 0
+	return 10_000
 }
 
 func (e stakingCustomPrecompiledContractRoDelegationOf) ReadOnly() bool {
@@ -363,7 +363,7 @@ func (e stakingCustomPrecompiledContractRoTotalDelegationOf) Method4BytesSignatu
 }
 
 func (e stakingCustomPrecompiledContractRoTotalDelegationOf) RequireGas() uint64 {
-	return 0
+	return 10_000
 }
 
 func (e stakingCustomPrecompiledContractRoTotalDelegationOf) ReadOnly() bool {
@@ -419,7 +419,7 @@ func (e stakingCustomPrecompiledContractRoRewardOf) Method4BytesSignatures() []b
 }
 
 func (e stakingCustomPrecompiledContractRoRewardOf) RequireGas() uint64 {
-	return 0
+	return 10_000
 }
 
 func (e stakingCustomPrecompiledContractRoRewardOf) ReadOnly() bool {
@@ -465,7 +465,7 @@ func (e stakingCustomPrecompiledContractRoRewardsOf) Method4BytesSignatures() []
 }
 
 func (e stakingCustomPrecompiledContractRoRewardsOf) RequireGas() uint64 {
-	return 0
+	return 20_000
 }
 
 func (e stakingCustomPrecompiledContractRoRewardsOf) ReadOnly() bool {
