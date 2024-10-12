@@ -89,6 +89,9 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
 	# Set deployer authority
 	DEPLOYER_ADDRESS=$("$BINARY" keys show "${KEYS[0]}" -a --keyring-backend $KEYRING --home "$HOMEDIR")
 	jq '.app_state["cpc"]["params"]["whitelisted_deployers"][0]="'$DEPLOYER_ADDRESS'"' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
+	# Automatically deploy Custom-Precompiled contracts
+	jq '.app_state["cpc"]["deploy_erc20_native"]=true' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
+	jq '.app_state["cpc"]["deploy_staking_contract"]=true' "$GENESIS" >"$TMP_GENESIS" && mv "$TMP_GENESIS" "$GENESIS"
 
 	if [[ $1 == "pending" ]]; then
 		if [[ "$OSTYPE" == "darwin"* ]]; then
