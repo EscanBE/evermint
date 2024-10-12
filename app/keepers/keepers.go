@@ -214,16 +214,6 @@ func NewAppKeeper(
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 		authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
 	)
-	defer func() {
-		// register the staking hooks
-		// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-		appKeepers.StakingKeeper.SetHooks(
-			stakingtypes.NewMultiStakingHooks(
-				appKeepers.DistrKeeper.Hooks(),
-				appKeepers.SlashingKeeper.Hooks(),
-			),
-		)
-	}()
 
 	appKeepers.DistrKeeper = distrkeeper.NewKeeper(
 		appCodec,
@@ -241,6 +231,15 @@ func NewAppKeeper(
 		runtime.NewKVStoreService(keys[slashingtypes.StoreKey]),
 		appKeepers.StakingKeeper,
 		authAddr,
+	)
+
+	// register the staking hooks
+	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
+	appKeepers.StakingKeeper.SetHooks(
+		stakingtypes.NewMultiStakingHooks(
+			appKeepers.DistrKeeper.Hooks(),
+			appKeepers.SlashingKeeper.Hooks(),
+		),
 	)
 
 	appKeepers.CrisisKeeper = crisiskeeper.NewKeeper(
