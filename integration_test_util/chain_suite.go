@@ -215,16 +215,20 @@ func CreateChainIntegrationTestSuiteFromChainConfig(t *testing.T, r *require.Ass
 
 	// Setup validators
 	for _, validatorAccount := range validatorAccounts {
+		valAddrCodec := app.StakingKeeper().ValidatorAddressCodec()
+
+		valAddr := validatorAccount.GetValidatorAddress()
+		operator, err := valAddrCodec.BytesToString(valAddr)
+		require.NoError(t, err)
+
 		val, err := stakingtypes.NewValidator(
-			validatorAccount.GetValidatorAddress().String(),
+			operator,
 			validatorAccount.GetSdkPubKey(),
 			stakingtypes.Description{},
 		)
 		require.NoError(t, err)
 
 		val = stakingkeeper.TestingUpdateValidator(app.StakingKeeper(), ctx, val, true)
-		valAddr, err := app.StakingKeeper().ValidatorAddressCodec().StringToBytes(val.GetOperator())
-		require.NoError(t, err)
 		err = app.DistributionKeeper().Hooks().AfterValidatorCreated(ctx, valAddr)
 		require.NoError(t, err)
 		err = app.StakingKeeper().SetValidatorByConsAddr(ctx, val)

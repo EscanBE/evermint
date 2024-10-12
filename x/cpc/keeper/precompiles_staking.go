@@ -1,9 +1,13 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math/big"
+	"slices"
+	"strings"
 
 	distkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -73,6 +77,16 @@ func NewStakingCustomPrecompiledContract(
 		keeper:   keeper,
 	}
 
+	rewardsOfME := stakingCustomPrecompiledContractRoRewardsOf{
+		contract: contract,
+	}
+	delegateME := stakingCustomPrecompiledContractRwDelegate{
+		contract: contract,
+	}
+	withdrawRewardsME := stakingCustomPrecompiledContractRwWithdrawRewards{
+		contract: contract,
+	}
+
 	contract.executors = []ExtendedCustomPrecompiledContractMethodExecutorI{
 		&stakingCustomPrecompiledContractRoName{contract: contract},
 		&stakingCustomPrecompiledContractRoSymbol{contract: contract},
@@ -81,12 +95,18 @@ func NewStakingCustomPrecompiledContract(
 		&stakingCustomPrecompiledContractRoDelegationOf{contract: contract},
 		&stakingCustomPrecompiledContractRoTotalDelegationOf{contract: contract},
 		&stakingCustomPrecompiledContractRoRewardOf{contract: contract},
-		&stakingCustomPrecompiledContractRoRewardsOf{contract: contract},
-		&stakingCustomPrecompiledContractRwDelegate{contract: contract},
+		&rewardsOfME,
+		&delegateME,
 		&stakingCustomPrecompiledContractRwUnDelegate{contract: contract},
 		&stakingCustomPrecompiledContractRwReDelegate{contract: contract},
 		&stakingCustomPrecompiledContractRwWithdrawReward{contract: contract},
-		&stakingCustomPrecompiledContractRwWithdrawRewards{contract: contract},
+		&withdrawRewardsME,
+		&stakingCustomPrecompiledContractRoBalanceOf{rewardsOf: rewardsOfME},
+		&stakingCustomPrecompiledContractRwTransfer{
+			contract:        contract,
+			withdrawRewards: withdrawRewardsME,
+			delegate:        delegateME,
+		},
 	}
 
 	return contract
@@ -112,6 +132,11 @@ func (m *stakingCustomPrecompiledContract) GetStakingMetadata() cpctypes.Staking
 	return meta
 }
 
+func (m *stakingCustomPrecompiledContract) minimumRewardWithdrawalAmount() sdkmath.Int {
+	oneCoin := sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(m.GetStakingMetadata().Decimals)), nil))
+	return oneCoin.QuoRaw(1_000)
+}
+
 func (m stakingCustomPrecompiledContract) emitsEventDelegate(delegator common.Address, validator common.Address, amount *big.Int, env cpcExecutorEnv) {
 	env.evm.StateDB.AddLog(&ethtypes.Log{
 		Address: cpctypes.CpcStakingFixedAddress,
@@ -133,19 +158,6 @@ func (m stakingCustomPrecompiledContract) emitsEventUnDelegate(delegator common.
 			common.BytesToHash(validator.Bytes()),
 		},
 		Data: common.BytesToHash(amount.Bytes()).Bytes(),
-	})
-}
-
-func (m stakingCustomPrecompiledContract) emitsEventWithdrawReward_(delegator common.Address, env cpcExecutorEnv) {
-	// TODO CPC: handle
-	env.evm.StateDB.AddLog(&ethtypes.Log{
-		Address: cpctypes.CpcStakingFixedAddress,
-		Topics: []common.Hash{
-			common.HexToHash("0xad71f93891cecc86a28a627d5495c28fabbd31cdd2e93851b16ce3421fdab2e5"), // WithdrawReward(address,address,uint256)
-			common.BytesToHash(delegator.Bytes()),
-			common.BytesToHash(delegator.Bytes()),
-		},
-		Data: common.BytesToHash(big.NewInt(0).Bytes()).Bytes(),
 	})
 }
 
@@ -526,23 +538,30 @@ func (e stakingCustomPrecompiledContractRoRewardsOf) Execute(_ corevm.ContractRe
 
 	ctx := env.ctx
 	sk := e.contract.keeper.stakingKeeper
-	dk := e.contract.keeper.distKeeper
 
 	bondDenom, err := sk.BondDenom(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	delegatorAddr := common.BytesToAddress(input[4:36])
-
-	resRewards, err := distkeeper.NewQuerier(dk).DelegationTotalRewards(ctx, &disttypes.QueryDelegationTotalRewardsRequest{
-		DelegatorAddress: sdk.AccAddress(delegatorAddr.Bytes()).String(),
-	})
+	delegatorAddr := common.BytesToAddress(input[4:])
+	totalRewards, err := e.getTotalRewards(ctx, delegatorAddr, bondDenom)
 	if err != nil {
 		return nil, err
 	}
 
-	return cpcutils.AbiEncodeUint256(resRewards.Total.AmountOf(bondDenom).TruncateInt().BigInt())
+	return cpcutils.AbiEncodeUint256(totalRewards.BigInt())
+}
+
+func (e stakingCustomPrecompiledContractRoRewardsOf) getTotalRewards(ctx sdk.Context, addr common.Address, bondDenom string) (sdkmath.Int, error) {
+	resRewards, err := distkeeper.NewQuerier(e.contract.keeper.distKeeper).DelegationTotalRewards(ctx, &disttypes.QueryDelegationTotalRewardsRequest{
+		DelegatorAddress: sdk.AccAddress(addr.Bytes()).String(),
+	})
+	if err != nil {
+		return sdkmath.ZeroInt(), err
+	}
+
+	return resRewards.Total.AmountOf(bondDenom).TruncateInt(), nil
 }
 
 func (e stakingCustomPrecompiledContractRoRewardsOf) Method4BytesSignatures() []byte {
@@ -814,9 +833,6 @@ func (e stakingCustomPrecompiledContractRwWithdrawRewards) Execute(caller corevm
 	sk := e.contract.keeper.stakingKeeper
 	dk := e.contract.keeper.distKeeper
 
-	oneCoin := sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(e.contract.GetStakingMetadata().Decimals)), nil))
-	minimumWithdrawalAmount := oneCoin.QuoRaw(1_000)
-
 	bondDenom, err := sk.BondDenom(ctx)
 	if err != nil {
 		return nil, err
@@ -833,6 +849,7 @@ func (e stakingCustomPrecompiledContractRwWithdrawRewards) Execute(caller corevm
 	}
 
 	toWithdraw := make([]string, 0)
+	minimumWithdrawalAmount := e.contract.minimumRewardWithdrawalAmount()
 	for _, reward := range allRewards.Rewards {
 		amount := reward.Reward.AmountOf(bondDenom).TruncateInt()
 		if amount.LT(minimumWithdrawalAmount) {
@@ -873,5 +890,194 @@ func (e stakingCustomPrecompiledContractRwWithdrawRewards) RequireGas() uint64 {
 }
 
 func (e stakingCustomPrecompiledContractRwWithdrawRewards) ReadOnly() bool {
+	return false
+}
+
+// balanceOf(address)
+
+var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRoBalanceOf{}
+
+type stakingCustomPrecompiledContractRoBalanceOf struct {
+	rewardsOf stakingCustomPrecompiledContractRoRewardsOf
+}
+
+func (e stakingCustomPrecompiledContractRoBalanceOf) Execute(_ corevm.ContractRef, _ common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
+	if len(input) != 4+32 /*account*/ {
+		return nil, cpctypes.ErrInvalidCpcInput
+	}
+
+	ctx := env.ctx
+	sk := e.rewardsOf.contract.keeper.stakingKeeper
+	bondDenom, err := sk.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	delegatorAddr := common.BytesToAddress(input[4:])
+	totalRewards, err := e.rewardsOf.getTotalRewards(ctx, delegatorAddr, bondDenom)
+	if err != nil {
+		return nil, err
+	}
+
+	balance := e.rewardsOf.contract.keeper.bankKeeper.GetBalance(ctx, delegatorAddr.Bytes(), bondDenom)
+
+	return cpcutils.AbiEncodeUint256(balance.Amount.Add(totalRewards).BigInt())
+}
+
+func (e stakingCustomPrecompiledContractRoBalanceOf) Method4BytesSignatures() []byte {
+	return []byte{0x70, 0xa0, 0x82, 0x31}
+}
+
+func (e stakingCustomPrecompiledContractRoBalanceOf) RequireGas() uint64 {
+	return e.rewardsOf.RequireGas()
+}
+
+func (e stakingCustomPrecompiledContractRoBalanceOf) ReadOnly() bool {
+	return e.rewardsOf.ReadOnly()
+}
+
+// transfer(address,uint256)
+
+var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRwTransfer{}
+
+type stakingCustomPrecompiledContractRwTransfer struct {
+	contract        *stakingCustomPrecompiledContract
+	withdrawRewards stakingCustomPrecompiledContractRwWithdrawRewards
+	delegate        stakingCustomPrecompiledContractRwDelegate
+}
+
+func (e stakingCustomPrecompiledContractRwTransfer) Execute(caller corevm.ContractRef, contractAddr common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
+	if len(input) != 4+32 /*to*/ +32 /*amount*/ {
+		return nil, cpctypes.ErrInvalidCpcInput
+	}
+
+	ctx := env.ctx
+	sk := e.contract.keeper.stakingKeeper
+	valAddrCodec := sk.ValidatorAddressCodec()
+	bondDenom, err := sk.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// validation
+
+	from := caller.Address()
+	to := common.BytesToAddress(input[4:36])
+	if from == (common.Address{}) {
+		return nil, fmt.Errorf(`ERC20InvalidSender("%s")`, from.String())
+	} else if to == (common.Address{}) {
+		return nil, fmt.Errorf(`ERC20InvalidReceiver("%s")`, to.String())
+	} else if from != to {
+		return nil, errorsmod.Wrapf(cpctypes.ErrInvalidCpcInput, "receiver must be self-address to avoid fund loss")
+	}
+
+	amountBz := input[36:]
+	amount, err := cpcutils.AbiDecodeUint256(amountBz)
+	if err != nil {
+		panic(errorsmod.Wrapf(errors.Join(cpctypes.ErrInvalidCpcInput, err), "failed to decode amount: %s", hex.EncodeToString(amountBz)))
+	}
+	if amount.Sign() < 1 {
+		return nil, errorsmod.Wrap(cpctypes.ErrInvalidCpcInput, "delegation amount must be positive")
+	}
+
+	// withdraw rewards
+	if _, err := e.withdrawRewards.Execute(caller, contractAddr, e.withdrawRewards.Method4BytesSignatures(), env); err != nil {
+		return nil, errors.Join(err, fmt.Errorf("failed to withdraw rewards"))
+	}
+
+	// re-fetch balance after rewards withdrawal
+	laterBalance := e.contract.keeper.bankKeeper.GetBalance(ctx, from.Bytes(), bondDenom)
+	if laterBalance.Amount.BigInt().Cmp(amount) < 0 {
+		return nil, fmt.Errorf(`ERC20InsufficientBalance("%s",%s,%s)`, from.String(), laterBalance.Amount.String(), amount.String())
+	}
+
+	// delegate
+
+	/*
+		Select a validator to delegate to, using the following rules:
+		- Case 1: If not delegated into any validator, a mid-power validator will be selected and receive delegation.
+		- Case 2: If delegated into one validator, that validator will receive delegation.
+		- Case 3: If delegated into many validators, the lowest power validator will receive delegation.
+	*/
+	delegations, err := sk.GetAllDelegatorDelegations(ctx, from.Bytes())
+	var delegatedBondedValidators []stakingtypes.ValidatorI
+	for _, delegation := range delegations {
+		valAddr, err := valAddrCodec.StringToBytes(delegation.ValidatorAddress)
+		if err != nil {
+			return nil, errorsmod.Wrapf(err, "failed to convert validator address: %s", delegation.ValidatorAddress)
+		}
+		validator, err := sk.Validator(ctx, valAddr)
+		if err != nil {
+			return nil, err
+		}
+		// we ignore the non-active validators
+		if !validator.IsBonded() {
+			continue
+		}
+
+		delegatedBondedValidators = append(delegatedBondedValidators, validator)
+	}
+
+	validatorSortFunc := func(l, r stakingtypes.ValidatorI) int {
+		cmp := l.GetTokens().BigInt().Cmp(r.GetTokens().BigInt())
+		if cmp == 0 {
+			return strings.Compare(l.GetOperator(), r.GetOperator())
+		}
+		return cmp
+	}
+
+	var selectedValidator stakingtypes.ValidatorI
+	if len(delegatedBondedValidators) == 0 { // Case 1
+		var bondedValidators []stakingtypes.ValidatorI
+		err := sk.IterateLastValidators(ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
+			if !validator.IsBonded() {
+				panic("unexpected unbonded validator")
+			}
+
+			bondedValidators = append(bondedValidators, validator)
+			return false
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		if len(bondedValidators) > 0 {
+			slices.SortFunc(bondedValidators, validatorSortFunc)
+			selectedValidator = bondedValidators[len(bondedValidators)/2]
+		}
+	} else if len(delegatedBondedValidators) == 1 { // Case 2
+		selectedValidator = delegatedBondedValidators[0]
+	} else { // Case 3
+		slices.SortFunc(delegatedBondedValidators, validatorSortFunc)
+		selectedValidator = delegatedBondedValidators[0]
+	}
+
+	if selectedValidator == nil {
+		return nil, fmt.Errorf("failed to select a validator to delegate")
+	}
+
+	valAddr, err := valAddrCodec.StringToBytes(selectedValidator.GetOperator())
+	if err != nil {
+		return nil, errorsmod.Wrapf(err, "failed to convert validator address: %s", selectedValidator.GetOperator())
+	}
+
+	var inputDelegate []byte
+	{
+		inputDelegate = e.delegate.Method4BytesSignatures()
+		inputDelegate = append(inputDelegate, common.BytesToHash(valAddr).Bytes()...)
+		inputDelegate = append(inputDelegate, common.BytesToHash(amount.Bytes()).Bytes()...)
+	}
+	return e.delegate.Execute(caller, contractAddr, inputDelegate, env)
+}
+
+func (e stakingCustomPrecompiledContractRwTransfer) Method4BytesSignatures() []byte {
+	return []byte{0xa9, 0x05, 0x9c, 0xbb}
+}
+
+func (e stakingCustomPrecompiledContractRwTransfer) RequireGas() uint64 {
+	return 800_000
+}
+
+func (e stakingCustomPrecompiledContractRwTransfer) ReadOnly() bool {
 	return false
 }

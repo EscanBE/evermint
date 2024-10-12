@@ -5,8 +5,7 @@ import (
 	"math"
 	"math/big"
 
-	sdksecp256k1 "github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	"github.com/EscanBE/evermint/v12/integration_test_util"
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
@@ -52,6 +51,12 @@ func (suite *CpcTestSuite) TestKeeper_DeployStakingCustomPrecompiledContract() {
 	})
 }
 
+func (suite *CpcTestSuite) TestKeeper_ActiveValidatorSet() {
+	suite.baseMultiValidatorSetup(func(s *CpcTestSuite, lowestBondedVals, mediumBondedVals, highestBondedVals []stakingtypes.ValidatorI) {
+		// ok
+	})
+}
+
 //goland:noinspection SpellCheckingInspection
 func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract() {
 	// TODO ES: add more test & security test
@@ -60,8 +65,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract() {
 	account2 := suite.CITS.WalletAccounts.Number(2)
 	validator1 := suite.CITS.ValidatorAccounts.Number(1)
 
-	bondDenom, err := suite.App().StakingKeeper().BondDenom(suite.Ctx())
-	suite.Require().NoError(err)
+	bondDenom := suite.bondDenom(suite.Ctx())
 
 	delegateToValidator := func(ctx sdk.Context, account, validator *itutiltypes.TestAccount, amount sdkmath.Int) {
 		val, err := suite.App().StakingKeeper().Validator(ctx, validator.GetValidatorAddress())
@@ -75,14 +79,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract() {
 	}
 
 	createValidator := func(ctx sdk.Context, account *itutiltypes.TestAccount) {
-		msgCreateVal, _ := stakingtypes.NewMsgCreateValidator(
-			account.GetValidatorAddress().String(), sdksecp256k1.GenPrivKey().PubKey(), sdk.NewCoin(bondDenom, sdkmath.NewInt(1)),
-			stakingtypes.Description{Details: "test"},
-			stakingtypes.NewCommissionRates(sdkmath.LegacyNewDecWithPrec(5, 1), sdkmath.LegacyNewDecWithPrec(5, 1), sdkmath.LegacyNewDec(0)),
-			sdkmath.OneInt(),
-		)
-		_, err := stakingkeeper.NewMsgServerImpl(suite.App().StakingKeeper()).CreateValidator(ctx, msgCreateVal)
-		suite.Require().NoError(err)
+		suite.createValidator(ctx, account, sdkmath.NewInt(1))
 	}
 
 	suite.SetupStakingCPC()
@@ -729,8 +726,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract_reward() 
 	})
 
 	suite.Run("can claim reward", func() {
-		bondDenom, err := suite.App().StakingKeeper().BondDenom(suite.Ctx())
-		suite.Require().NoError(err)
+		bondDenom := suite.bondDenom(suite.Ctx())
 
 		originalBalance := suite.App().BankKeeper().GetBalance(suite.Ctx(), account1.GetCosmosAddress(), bondDenom)
 
@@ -762,14 +758,29 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract_rewards()
 	account1 := suite.CITS.WalletAccounts.Number(1)
 
 	suite.Run("when no reward, returns zero", func() {
-		input := simpleBuildContractInput(get4BytesSignature("rewardsOf(address)"), account1.GetEthAddress())
-		res, err := suite.EthCallApply(suite.Ctx(), account1.GetEthAddressP(), cpctypes.CpcStakingFixedAddress, input)
-		suite.Require().NoError(err)
-		suite.Empty(res.VmError)
+		suite.Run("rewardsOf(address)", func() {
+			input := simpleBuildContractInput(get4BytesSignature("rewardsOf(address)"), account1.GetEthAddress())
+			res, err := suite.EthCallApply(suite.Ctx(), account1.GetEthAddressP(), cpctypes.CpcStakingFixedAddress, input)
+			suite.Require().NoError(err)
+			suite.Empty(res.VmError)
 
-		gotReward, err := cpcutils.AbiDecodeUint256(res.Ret)
-		suite.Require().NoError(err)
-		suite.Require().Zero(gotReward.Int64())
+			gotReward, err := cpcutils.AbiDecodeUint256(res.Ret)
+			suite.Require().NoError(err)
+			suite.Require().Zero(gotReward.Int64())
+		})
+		suite.Run("balanceOf(address)", func() {
+			input := simpleBuildContractInput(get4BytesSignature("balanceOf(address)"), account1.GetEthAddress())
+			res, err := suite.EthCallApply(suite.Ctx(), account1.GetEthAddressP(), cpctypes.CpcStakingFixedAddress, input)
+			suite.Require().NoError(err)
+			suite.Empty(res.VmError)
+
+			gotBalancePlusReward, err := cpcutils.AbiDecodeUint256(res.Ret)
+			suite.Require().NoError(err)
+			suite.Require().Equal(
+				suite.App().BankKeeper().GetBalance(suite.Ctx(), account1.GetCosmosAddress(), suite.bondDenom(suite.Ctx())).Amount.Int64(),
+				gotBalancePlusReward.Int64(),
+			)
+		})
 	})
 
 	{
@@ -779,19 +790,33 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract_rewards()
 	}
 
 	suite.Run("when reward available, returns non-zero", func() {
-		input := simpleBuildContractInput(get4BytesSignature("rewardsOf(address)"), account1.GetEthAddress())
-		res, err := suite.EthCallApply(suite.Ctx(), account1.GetEthAddressP(), cpctypes.CpcStakingFixedAddress, input)
-		suite.Require().NoError(err)
-		suite.Empty(res.VmError)
+		suite.Run("rewardsOf(address)", func() {
+			input := simpleBuildContractInput(get4BytesSignature("rewardsOf(address)"), account1.GetEthAddress())
+			res, err := suite.EthCallApply(suite.Ctx(), account1.GetEthAddressP(), cpctypes.CpcStakingFixedAddress, input)
+			suite.Require().NoError(err)
+			suite.Empty(res.VmError)
 
-		gotReward, err := cpcutils.AbiDecodeUint256(res.Ret)
-		suite.Require().NoError(err)
-		suite.Require().Equal(1, gotReward.Sign())
+			gotReward, err := cpcutils.AbiDecodeUint256(res.Ret)
+			suite.Require().NoError(err)
+			suite.Require().Equal(1, gotReward.Sign())
+		})
+		suite.Run("balanceOf(address)", func() {
+			input := simpleBuildContractInput(get4BytesSignature("balanceOf(address)"), account1.GetEthAddress())
+			res, err := suite.EthCallApply(suite.Ctx(), account1.GetEthAddressP(), cpctypes.CpcStakingFixedAddress, input)
+			suite.Require().NoError(err)
+			suite.Empty(res.VmError)
+
+			balance := suite.App().BankKeeper().GetBalance(suite.Ctx(), account1.GetCosmosAddress(), suite.bondDenom(suite.Ctx())).Amount.BigInt()
+
+			gotBalancePlusReward, err := cpcutils.AbiDecodeUint256(res.Ret)
+			suite.Require().NoError(err)
+			suite.Require().Equal(1, gotBalancePlusReward.Sign())
+			suite.Require().Equal(-1, balance.Cmp(gotBalancePlusReward))
+		})
 	})
 
 	suite.Run("can claim rewards", func() {
-		bondDenom, err := suite.App().StakingKeeper().BondDenom(suite.Ctx())
-		suite.Require().NoError(err)
+		bondDenom := suite.bondDenom(suite.Ctx())
 
 		originalBalance := suite.App().BankKeeper().GetBalance(suite.Ctx(), account1.GetCosmosAddress(), bondDenom)
 
@@ -814,6 +839,281 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract_rewards()
 			"balance should be increased because claimed reward: original %s vs %s later", originalBalance.Amount.String(), newBalance.Amount.String(),
 		)
 	})
+}
+
+func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract_transfer() {
+	delegator := integration_test_util.NewTestAccount(suite.T(), nil)
+
+	tests := []struct {
+		name            string
+		delegator       common.Address
+		delegateAmt     *big.Int
+		overrideTo      *common.Address
+		preRunFunc      func(suite *CpcTestSuite, lowestBondedVals, mediumBondedVals, highestBondedVals []stakingtypes.ValidatorI) (cache any)
+		afterRunFunc    func(suite *CpcTestSuite, lowestBondedVals, mediumBondedVals, highestBondedVals []stakingtypes.ValidatorI, cache any, bzReceipt []byte)
+		wantErr         bool
+		wantErrContains string
+	}{
+		{
+			name:        "pass - (case 1) delegate when account not delegated to any, should delegate to a mid-bonded validator",
+			delegator:   delegator.GetEthAddress(),
+			delegateAmt: big.NewInt(1e9),
+			preRunFunc: func(suite *CpcTestSuite, lowestBondedVals, mediumBondedVals, highestBondedVals []stakingtypes.ValidatorI) (cache any) {
+				suite.CITS.MintCoin(delegator, sdk.NewCoin(suite.bondDenom(suite.Ctx()), sdkmath.NewInt(1e9)))
+				return nil
+			},
+			afterRunFunc: func(suite *CpcTestSuite, lowestBondedVals, mediumBondedVals, highestBondedVals []stakingtypes.ValidatorI, cache any, bzReceipt []byte) {
+				suite.Require().NotEmpty(mediumBondedVals)
+				// check delegation
+				input := simpleBuildContractInput(get4BytesSignature("delegatedValidators(address)"), delegator.GetEthAddress())
+				res, err := suite.EthCallApply(suite.Ctx(), nil, cpctypes.CpcStakingFixedAddress, input)
+				suite.Require().NoError(err)
+				suite.Empty(res.VmError)
+
+				gotAddresses, err := cpcutils.AbiDecodeArrayOfAddresses(res.Ret)
+				suite.Require().NoError(err)
+				suite.Require().Len(gotAddresses, 1)
+				wantValOper, err := suite.App().StakingKeeper().ValidatorAddressCodec().BytesToString(gotAddresses[0].Bytes())
+				suite.Require().NoError(err)
+
+				var isMidBonded bool
+				for _, val := range mediumBondedVals {
+					if val.GetOperator() == wantValOper {
+						isMidBonded = true
+						break
+					}
+				}
+				suite.Require().True(isMidBonded, "should delegated to a mid-bonded validator")
+
+				// check event
+				receipt := &ethtypes.Receipt{}
+				err = receipt.UnmarshalBinary(bzReceipt)
+				suite.Require().NoError(err)
+				suite.Require().Len(receipt.Logs, 1)
+				suite.Require().Equal(common.HexToHash("0x510b11bb3f3c799b11307c01ab7db0d335683ef5b2da98f7697de744f465eacc"), receipt.Logs[0].Topics[0])
+				suite.Require().Equal(gotAddresses[0], common.BytesToAddress(receipt.Logs[0].Topics[2].Bytes()))
+			},
+			wantErr: false,
+		},
+		{
+			name:        "pass - (case 2) delegate when account delegated to one validator, the exact validator should be chosen",
+			delegator:   delegator.GetEthAddress(),
+			delegateAmt: big.NewInt(1e9),
+			preRunFunc: func(suite *CpcTestSuite, lowestBondedVals, mediumBondedVals, highestBondedVals []stakingtypes.ValidatorI) (cache any) {
+				suite.Require().NotEmpty(mediumBondedVals)
+				suite.CITS.MintCoin(delegator, sdk.NewCoin(suite.bondDenom(suite.Ctx()), sdkmath.NewInt(3e9)))
+
+				firstDelegateToValidator := mediumBondedVals[len(mediumBondedVals)/2]
+
+				_, err := suite.App().StakingKeeper().Delegate(
+					suite.Ctx(),
+					delegator.GetCosmosAddress(),
+					sdkmath.NewInt(1e9),
+					stakingtypes.Unbonded,
+					firstDelegateToValidator.(stakingtypes.Validator),
+					true,
+				)
+				suite.Require().NoError(err)
+
+				return firstDelegateToValidator.GetOperator()
+			},
+			afterRunFunc: func(suite *CpcTestSuite, lowestBondedVals, mediumBondedVals, highestBondedVals []stakingtypes.ValidatorI, cache any, bzReceipt []byte) {
+				suite.Require().NotEmpty(mediumBondedVals)
+				// check delegation
+				input := simpleBuildContractInput(get4BytesSignature("delegatedValidators(address)"), delegator.GetEthAddress())
+				res, err := suite.EthCallApply(suite.Ctx(), nil, cpctypes.CpcStakingFixedAddress, input)
+				suite.Require().NoError(err)
+				suite.Empty(res.VmError)
+
+				gotAddresses, err := cpcutils.AbiDecodeArrayOfAddresses(res.Ret)
+				suite.Require().NoError(err)
+				suite.Require().Len(gotAddresses, 1)
+				gotValOper, err := suite.App().StakingKeeper().ValidatorAddressCodec().BytesToString(gotAddresses[0].Bytes())
+				suite.Require().NoError(err)
+
+				suite.Require().Equal(cache.(string), gotValOper)
+
+				// check event
+				receipt := &ethtypes.Receipt{}
+				err = receipt.UnmarshalBinary(bzReceipt)
+				suite.Require().NoError(err)
+				suite.Require().Len(receipt.Logs, 1)
+				suite.Require().Equal(common.HexToHash("0x510b11bb3f3c799b11307c01ab7db0d335683ef5b2da98f7697de744f465eacc"), receipt.Logs[0].Topics[0])
+				suite.Require().Equal(gotAddresses[0], common.BytesToAddress(receipt.Logs[0].Topics[2].Bytes()))
+			},
+			wantErr: false,
+		},
+		{
+			name:        "pass - (case 3) delegate when account delegated to multi validators, the lowest bonded validator should be chosen",
+			delegator:   delegator.GetEthAddress(),
+			delegateAmt: big.NewInt(1e9),
+			preRunFunc: func(suite *CpcTestSuite, lowestBondedVals, mediumBondedVals, highestBondedVals []stakingtypes.ValidatorI) (cache any) {
+				suite.Require().NotEmpty(lowestBondedVals)
+				suite.Require().NotEmpty(mediumBondedVals)
+				suite.Require().NotEmpty(highestBondedVals)
+
+				suite.CITS.MintCoin(delegator, sdk.NewCoin(suite.bondDenom(suite.Ctx()), sdkmath.NewInt(5e9)))
+
+				selectedVals := []stakingtypes.ValidatorI{
+					lowestBondedVals[len(lowestBondedVals)/2],
+					mediumBondedVals[len(mediumBondedVals)/2],
+					highestBondedVals[len(highestBondedVals)/2],
+				}
+				for _, val := range selectedVals {
+					_, err := suite.App().StakingKeeper().Delegate(
+						suite.Ctx(),
+						delegator.GetCosmosAddress(),
+						sdkmath.NewInt(1e9),
+						stakingtypes.Unbonded,
+						val.(stakingtypes.Validator),
+						true,
+					)
+					suite.Require().NoError(err)
+				}
+
+				return selectedVals[0].GetOperator()
+			},
+			afterRunFunc: func(suite *CpcTestSuite, lowestBondedVals, mediumBondedVals, highestBondedVals []stakingtypes.ValidatorI, cache any, bzReceipt []byte) {
+				suite.Require().NotEmpty(mediumBondedVals)
+				valoper := cache.(string)
+				valBz, err := suite.App().StakingKeeper().ValidatorAddressCodec().StringToBytes(valoper)
+				suite.Require().NoError(err)
+
+				// check delegation
+				input := simpleBuildContractInput(get4BytesSignature("delegationOf(address,address)"), delegator.GetEthAddress(), common.BytesToAddress(valBz))
+				res, err := suite.EthCallApply(suite.Ctx(), nil, cpctypes.CpcStakingFixedAddress, input)
+				suite.Require().NoError(err)
+				suite.Empty(res.VmError)
+
+				gotDelegated, err := cpcutils.AbiDecodeUint256(res.Ret)
+				suite.Require().NoError(err)
+				suite.Require().Equal(big.NewInt(2e9).String(), gotDelegated.String())
+
+				// check event
+				receipt := &ethtypes.Receipt{}
+				err = receipt.UnmarshalBinary(bzReceipt)
+				suite.Require().NoError(err)
+				suite.Require().Len(receipt.Logs, 1)
+				suite.Require().Equal(common.HexToHash("0x510b11bb3f3c799b11307c01ab7db0d335683ef5b2da98f7697de744f465eacc"), receipt.Logs[0].Topics[0])
+				suite.Require().Equal(common.BytesToAddress(valBz), common.BytesToAddress(receipt.Logs[0].Topics[2].Bytes()))
+			},
+			wantErr: false,
+		},
+		{
+			name:            "fail - reject if `to` is not self",
+			delegator:       delegator.GetEthAddress(),
+			delegateAmt:     big.NewInt(1),
+			overrideTo:      integration_test_util.NewTestAccount(suite.T(), nil).GetEthAddressP(),
+			wantErr:         true,
+			wantErrContains: "receiver must be self-address to avoid fund loss",
+		},
+		{
+			name:            "fail - amount cannot be zero",
+			delegator:       delegator.GetEthAddress(),
+			delegateAmt:     big.NewInt(0),
+			wantErr:         true,
+			wantErrContains: "delegation amount must be positive",
+		},
+		{
+			name:        "pass - automatically withdraw rewards before delegate",
+			delegator:   delegator.GetEthAddress(),
+			delegateAmt: big.NewInt(1e9),
+			preRunFunc: func(suite *CpcTestSuite, lowestBondedVals, mediumBondedVals, highestBondedVals []stakingtypes.ValidatorI) (cache any) {
+				suite.CITS.MintCoin(delegator, sdk.NewCoin(suite.bondDenom(suite.Ctx()), sdkmath.NewInt(3e18)))
+				suite.CITS.TxPrepareContextWithdrawDelegatorAndValidatorReward(delegator, math.MaxUint8, 10)
+
+				// get current delegation
+				input := simpleBuildContractInput(get4BytesSignature("delegationOf(address,address)"), delegator.GetEthAddress(), suite.CITS.ValidatorAccounts.Number(1).GetEthAddress())
+				res, err := suite.EthCallApply(suite.Ctx(), nil, cpctypes.CpcStakingFixedAddress, input)
+				suite.Require().NoError(err)
+				suite.Empty(res.VmError)
+
+				gotDelegated, err := cpcutils.AbiDecodeUint256(res.Ret)
+				suite.Require().NoError(err)
+
+				return gotDelegated
+			},
+			afterRunFunc: func(suite *CpcTestSuite, lowestBondedVals, mediumBondedVals, highestBondedVals []stakingtypes.ValidatorI, cache any, bzReceipt []byte) {
+				// check delegation
+				input := simpleBuildContractInput(get4BytesSignature("delegationOf(address,address)"), delegator.GetEthAddress(), suite.CITS.ValidatorAccounts.Number(1).GetEthAddress())
+				res, err := suite.EthCallApply(suite.Ctx(), nil, cpctypes.CpcStakingFixedAddress, input)
+				suite.Require().NoError(err)
+				suite.Empty(res.VmError)
+
+				originalDelegated := cache.(*big.Int)
+
+				gotDelegated, err := cpcutils.AbiDecodeUint256(res.Ret)
+				suite.Require().NoError(err)
+
+				var rewardAmount, actualDelegateAmount *big.Int
+				{
+					receipt := &ethtypes.Receipt{}
+					err = receipt.UnmarshalBinary(bzReceipt)
+					suite.Require().NoError(err)
+					suite.Len(receipt.Logs, 2) // withdraw reward + delegate
+
+					{
+						// event withdraw reward
+						log := receipt.Logs[0]
+						suite.Require().Equal(common.HexToHash("0xad71f93891cecc86a28a627d5495c28fabbd31cdd2e93851b16ce3421fdab2e5"), log.Topics[0])
+						rewardAmount, err = cpcutils.AbiDecodeUint256(log.Data)
+						suite.Require().NoError(err)
+					}
+
+					{
+						// event delegate
+						log := receipt.Logs[1]
+						suite.Require().Equal(common.HexToHash("0x510b11bb3f3c799b11307c01ab7db0d335683ef5b2da98f7697de744f465eacc"), log.Topics[0])
+						actualDelegateAmount, err = cpcutils.AbiDecodeUint256(log.Data)
+						suite.Require().NoError(err)
+					}
+				}
+
+				suite.Equal(1, rewardAmount.Sign())
+				suite.Equal(1, actualDelegateAmount.Sign())
+				suite.Equal(sumManyBigInt(originalDelegated, rewardAmount, big.NewInt(1e9)).String(), gotDelegated.String())
+				suite.Equal(sumManyBigInt(originalDelegated, actualDelegateAmount).String(), gotDelegated.String())
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			suite.baseMultiValidatorSetup(func(suite *CpcTestSuite, lowestBondedVals, mediumBondedVals, highestBondedVals []stakingtypes.ValidatorI) {
+				var cache any
+				if tt.preRunFunc != nil {
+					cache = tt.preRunFunc(suite, lowestBondedVals, mediumBondedVals, highestBondedVals)
+				}
+
+				to := tt.delegator
+				if tt.overrideTo != nil {
+					to = *tt.overrideTo
+				}
+
+				input := simpleBuildContractInput(get4BytesSignature("transfer(address,uint256)"), to, tt.delegateAmt)
+				res, err := suite.EthCallApply(suite.Ctx(), &tt.delegator, cpctypes.CpcStakingFixedAddress, input)
+				suite.Require().NoError(err)
+
+				if tt.afterRunFunc != nil {
+					defer func() {
+						var bzReceipt []byte
+						if res != nil {
+							bzReceipt = res.MarshalledReceipt
+						}
+						tt.afterRunFunc(suite, lowestBondedVals, mediumBondedVals, highestBondedVals, cache, bzReceipt)
+					}()
+				}
+
+				if tt.wantErr {
+					suite.NotEmpty(res.VmError)
+					suite.Contains(res.VmError, tt.wantErrContains)
+					return
+				}
+
+				suite.Empty(res.VmError)
+			})
+		})
+	}
 }
 
 func (suite *CpcTestSuite) requireEventsWithdrawReward(bzMarshalledReceipt []byte, wantCount int, wantDelegator, wantValidator *common.Address) {
