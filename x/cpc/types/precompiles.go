@@ -20,8 +20,16 @@ const (
 )
 
 const (
-	CpcTypeErc20 uint32 = 1
+	CpcTypeErc20 uint32 = iota + 1
+	CpcTypeStaking
 )
+
+const (
+	cpcAddrNonceStaking byte = iota + 1
+)
+
+// CpcStakingFixedAddress is the address of the staking custom precompiled contract.
+var CpcStakingFixedAddress common.Address
 
 func (m CustomPrecompiledContractMeta) Validate(cpcV ProtocolCpc) error {
 	// basic validation
@@ -37,6 +45,8 @@ func (m CustomPrecompiledContractMeta) Validate(cpcV ProtocolCpc) error {
 
 		switch m.CustomPrecompiledType {
 		case CpcTypeErc20:
+		// valid
+		case CpcTypeStaking:
 			// valid
 		default:
 			panic(fmt.Sprintf("unsupported custom precompiled type %d", m.CustomPrecompiledType))
@@ -78,6 +88,16 @@ func (m CustomPrecompiledContractMeta) Validate(cpcV ProtocolCpc) error {
 			return getErrInvalidMetadata(err)
 		}
 		break
+	case CpcTypeStaking:
+		var stakingMeta StakingCustomPrecompiledContractMeta
+		if err := json.Unmarshal([]byte(m.TypedMeta), &stakingMeta); err != nil {
+			return getErrInvalidMetadata(err)
+		}
+
+		if err := stakingMeta.Validate(cpcV); err != nil {
+			return getErrInvalidMetadata(err)
+		}
+		break
 	default:
 		panic(fmt.Sprintf("unimplemented validation for custom precompile type: %d", m.CustomPrecompiledType))
 	}
@@ -92,10 +112,37 @@ func WrapCustomPrecompiledContractMeta(meta CustomPrecompiledContractMeta) Wrapp
 			switch meta.CustomPrecompiledType {
 			case CpcTypeErc20:
 				return "ERC20"
+			case CpcTypeStaking:
+				return "Staking"
 			default:
 				return "Unknown"
 			}
 		}(),
 		Meta: meta,
 	}
+}
+
+func init() {
+	generatedCpcAddresses := make(map[common.Address]struct{})
+
+	// generateCpcAddress generates a custom precompiled contract address based on the contract address nonce.
+	generateCpcAddress := func(contractAddrNonce byte) common.Address {
+		if contractAddrNonce == 0 {
+			panic("contract address nonce cannot be zero")
+		}
+		bz := make([]byte, 20)
+		bz[0] = 0xCC
+		bz[1] = contractAddrNonce
+		bz[19] = contractAddrNonce
+
+		addr := common.BytesToAddress(bz)
+		if _, ok := generatedCpcAddresses[addr]; ok {
+			panic(fmt.Sprintf("generated address %s already exists", addr.Hex()))
+		}
+		generatedCpcAddresses[addr] = struct{}{}
+
+		return addr
+	}
+
+	CpcStakingFixedAddress = generateCpcAddress(cpcAddrNonceStaking)
 }

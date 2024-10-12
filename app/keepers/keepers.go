@@ -400,6 +400,8 @@ func NewAppKeeper(
 			authtypes.NewModuleAddress(govtypes.ModuleName),
 			appKeepers.AccountKeeper,
 			appKeepers.BankKeeper,
+			*appKeepers.StakingKeeper,
+			appKeepers.DistrKeeper,
 		)
 
 		appKeepers.EvmKeeper.WithCpcKeeper(appKeepers.CPCKeeper)

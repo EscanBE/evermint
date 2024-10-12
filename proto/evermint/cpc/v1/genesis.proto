@@ -7,12 +7,15 @@ option go_package = "github.com/EscanBE/evermint/v12/x/cpc/types";
 
 // GenesisState defines the module's genesis state.
 message GenesisState {
+  // params defines all the parameters of the module.
+  Params params = 1 [(gogoproto.nullable) = false];
+
   // deploy_erc20_native defines if the module should deploy the ERC20 contract for native coin.
   // The denom of the native coin is the same as staking denom.
-  bool deploy_erc20_native = 1;
+  bool deploy_erc20_native = 2;
 
-  // params defines all the parameters of the module.
-  Params params = 2 [(gogoproto.nullable) = false];
+  // deploy_staking_contract defines if the module should deploy the staking contract.
+  bool deploy_staking_contract = 3;
 }
 
 // Params defines the cpc module params

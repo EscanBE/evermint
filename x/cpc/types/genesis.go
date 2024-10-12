@@ -3,13 +3,14 @@ package types
 // DefaultGenesis returns the default genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
-		DeployErc20Native: false,
-		Params:            DefaultParams(),
+		Params:                DefaultParams(),
+		DeployErc20Native:     false,
+		DeployStakingContract: false,
 	}
 }
 
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (m GenesisState) Validate() error {
-	return nil
+	return m.Params.Validate()
 }

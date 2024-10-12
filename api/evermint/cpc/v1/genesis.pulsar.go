@@ -14,16 +14,18 @@ import (
 )
 
 var (
-	md_GenesisState                     protoreflect.MessageDescriptor
-	fd_GenesisState_deploy_erc20_native protoreflect.FieldDescriptor
-	fd_GenesisState_params              protoreflect.FieldDescriptor
+	md_GenesisState                         protoreflect.MessageDescriptor
+	fd_GenesisState_params                  protoreflect.FieldDescriptor
+	fd_GenesisState_deploy_erc20_native     protoreflect.FieldDescriptor
+	fd_GenesisState_deploy_staking_contract protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_evermint_cpc_v1_genesis_proto_init()
 	md_GenesisState = File_evermint_cpc_v1_genesis_proto.Messages().ByName("GenesisState")
-	fd_GenesisState_deploy_erc20_native = md_GenesisState.Fields().ByName("deploy_erc20_native")
 	fd_GenesisState_params = md_GenesisState.Fields().ByName("params")
+	fd_GenesisState_deploy_erc20_native = md_GenesisState.Fields().ByName("deploy_erc20_native")
+	fd_GenesisState_deploy_staking_contract = md_GenesisState.Fields().ByName("deploy_staking_contract")
 }
 
 var _ protoreflect.Message = (*fastReflection_GenesisState)(nil)
@@ -91,15 +93,21 @@ func (x *fastReflection_GenesisState) Interface() protoreflect.ProtoMessage {
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
 func (x *fastReflection_GenesisState) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Params != nil {
+		value := protoreflect.ValueOfMessage(x.Params.ProtoReflect())
+		if !f(fd_GenesisState_params, value) {
+			return
+		}
+	}
 	if x.DeployErc20Native != false {
 		value := protoreflect.ValueOfBool(x.DeployErc20Native)
 		if !f(fd_GenesisState_deploy_erc20_native, value) {
 			return
 		}
 	}
-	if x.Params != nil {
-		value := protoreflect.ValueOfMessage(x.Params.ProtoReflect())
-		if !f(fd_GenesisState_params, value) {
+	if x.DeployStakingContract != false {
+		value := protoreflect.ValueOfBool(x.DeployStakingContract)
+		if !f(fd_GenesisState_deploy_staking_contract, value) {
 			return
 		}
 	}
@@ -118,10 +126,12 @@ func (x *fastReflection_GenesisState) Range(f func(protoreflect.FieldDescriptor,
 // a repeated field is populated if it is non-empty.
 func (x *fastReflection_GenesisState) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "evermint.cpc.v1.GenesisState.deploy_erc20_native":
-		return x.DeployErc20Native != false
 	case "evermint.cpc.v1.GenesisState.params":
 		return x.Params != nil
+	case "evermint.cpc.v1.GenesisState.deploy_erc20_native":
+		return x.DeployErc20Native != false
+	case "evermint.cpc.v1.GenesisState.deploy_staking_contract":
+		return x.DeployStakingContract != false
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: evermint.cpc.v1.GenesisState"))
@@ -138,10 +148,12 @@ func (x *fastReflection_GenesisState) Has(fd protoreflect.FieldDescriptor) bool 
 // Clear is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_GenesisState) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "evermint.cpc.v1.GenesisState.deploy_erc20_native":
-		x.DeployErc20Native = false
 	case "evermint.cpc.v1.GenesisState.params":
 		x.Params = nil
+	case "evermint.cpc.v1.GenesisState.deploy_erc20_native":
+		x.DeployErc20Native = false
+	case "evermint.cpc.v1.GenesisState.deploy_staking_contract":
+		x.DeployStakingContract = false
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: evermint.cpc.v1.GenesisState"))
@@ -158,12 +170,15 @@ func (x *fastReflection_GenesisState) Clear(fd protoreflect.FieldDescriptor) {
 // of the value; to obtain a mutable reference, use Mutable.
 func (x *fastReflection_GenesisState) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "evermint.cpc.v1.GenesisState.deploy_erc20_native":
-		value := x.DeployErc20Native
-		return protoreflect.ValueOfBool(value)
 	case "evermint.cpc.v1.GenesisState.params":
 		value := x.Params
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	case "evermint.cpc.v1.GenesisState.deploy_erc20_native":
+		value := x.DeployErc20Native
+		return protoreflect.ValueOfBool(value)
+	case "evermint.cpc.v1.GenesisState.deploy_staking_contract":
+		value := x.DeployStakingContract
+		return protoreflect.ValueOfBool(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: evermint.cpc.v1.GenesisState"))
@@ -184,10 +199,12 @@ func (x *fastReflection_GenesisState) Get(descriptor protoreflect.FieldDescripto
 // Set is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_GenesisState) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "evermint.cpc.v1.GenesisState.deploy_erc20_native":
-		x.DeployErc20Native = value.Bool()
 	case "evermint.cpc.v1.GenesisState.params":
 		x.Params = value.Message().Interface().(*Params)
+	case "evermint.cpc.v1.GenesisState.deploy_erc20_native":
+		x.DeployErc20Native = value.Bool()
+	case "evermint.cpc.v1.GenesisState.deploy_staking_contract":
+		x.DeployStakingContract = value.Bool()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: evermint.cpc.v1.GenesisState"))
@@ -215,6 +232,8 @@ func (x *fastReflection_GenesisState) Mutable(fd protoreflect.FieldDescriptor) p
 		return protoreflect.ValueOfMessage(x.Params.ProtoReflect())
 	case "evermint.cpc.v1.GenesisState.deploy_erc20_native":
 		panic(fmt.Errorf("field deploy_erc20_native of message evermint.cpc.v1.GenesisState is not mutable"))
+	case "evermint.cpc.v1.GenesisState.deploy_staking_contract":
+		panic(fmt.Errorf("field deploy_staking_contract of message evermint.cpc.v1.GenesisState is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: evermint.cpc.v1.GenesisState"))
@@ -228,11 +247,13 @@ func (x *fastReflection_GenesisState) Mutable(fd protoreflect.FieldDescriptor) p
 // For lists, maps, and messages, this returns a new, empty, mutable value.
 func (x *fastReflection_GenesisState) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "evermint.cpc.v1.GenesisState.deploy_erc20_native":
-		return protoreflect.ValueOfBool(false)
 	case "evermint.cpc.v1.GenesisState.params":
 		m := new(Params)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	case "evermint.cpc.v1.GenesisState.deploy_erc20_native":
+		return protoreflect.ValueOfBool(false)
+	case "evermint.cpc.v1.GenesisState.deploy_staking_contract":
+		return protoreflect.ValueOfBool(false)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: evermint.cpc.v1.GenesisState"))
@@ -302,12 +323,15 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 		var n int
 		var l int
 		_ = l
-		if x.DeployErc20Native {
-			n += 2
-		}
 		if x.Params != nil {
 			l = options.Size(x.Params)
 			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.DeployErc20Native {
+			n += 2
+		}
+		if x.DeployStakingContract {
+			n += 2
 		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
@@ -338,6 +362,26 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
+		if x.DeployStakingContract {
+			i--
+			if x.DeployStakingContract {
+				dAtA[i] = 1
+			} else {
+				dAtA[i] = 0
+			}
+			i--
+			dAtA[i] = 0x18
+		}
+		if x.DeployErc20Native {
+			i--
+			if x.DeployErc20Native {
+				dAtA[i] = 1
+			} else {
+				dAtA[i] = 0
+			}
+			i--
+			dAtA[i] = 0x10
+		}
 		if x.Params != nil {
 			encoded, err := options.Marshal(x.Params)
 			if err != nil {
@@ -350,17 +394,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 			copy(dAtA[i:], encoded)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 			i--
-			dAtA[i] = 0x12
-		}
-		if x.DeployErc20Native {
-			i--
-			if x.DeployErc20Native {
-				dAtA[i] = 1
-			} else {
-				dAtA[i] = 0
-			}
-			i--
-			dAtA[i] = 0x8
+			dAtA[i] = 0xa
 		}
 		if input.Buf != nil {
 			input.Buf = append(input.Buf, dAtA...)
@@ -412,26 +446,6 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 			}
 			switch fieldNum {
 			case 1:
-				if wireType != 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DeployErc20Native", wireType)
-				}
-				var v int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					v |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				x.DeployErc20Native = bool(v != 0)
-			case 2:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Params", wireType)
 				}
@@ -467,6 +481,46 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
+			case 2:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DeployErc20Native", wireType)
+				}
+				var v int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				x.DeployErc20Native = bool(v != 0)
+			case 3:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DeployStakingContract", wireType)
+				}
+				var v int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				x.DeployStakingContract = bool(v != 0)
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -1049,11 +1103,13 @@ type GenesisState struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// params defines all the parameters of the module.
+	Params *Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
 	// deploy_erc20_native defines if the module should deploy the ERC20 contract for native coin.
 	// The denom of the native coin is the same as staking denom.
-	DeployErc20Native bool `protobuf:"varint,1,opt,name=deploy_erc20_native,json=deployErc20Native,proto3" json:"deploy_erc20_native,omitempty"`
-	// params defines all the parameters of the module.
-	Params *Params `protobuf:"bytes,2,opt,name=params,proto3" json:"params,omitempty"`
+	DeployErc20Native bool `protobuf:"varint,2,opt,name=deploy_erc20_native,json=deployErc20Native,proto3" json:"deploy_erc20_native,omitempty"`
+	// deploy_staking_contract defines if the module should deploy the staking contract.
+	DeployStakingContract bool `protobuf:"varint,3,opt,name=deploy_staking_contract,json=deployStakingContract,proto3" json:"deploy_staking_contract,omitempty"`
 }
 
 func (x *GenesisState) Reset() {
@@ -1076,6 +1132,13 @@ func (*GenesisState) Descriptor() ([]byte, []int) {
 	return file_evermint_cpc_v1_genesis_proto_rawDescGZIP(), []int{0}
 }
 
+func (x *GenesisState) GetParams() *Params {
+	if x != nil {
+		return x.Params
+	}
+	return nil
+}
+
 func (x *GenesisState) GetDeployErc20Native() bool {
 	if x != nil {
 		return x.DeployErc20Native
@@ -1083,11 +1146,11 @@ func (x *GenesisState) GetDeployErc20Native() bool {
 	return false
 }
 
-func (x *GenesisState) GetParams() *Params {
+func (x *GenesisState) GetDeployStakingContract() bool {
 	if x != nil {
-		return x.Params
+		return x.DeployStakingContract
 	}
-	return nil
+	return false
 }
 
 // Params defines the cpc module params
@@ -1143,32 +1206,36 @@ var file_evermint_cpc_v1_genesis_proto_rawDesc = []byte{
 	0x31, 0x2f, 0x67, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12,
 	0x0f, 0x65, 0x76, 0x65, 0x72, 0x6d, 0x69, 0x6e, 0x74, 0x2e, 0x63, 0x70, 0x63, 0x2e, 0x76, 0x31,
 	0x1a, 0x14, 0x67, 0x6f, 0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67, 0x6f,
-	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x75, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69,
-	0x73, 0x53, 0x74, 0x61, 0x74, 0x65, 0x12, 0x2e, 0x0a, 0x13, 0x64, 0x65, 0x70, 0x6c, 0x6f, 0x79,
-	0x5f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x5f, 0x6e, 0x61, 0x74, 0x69, 0x76, 0x65, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x08, 0x52, 0x11, 0x64, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x45, 0x72, 0x63, 0x32, 0x30,
-	0x4e, 0x61, 0x74, 0x69, 0x76, 0x65, 0x12, 0x35, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x65, 0x76, 0x65, 0x72, 0x6d, 0x69, 0x6e,
-	0x74, 0x2e, 0x63, 0x70, 0x63, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42,
-	0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x22, 0x68, 0x0a,
-	0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x29, 0x0a, 0x10, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x63, 0x6f, 0x6c, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x0d, 0x52, 0x0f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x56, 0x65, 0x72, 0x73, 0x69,
-	0x6f, 0x6e, 0x12, 0x33, 0x0a, 0x15, 0x77, 0x68, 0x69, 0x74, 0x65, 0x6c, 0x69, 0x73, 0x74, 0x65,
-	0x64, 0x5f, 0x64, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x65, 0x72, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28,
-	0x09, 0x52, 0x14, 0x77, 0x68, 0x69, 0x74, 0x65, 0x6c, 0x69, 0x73, 0x74, 0x65, 0x64, 0x44, 0x65,
-	0x70, 0x6c, 0x6f, 0x79, 0x65, 0x72, 0x73, 0x42, 0xa9, 0x01, 0x0a, 0x13, 0x63, 0x6f, 0x6d, 0x2e,
-	0x65, 0x76, 0x65, 0x72, 0x6d, 0x69, 0x6e, 0x74, 0x2e, 0x63, 0x70, 0x63, 0x2e, 0x76, 0x31, 0x42,
-	0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a,
-	0x26, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70,
-	0x69, 0x2f, 0x65, 0x76, 0x65, 0x72, 0x6d, 0x69, 0x6e, 0x74, 0x2f, 0x63, 0x70, 0x63, 0x2f, 0x76,
-	0x31, 0x3b, 0x63, 0x70, 0x63, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x45, 0x43, 0x58, 0xaa, 0x02, 0x0f,
-	0x45, 0x76, 0x65, 0x72, 0x6d, 0x69, 0x6e, 0x74, 0x2e, 0x43, 0x70, 0x63, 0x2e, 0x56, 0x31, 0xca,
-	0x02, 0x0f, 0x45, 0x76, 0x65, 0x72, 0x6d, 0x69, 0x6e, 0x74, 0x5c, 0x43, 0x70, 0x63, 0x5c, 0x56,
-	0x31, 0xe2, 0x02, 0x1b, 0x45, 0x76, 0x65, 0x72, 0x6d, 0x69, 0x6e, 0x74, 0x5c, 0x43, 0x70, 0x63,
-	0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea,
-	0x02, 0x11, 0x45, 0x76, 0x65, 0x72, 0x6d, 0x69, 0x6e, 0x74, 0x3a, 0x3a, 0x43, 0x70, 0x63, 0x3a,
-	0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xad, 0x01, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73,
+	0x69, 0x73, 0x53, 0x74, 0x61, 0x74, 0x65, 0x12, 0x35, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d,
+	0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x65, 0x76, 0x65, 0x72, 0x6d, 0x69,
+	0x6e, 0x74, 0x2e, 0x63, 0x70, 0x63, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73,
+	0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x2e,
+	0x0a, 0x13, 0x64, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x5f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x5f, 0x6e,
+	0x61, 0x74, 0x69, 0x76, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x11, 0x64, 0x65, 0x70,
+	0x6c, 0x6f, 0x79, 0x45, 0x72, 0x63, 0x32, 0x30, 0x4e, 0x61, 0x74, 0x69, 0x76, 0x65, 0x12, 0x36,
+	0x0a, 0x17, 0x64, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x5f, 0x73, 0x74, 0x61, 0x6b, 0x69, 0x6e, 0x67,
+	0x5f, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x61, 0x63, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x08, 0x52,
+	0x15, 0x64, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x53, 0x74, 0x61, 0x6b, 0x69, 0x6e, 0x67, 0x43, 0x6f,
+	0x6e, 0x74, 0x72, 0x61, 0x63, 0x74, 0x22, 0x68, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73,
+	0x12, 0x29, 0x0a, 0x10, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x5f, 0x76, 0x65, 0x72,
+	0x73, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x0f, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x63, 0x6f, 0x6c, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x33, 0x0a, 0x15, 0x77,
+	0x68, 0x69, 0x74, 0x65, 0x6c, 0x69, 0x73, 0x74, 0x65, 0x64, 0x5f, 0x64, 0x65, 0x70, 0x6c, 0x6f,
+	0x79, 0x65, 0x72, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x14, 0x77, 0x68, 0x69, 0x74,
+	0x65, 0x6c, 0x69, 0x73, 0x74, 0x65, 0x64, 0x44, 0x65, 0x70, 0x6c, 0x6f, 0x79, 0x65, 0x72, 0x73,
+	0x42, 0xa9, 0x01, 0x0a, 0x13, 0x63, 0x6f, 0x6d, 0x2e, 0x65, 0x76, 0x65, 0x72, 0x6d, 0x69, 0x6e,
+	0x74, 0x2e, 0x63, 0x70, 0x63, 0x2e, 0x76, 0x31, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69,
+	0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x26, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73,
+	0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x65, 0x76, 0x65, 0x72, 0x6d,
+	0x69, 0x6e, 0x74, 0x2f, 0x63, 0x70, 0x63, 0x2f, 0x76, 0x31, 0x3b, 0x63, 0x70, 0x63, 0x76, 0x31,
+	0xa2, 0x02, 0x03, 0x45, 0x43, 0x58, 0xaa, 0x02, 0x0f, 0x45, 0x76, 0x65, 0x72, 0x6d, 0x69, 0x6e,
+	0x74, 0x2e, 0x43, 0x70, 0x63, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0f, 0x45, 0x76, 0x65, 0x72, 0x6d,
+	0x69, 0x6e, 0x74, 0x5c, 0x43, 0x70, 0x63, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x1b, 0x45, 0x76, 0x65,
+	0x72, 0x6d, 0x69, 0x6e, 0x74, 0x5c, 0x43, 0x70, 0x63, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42,
+	0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x11, 0x45, 0x76, 0x65, 0x72, 0x6d,
+	0x69, 0x6e, 0x74, 0x3a, 0x3a, 0x43, 0x70, 0x63, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
