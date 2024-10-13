@@ -1071,7 +1071,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract_transfer(
 
 				suite.Equal(1, rewardAmount.Sign())
 				suite.Equal(1, actualDelegateAmount.Sign())
-				suite.Equal(sumManyBigInt(originalDelegated, rewardAmount, big.NewInt(1e9)).String(), gotDelegated.String())
+				suite.Equal(sumManyBigInt(originalDelegated, big.NewInt(1e9)).String(), gotDelegated.String())
 				suite.Equal(sumManyBigInt(originalDelegated, actualDelegateAmount).String(), gotDelegated.String())
 			},
 			wantErr: false,
