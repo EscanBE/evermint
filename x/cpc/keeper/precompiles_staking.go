@@ -612,7 +612,7 @@ func (e stakingCustomPrecompiledContractRwDelegate) Execute(caller corevm.Contra
 
 	msgDelegate := stakingtypes.NewMsgDelegate(
 		sdk.AccAddress(caller.Address().Bytes()).String(), // delegator
-		valAddrStr,                                        // validator
+		valAddrStr, // validator
 		sdk.NewCoin(bondDenom, sdkmath.NewIntFromBigInt(amount)),
 	)
 	if _, err := stakingkeeper.NewMsgServerImpl(&e.contract.keeper.stakingKeeper).Delegate(ctx, msgDelegate); err != nil {
@@ -672,7 +672,7 @@ func (e stakingCustomPrecompiledContractRwUnDelegate) Execute(caller corevm.Cont
 
 	msgUnDelegate := stakingtypes.NewMsgUndelegate(
 		sdk.AccAddress(caller.Address().Bytes()).String(), // delegator
-		valAddrStr,                                        // validator
+		valAddrStr, // validator
 		sdk.NewCoin(bondDenom, sdkmath.NewIntFromBigInt(amount)),
 	)
 	if _, err := stakingkeeper.NewMsgServerImpl(&e.contract.keeper.stakingKeeper).Undelegate(ctx, msgUnDelegate); err != nil {
@@ -737,8 +737,8 @@ func (e stakingCustomPrecompiledContractRwReDelegate) Execute(caller corevm.Cont
 
 	msgBeginRedelegate := stakingtypes.NewMsgBeginRedelegate(
 		sdk.AccAddress(caller.Address().Bytes()).String(), // delegator
-		srcValAddrStr,                                     // source validator
-		dstValAddrStr,                                     // destination validator
+		srcValAddrStr, // source validator
+		dstValAddrStr, // destination validator
 		sdk.NewCoin(bondDenom, sdkmath.NewIntFromBigInt(amount)),
 	)
 	if _, err := stakingkeeper.NewMsgServerImpl(&e.contract.keeper.stakingKeeper).BeginRedelegate(ctx, msgBeginRedelegate); err != nil {
@@ -791,7 +791,7 @@ func (e stakingCustomPrecompiledContractRwWithdrawReward) Execute(caller corevm.
 
 	msgWithdrawDelegatorReward := disttypes.NewMsgWithdrawDelegatorReward(
 		sdk.AccAddress(caller.Address().Bytes()).String(), // delegator
-		valAddrStr,                                        //  validator
+		valAddrStr, //  validator
 	)
 	if _, err := distkeeper.NewMsgServerImpl(dk).WithdrawDelegatorReward(ctx, msgWithdrawDelegatorReward); err != nil {
 		return nil, err
@@ -867,7 +867,7 @@ func (e stakingCustomPrecompiledContractRwWithdrawRewards) Execute(caller corevm
 	for _, valAddrStr := range toWithdraw {
 		msgWithdrawDelegatorReward := disttypes.NewMsgWithdrawDelegatorReward(
 			sdk.AccAddress(caller.Address().Bytes()).String(), // delegator
-			valAddrStr,                                        //  validator
+			valAddrStr, //  validator
 		)
 		if _, err := distkeeper.NewMsgServerImpl(e.contract.keeper.distKeeper).WithdrawDelegatorReward(ctx, msgWithdrawDelegatorReward); err != nil {
 			return nil, err

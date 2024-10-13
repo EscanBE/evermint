@@ -75,6 +75,23 @@ interface IERC20CPC {
      */
     function transferFrom(address from, address to, uint256 value) external returns (bool);
 
+    // Meta
+
+    /**
+     * @dev Returns the name of the token.
+     */
+    function name() external view returns (string memory);
+
+    /**
+     * @dev Returns the symbol of the token.
+     */
+    function symbol() external view returns (string memory);
+
+    /**
+     * @dev Returns the number of decimals the token uses.
+     */
+    function decimals() external view returns (uint8);
+
     // Burnable
 
     /**

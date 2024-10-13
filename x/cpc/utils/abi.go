@@ -16,7 +16,9 @@ func AbiEncodeString(str string) ([]byte, error) {
 
 // AbiEncodeUint8 encodes uint8
 func AbiEncodeUint8(num uint8) ([]byte, error) {
-	return abiArgsSingleUint8.Pack(num)
+	ret := make([]byte, 32)
+	ret[31] = num
+	return ret, nil
 }
 
 // AbiEncodeUint256 encodes uint256
@@ -26,7 +28,11 @@ func AbiEncodeUint256(num *big.Int) ([]byte, error) {
 
 // AbiEncodeBool encodes bool
 func AbiEncodeBool(b bool) ([]byte, error) {
-	return abiArgsSingleBool.Pack(b)
+	ret := make([]byte, 32)
+	if b {
+		ret[31] = 0x1
+	}
+	return ret, nil
 }
 
 // AbiEncodeArrayOfAddresses encodes array of addresses
