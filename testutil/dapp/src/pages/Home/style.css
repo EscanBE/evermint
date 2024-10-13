@@ -1,0 +1,43 @@
+img {
+	margin-bottom: 1.5rem;
+}
+
+img:hover {
+	filter: drop-shadow(0 0 2em #673ab8aa);
+}
+
+.home section {
+	margin-top: 5rem;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	column-gap: 1.5rem;
+}
+
+@media (max-width: 639px) {
+	.home section {
+		margin-top: 5rem;
+		grid-template-columns: 1fr;
+		row-gap: 1rem;
+	}
+}
+
+#precompiled-contracts {
+	margin-top: 50px;
+}
+
+.pcSection {
+	margin-top: 40px;
+}
+
+.pcResult {
+	border: 1px solid #673ab8;
+	border-radius: 5px;
+	padding: 10px;
+	color: #673ab8;
+	max-width: 800px;
+	text-align: left;
+}
+
+.display-linebreak {
+	white-space: pre-line;
+}
