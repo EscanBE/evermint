@@ -1,11 +1,12 @@
 package keeper
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
+
+	"github.com/EscanBE/evermint/v12/x/cpc/abi"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -200,10 +201,11 @@ type erc20CustomPrecompiledContractRoName struct {
 }
 
 func (e erc20CustomPrecompiledContractRoName) Execute(_ corevm.ContractRef, _ common.Address, input []byte, _ cpcExecutorEnv) ([]byte, error) {
-	if len(input) != 4 {
-		return nil, cpctypes.ErrInvalidCpcInput
+	_, err := abi.Erc20CpcInfo.UnpackMethodInput("name", input)
+	if err != nil {
+		return nil, err
 	}
-	return cpcutils.AbiEncodeString(e.contract.metadata.Name)
+	return abi.Erc20CpcInfo.PackMethodOutput("name", e.contract.metadata.Name)
 }
 
 func (e erc20CustomPrecompiledContractRoName) Method4BytesSignatures() []byte {
@@ -227,11 +229,12 @@ type erc20CustomPrecompiledContractRoSymbol struct {
 }
 
 func (e erc20CustomPrecompiledContractRoSymbol) Execute(_ corevm.ContractRef, _ common.Address, input []byte, _ cpcExecutorEnv) ([]byte, error) {
-	if len(input) != 4 {
-		return nil, cpctypes.ErrInvalidCpcInput
+	_, err := abi.Erc20CpcInfo.UnpackMethodInput("symbol", input)
+	if err != nil {
+		return nil, err
 	}
 
-	return cpcutils.AbiEncodeString(e.contract.GetErc20Metadata().Symbol)
+	return abi.Erc20CpcInfo.PackMethodOutput("symbol", e.contract.GetErc20Metadata().Symbol)
 }
 
 func (e erc20CustomPrecompiledContractRoSymbol) Method4BytesSignatures() []byte {
@@ -255,11 +258,12 @@ type erc20CustomPrecompiledContractRoDecimals struct {
 }
 
 func (e erc20CustomPrecompiledContractRoDecimals) Execute(_ corevm.ContractRef, _ common.Address, input []byte, _ cpcExecutorEnv) ([]byte, error) {
-	if len(input) != 4 {
-		return nil, cpctypes.ErrInvalidCpcInput
+	_, err := abi.Erc20CpcInfo.UnpackMethodInput("decimals", input)
+	if err != nil {
+		return nil, err
 	}
 
-	return cpcutils.AbiEncodeUint8(e.contract.GetErc20Metadata().Decimals)
+	return abi.Erc20CpcInfo.PackMethodOutput("decimals", e.contract.GetErc20Metadata().Decimals)
 }
 
 func (e erc20CustomPrecompiledContractRoDecimals) Method4BytesSignatures() []byte {
@@ -283,15 +287,16 @@ type erc20CustomPrecompiledContractRoTotalSupply struct {
 }
 
 func (e erc20CustomPrecompiledContractRoTotalSupply) Execute(_ corevm.ContractRef, _ common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
-	if len(input) != 4 {
-		return nil, cpctypes.ErrInvalidCpcInput
+	_, err := abi.Erc20CpcInfo.UnpackMethodInput("totalSupply", input)
+	if err != nil {
+		return nil, err
 	}
 
 	ctx := env.ctx
 	denom := e.contract.GetErc20Metadata().MinDenom
 	supply := e.contract.keeper.bankKeeper.GetSupply(ctx, denom)
 
-	return cpcutils.AbiEncodeUint256(supply.Amount.BigInt())
+	return abi.Erc20CpcInfo.PackMethodOutput("totalSupply", supply.Amount.BigInt())
 }
 
 func (e erc20CustomPrecompiledContractRoTotalSupply) Method4BytesSignatures() []byte {
@@ -315,15 +320,17 @@ type erc20CustomPrecompiledContractRoBalanceOf struct {
 }
 
 func (e erc20CustomPrecompiledContractRoBalanceOf) Execute(_ corevm.ContractRef, _ common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
-	if len(input) != 4+32 {
-		return nil, cpctypes.ErrInvalidCpcInput
+	ips, err := abi.Erc20CpcInfo.UnpackMethodInput("balanceOf", input)
+	if err != nil {
+		return nil, err
 	}
 
 	ctx := env.ctx
-	addr := common.BytesToAddress(input[4:])
+	addr := ips[0].(common.Address)
 	denom := e.contract.GetErc20Metadata().MinDenom
 	balance := e.contract.keeper.bankKeeper.GetBalance(ctx, addr.Bytes(), denom)
-	return cpcutils.AbiEncodeUint256(balance.Amount.BigInt())
+
+	return abi.Erc20CpcInfo.PackMethodOutput("balanceOf", balance.Amount.BigInt())
 }
 
 func (e erc20CustomPrecompiledContractRoBalanceOf) Method4BytesSignatures() []byte {
@@ -347,26 +354,22 @@ type erc20CustomPrecompiledContractRwTransferFrom struct {
 }
 
 func (e erc20CustomPrecompiledContractRwTransferFrom) Execute(caller corevm.ContractRef, contractAddr common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
-	if len(input) != 4+32 /*from*/ +32 /*to*/ +32 /*amount*/ {
-		return nil, cpctypes.ErrInvalidCpcInput
+	ips, err := abi.Erc20CpcInfo.UnpackMethodInput("transferFrom", input)
+	if err != nil {
+		return nil, err
 	}
 
 	ctx := env.ctx
 	stateDB := env.evm.StateDB
 
-	from := common.BytesToAddress(input[4:36])
-	to := common.BytesToAddress(input[36:68])
+	from := ips[0].(common.Address)
+	to := ips[1].(common.Address)
+	amount := ips[2].(*big.Int)
 
 	if from == (common.Address{}) {
 		return nil, fmt.Errorf(`ERC20InvalidSender("%s")`, from.String())
 	} else if to == (common.Address{}) {
 		return nil, fmt.Errorf(`ERC20InvalidReceiver("%s")`, to.String())
-	}
-
-	amountBz := input[68:]
-	amount, err := cpcutils.AbiDecodeUint256(amountBz)
-	if err != nil {
-		panic(errorsmod.Wrapf(errors.Join(cpctypes.ErrInvalidCpcInput, err), "failed to decode amount: %s", hex.EncodeToString(amountBz)))
 	}
 
 	if from != caller.Address() {
@@ -460,25 +463,22 @@ type erc20CustomPrecompiledContractRwTransfer struct {
 }
 
 func (e erc20CustomPrecompiledContractRwTransfer) Execute(caller corevm.ContractRef, contractAddr common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
-	if len(input) != 4+32 /*to*/ +32 /*amount*/ {
-		return nil, cpctypes.ErrInvalidCpcInput
+	ips, err := abi.Erc20CpcInfo.UnpackMethodInput("transfer", input)
+	if err != nil {
+		return nil, err
 	}
 
 	ctx := env.ctx
 	stateDB := env.evm.StateDB
 
 	from := caller.Address()
-	to := common.BytesToAddress(input[4:36])
+	to := ips[0].(common.Address)
+	amount := ips[1].(*big.Int)
+
 	if from == (common.Address{}) {
 		return nil, fmt.Errorf(`ERC20InvalidSender("%s")`, from.String())
 	} else if to == (common.Address{}) {
 		return nil, fmt.Errorf(`ERC20InvalidReceiver("%s")`, to.String())
-	}
-
-	amountBz := input[36:]
-	amount, err := cpcutils.AbiDecodeUint256(amountBz)
-	if err != nil {
-		panic(errorsmod.Wrapf(errors.Join(cpctypes.ErrInvalidCpcInput, err), "failed to decode amount: %s", hex.EncodeToString(amountBz)))
 	}
 
 	return e.transferFrom.transfer(ctx, from, to, amount, contractAddr, stateDB)
@@ -505,25 +505,22 @@ type erc20CustomPrecompiledContractRwApprove struct {
 }
 
 func (e erc20CustomPrecompiledContractRwApprove) Execute(caller corevm.ContractRef, contractAddr common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
-	if len(input) != 4+32 /*spender*/ +32 /*value*/ {
-		return nil, cpctypes.ErrInvalidCpcInput
+	ips, err := abi.Erc20CpcInfo.UnpackMethodInput("approve", input)
+	if err != nil {
+		return nil, err
 	}
 
 	ctx := env.ctx
 	stateDB := env.evm.StateDB
+
 	owner := caller.Address()
-	spender := common.BytesToAddress(input[4:36])
+	spender := ips[0].(common.Address)
+	value := ips[1].(*big.Int)
 
 	if owner == (common.Address{}) {
 		return nil, fmt.Errorf(`ERC20InvalidApprover("%s")`, owner.String())
 	} else if spender == (common.Address{}) {
 		return nil, fmt.Errorf(`ERC20InvalidSpender("%s")`, spender.String())
-	}
-
-	valueBz := input[36:]
-	value, err := cpcutils.AbiDecodeUint256(valueBz)
-	if err != nil {
-		panic(errorsmod.Wrapf(errors.Join(cpctypes.ErrInvalidCpcInput, err), "failed to decode value: %s", hex.EncodeToString(valueBz)))
 	}
 
 	e.contract.keeper.SetErc20CpcAllowance(ctx, owner, spender, value)
@@ -538,7 +535,7 @@ func (e erc20CustomPrecompiledContractRwApprove) Execute(caller corevm.ContractR
 		Data: common.BytesToHash(value.Bytes()).Bytes(),
 	})
 
-	return cpcutils.AbiEncodeBool(true)
+	return abi.Erc20CpcInfo.PackMethodOutput("approve", true)
 }
 
 func (e erc20CustomPrecompiledContractRwApprove) Method4BytesSignatures() []byte {
@@ -562,17 +559,18 @@ type erc20CustomPrecompiledContractRoAllowance struct {
 }
 
 func (e erc20CustomPrecompiledContractRoAllowance) Execute(_ corevm.ContractRef, _ common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
-	if len(input) != 4+32 /*owner*/ +32 /*spender*/ {
-		return nil, cpctypes.ErrInvalidCpcInput
+	ips, err := abi.Erc20CpcInfo.UnpackMethodInput("allowance", input)
+	if err != nil {
+		return nil, err
 	}
 
 	ctx := env.ctx
-	owner := common.BytesToAddress(input[4:36])
-	spender := common.BytesToAddress(input[36:68])
+	owner := ips[0].(common.Address)
+	spender := ips[1].(common.Address)
 
 	allowance := e.contract.keeper.GetErc20CpcAllowance(ctx, owner, spender)
 
-	return cpcutils.AbiEncodeUint256(allowance)
+	return abi.Erc20CpcInfo.PackMethodOutput("allowance", allowance)
 }
 
 func (e erc20CustomPrecompiledContractRoAllowance) Method4BytesSignatures() []byte {
@@ -596,23 +594,19 @@ type erc20CustomPrecompiledContractRwBurnFrom struct {
 }
 
 func (e erc20CustomPrecompiledContractRwBurnFrom) Execute(caller corevm.ContractRef, contractAddr common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
-	if len(input) != 4+32 /*address*/ +32 /*amount*/ {
-		return nil, cpctypes.ErrInvalidCpcInput
+	ips, err := abi.Erc20CpcInfo.UnpackMethodInput("burnFrom", input)
+	if err != nil {
+		return nil, err
 	}
 
 	ctx := env.ctx
 	stateDB := env.evm.StateDB
 
-	address := common.BytesToAddress(input[4:36])
+	address := ips[0].(common.Address)
+	amount := ips[1].(*big.Int)
 
 	if address == (common.Address{}) {
 		return nil, fmt.Errorf(`ERC20InvalidSender("%s")`, address.String())
-	}
-
-	amountBz := input[36:]
-	amount, err := cpcutils.AbiDecodeUint256(amountBz)
-	if err != nil {
-		panic(errorsmod.Wrapf(errors.Join(cpctypes.ErrInvalidCpcInput, err), "failed to decode amount: %s", hex.EncodeToString(amountBz)))
 	}
 
 	if address != caller.Address() {
@@ -645,22 +639,19 @@ type erc20CustomPrecompiledContractRwBurn struct {
 }
 
 func (e erc20CustomPrecompiledContractRwBurn) Execute(caller corevm.ContractRef, contractAddr common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
-	if len(input) != 4+32 /*amount*/ {
-		return nil, cpctypes.ErrInvalidCpcInput
+	ips, err := abi.Erc20CpcInfo.UnpackMethodInput("burn", input)
+	if err != nil {
+		return nil, err
 	}
 
 	ctx := env.ctx
 	stateDB := env.evm.StateDB
 
 	from := caller.Address()
+	amount := ips[0].(*big.Int)
+
 	if from == (common.Address{}) {
 		return nil, fmt.Errorf(`ERC20InvalidSender("%s")`, from.String())
-	}
-
-	amountBz := input[4:]
-	amount, err := cpcutils.AbiDecodeUint256(amountBz)
-	if err != nil {
-		panic(errorsmod.Wrapf(errors.Join(cpctypes.ErrInvalidCpcInput, err), "failed to decode amount: %s", hex.EncodeToString(amountBz)))
 	}
 
 	return e.transferFrom.transfer(ctx, from, common.Address{}, amount, contractAddr, stateDB)
