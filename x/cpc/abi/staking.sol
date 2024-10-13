@@ -115,9 +115,9 @@ interface IStakingCPC {
     function balanceOf(address account) external view returns (uint256);
 
     /**
-     * @dev Claims available staking reward then re-delegate.
+     * @dev Claims available staking reward and then delegate.
      * Rules:
-     * - To avoid mistake and fund lost, `to` must be self-address.
+     * - To avoid mistake (interact with wrong contract) that might cause fund lost, `to` must be self-address.
      * - `value` must be lower or equals to `available balance + unclaimed staking reward`.
      * - Validator to delegate to will be selected by the following rules:
      *   + If not delegated into any validator, a mid-power validator will be selected and receive delegation.
