@@ -1,3 +1,15 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity >=0.7.0 <0.9.0;
+
+struct DelegateMessage {
+    string action;
+    address delegator;
+    string validator;
+    uint256 amount;
+    string denom;
+}
+
 interface IStakingCPC {
     /**
      * @dev Emitted when the delegator delegated into a validator.
@@ -64,6 +76,15 @@ interface IStakingCPC {
      * Emits a {Delegate} event.
      */
     function delegate(address validator, uint256 value) external returns (bool);
+
+    /**
+     * @dev Delegate a `value` amount of staking coin from the caller's account to `validator`.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {Delegate} event.
+     */
+    function delegate712(DelegateMessage memory message, bytes32 r, bytes32 s, uint8 v) external returns (bool);
 
     /**
      * @dev Undelegate a `value` amount of staking coin of the caller's account from `validator`.

@@ -6,6 +6,17 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/big"
+
+	"github.com/EscanBE/evermint/v12/x/cpc/eip712"
+	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
+	cmath "github.com/ethereum/go-ethereum/common/math"
+	"github.com/ethereum/go-ethereum/signer/core/apitypes"
+
+	addresscodec "cosmossdk.io/core/address"
+	errorsmod "cosmossdk.io/errors"
+
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )
@@ -35,7 +46,7 @@ func (s CustomPrecompiledContractInfo) findMethodWithSignatureCheck(methodName s
 	method := s.findMethod(methodName)
 	inputSig := fullInput[:4]
 	if !bytes.Equal(method.ID, inputSig) {
-		panic(fmt.Sprintf("signature not match: 0x%s != 0x%s", hex.EncodeToString(method.ID), hex.EncodeToString(inputSig)))
+		panic(fmt.Sprintf("signature not match for %s: 0x%s != 0x%s", method.Sig, hex.EncodeToString(method.ID), hex.EncodeToString(inputSig)))
 	}
 	return method
 }
@@ -75,4 +86,75 @@ func init() {
 		panic(err)
 	}
 	StakingCpcInfo.Name = "Staking"
+}
+
+var _ eip712.TypedMessage = (*DelegateMessage)(nil)
+
+const (
+	DelegateMessageActionDelegate = "Delegate"
+)
+
+type DelegateMessage struct {
+	Action    string         `json:"action"`
+	Delegator common.Address `json:"delegator"`
+	Validator string         `json:"validator"`
+	Amount    *big.Int       `json:"amount"`
+	Denom     string         `json:"denom"`
+}
+
+func (m *DelegateMessage) FromUnpackedStruct(v any) error {
+	bz, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(bz, m)
+}
+
+func (m DelegateMessage) Validate(valAddrCodec addresscodec.Codec, bondDenom string) error {
+	if m.Action != DelegateMessageActionDelegate {
+		return fmt.Errorf("unknown action: %s", m.Action)
+	}
+
+	if m.Delegator == (common.Address{}) {
+		return fmt.Errorf("delegator cannot be empty")
+	}
+
+	if _, err := valAddrCodec.StringToBytes(m.Validator); err != nil {
+		return errorsmod.Wrapf(err, "invalid validator: %s", m.Validator)
+	}
+
+	if m.Amount == nil || m.Amount.Sign() != 1 {
+		return fmt.Errorf("amount must be positive")
+	}
+
+	if m.Denom != bondDenom {
+		return fmt.Errorf("denom must be: %s", bondDenom)
+	}
+
+	return nil
+}
+
+func (m DelegateMessage) ToTypedData(chainId *big.Int) apitypes.TypedData {
+	const primaryTypeName = "DelegateMessage"
+	return apitypes.TypedData{
+		Types: apitypes.Types{
+			eip712.PrimaryTypeNameEIP712Domain: eip712.GetDomainTypes(),
+			primaryTypeName: []apitypes.Type{
+				{"action", "string"},
+				{"delegator", "address"},
+				{"validator", "string"},
+				{"amount", "uint256"},
+				{"denom", "string"},
+			},
+		},
+		PrimaryType: primaryTypeName,
+		Domain:      eip712.GetDomain(cpctypes.CpcStakingFixedAddress, chainId),
+		Message: apitypes.TypedDataMessage{
+			"action":    m.Action,
+			"delegator": m.Delegator.String(),
+			"validator": m.Validator,
+			"amount":    (*cmath.HexOrDecimal256)(m.Amount),
+			"denom":     m.Denom,
+		},
+	}
 }

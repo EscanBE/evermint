@@ -7,11 +7,18 @@ import (
 	"math/big"
 	"testing"
 
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
+
+	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 )
 
 var (
+	bigIntMaxInt64    = new(big.Int).SetUint64(math.MaxInt64)
+	bigIntMaxInt64Bz  = common.BytesToHash(bigIntMaxInt64.Bytes()).Bytes()
 	bigIntMaxUint64   = new(big.Int).SetUint64(math.MaxUint64)
 	bigIntMaxUint64Bz = common.BytesToHash(bigIntMaxUint64.Bytes()).Bytes()
 	bigIntOneBz       = common.BytesToHash(big.NewInt(1).Bytes()).Bytes()
@@ -261,6 +268,7 @@ func Test_Erc20(t *testing.T) {
 
 func Test_Staking(t *testing.T) {
 	cpcInfo := StakingCpcInfo
+
 	t.Run("name()", func(t *testing.T) {
 		bz, err := cpcInfo.PackMethodOutput("name", text)
 		require.NoError(t, err)
@@ -380,6 +388,35 @@ func Test_Staking(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, bigIntOneBz, bz)
 	})
+	t.Run("delegate712(DelegateMessage,bytes32,bytes32,uint8)", func(t *testing.T) {
+		delegateStruct := DelegateMessage{
+			Action:    "Delegate",
+			Delegator: common.BytesToAddress([]byte("delegator")),
+			Validator: marker.ReplaceAbleAddress("evmvaloper1cqetlv987ntelz7s6ntvv95ltrns9qt6et40np"),
+			Amount:    big.NewInt(1),
+			Denom:     constants.BaseDenom,
+		}
+		require.Nil(t, delegateStruct.Validate(addresscodec.NewBech32Codec(constants.Bech32PrefixValAddr), constants.BaseDenom))
+		bz, err := cpcInfo.ABI.Methods["delegate712"].Inputs.Pack(delegateStruct, toByte32(bigIntMaxInt64Bz), toByte32(bigIntMaxUint64Bz), uint8(math.MaxUint8))
+		require.NoError(t, err)
+
+		ret, err := cpcInfo.UnpackMethodInput(
+			"delegate712",
+			append([]byte{0x7c, 0x38, 0x11, 0xc2}, bz...),
+		)
+		require.NoError(t, err)
+		require.Len(t, ret, 4)
+		decodedDelegate := &DelegateMessage{}
+		require.NoError(t, decodedDelegate.FromUnpackedStruct(ret[0]))
+		require.Equal(t, delegateStruct, *decodedDelegate)
+		require.Equal(t, toByte32(bigIntMaxInt64Bz), ret[1].([32]byte))
+		require.Equal(t, toByte32(bigIntMaxUint64Bz), ret[2].([32]byte))
+		require.Equal(t, uint8(math.MaxUint8), ret[3].(uint8))
+
+		bz, err = cpcInfo.PackMethodOutput("delegate712", true)
+		require.NoError(t, err)
+		require.Equal(t, bigIntOneBz, bz)
+	})
 	t.Run("undelegate(address,uint256)", func(t *testing.T) {
 		ret, err := cpcInfo.UnpackMethodInput(
 			"undelegate",
@@ -488,5 +525,11 @@ func simpleBuildMethodInput(sig []byte, args ...any) []byte {
 	}
 
 	fmt.Println("0x" + hex.EncodeToString(ret))
+	return ret
+}
+
+func toByte32(bz []byte) [32]byte {
+	var ret [32]byte
+	copy(ret[:], bz)
 	return ret
 }

@@ -165,6 +165,13 @@ export function Home() {
 							});
 						}}>delegate({ValidatorAddress}::address,1^18::uint256)</button><br />
 						<button disabled={loading} onClick={async () => {
+							const delegateMessage = {
+								action: "Delegate",
+								delegator: account,
+								validator: ValidatorCosmosAddress,
+								amount: '1000000000000000000',
+								denom: 'wei'
+							};
 							const signed = await window.ethereum.request({
 								"method": "eth_signTypedData_v4",
 								"params": [
@@ -187,23 +194,23 @@ export function Home() {
 												{
 													name: "verifyingContract",
 													type: "address"
-												}
+												},
+												{
+													name: "salt",
+													type: "string"
+												},
 											],
-											Staking: [
+											DelegateMessage: [
 												{
 													name: "action",
 													type: "string"
 												},
 												{
-													name: "account",
+													name: "delegator",
 													type: "address"
 												},
 												{
-													name: "toValidator",
-													type: "string"
-												},
-												{
-													name: "fromValidator",
+													name: "validator",
 													type: "string"
 												},
 												{
@@ -216,31 +223,32 @@ export function Home() {
 												}
 											]
 										},
-										primaryType: "Staking",
+										primaryType: "DelegateMessage",
 										domain: {
-											name: "Staking - Precompiled Contract",
-											version: "1",
+											name: "EVERMINT",
+											version: "1.0.0",
 											chainId: chainId,
-											verifyingContract: StakingContractAddress
+											verifyingContract: StakingContractAddress,
+											salt: "0x1"
 										},
-										message: {
-											action: "Delegate",
-											account: account,
-											toValidator: ValidatorCosmosAddress,
-											fromValidator: "",
-											amount: '1000000000000000000',
-											denom: 'wei'
-										}
+										message: delegateMessage
 									}
 								],
 							});
 							const signedHex = `${signed}`;
+							console.log('signature', signedHex);
 							const signature = signedHex.substring(2);
 							const r = "0x" + signature.substring(0, 64);
 							const s = "0x" + signature.substring(64, 128);
 							const v = parseInt(signature.substring(128, 130), 16);
 							setStakingPcResult(` r = ${r} \n s = ${s} \n v = ${v}`);
-						}}>delegateTyped (demo)</button><br />
+
+							await execStakingContractAndPrint(async (contract, signer) => {
+								const retTx = await contract.delegate712(delegateMessage, r, s, v);
+								tryFetchReceiptAndPrint(retTx);
+								return toQueryGetReceipt(retTx);
+							});
+						}}>delegate712(DelegateMessage,bytes32,bytes32,uint8)</button><br />
 						<button disabled={loading} onClick={async () => {
 							await execStakingContractAndPrint(async (contract, signer) => {
 								const retTx = await contract.undelegate(ValidatorAddress, '1000000000000000000');
