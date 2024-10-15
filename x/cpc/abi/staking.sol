@@ -73,7 +73,7 @@ interface IStakingCPC {
      *
      * Returns a boolean value indicating whether the operation succeeded.
      *
-     * Emits a {Delegate} event.
+     * Emits {Delegate} + {?WithdrawReward} events.
      */
     function delegate(address validator, uint256 value) external returns (bool);
 
@@ -82,7 +82,7 @@ interface IStakingCPC {
      *
      * Returns a boolean value indicating whether the operation succeeded.
      *
-     * Emits a {Delegate} event.
+     * Emits {Delegate} + {?WithdrawReward} events.
      */
     function delegate712(DelegateMessage memory message, bytes32 r, bytes32 s, uint8 v) external returns (bool);
 
@@ -91,7 +91,7 @@ interface IStakingCPC {
      *
      * Returns a boolean value indicating whether the operation succeeded.
      *
-     * Emits an {Undelegate} event.
+     * Emits {Undelegate} + {?WithdrawReward} events.
      */
     function undelegate(address validator, uint256 value) external returns (bool);
 
@@ -100,7 +100,7 @@ interface IStakingCPC {
      *
      * Returns a boolean value indicating whether the operation succeeded.
      *
-     * Emits an {Undelegate} event and then a {Delegate} event.
+     * Emits {Undelegate} + {Delegate} + {?WithdrawReward} event.
      */
     function redelegate(address srcValidator, address dstValidator, uint256 value) external returns (bool);
 

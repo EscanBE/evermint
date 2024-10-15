@@ -19,6 +19,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+const (
+	topic0Delegate   = "0x510b11bb3f3c799b11307c01ab7db0d335683ef5b2da98f7697de744f465eacc"
+	topic0Undelegate = "0xbda8c0e95802a0e6788c3e9027292382d5a41b86556015f846b03a9874b2b827"
+	topic0Withdraw   = "0xad71f93891cecc86a28a627d5495c28fabbd31cdd2e93851b16ce3421fdab2e5"
+)
+
 func (suite *CpcTestSuite) TestKeeper_DeployStakingCustomPrecompiledContract() {
 	suite.Run("pass - can deploy", func() {
 		stakingMeta := cpctypes.StakingCustomPrecompiledContractMeta{
@@ -255,7 +261,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract() {
 			log := receipt.Logs[0]
 			if suite.Len(log.Topics, 3, "expect 3 topics") {
 				// Delegate event
-				suite.Equal("0x510b11bb3f3c799b11307c01ab7db0d335683ef5b2da98f7697de744f465eacc", log.Topics[0].String())
+				suite.Equal(topic0Delegate, log.Topics[0].String())
 				suite.Equal(account1.GetEthAddress().String(), common.BytesToAddress(log.Topics[1].Bytes()).String())
 				suite.Equal(validator1.GetEthAddress().String(), common.BytesToAddress(log.Topics[2].Bytes()).String())
 			}
@@ -302,7 +308,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract() {
 			log := receipt.Logs[0]
 			if suite.Len(log.Topics, 3, "expect 3 topics") {
 				// Delegate event
-				suite.Equal("0x510b11bb3f3c799b11307c01ab7db0d335683ef5b2da98f7697de744f465eacc", log.Topics[0].String())
+				suite.Equal(topic0Delegate, log.Topics[0].String())
 				suite.Equal(account1.GetEthAddress().String(), common.BytesToAddress(log.Topics[1].Bytes()).String())
 				suite.Equal(validator1.GetEthAddress().String(), common.BytesToAddress(log.Topics[2].Bytes()).String())
 			}
@@ -419,7 +425,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract() {
 			log := receipt.Logs[0]
 			if suite.Len(log.Topics, 3, "expect 3 topics") {
 				// Undelegate event
-				suite.Equal("0xbda8c0e95802a0e6788c3e9027292382d5a41b86556015f846b03a9874b2b827", log.Topics[0].String())
+				suite.Equal(topic0Undelegate, log.Topics[0].String())
 				suite.Equal(account1.GetEthAddress().String(), common.BytesToAddress(log.Topics[1].Bytes()).String())
 				suite.Equal(validator1.GetEthAddress().String(), common.BytesToAddress(log.Topics[2].Bytes()).String())
 			}
@@ -470,7 +476,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract() {
 			log := receipt.Logs[0]
 			if suite.Len(log.Topics, 3, "expect 3 topics") {
 				// Undelegate event
-				suite.Equal("0xbda8c0e95802a0e6788c3e9027292382d5a41b86556015f846b03a9874b2b827", log.Topics[0].String())
+				suite.Equal(topic0Undelegate, log.Topics[0].String())
 				suite.Equal(account1.GetEthAddress().String(), common.BytesToAddress(log.Topics[1].Bytes()).String())
 				suite.Equal(validator1.GetEthAddress().String(), common.BytesToAddress(log.Topics[2].Bytes()).String())
 			}
@@ -564,7 +570,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract() {
 				log1 := receipt.Logs[0]
 				if suite.Len(log1.Topics, 3, "expect 3 topics") {
 					// Undelegate event
-					suite.Equal("0xbda8c0e95802a0e6788c3e9027292382d5a41b86556015f846b03a9874b2b827", log1.Topics[0].String())
+					suite.Equal(topic0Undelegate, log1.Topics[0].String())
 					suite.Equal(account1.GetEthAddress().String(), common.BytesToAddress(log1.Topics[1].Bytes()).String())
 					suite.Equal(validator1.GetEthAddress().String(), common.BytesToAddress(log1.Topics[2].Bytes()).String())
 				}
@@ -574,7 +580,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract() {
 				log2 := receipt.Logs[1]
 				if suite.Len(log2.Topics, 3, "expect 3 topics") {
 					// Delegate event
-					suite.Equal("0x510b11bb3f3c799b11307c01ab7db0d335683ef5b2da98f7697de744f465eacc", log2.Topics[0].String())
+					suite.Equal(topic0Delegate, log2.Topics[0].String())
 					suite.Equal(account1.GetEthAddress().String(), common.BytesToAddress(log2.Topics[1].Bytes()).String())
 					suite.Equal(validator2.GetEthAddress().String(), common.BytesToAddress(log2.Topics[2].Bytes()).String())
 				}
@@ -641,7 +647,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract() {
 				log1 := receipt.Logs[0]
 				if suite.Len(log1.Topics, 3, "expect 3 topics") {
 					// Undelegate event
-					suite.Equal("0xbda8c0e95802a0e6788c3e9027292382d5a41b86556015f846b03a9874b2b827", log1.Topics[0].String())
+					suite.Equal(topic0Undelegate, log1.Topics[0].String())
 					suite.Equal(account1.GetEthAddress().String(), common.BytesToAddress(log1.Topics[1].Bytes()).String())
 					suite.Equal(validator1.GetEthAddress().String(), common.BytesToAddress(log1.Topics[2].Bytes()).String())
 				}
@@ -651,7 +657,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract() {
 				log2 := receipt.Logs[1]
 				if suite.Len(log2.Topics, 3, "expect 3 topics") {
 					// Delegate event
-					suite.Equal("0x510b11bb3f3c799b11307c01ab7db0d335683ef5b2da98f7697de744f465eacc", log2.Topics[0].String())
+					suite.Equal(topic0Delegate, log2.Topics[0].String())
 					suite.Equal(account1.GetEthAddress().String(), common.BytesToAddress(log2.Topics[1].Bytes()).String())
 					suite.Equal(validator2.GetEthAddress().String(), common.BytesToAddress(log2.Topics[2].Bytes()).String())
 				}
@@ -890,7 +896,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract_transfer(
 				err = receipt.UnmarshalBinary(bzReceipt)
 				suite.Require().NoError(err)
 				suite.Require().Len(receipt.Logs, 1)
-				suite.Require().Equal(common.HexToHash("0x510b11bb3f3c799b11307c01ab7db0d335683ef5b2da98f7697de744f465eacc"), receipt.Logs[0].Topics[0])
+				suite.Require().Equal(common.HexToHash(topic0Delegate), receipt.Logs[0].Topics[0])
 				suite.Require().Equal(gotAddresses[0], common.BytesToAddress(receipt.Logs[0].Topics[2].Bytes()))
 			},
 			wantErr: false,
@@ -938,7 +944,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract_transfer(
 				err = receipt.UnmarshalBinary(bzReceipt)
 				suite.Require().NoError(err)
 				suite.Require().Len(receipt.Logs, 1)
-				suite.Require().Equal(common.HexToHash("0x510b11bb3f3c799b11307c01ab7db0d335683ef5b2da98f7697de744f465eacc"), receipt.Logs[0].Topics[0])
+				suite.Require().Equal(common.HexToHash(topic0Delegate), receipt.Logs[0].Topics[0])
 				suite.Require().Equal(gotAddresses[0], common.BytesToAddress(receipt.Logs[0].Topics[2].Bytes()))
 			},
 			wantErr: false,
@@ -994,7 +1000,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract_transfer(
 				err = receipt.UnmarshalBinary(bzReceipt)
 				suite.Require().NoError(err)
 				suite.Require().Len(receipt.Logs, 1)
-				suite.Require().Equal(common.HexToHash("0x510b11bb3f3c799b11307c01ab7db0d335683ef5b2da98f7697de744f465eacc"), receipt.Logs[0].Topics[0])
+				suite.Require().Equal(common.HexToHash(topic0Delegate), receipt.Logs[0].Topics[0])
 				suite.Require().Equal(common.BytesToAddress(valBz), common.BytesToAddress(receipt.Logs[0].Topics[2].Bytes()))
 			},
 			wantErr: false,
@@ -1055,7 +1061,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract_transfer(
 					{
 						// event withdraw reward
 						log := receipt.Logs[0]
-						suite.Require().Equal(common.HexToHash("0xad71f93891cecc86a28a627d5495c28fabbd31cdd2e93851b16ce3421fdab2e5"), log.Topics[0])
+						suite.Require().Equal(common.HexToHash(topic0Withdraw), log.Topics[0])
 						rewardAmount, err = cpcutils.AbiDecodeUint256(log.Data)
 						suite.Require().NoError(err)
 					}
@@ -1063,7 +1069,7 @@ func (suite *CpcTestSuite) TestKeeper_StakingCustomPrecompiledContract_transfer(
 					{
 						// event delegate
 						log := receipt.Logs[1]
-						suite.Require().Equal(common.HexToHash("0x510b11bb3f3c799b11307c01ab7db0d335683ef5b2da98f7697de744f465eacc"), log.Topics[0])
+						suite.Require().Equal(common.HexToHash(topic0Delegate), log.Topics[0])
 						actualDelegateAmount, err = cpcutils.AbiDecodeUint256(log.Data)
 						suite.Require().NoError(err)
 					}
@@ -1123,7 +1129,7 @@ func (suite *CpcTestSuite) requireEventsWithdrawReward(bzMarshalledReceipt []byt
 	suite.Require().Lenf(receipt.Logs, wantCount, "expect event WithdrawReward")
 
 	var gotWithdrawRewardCount int
-	eventSig := common.HexToHash("0xad71f93891cecc86a28a627d5495c28fabbd31cdd2e93851b16ce3421fdab2e5")
+	eventSig := common.HexToHash(topic0Withdraw)
 
 	for _, log := range receipt.Logs {
 		if log.Topics[0] != eventSig {
