@@ -1,3 +1,21 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity >=0.7.0 <0.9.0;
+
+struct StakingMessage {
+    string action;
+    address delegator;
+    string validator;
+    uint256 amount;
+    string denom;
+    string oldValidator;
+}
+
+struct WithdrawRewardMessage {
+    address delegator;
+    string fromValidator;
+}
+
 interface IStakingCPC {
     /**
      * @dev Emitted when the delegator delegated into a validator.
@@ -61,7 +79,7 @@ interface IStakingCPC {
      *
      * Returns a boolean value indicating whether the operation succeeded.
      *
-     * Emits a {Delegate} event.
+     * Emits {Delegate} + {?WithdrawReward} events.
      */
     function delegate(address validator, uint256 value) external returns (bool);
 
@@ -70,7 +88,7 @@ interface IStakingCPC {
      *
      * Returns a boolean value indicating whether the operation succeeded.
      *
-     * Emits an {Undelegate} event.
+     * Emits {Undelegate} + {?WithdrawReward} events.
      */
     function undelegate(address validator, uint256 value) external returns (bool);
 
@@ -79,9 +97,21 @@ interface IStakingCPC {
      *
      * Returns a boolean value indicating whether the operation succeeded.
      *
-     * Emits an {Undelegate} event and then a {Delegate} event.
+     * Emits {Undelegate} + {Delegate} + {?WithdrawReward} event.
      */
     function redelegate(address srcValidator, address dstValidator, uint256 value) external returns (bool);
+
+    /**
+     * @dev Delegate/Undelegate/Redelegate using EIP-712:
+     * - Delegate a `value` amount of staking coin from the caller's account to `validator`.
+     * - Undelegate a `value` amount of staking coin of the caller's account from `validator`.
+     * - Redelegate moves a `value` amount of staking coin of the caller's account from `srcValidator` to `dstValidator`.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits mixed of {Undelegate}, {Delegate}, {WithdrawReward} events.
+     */
+    function delegateByActionMessage(StakingMessage memory message, bytes32 r, bytes32 s, uint8 v) external returns (bool);
 
     /**
      * @dev Withdraw the caller's account staking reward from a single `validator`.
@@ -101,6 +131,15 @@ interface IStakingCPC {
      */
     function withdrawRewards() external returns (bool);
 
+    /**
+     * @dev Withdraw the caller's account staking reward from one or all delegated validators.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits multiple {WithdrawReward} events, one per validator.
+     */
+    function withdrawRewardsByMessage(WithdrawRewardMessage memory message, bytes32 r, bytes32 s, uint8 v) external returns (bool);
+
     // Trick with ERC-20 interface
 
     /**
@@ -115,9 +154,9 @@ interface IStakingCPC {
     function balanceOf(address account) external view returns (uint256);
 
     /**
-     * @dev Claims available staking reward then re-delegate.
+     * @dev Claims available staking reward and then delegate.
      * Rules:
-     * - To avoid mistake and fund lost, `to` must be self-address.
+     * - To avoid mistake (interact with wrong contract) that might cause fund lost, `to` must be self-address.
      * - `value` must be lower or equals to `available balance + unclaimed staking reward`.
      * - Validator to delegate to will be selected by the following rules:
      *   + If not delegated into any validator, a mid-power validator will be selected and receive delegation.

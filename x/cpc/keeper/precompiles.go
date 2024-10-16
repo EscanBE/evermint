@@ -42,7 +42,6 @@ func (k Keeper) SetCustomPrecompiledContractMeta(ctx sdk.Context, contractMetada
 	} else {
 		if previousRecord := k.GetCustomPrecompiledContractMeta(ctx, contractAddress); previousRecord != nil {
 			if previousRecord.CustomPrecompiledType != contractMetadata.CustomPrecompiledType {
-				// TODO ES: write a test case for this when additional custom precompiled types are added
 				panic(fmt.Sprintf("not allowed to change type of the precompiled contract: %d != %d", previousRecord.CustomPrecompiledType, contractMetadata.CustomPrecompiledType))
 			}
 		} else {

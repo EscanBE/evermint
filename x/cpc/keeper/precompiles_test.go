@@ -84,6 +84,18 @@ func (suite *CpcTestSuite) TestKeeper_GetSetHasCustomPrecompiledContractMeta() {
 		suite.Require().Equal(modified, *got)
 	})
 
+	suite.Run("fail - (set) when NOT new deployment, reject if contract type are not match", func() {
+		got := suite.App().CpcKeeper().GetCustomPrecompiledContractMeta(suite.Ctx(), common.BytesToAddress(meta.Address))
+		suite.Require().NotNil(got)
+
+		copied := meta
+		copied.CustomPrecompiledType = cpctypes.CpcTypeStaking
+
+		suite.Require().Panics(func() {
+			_ = suite.App().CpcKeeper().SetCustomPrecompiledContractMeta(suite.Ctx(), copied, false)
+		})
+	})
+
 	suite.Run("fail - (set) when NOT new deployment, reject if contract address does not exists", func() {
 		nonExists := common.BytesToAddress([]byte("non-exists"))
 

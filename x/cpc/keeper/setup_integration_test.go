@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/EscanBE/evermint/v12/x/cpc/eip712"
+
 	sdkmath "cosmossdk.io/math"
 	sdksecp256k1 "github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
@@ -191,6 +193,25 @@ func (suite *CpcTestSuite) baseMultiValidatorSetup(f func(suite *CpcTestSuite, l
 	suite.Require().Len(highestBondedVals, len(validatorAccountsHighestTokens))
 
 	f(suite, lowestBondedVals, mediumBondedVals, highestBondedVals)
+}
+
+func (suite *CpcTestSuite) hashEip712Message(msg eip712.TypedMessage, account *itutiltypes.TestAccount) (r, s [32]byte, v uint8) {
+	chainId := suite.App().EvmKeeper().GetEip155ChainId(suite.Ctx()).BigInt()
+
+	hashBytes, err := eip712.EIP712HashingTypedMessage(msg, chainId)
+	suite.Require().NoError(err)
+
+	signature, err := account.PrivateKey.Sign(hashBytes)
+	suite.Require().NoError(err)
+	suite.Require().Len(signature, 65)
+
+	copy(r[:], signature[:32])
+	copy(s[:], signature[32:64])
+	v = signature[64]
+
+	match, _, _ := eip712.VerifySignature(account.GetEthAddress(), msg, r, s, v, chainId)
+	suite.Require().True(match, "generated signature should be valid")
+	return
 }
 
 func get4BytesSignature(methodSig string) []byte {
