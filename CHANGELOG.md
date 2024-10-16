@@ -44,7 +44,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evm) [#167](https://github.com/EscanBE/evermint/pull/167) Introduce Context-based StateDB
 - (evm) [#173](https://github.com/EscanBE/evermint/pull/173) Persist EIP-155 chain-id into store + simplify related logic
 - (evm) [#175](https://github.com/EscanBE/evermint/pull/175) Support precompiled contract using new module `x/cpc`
-- (evm) [#178](https://github.com/EscanBE/evermint/pull/178) Staking precompiled contract EEIP-178
+- (evm) [#178](https://github.com/EscanBE/evermint/pull/178) Staking precompiled contract ESIP-179
 
 ### Improvement
 
@@ -56,6 +56,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evm) [#170](https://github.com/EscanBE/evermint/pull/170) Minor improvement
 - (evm) [#171](https://github.com/EscanBE/evermint/pull/171) Refactor code relates to `proposer address` in `x/evm`
 - (evm) [#172](https://github.com/EscanBE/evermint/pull/172) Remove unnecessary `block-max-gas` arg in some requests (continue #127)
+- (evm) [#180](https://github.com/EscanBE/evermint/pull/180) Support EIP-712 message signing for ESIP-179 Staking precompiled contract
 
 ### Bug Fixes
 
