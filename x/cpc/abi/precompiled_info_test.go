@@ -531,6 +531,32 @@ func Test_Staking(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, bigIntOneBz, bz)
 	})
+	t.Run("withdrawRewardsByMessage(WithdrawRewardMessage,bytes32,bytes32,uint8)", func(t *testing.T) {
+		withdrawStruct := WithdrawRewardMessage{
+			Delegator:     common.BytesToAddress([]byte("delegator")),
+			FromValidator: marker.ReplaceAbleAddress("evmvaloper1cqetlv987ntelz7s6ntvv95ltrns9qt6et40np"),
+		}
+		require.Nil(t, withdrawStruct.Validate(addresscodec.NewBech32Codec(constants.Bech32PrefixValAddr)))
+		bz, err := cpcInfo.ABI.Methods["withdrawRewardsByMessage"].Inputs.Pack(withdrawStruct, toByte32(bigIntMaxInt64Bz), toByte32(bigIntMaxUint64Bz), uint8(math.MaxUint8))
+		require.NoError(t, err)
+
+		ret, err := cpcInfo.UnpackMethodInput(
+			"withdrawRewardsByMessage",
+			append([]byte{0x4b, 0xd7, 0x01, 0x75}, bz...),
+		)
+		require.NoError(t, err)
+		require.Len(t, ret, 4)
+		decodedWithdraw := &WithdrawRewardMessage{}
+		require.NoError(t, decodedWithdraw.FromUnpackedStruct(ret[0]))
+		require.Equal(t, withdrawStruct, *decodedWithdraw)
+		require.Equal(t, toByte32(bigIntMaxInt64Bz), ret[1].([32]byte))
+		require.Equal(t, toByte32(bigIntMaxUint64Bz), ret[2].([32]byte))
+		require.Equal(t, uint8(math.MaxUint8), ret[3].(uint8))
+
+		bz, err = cpcInfo.PackMethodOutput("withdrawRewardsByMessage", true)
+		require.NoError(t, err)
+		require.Equal(t, bigIntOneBz, bz)
+	})
 	t.Run("balanceOf(address)", func(t *testing.T) {
 		ret, err := cpcInfo.UnpackMethodInput(
 			"balanceOf",

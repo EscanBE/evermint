@@ -11,6 +11,11 @@ struct DelegateMessage {
     string oldValidator;
 }
 
+struct WithdrawRewardMessage {
+    address delegator;
+    string fromValidator;
+}
+
 interface IStakingCPC {
     /**
      * @dev Emitted when the delegator delegated into a validator.
@@ -143,6 +148,15 @@ interface IStakingCPC {
      * Emits multiple {WithdrawReward} events, one per validator.
      */
     function withdrawRewards() external returns (bool);
+
+    /**
+     * @dev Withdraw the caller's account staking reward from one or all delegated validators.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits multiple {WithdrawReward} events, one per validator.
+     */
+    function withdrawRewardsByMessage(WithdrawRewardMessage memory message, bytes32 r, bytes32 s, uint8 v) external returns (bool);
 
     // Trick with ERC-20 interface
 

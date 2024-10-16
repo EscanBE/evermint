@@ -97,7 +97,7 @@ func NewStakingCustomPrecompiledContract(
 		contract: contract,
 	}
 	withdrawRewardsME := stakingCustomPrecompiledContractRwWithdrawRewards{
-		withdrawReward: &withdrawRewardME,
+		withdrawReward: withdrawRewardME,
 		contract:       contract,
 	}
 
@@ -118,6 +118,10 @@ func NewStakingCustomPrecompiledContract(
 		&stakingCustomPrecompiledContractRwReDelegateByMessage{redelegate: redelegateME},
 		&withdrawRewardME,
 		&withdrawRewardsME,
+		&stakingCustomPrecompiledContractRwWithdrawRewardsByMessage{
+			withdrawReward:  withdrawRewardME,
+			withdrawRewards: withdrawRewardsME,
+		},
 		&stakingCustomPrecompiledContractRoBalanceOf{rewardsOf: rewardsOfME},
 		&stakingCustomPrecompiledContractRwTransfer{
 			contract:        contract,
@@ -1214,7 +1218,7 @@ func (e stakingCustomPrecompiledContractRwWithdrawReward) ReadOnly() bool {
 var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRwWithdrawRewards{}
 
 type stakingCustomPrecompiledContractRwWithdrawRewards struct {
-	withdrawReward *stakingCustomPrecompiledContractRwWithdrawReward
+	withdrawReward stakingCustomPrecompiledContractRwWithdrawReward
 	contract       *stakingCustomPrecompiledContract
 }
 
@@ -1296,6 +1300,81 @@ func (e stakingCustomPrecompiledContractRwWithdrawRewards) RequireGas() uint64 {
 
 func (e stakingCustomPrecompiledContractRwWithdrawRewards) ReadOnly() bool {
 	return false
+}
+
+// withdrawRewardsByMessage(WithdrawRewardMessage,bytes32,bytes32,uint8)
+// sig delivered from: withdrawRewardsByMessage((address,string),bytes32,bytes32,uint8)
+
+var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRwWithdrawRewardsByMessage{}
+
+type stakingCustomPrecompiledContractRwWithdrawRewardsByMessage struct {
+	withdrawReward  stakingCustomPrecompiledContractRwWithdrawReward
+	withdrawRewards stakingCustomPrecompiledContractRwWithdrawRewards
+}
+
+func (e stakingCustomPrecompiledContractRwWithdrawRewardsByMessage) Execute(caller corevm.ContractRef, _ common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
+	ips, err := abi.StakingCpcInfo.UnpackMethodInput("withdrawRewardsByMessage", input)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := env.ctx
+
+	withdrawRewardMessage := &abi.WithdrawRewardMessage{}
+	if err := withdrawRewardMessage.FromUnpackedStruct(ips[0]); err != nil {
+		return nil, fmt.Errorf("failed to parse withdraw reward message: %s", err.Error())
+	}
+	r := ips[1].([32]byte)
+	s := ips[2].([32]byte)
+	v := ips[3].(uint8)
+
+	if caller.Address() != withdrawRewardMessage.Delegator {
+		return nil, fmt.Errorf("not the caller: %s", withdrawRewardMessage.Delegator)
+	}
+
+	delegator := withdrawRewardMessage.Delegator
+
+	match, recoveredAddr, err := eip712.VerifySignature(delegator, withdrawRewardMessage, r, s, v, env.evm.ChainConfig().ChainID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to verify signature: %s", err.Error())
+	}
+	if !match {
+		return nil, fmt.Errorf("signature does not match, got: %s", recoveredAddr.String())
+	}
+
+	originalStakingEventsCount := len(e.withdrawReward.contract.getSdkEventsFromEventManager(ctx.EventManager()))
+
+	var any bool
+
+	if withdrawRewardMessage.FromValidator == abi.WithdrawRewardMessageActionWithdrawFromAllValidators {
+		any, err = e.withdrawRewards.withdrawRewards(ctx, delegator.Bytes())
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		if err := e.withdrawReward.withdrawRewardWithFormattedAddress(ctx, sdk.AccAddress(delegator.Bytes()).String(), withdrawRewardMessage.FromValidator); err != nil {
+			return nil, err
+		}
+		any = true
+	}
+
+	if err := e.withdrawReward.contract.autoEmitEventsFromSdkEvents(ctx.EventManager(), originalStakingEventsCount, delegator.Bytes(), env); err != nil {
+		return nil, errorsmod.Wrapf(err, "failed to emit events")
+	}
+
+	return abi.StakingCpcInfo.PackMethodOutput("withdrawRewardsByMessage", any)
+}
+
+func (e stakingCustomPrecompiledContractRwWithdrawRewardsByMessage) Method4BytesSignatures() []byte {
+	return []byte{0x4b, 0xd7, 0x01, 0x75}
+}
+
+func (e stakingCustomPrecompiledContractRwWithdrawRewardsByMessage) RequireGas() uint64 {
+	return e.withdrawRewards.RequireGas()
+}
+
+func (e stakingCustomPrecompiledContractRwWithdrawRewardsByMessage) ReadOnly() bool {
+	return e.withdrawRewards.ReadOnly()
 }
 
 // balanceOf(address)

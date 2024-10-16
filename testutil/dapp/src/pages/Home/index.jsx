@@ -462,6 +462,146 @@ export function Home() {
 								return toQueryGetReceipt(retTx);
 							});
 						}}>withdrawRewards()</button><br />
+						<button disabled={loading} onClick={async () => {
+							const withdrawRewardMessage = {
+								delegator: account,
+								fromValidator: ValidatorCosmosAddress
+							};
+							const signed = await window.ethereum.request({
+								"method": "eth_signTypedData_v4",
+								"params": [
+									account,
+									{
+										types: {
+											EIP712Domain: [
+												{
+													name: "name",
+													type: "string"
+												},
+												{
+													name: "version",
+													type: "string"
+												},
+												{
+													name: "chainId",
+													type: "uint256"
+												},
+												{
+													name: "verifyingContract",
+													type: "address"
+												},
+												{
+													name: "salt",
+													type: "string"
+												},
+											],
+											WithdrawRewardMessage: [
+												{
+													name: "delegator",
+													type: "address"
+												},
+												{
+													name: "fromValidator",
+													type: "string"
+												}
+											]
+										},
+										primaryType: "WithdrawRewardMessage",
+										domain: {
+											name: "EVERMINT",
+											version: "1.0.0",
+											chainId: chainId,
+											verifyingContract: StakingContractAddress,
+											salt: "0x1"
+										},
+										message: withdrawRewardMessage
+									}
+								],
+							});
+							const signedHex = `${signed}`;
+							console.log('signature', signedHex);
+							const signature = signedHex.substring(2);
+							const r = "0x" + signature.substring(0, 64);
+							const s = "0x" + signature.substring(64, 128);
+							const v = parseInt(signature.substring(128, 130), 16);
+							setStakingPcResult(` r = ${r} \n s = ${s} \n v = ${v}`);
+
+							await execStakingContractAndPrint(async (contract, signer) => {
+								const retTx = await contract.withdrawRewardsByMessage(withdrawRewardMessage, r, s, v);
+								tryFetchReceiptAndPrint(retTx);
+								return toQueryGetReceipt(retTx);
+							});
+						}}>withdrawRewardsByMessage(WithdrawRewardMessage,bytes32,bytes32,uint8) (one validator)</button><br />
+						<button disabled={loading} onClick={async () => {
+							const withdrawRewardMessage = {
+								delegator: account,
+								fromValidator: 'all'
+							};
+							const signed = await window.ethereum.request({
+								"method": "eth_signTypedData_v4",
+								"params": [
+									account,
+									{
+										types: {
+											EIP712Domain: [
+												{
+													name: "name",
+													type: "string"
+												},
+												{
+													name: "version",
+													type: "string"
+												},
+												{
+													name: "chainId",
+													type: "uint256"
+												},
+												{
+													name: "verifyingContract",
+													type: "address"
+												},
+												{
+													name: "salt",
+													type: "string"
+												},
+											],
+											WithdrawRewardMessage: [
+												{
+													name: "delegator",
+													type: "address"
+												},
+												{
+													name: "fromValidator",
+													type: "string"
+												}
+											]
+										},
+										primaryType: "WithdrawRewardMessage",
+										domain: {
+											name: "EVERMINT",
+											version: "1.0.0",
+											chainId: chainId,
+											verifyingContract: StakingContractAddress,
+											salt: "0x1"
+										},
+										message: withdrawRewardMessage
+									}
+								],
+							});
+							const signedHex = `${signed}`;
+							console.log('signature', signedHex);
+							const signature = signedHex.substring(2);
+							const r = "0x" + signature.substring(0, 64);
+							const s = "0x" + signature.substring(64, 128);
+							const v = parseInt(signature.substring(128, 130), 16);
+							setStakingPcResult(` r = ${r} \n s = ${s} \n v = ${v}`);
+
+							await execStakingContractAndPrint(async (contract, signer) => {
+								const retTx = await contract.withdrawRewardsByMessage(withdrawRewardMessage, r, s, v);
+								tryFetchReceiptAndPrint(retTx);
+								return toQueryGetReceipt(retTx);
+							});
+						}}>withdrawRewardsByMessage(WithdrawRewardMessage,bytes32,bytes32,uint8) (all validators)</button><br />
 					</div>
 				</div>
 			)}

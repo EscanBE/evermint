@@ -183,3 +183,57 @@ func (m DelegateMessage) ToTypedData(chainId *big.Int) apitypes.TypedData {
 		},
 	}
 }
+
+var _ eip712.TypedMessage = (*WithdrawRewardMessage)(nil)
+
+const WithdrawRewardMessageActionWithdrawFromAllValidators = "all"
+
+type WithdrawRewardMessage struct {
+	Delegator     common.Address `json:"delegator"`
+	FromValidator string         `json:"fromValidator"`
+}
+
+func (m *WithdrawRewardMessage) FromUnpackedStruct(v any) error {
+	bz, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(bz, m)
+}
+
+func (m WithdrawRewardMessage) Validate(valAddrCodec addresscodec.Codec) error {
+	if m.Delegator == (common.Address{}) {
+		return fmt.Errorf("delegator cannot be empty")
+	}
+
+	if m.FromValidator == WithdrawRewardMessageActionWithdrawFromAllValidators {
+		// valid constant value
+	} else if _, err := valAddrCodec.StringToBytes(m.FromValidator); err != nil {
+		return errorsmod.Wrapf(
+			err,
+			"invalid from-validator, must be either '%s' or a valid address: %s",
+			WithdrawRewardMessageActionWithdrawFromAllValidators, m.FromValidator,
+		)
+	}
+
+	return nil
+}
+
+func (m WithdrawRewardMessage) ToTypedData(chainId *big.Int) apitypes.TypedData {
+	const primaryTypeName = "WithdrawRewardMessage"
+	return apitypes.TypedData{
+		Types: apitypes.Types{
+			eip712.PrimaryTypeNameEIP712Domain: eip712.GetDomainTypes(),
+			primaryTypeName: []apitypes.Type{
+				{"delegator", "address"},
+				{"fromValidator", "string"},
+			},
+		},
+		PrimaryType: primaryTypeName,
+		Domain:      eip712.GetDomain(cpctypes.CpcStakingFixedAddress, chainId),
+		Message: apitypes.TypedDataMessage{
+			"delegator":     m.Delegator.String(),
+			"fromValidator": m.FromValidator,
+		},
+	}
+}
