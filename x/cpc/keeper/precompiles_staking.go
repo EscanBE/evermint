@@ -787,9 +787,16 @@ func (e stakingCustomPrecompiledContractRwDelegateByMessage) Execute(caller core
 	ctx := env.ctx
 	sk := e.delegate.contract.keeper.stakingKeeper
 
+	bondDenom, err := sk.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	delegateMessage := &abi.DelegateMessage{}
 	if err := delegateMessage.FromUnpackedStruct(ips[0]); err != nil {
 		return nil, fmt.Errorf("failed to parse delegate message: %s", err.Error())
+	} else if err := delegateMessage.Validate(sk.ValidatorAddressCodec(), bondDenom); err != nil {
+		return nil, err
 	}
 	r := ips[1].([32]byte)
 	s := ips[2].([32]byte)
@@ -933,9 +940,16 @@ func (e stakingCustomPrecompiledContractRwUnDelegateByMessage) Execute(caller co
 	ctx := env.ctx
 	sk := e.undelegate.contract.keeper.stakingKeeper
 
+	bondDenom, err := sk.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	delegateMessage := &abi.DelegateMessage{}
 	if err := delegateMessage.FromUnpackedStruct(ips[0]); err != nil {
 		return nil, fmt.Errorf("failed to parse delegate message: %s", err.Error())
+	} else if err := delegateMessage.Validate(sk.ValidatorAddressCodec(), bondDenom); err != nil {
+		return nil, err
 	}
 	r := ips[1].([32]byte)
 	s := ips[2].([32]byte)
@@ -1085,9 +1099,16 @@ func (e stakingCustomPrecompiledContractRwReDelegateByMessage) Execute(caller co
 	ctx := env.ctx
 	sk := e.redelegate.contract.keeper.stakingKeeper
 
+	bondDenom, err := sk.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	delegateMessage := &abi.DelegateMessage{}
 	if err := delegateMessage.FromUnpackedStruct(ips[0]); err != nil {
 		return nil, fmt.Errorf("failed to parse delegate message: %s", err.Error())
+	} else if err := delegateMessage.Validate(sk.ValidatorAddressCodec(), bondDenom); err != nil {
+		return nil, err
 	}
 	r := ips[1].([32]byte)
 	s := ips[2].([32]byte)
@@ -1319,10 +1340,13 @@ func (e stakingCustomPrecompiledContractRwWithdrawRewardsByMessage) Execute(call
 	}
 
 	ctx := env.ctx
+	sk := e.withdrawReward.contract.keeper.stakingKeeper
 
 	withdrawRewardMessage := &abi.WithdrawRewardMessage{}
 	if err := withdrawRewardMessage.FromUnpackedStruct(ips[0]); err != nil {
 		return nil, fmt.Errorf("failed to parse withdraw reward message: %s", err.Error())
+	} else if err := withdrawRewardMessage.Validate(sk.ValidatorAddressCodec()); err != nil {
+		return nil, err
 	}
 	r := ips[1].([32]byte)
 	s := ips[2].([32]byte)
