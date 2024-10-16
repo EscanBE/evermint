@@ -170,7 +170,8 @@ export function Home() {
 								delegator: account,
 								validator: ValidatorCosmosAddress,
 								amount: '1000000000000000000',
-								denom: 'wei'
+								denom: 'wei',
+								oldValidator: '-'
 							};
 							const signed = await window.ethereum.request({
 								"method": "eth_signTypedData_v4",
@@ -219,6 +220,10 @@ export function Home() {
 												},
 												{
 													name: "denom",
+													type: "string"
+												},
+												{
+													name: "oldValidator",
 													type: "string"
 												}
 											]
@@ -262,7 +267,8 @@ export function Home() {
 								delegator: account,
 								validator: ValidatorCosmosAddress,
 								amount: '1000000000000000000',
-								denom: 'wei'
+								denom: 'wei',
+								oldValidator: '-'
 							};
 							const signed = await window.ethereum.request({
 								"method": "eth_signTypedData_v4",
@@ -312,6 +318,10 @@ export function Home() {
 												{
 													name: "denom",
 													type: "string"
+												},
+												{
+													name: "oldValidator",
+													type: "string"
 												}
 											]
 										},
@@ -348,6 +358,96 @@ export function Home() {
 								return toQueryGetReceipt(retTx);
 							});
 						}}>redelegate({ValidatorAddress}::address,address,1^18::uint256)</button><br />
+						<button disabled={true} onClick={async () => {
+							const redelegateMessage = {
+								action: "Redelegate",
+								delegator: account,
+								validator: ValidatorCosmosAddress,
+								amount: '1000000000000000000',
+								denom: 'wei',
+								oldValidator: ValidatorCosmosAddress
+							};
+							const signed = await window.ethereum.request({
+								"method": "eth_signTypedData_v4",
+								"params": [
+									account,
+									{
+										types: {
+											EIP712Domain: [
+												{
+													name: "name",
+													type: "string"
+												},
+												{
+													name: "version",
+													type: "string"
+												},
+												{
+													name: "chainId",
+													type: "uint256"
+												},
+												{
+													name: "verifyingContract",
+													type: "address"
+												},
+												{
+													name: "salt",
+													type: "string"
+												},
+											],
+											DelegateMessage: [
+												{
+													name: "action",
+													type: "string"
+												},
+												{
+													name: "delegator",
+													type: "address"
+												},
+												{
+													name: "validator",
+													type: "string"
+												},
+												{
+													name: "amount",
+													type: "uint256"
+												},
+												{
+													name: "denom",
+													type: "string"
+												},
+												{
+													name: "oldValidator",
+													type: "string"
+												}
+											]
+										},
+										primaryType: "DelegateMessage",
+										domain: {
+											name: "EVERMINT",
+											version: "1.0.0",
+											chainId: chainId,
+											verifyingContract: StakingContractAddress,
+											salt: "0x1"
+										},
+										message: redelegateMessage
+									}
+								],
+							});
+							const signedHex = `${signed}`;
+							console.log('signature', signedHex);
+							const signature = signedHex.substring(2);
+							const r = "0x" + signature.substring(0, 64);
+							const s = "0x" + signature.substring(64, 128);
+							const v = parseInt(signature.substring(128, 130), 16);
+							setStakingPcResult(` r = ${r} \n s = ${s} \n v = ${v}`);
+
+							await execStakingContractAndPrint(async (contract, signer) => {
+								const retTx = await contract.redelegateByMessage(redelegateMessage, r, s, v);
+								tryFetchReceiptAndPrint(retTx);
+								return toQueryGetReceipt(retTx);
+							});
+						}}>redelegateByMessage(DelegateMessage,bytes32,bytes32,uint8)</button><br />
 						<button disabled={loading} onClick={async () => {
 							await execStakingContractAndPrint(async (contract, signer) => {
 								const retTx = await contract.withdrawReward(ValidatorAddress);

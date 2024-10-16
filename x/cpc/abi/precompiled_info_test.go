@@ -390,11 +390,12 @@ func Test_Staking(t *testing.T) {
 	})
 	t.Run("delegateByMessage(DelegateMessage,bytes32,bytes32,uint8)", func(t *testing.T) {
 		delegateStruct := DelegateMessage{
-			Action:    "Delegate",
-			Delegator: common.BytesToAddress([]byte("delegator")),
-			Validator: marker.ReplaceAbleAddress("evmvaloper1cqetlv987ntelz7s6ntvv95ltrns9qt6et40np"),
-			Amount:    big.NewInt(1),
-			Denom:     constants.BaseDenom,
+			Action:       "Delegate",
+			Delegator:    common.BytesToAddress([]byte("delegator")),
+			Validator:    marker.ReplaceAbleAddress("evmvaloper1cqetlv987ntelz7s6ntvv95ltrns9qt6et40np"),
+			Amount:       big.NewInt(1),
+			Denom:        constants.BaseDenom,
+			OldValidator: delegateMessageEmptyOldValidatorValue,
 		}
 		require.Nil(t, delegateStruct.Validate(addresscodec.NewBech32Codec(constants.Bech32PrefixValAddr), constants.BaseDenom))
 		bz, err := cpcInfo.ABI.Methods["delegateByMessage"].Inputs.Pack(delegateStruct, toByte32(bigIntMaxInt64Bz), toByte32(bigIntMaxUint64Bz), uint8(math.MaxUint8))
@@ -402,7 +403,7 @@ func Test_Staking(t *testing.T) {
 
 		ret, err := cpcInfo.UnpackMethodInput(
 			"delegateByMessage",
-			append([]byte{0xf6, 0x03, 0x69, 0xa0}, bz...),
+			append([]byte{0x34, 0xf3, 0x53, 0x5c}, bz...),
 		)
 		require.NoError(t, err)
 		require.Len(t, ret, 4)
@@ -434,26 +435,27 @@ func Test_Staking(t *testing.T) {
 		require.Equal(t, bigIntOneBz, bz)
 	})
 	t.Run("undelegateByMessage(DelegateMessage,bytes32,bytes32,uint8)", func(t *testing.T) {
-		delegateStruct := DelegateMessage{
-			Action:    "Undelegate",
-			Delegator: common.BytesToAddress([]byte("delegator")),
-			Validator: marker.ReplaceAbleAddress("evmvaloper1cqetlv987ntelz7s6ntvv95ltrns9qt6et40np"),
-			Amount:    big.NewInt(1),
-			Denom:     constants.BaseDenom,
+		undelegateStruct := DelegateMessage{
+			Action:       "Undelegate",
+			Delegator:    common.BytesToAddress([]byte("delegator")),
+			Validator:    marker.ReplaceAbleAddress("evmvaloper1cqetlv987ntelz7s6ntvv95ltrns9qt6et40np"),
+			Amount:       big.NewInt(1),
+			Denom:        constants.BaseDenom,
+			OldValidator: delegateMessageEmptyOldValidatorValue,
 		}
-		require.Nil(t, delegateStruct.Validate(addresscodec.NewBech32Codec(constants.Bech32PrefixValAddr), constants.BaseDenom))
-		bz, err := cpcInfo.ABI.Methods["undelegateByMessage"].Inputs.Pack(delegateStruct, toByte32(bigIntMaxInt64Bz), toByte32(bigIntMaxUint64Bz), uint8(math.MaxUint8))
+		require.Nil(t, undelegateStruct.Validate(addresscodec.NewBech32Codec(constants.Bech32PrefixValAddr), constants.BaseDenom))
+		bz, err := cpcInfo.ABI.Methods["undelegateByMessage"].Inputs.Pack(undelegateStruct, toByte32(bigIntMaxInt64Bz), toByte32(bigIntMaxUint64Bz), uint8(math.MaxUint8))
 		require.NoError(t, err)
 
 		ret, err := cpcInfo.UnpackMethodInput(
 			"undelegateByMessage",
-			append([]byte{0x6c, 0x1a, 0x9f, 0x1a}, bz...),
+			append([]byte{0xa7, 0x70, 0xab, 0x4d}, bz...),
 		)
 		require.NoError(t, err)
 		require.Len(t, ret, 4)
 		decodedDelegate := &DelegateMessage{}
 		require.NoError(t, decodedDelegate.FromUnpackedStruct(ret[0]))
-		require.Equal(t, delegateStruct, *decodedDelegate)
+		require.Equal(t, undelegateStruct, *decodedDelegate)
 		require.Equal(t, toByte32(bigIntMaxInt64Bz), ret[1].([32]byte))
 		require.Equal(t, toByte32(bigIntMaxUint64Bz), ret[2].([32]byte))
 		require.Equal(t, uint8(math.MaxUint8), ret[3].(uint8))
@@ -476,6 +478,36 @@ func Test_Staking(t *testing.T) {
 		require.Equal(t, bigIntMaxUint64, ret[2].(*big.Int))
 
 		bz, err := cpcInfo.PackMethodOutput("redelegate", true)
+		require.NoError(t, err)
+		require.Equal(t, bigIntOneBz, bz)
+	})
+	t.Run("redelegateByMessage(DelegateMessage,bytes32,bytes32,uint8)", func(t *testing.T) {
+		redelegateStruct := DelegateMessage{
+			Action:       "Redelegate",
+			Delegator:    common.BytesToAddress([]byte("delegator")),
+			Validator:    marker.ReplaceAbleAddress("evmvaloper1cqetlv987ntelz7s6ntvv95ltrns9qt6et40np"),
+			Amount:       big.NewInt(1),
+			Denom:        constants.BaseDenom,
+			OldValidator: marker.ReplaceAbleAddress("evmvaloper1cqetlv987ntelz7s6ntvv95ltrns9qtmyap6wn"),
+		}
+		require.Nil(t, redelegateStruct.Validate(addresscodec.NewBech32Codec(constants.Bech32PrefixValAddr), constants.BaseDenom))
+		bz, err := cpcInfo.ABI.Methods["redelegateByMessage"].Inputs.Pack(redelegateStruct, toByte32(bigIntMaxInt64Bz), toByte32(bigIntMaxUint64Bz), uint8(math.MaxUint8))
+		require.NoError(t, err)
+
+		ret, err := cpcInfo.UnpackMethodInput(
+			"redelegateByMessage",
+			append([]byte{0x18, 0xf1, 0x66, 0xef}, bz...),
+		)
+		require.NoError(t, err)
+		require.Len(t, ret, 4)
+		decodedDelegate := &DelegateMessage{}
+		require.NoError(t, decodedDelegate.FromUnpackedStruct(ret[0]))
+		require.Equal(t, redelegateStruct, *decodedDelegate)
+		require.Equal(t, toByte32(bigIntMaxInt64Bz), ret[1].([32]byte))
+		require.Equal(t, toByte32(bigIntMaxUint64Bz), ret[2].([32]byte))
+		require.Equal(t, uint8(math.MaxUint8), ret[3].(uint8))
+
+		bz, err = cpcInfo.PackMethodOutput("redelegateByMessage", true)
 		require.NoError(t, err)
 		require.Equal(t, bigIntOneBz, bz)
 	})

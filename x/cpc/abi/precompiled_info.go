@@ -93,14 +93,18 @@ var _ eip712.TypedMessage = (*DelegateMessage)(nil)
 const (
 	DelegateMessageActionDelegate   = "Delegate"
 	DelegateMessageActionUndelegate = "Undelegate"
+	DelegateMessageActionRedelegate = "Redelegate"
+
+	delegateMessageEmptyOldValidatorValue = "-"
 )
 
 type DelegateMessage struct {
-	Action    string         `json:"action"`
-	Delegator common.Address `json:"delegator"`
-	Validator string         `json:"validator"`
-	Amount    *big.Int       `json:"amount"`
-	Denom     string         `json:"denom"`
+	Action       string         `json:"action"`
+	Delegator    common.Address `json:"delegator"`
+	Validator    string         `json:"validator"`
+	Amount       *big.Int       `json:"amount"`
+	Denom        string         `json:"denom"`
+	OldValidator string         `json:"oldValidator"`
 }
 
 func (m *DelegateMessage) FromUnpackedStruct(v any) error {
@@ -112,7 +116,15 @@ func (m *DelegateMessage) FromUnpackedStruct(v any) error {
 }
 
 func (m DelegateMessage) Validate(valAddrCodec addresscodec.Codec, bondDenom string) error {
-	if m.Action != DelegateMessageActionDelegate && m.Action != DelegateMessageActionUndelegate {
+	var requireOldValidator bool
+	switch m.Action {
+	case DelegateMessageActionDelegate:
+		requireOldValidator = false
+	case DelegateMessageActionUndelegate:
+		requireOldValidator = false
+	case DelegateMessageActionRedelegate:
+		requireOldValidator = true
+	default:
 		return fmt.Errorf("unknown action: %s", m.Action)
 	}
 
@@ -132,6 +144,16 @@ func (m DelegateMessage) Validate(valAddrCodec addresscodec.Codec, bondDenom str
 		return fmt.Errorf("denom must be: %s", bondDenom)
 	}
 
+	if requireOldValidator {
+		if _, err := valAddrCodec.StringToBytes(m.OldValidator); err != nil {
+			return errorsmod.Wrapf(err, "invalid old-validator: %s", m.OldValidator)
+		}
+	} else {
+		if m.OldValidator != delegateMessageEmptyOldValidatorValue {
+			return fmt.Errorf("old-validator must be empty for action: %s", m.Action)
+		}
+	}
+
 	return nil
 }
 
@@ -146,16 +168,18 @@ func (m DelegateMessage) ToTypedData(chainId *big.Int) apitypes.TypedData {
 				{"validator", "string"},
 				{"amount", "uint256"},
 				{"denom", "string"},
+				{"oldValidator", "string"},
 			},
 		},
 		PrimaryType: primaryTypeName,
 		Domain:      eip712.GetDomain(cpctypes.CpcStakingFixedAddress, chainId),
 		Message: apitypes.TypedDataMessage{
-			"action":    m.Action,
-			"delegator": m.Delegator.String(),
-			"validator": m.Validator,
-			"amount":    (*cmath.HexOrDecimal256)(m.Amount),
-			"denom":     m.Denom,
+			"action":       m.Action,
+			"delegator":    m.Delegator.String(),
+			"validator":    m.Validator,
+			"amount":       (*cmath.HexOrDecimal256)(m.Amount),
+			"denom":        m.Denom,
+			"oldValidator": m.OldValidator,
 		},
 	}
 }

@@ -90,6 +90,9 @@ func NewStakingCustomPrecompiledContract(
 	undelegateME := stakingCustomPrecompiledContractRwUnDelegate{
 		contract: contract,
 	}
+	redelegateME := stakingCustomPrecompiledContractRwReDelegate{
+		contract: contract,
+	}
 	withdrawRewardME := stakingCustomPrecompiledContractRwWithdrawReward{
 		contract: contract,
 	}
@@ -111,7 +114,8 @@ func NewStakingCustomPrecompiledContract(
 		&stakingCustomPrecompiledContractRwDelegateByMessage{delegate: delegateME},
 		&undelegateME,
 		&stakingCustomPrecompiledContractRwUnDelegateByMessage{undelegate: undelegateME},
-		&stakingCustomPrecompiledContractRwReDelegate{contract: contract},
+		&redelegateME,
+		&stakingCustomPrecompiledContractRwReDelegateByMessage{redelegate: redelegateME},
 		&withdrawRewardME,
 		&withdrawRewardsME,
 		&stakingCustomPrecompiledContractRoBalanceOf{rewardsOf: rewardsOfME},
@@ -762,7 +766,7 @@ func (e stakingCustomPrecompiledContractRwDelegate) ReadOnly() bool {
 }
 
 // delegateByMessage(DelegateMessage,bytes32,bytes32,uint8)
-// sig delivered from: delegateByMessage((string,address,string,uint256,string),bytes32,bytes32,uint8)
+// sig delivered from: delegateByMessage((string,address,string,uint256,string,string),bytes32,bytes32,uint8)
 
 var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRwDelegateByMessage{}
 
@@ -798,7 +802,6 @@ func (e stakingCustomPrecompiledContractRwDelegateByMessage) Execute(caller core
 	if err != nil {
 		return nil, err
 	}
-	valAddr := common.BytesToAddress(valAddrBz)
 	amount := delegateMessage.Amount
 
 	match, recoveredAddr, err := eip712.VerifySignature(delegator, delegateMessage, r, s, v, env.evm.ChainConfig().ChainID)
@@ -811,7 +814,7 @@ func (e stakingCustomPrecompiledContractRwDelegateByMessage) Execute(caller core
 
 	originalStakingEventsCount := len(e.delegate.contract.getSdkEventsFromEventManager(ctx.EventManager()))
 
-	if err := e.delegate.delegate(ctx, delegator.Bytes(), valAddr.Bytes(), amount); err != nil {
+	if err := e.delegate.delegate(ctx, delegator.Bytes(), valAddrBz, amount); err != nil {
 		return nil, err
 	}
 
@@ -823,7 +826,7 @@ func (e stakingCustomPrecompiledContractRwDelegateByMessage) Execute(caller core
 }
 
 func (e stakingCustomPrecompiledContractRwDelegateByMessage) Method4BytesSignatures() []byte {
-	return []byte{0xf6, 0x03, 0x69, 0xa0}
+	return []byte{0x34, 0xf3, 0x53, 0x5c}
 }
 
 func (e stakingCustomPrecompiledContractRwDelegateByMessage) RequireGas() uint64 {
@@ -909,7 +912,7 @@ func (e stakingCustomPrecompiledContractRwUnDelegate) ReadOnly() bool {
 }
 
 // undelegateByMessage(DelegateMessage,bytes32,bytes32,uint8)
-// sig delivered from: undelegateByMessage((string,address,string,uint256,string),bytes32,bytes32,uint8)
+// sig delivered from: undelegateByMessage((string,address,string,uint256,string,string),bytes32,bytes32,uint8)
 
 var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRwUnDelegateByMessage{}
 
@@ -945,7 +948,6 @@ func (e stakingCustomPrecompiledContractRwUnDelegateByMessage) Execute(caller co
 	if err != nil {
 		return nil, err
 	}
-	valAddr := common.BytesToAddress(valAddrBz)
 	amount := delegateMessage.Amount
 
 	match, recoveredAddr, err := eip712.VerifySignature(delegator, delegateMessage, r, s, v, env.evm.ChainConfig().ChainID)
@@ -958,7 +960,7 @@ func (e stakingCustomPrecompiledContractRwUnDelegateByMessage) Execute(caller co
 
 	originalStakingEventsCount := len(e.undelegate.contract.getSdkEventsFromEventManager(ctx.EventManager()))
 
-	if err := e.undelegate.undelegate(ctx, delegator.Bytes(), valAddr.Bytes(), amount); err != nil {
+	if err := e.undelegate.undelegate(ctx, delegator.Bytes(), valAddrBz, amount); err != nil {
 		return nil, err
 	}
 
@@ -970,7 +972,7 @@ func (e stakingCustomPrecompiledContractRwUnDelegateByMessage) Execute(caller co
 }
 
 func (e stakingCustomPrecompiledContractRwUnDelegateByMessage) Method4BytesSignatures() []byte {
-	return []byte{0x6c, 0x1a, 0x9f, 0x1a}
+	return []byte{0xa7, 0x70, 0xab, 0x4d}
 }
 
 func (e stakingCustomPrecompiledContractRwUnDelegateByMessage) RequireGas() uint64 {
@@ -1059,6 +1061,82 @@ func (e stakingCustomPrecompiledContractRwReDelegate) RequireGas() uint64 {
 
 func (e stakingCustomPrecompiledContractRwReDelegate) ReadOnly() bool {
 	return false
+}
+
+// redelegateByMessage(DelegateMessage,bytes32,bytes32,uint8)
+// sig delivered from: redelegateByMessage((string,address,string,uint256,string,string),bytes32,bytes32,uint8)
+
+var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRwReDelegateByMessage{}
+
+type stakingCustomPrecompiledContractRwReDelegateByMessage struct {
+	redelegate stakingCustomPrecompiledContractRwReDelegate
+}
+
+func (e stakingCustomPrecompiledContractRwReDelegateByMessage) Execute(caller corevm.ContractRef, _ common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
+	ips, err := abi.StakingCpcInfo.UnpackMethodInput("redelegateByMessage", input)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := env.ctx
+	sk := e.redelegate.contract.keeper.stakingKeeper
+
+	delegateMessage := &abi.DelegateMessage{}
+	if err := delegateMessage.FromUnpackedStruct(ips[0]); err != nil {
+		return nil, fmt.Errorf("failed to parse delegate message: %s", err.Error())
+	}
+	r := ips[1].([32]byte)
+	s := ips[2].([32]byte)
+	v := ips[3].(uint8)
+
+	if delegateMessage.Action != abi.DelegateMessageActionRedelegate {
+		return nil, fmt.Errorf("invalid action: %s", delegateMessage.Action)
+	} else if caller.Address() != delegateMessage.Delegator {
+		return nil, fmt.Errorf("not the caller: %s", delegateMessage.Delegator)
+	}
+
+	delegator := delegateMessage.Delegator
+	srcValAddrBz, err := sk.ValidatorAddressCodec().StringToBytes(delegateMessage.OldValidator)
+	if err != nil {
+		return nil, err
+	}
+	dstValAddrBz, err := sk.ValidatorAddressCodec().StringToBytes(delegateMessage.Validator)
+	if err != nil {
+		return nil, err
+	}
+	amount := delegateMessage.Amount
+
+	match, recoveredAddr, err := eip712.VerifySignature(delegator, delegateMessage, r, s, v, env.evm.ChainConfig().ChainID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to verify signature: %s", err.Error())
+	}
+	if !match {
+		return nil, fmt.Errorf("signature does not match, got: %s", recoveredAddr.String())
+	}
+
+	originalStakingEventsCount := len(e.redelegate.contract.getSdkEventsFromEventManager(ctx.EventManager()))
+
+	if err := e.redelegate.redelegate(ctx, delegator.Bytes(), srcValAddrBz, dstValAddrBz, amount); err != nil {
+		return nil, err
+	}
+
+	if err := e.redelegate.contract.autoEmitEventsFromSdkEvents(ctx.EventManager(), originalStakingEventsCount, delegator.Bytes(), env); err != nil {
+		return nil, errorsmod.Wrapf(err, "failed to emit events")
+	}
+
+	return abi.StakingCpcInfo.PackMethodOutput("redelegateByMessage", true)
+}
+
+func (e stakingCustomPrecompiledContractRwReDelegateByMessage) Method4BytesSignatures() []byte {
+	return []byte{0x18, 0xf1, 0x66, 0xef}
+}
+
+func (e stakingCustomPrecompiledContractRwReDelegateByMessage) RequireGas() uint64 {
+	return e.redelegate.RequireGas() + cpctypes.GasVerifyEIP712
+}
+
+func (e stakingCustomPrecompiledContractRwReDelegateByMessage) ReadOnly() bool {
+	return e.redelegate.ReadOnly()
 }
 
 // withdrawReward(address)
