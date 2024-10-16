@@ -24,22 +24,11 @@ func VerifySignature(
 	tm TypedMessage, r, s [32]byte, v uint8,
 	chainId *big.Int,
 ) (match bool, recoveredAddress common.Address, err error) {
-	typedData := tm.ToTypedData(chainId)
-
-	var typedDataHash hexutil.Bytes
-	typedDataHash, err = typedData.HashStruct(typedData.PrimaryType, typedData.Message)
+	var hashBytes []byte
+	hashBytes, err = EIP712HashingTypedMessage(tm, chainId)
 	if err != nil {
 		return
 	}
-
-	var domainSeparator hexutil.Bytes
-	domainSeparator, err = typedData.HashStruct(PrimaryTypeNameEIP712Domain, typedData.Domain.Map())
-	if err != nil {
-		return
-	}
-
-	rawData := []byte(fmt.Sprintf("\x19\x01%s%s", string(domainSeparator), string(typedDataHash)))
-	hashBytes := crypto.Keccak256(rawData)
 
 	signature := make([]byte, 65)
 	{ // re-construct signature bytes from r, s, v
@@ -71,4 +60,24 @@ func VerifySignature(
 	recoveredAddress = crypto.PubkeyToAddress(*pubKey)
 	match = recoveredAddress == expectedAddress
 	return
+}
+
+func EIP712HashingTypedMessage(tm TypedMessage, chainId *big.Int) ([]byte, error) {
+	typedData := tm.ToTypedData(chainId)
+
+	var typedDataHash hexutil.Bytes
+	var err error
+	typedDataHash, err = typedData.HashStruct(typedData.PrimaryType, typedData.Message)
+	if err != nil {
+		return nil, err
+	}
+
+	var domainSeparator hexutil.Bytes
+	domainSeparator, err = typedData.HashStruct(PrimaryTypeNameEIP712Domain, typedData.Domain.Map())
+	if err != nil {
+		return nil, err
+	}
+
+	rawData := []byte(fmt.Sprintf("\x19\x01%s%s", string(domainSeparator), string(typedDataHash)))
+	return crypto.Keccak256(rawData), nil
 }
