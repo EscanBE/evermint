@@ -91,7 +91,8 @@ func init() {
 var _ eip712.TypedMessage = (*DelegateMessage)(nil)
 
 const (
-	DelegateMessageActionDelegate = "Delegate"
+	DelegateMessageActionDelegate   = "Delegate"
+	DelegateMessageActionUndelegate = "Undelegate"
 )
 
 type DelegateMessage struct {
@@ -111,7 +112,7 @@ func (m *DelegateMessage) FromUnpackedStruct(v any) error {
 }
 
 func (m DelegateMessage) Validate(valAddrCodec addresscodec.Codec, bondDenom string) error {
-	if m.Action != DelegateMessageActionDelegate {
+	if m.Action != DelegateMessageActionDelegate && m.Action != DelegateMessageActionUndelegate {
 		return fmt.Errorf("unknown action: %s", m.Action)
 	}
 

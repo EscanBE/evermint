@@ -402,6 +402,67 @@ export const StakingAbi = `[
 	{
 		"inputs": [
 			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "action",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "delegator",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "validator",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "denom",
+						"type": "string"
+					}
+				],
+				"internalType": "struct DelegateMessage",
+				"name": "message",
+				"type": "tuple"
+			},
+			{
+				"internalType": "bytes32",
+				"name": "r",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "bytes32",
+				"name": "s",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "uint8",
+				"name": "v",
+				"type": "uint8"
+			}
+		],
+		"name": "undelegateByMessage",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"internalType": "address",
 				"name": "validator",
 				"type": "address"

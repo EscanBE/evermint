@@ -78,7 +78,8 @@ interface IStakingCPC {
     function delegate(address validator, uint256 value) external returns (bool);
 
     /**
-     * @dev Delegate a `value` amount of staking coin from the caller's account to `validator`.
+     * @dev Delegate a `value` amount of staking coin from the caller's account to `validator`
+     * using EIP-712.
      *
      * Returns a boolean value indicating whether the operation succeeded.
      *
@@ -94,6 +95,16 @@ interface IStakingCPC {
      * Emits {Undelegate} + {?WithdrawReward} events.
      */
     function undelegate(address validator, uint256 value) external returns (bool);
+
+    /**
+     * @dev Undelegate a `value` amount of staking coin of the caller's account from `validator`
+     * using EIP-712.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits {Undelegate} + {?WithdrawReward} events.
+     */
+    function undelegateByMessage(DelegateMessage memory message, bytes32 r, bytes32 s, uint8 v) external returns (bool);
 
     /**
      * @dev Redelegate moves a `value` amount of staking coin of the caller's account from `srcValidator` to `dstValidator`.

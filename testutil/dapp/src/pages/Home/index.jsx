@@ -256,6 +256,91 @@ export function Home() {
 								return toQueryGetReceipt(retTx);
 							});
 						}}>undelegate({ValidatorAddress}::address,1^18::uint256)</button><br />
+						<button disabled={loading} onClick={async () => {
+							const undelegateMessage = {
+								action: "Undelegate",
+								delegator: account,
+								validator: ValidatorCosmosAddress,
+								amount: '1000000000000000000',
+								denom: 'wei'
+							};
+							const signed = await window.ethereum.request({
+								"method": "eth_signTypedData_v4",
+								"params": [
+									account,
+									{
+										types: {
+											EIP712Domain: [
+												{
+													name: "name",
+													type: "string"
+												},
+												{
+													name: "version",
+													type: "string"
+												},
+												{
+													name: "chainId",
+													type: "uint256"
+												},
+												{
+													name: "verifyingContract",
+													type: "address"
+												},
+												{
+													name: "salt",
+													type: "string"
+												},
+											],
+											DelegateMessage: [
+												{
+													name: "action",
+													type: "string"
+												},
+												{
+													name: "delegator",
+													type: "address"
+												},
+												{
+													name: "validator",
+													type: "string"
+												},
+												{
+													name: "amount",
+													type: "uint256"
+												},
+												{
+													name: "denom",
+													type: "string"
+												}
+											]
+										},
+										primaryType: "DelegateMessage",
+										domain: {
+											name: "EVERMINT",
+											version: "1.0.0",
+											chainId: chainId,
+											verifyingContract: StakingContractAddress,
+											salt: "0x1"
+										},
+										message: undelegateMessage
+									}
+								],
+							});
+							const signedHex = `${signed}`;
+							console.log('signature', signedHex);
+							const signature = signedHex.substring(2);
+							const r = "0x" + signature.substring(0, 64);
+							const s = "0x" + signature.substring(64, 128);
+							const v = parseInt(signature.substring(128, 130), 16);
+							setStakingPcResult(` r = ${r} \n s = ${s} \n v = ${v}`);
+
+							await execStakingContractAndPrint(async (contract, signer) => {
+								const retTx = await contract.undelegateByMessage(undelegateMessage, r, s, v);
+								tryFetchReceiptAndPrint(retTx);
+								return toQueryGetReceipt(retTx);
+							});
+						}}>undelegateByMessage(DelegateMessage,bytes32,bytes32,uint8)</button><br />
 						<button disabled={true} onClick={async () => {
 							await execStakingContractAndPrint(async (contract, signer) => {
 								const retTx = await contract.redelegate(ValidatorAddress, ValidatorAddress, '1000000000000000000');
