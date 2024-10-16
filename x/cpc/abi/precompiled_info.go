@@ -88,17 +88,17 @@ func init() {
 	StakingCpcInfo.Name = "Staking"
 }
 
-var _ eip712.TypedMessage = (*DelegateMessage)(nil)
+var _ eip712.TypedMessage = (*StakingMessage)(nil)
 
 const (
-	DelegateMessageActionDelegate   = "Delegate"
-	DelegateMessageActionUndelegate = "Undelegate"
-	DelegateMessageActionRedelegate = "Redelegate"
+	StakingMessageActionDelegate   = "Delegate"
+	StakingMessageActionUndelegate = "Undelegate"
+	StakingMessageActionRedelegate = "Redelegate"
 
-	delegateMessageEmptyOldValidatorValue = "-"
+	stakingMessageEmptyOldValidatorValue = "-"
 )
 
-type DelegateMessage struct {
+type StakingMessage struct {
 	Action       string         `json:"action"`
 	Delegator    common.Address `json:"delegator"`
 	Validator    string         `json:"validator"`
@@ -107,7 +107,7 @@ type DelegateMessage struct {
 	OldValidator string         `json:"oldValidator"`
 }
 
-func (m *DelegateMessage) FromUnpackedStruct(v any) error {
+func (m *StakingMessage) FromUnpackedStruct(v any) error {
 	bz, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -115,14 +115,14 @@ func (m *DelegateMessage) FromUnpackedStruct(v any) error {
 	return json.Unmarshal(bz, m)
 }
 
-func (m DelegateMessage) Validate(valAddrCodec addresscodec.Codec, bondDenom string) error {
+func (m StakingMessage) Validate(valAddrCodec addresscodec.Codec, bondDenom string) error {
 	var requireOldValidator bool
 	switch m.Action {
-	case DelegateMessageActionDelegate:
+	case StakingMessageActionDelegate:
 		requireOldValidator = false
-	case DelegateMessageActionUndelegate:
+	case StakingMessageActionUndelegate:
 		requireOldValidator = false
-	case DelegateMessageActionRedelegate:
+	case StakingMessageActionRedelegate:
 		requireOldValidator = true
 	default:
 		return fmt.Errorf("unknown action: %s", m.Action)
@@ -149,7 +149,7 @@ func (m DelegateMessage) Validate(valAddrCodec addresscodec.Codec, bondDenom str
 			return errorsmod.Wrapf(err, "invalid old-validator: %s", m.OldValidator)
 		}
 	} else {
-		if m.OldValidator != delegateMessageEmptyOldValidatorValue {
+		if m.OldValidator != stakingMessageEmptyOldValidatorValue {
 			return fmt.Errorf("old-validator must be empty for action: %s", m.Action)
 		}
 	}
@@ -157,8 +157,8 @@ func (m DelegateMessage) Validate(valAddrCodec addresscodec.Codec, bondDenom str
 	return nil
 }
 
-func (m DelegateMessage) ToTypedData(chainId *big.Int) apitypes.TypedData {
-	const primaryTypeName = "DelegateMessage"
+func (m StakingMessage) ToTypedData(chainId *big.Int) apitypes.TypedData {
+	const primaryTypeName = "StakingMessage"
 	return apitypes.TypedData{
 		Types: apitypes.Types{
 			eip712.PrimaryTypeNameEIP712Domain: eip712.GetDomainTypes(),

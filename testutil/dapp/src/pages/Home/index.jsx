@@ -201,7 +201,7 @@ export function Home() {
 													type: "string"
 												},
 											],
-											DelegateMessage: [
+											StakingMessage: [
 												{
 													name: "action",
 													type: "string"
@@ -228,7 +228,7 @@ export function Home() {
 												}
 											]
 										},
-										primaryType: "DelegateMessage",
+										primaryType: "StakingMessage",
 										domain: {
 											name: "EVERMINT",
 											version: "1.0.0",
@@ -253,7 +253,7 @@ export function Home() {
 								tryFetchReceiptAndPrint(retTx);
 								return toQueryGetReceipt(retTx);
 							});
-						}}>(delegate EIP-712) delegateByActionMessage(DelegateMessage,bytes32,bytes32,uint8)</button><br />
+						}}>(delegate EIP-712) delegateByActionMessage(StakingMessage,bytes32,bytes32,uint8)</button><br />
 						<button disabled={loading} onClick={async () => {
 							await execStakingContractAndPrint(async (contract, signer) => {
 								const retTx = await contract.undelegate(ValidatorAddress, '1000000000000000000');
@@ -298,7 +298,7 @@ export function Home() {
 													type: "string"
 												},
 											],
-											DelegateMessage: [
+											StakingMessage: [
 												{
 													name: "action",
 													type: "string"
@@ -325,7 +325,7 @@ export function Home() {
 												}
 											]
 										},
-										primaryType: "DelegateMessage",
+										primaryType: "StakingMessage",
 										domain: {
 											name: "EVERMINT",
 											version: "1.0.0",
@@ -350,7 +350,7 @@ export function Home() {
 								tryFetchReceiptAndPrint(retTx);
 								return toQueryGetReceipt(retTx);
 							});
-						}}>(undelegate EIP-712) delegateByActionMessage(DelegateMessage,bytes32,bytes32,uint8)</button><br />
+						}}>(undelegate EIP-712) delegateByActionMessage(StakingMessage,bytes32,bytes32,uint8)</button><br />
 						<button disabled={true} onClick={async () => {
 							await execStakingContractAndPrint(async (contract, signer) => {
 								const retTx = await contract.redelegate(ValidatorAddress, ValidatorAddress, '1000000000000000000');
@@ -395,7 +395,7 @@ export function Home() {
 													type: "string"
 												},
 											],
-											DelegateMessage: [
+											StakingMessage: [
 												{
 													name: "action",
 													type: "string"
@@ -422,7 +422,7 @@ export function Home() {
 												}
 											]
 										},
-										primaryType: "DelegateMessage",
+										primaryType: "StakingMessage",
 										domain: {
 											name: "EVERMINT",
 											version: "1.0.0",
@@ -447,7 +447,7 @@ export function Home() {
 								tryFetchReceiptAndPrint(retTx);
 								return toQueryGetReceipt(retTx);
 							});
-						}}>(redelegate EIP-712) delegateByActionMessage(DelegateMessage,bytes32,bytes32,uint8)</button><br />
+						}}>(redelegate EIP-712) delegateByActionMessage(StakingMessage,bytes32,bytes32,uint8)</button><br />
 						<button disabled={loading} onClick={async () => {
 							await execStakingContractAndPrint(async (contract, signer) => {
 								const retTx = await contract.withdrawReward(ValidatorAddress);
