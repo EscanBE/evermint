@@ -81,21 +81,11 @@ func NewStakingCustomPrecompiledContract(
 		keeper:   keeper,
 	}
 
-	rewardsOfME := stakingCustomPrecompiledContractRoRewardsOf{
-		contract: contract,
-	}
-	delegateME := stakingCustomPrecompiledContractRwDelegate{
-		contract: contract,
-	}
-	undelegateME := stakingCustomPrecompiledContractRwUnDelegate{
-		contract: contract,
-	}
-	redelegateME := stakingCustomPrecompiledContractRwReDelegate{
-		contract: contract,
-	}
-	withdrawRewardME := stakingCustomPrecompiledContractRwWithdrawReward{
-		contract: contract,
-	}
+	rewardsOfME := stakingCustomPrecompiledContractRoRewardsOf{contract: contract}
+	delegateME := stakingCustomPrecompiledContractRwDelegate{contract: contract}
+	undelegateME := stakingCustomPrecompiledContractRwUnDelegate{contract: contract}
+	redelegateME := stakingCustomPrecompiledContractRwReDelegate{contract: contract}
+	withdrawRewardME := stakingCustomPrecompiledContractRwWithdrawReward{contract: contract}
 	withdrawRewardsME := stakingCustomPrecompiledContractRwWithdrawRewards{
 		withdrawReward: withdrawRewardME,
 		contract:       contract,
@@ -710,6 +700,12 @@ func (e stakingCustomPrecompiledContractRwDelegate) Execute(caller corevm.Contra
 	}
 
 	ctx := env.ctx
+	sk := e.contract.keeper.stakingKeeper
+
+	bondDenom, err := sk.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	delegator := sdk.AccAddress(caller.Address().Bytes())
 	valAddr := ips[0].(common.Address)
@@ -720,7 +716,7 @@ func (e stakingCustomPrecompiledContractRwDelegate) Execute(caller corevm.Contra
 
 	originalStakingEventsCount := len(e.contract.getSdkEventsFromEventManager(ctx.EventManager()))
 
-	if err := e.delegate(ctx, delegator, valAddr.Bytes(), amount); err != nil {
+	if err := e.delegate(ctx, delegator, valAddr.Bytes(), amount, bondDenom); err != nil {
 		return nil, err
 	}
 
@@ -731,13 +727,8 @@ func (e stakingCustomPrecompiledContractRwDelegate) Execute(caller corevm.Contra
 	return abi.StakingCpcInfo.PackMethodOutput("delegate", true)
 }
 
-func (e stakingCustomPrecompiledContractRwDelegate) delegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount *big.Int) error {
+func (e stakingCustomPrecompiledContractRwDelegate) delegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount *big.Int, bondDenom string) error {
 	sk := e.contract.keeper.stakingKeeper
-
-	bondDenom, err := sk.BondDenom(ctx)
-	if err != nil {
-		return err
-	}
 
 	valAddrCodec := sk.ValidatorAddressCodec()
 	valAddrStr, err := valAddrCodec.BytesToString(validator.Bytes())
@@ -825,7 +816,7 @@ func (e stakingCustomPrecompiledContractRwDelegateByMessage) Execute(caller core
 
 	originalStakingEventsCount := len(e.delegate.contract.getSdkEventsFromEventManager(ctx.EventManager()))
 
-	if err := e.delegate.delegate(ctx, delegator.Bytes(), valAddrBz, amount); err != nil {
+	if err := e.delegate.delegate(ctx, delegator.Bytes(), valAddrBz, amount, bondDenom); err != nil {
 		return nil, err
 	}
 
@@ -863,6 +854,12 @@ func (e stakingCustomPrecompiledContractRwUnDelegate) Execute(caller corevm.Cont
 	}
 
 	ctx := env.ctx
+	sk := e.contract.keeper.stakingKeeper
+
+	bondDenom, err := sk.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	delegator := sdk.AccAddress(caller.Address().Bytes())
 	valAddr := ips[0].(common.Address)
@@ -873,7 +870,7 @@ func (e stakingCustomPrecompiledContractRwUnDelegate) Execute(caller corevm.Cont
 
 	originalStakingEventsCount := len(e.contract.getSdkEventsFromEventManager(ctx.EventManager()))
 
-	if err := e.undelegate(ctx, delegator, valAddr.Bytes(), amount); err != nil {
+	if err := e.undelegate(ctx, delegator, valAddr.Bytes(), amount, bondDenom); err != nil {
 		return nil, err
 	}
 
@@ -884,13 +881,8 @@ func (e stakingCustomPrecompiledContractRwUnDelegate) Execute(caller corevm.Cont
 	return abi.StakingCpcInfo.PackMethodOutput("undelegate", true)
 }
 
-func (e stakingCustomPrecompiledContractRwUnDelegate) undelegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount *big.Int) error {
+func (e stakingCustomPrecompiledContractRwUnDelegate) undelegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount *big.Int, bondDenom string) error {
 	sk := e.contract.keeper.stakingKeeper
-
-	bondDenom, err := sk.BondDenom(ctx)
-	if err != nil {
-		return err
-	}
 
 	valAddrCodec := sk.ValidatorAddressCodec()
 	valAddrStr, err := valAddrCodec.BytesToString(validator.Bytes())
@@ -978,7 +970,7 @@ func (e stakingCustomPrecompiledContractRwUnDelegateByMessage) Execute(caller co
 
 	originalStakingEventsCount := len(e.undelegate.contract.getSdkEventsFromEventManager(ctx.EventManager()))
 
-	if err := e.undelegate.undelegate(ctx, delegator.Bytes(), valAddrBz, amount); err != nil {
+	if err := e.undelegate.undelegate(ctx, delegator.Bytes(), valAddrBz, amount, bondDenom); err != nil {
 		return nil, err
 	}
 
@@ -1016,6 +1008,12 @@ func (e stakingCustomPrecompiledContractRwReDelegate) Execute(caller corevm.Cont
 	}
 
 	ctx := env.ctx
+	sk := e.contract.keeper.stakingKeeper
+
+	bondDenom, err := sk.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	delegator := sdk.AccAddress(caller.Address().Bytes())
 	srcValAddr := ips[0].(common.Address)
@@ -1027,7 +1025,7 @@ func (e stakingCustomPrecompiledContractRwReDelegate) Execute(caller corevm.Cont
 
 	originalStakingEventsCount := len(e.contract.getSdkEventsFromEventManager(ctx.EventManager()))
 
-	if err := e.redelegate(ctx, delegator, srcValAddr.Bytes(), dstValAddr.Bytes(), amount); err != nil {
+	if err := e.redelegate(ctx, delegator, srcValAddr.Bytes(), dstValAddr.Bytes(), amount, bondDenom); err != nil {
 		return nil, err
 	}
 
@@ -1038,13 +1036,8 @@ func (e stakingCustomPrecompiledContractRwReDelegate) Execute(caller corevm.Cont
 	return abi.StakingCpcInfo.PackMethodOutput("redelegate", true)
 }
 
-func (e stakingCustomPrecompiledContractRwReDelegate) redelegate(ctx sdk.Context, delegator sdk.AccAddress, srcVal, dstVal sdk.ValAddress, amount *big.Int) error {
+func (e stakingCustomPrecompiledContractRwReDelegate) redelegate(ctx sdk.Context, delegator sdk.AccAddress, srcVal, dstVal sdk.ValAddress, amount *big.Int, bondDenom string) error {
 	sk := e.contract.keeper.stakingKeeper
-
-	bondDenom, err := sk.BondDenom(ctx)
-	if err != nil {
-		return err
-	}
 
 	valAddrCodec := sk.ValidatorAddressCodec()
 	srcValAddrStr, err := valAddrCodec.BytesToString(srcVal.Bytes())
@@ -1141,7 +1134,7 @@ func (e stakingCustomPrecompiledContractRwReDelegateByMessage) Execute(caller co
 
 	originalStakingEventsCount := len(e.redelegate.contract.getSdkEventsFromEventManager(ctx.EventManager()))
 
-	if err := e.redelegate.redelegate(ctx, delegator.Bytes(), srcValAddrBz, dstValAddrBz, amount); err != nil {
+	if err := e.redelegate.redelegate(ctx, delegator.Bytes(), srcValAddrBz, dstValAddrBz, amount, bondDenom); err != nil {
 		return nil, err
 	}
 
@@ -1569,7 +1562,7 @@ func (e stakingCustomPrecompiledContractRwTransfer) Execute(caller corevm.Contra
 		return nil, errorsmod.Wrapf(err, "failed to convert validator address: %s", selectedValidator.GetOperator())
 	}
 
-	if err := e.delegate.delegate(ctx, caller.Address().Bytes(), valAddr, amount); err != nil {
+	if err := e.delegate.delegate(ctx, caller.Address().Bytes(), valAddr, amount, bondDenom); err != nil {
 		return nil, err
 	}
 
