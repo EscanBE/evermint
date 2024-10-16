@@ -249,11 +249,11 @@ export function Home() {
 							setStakingPcResult(` r = ${r} \n s = ${s} \n v = ${v}`);
 
 							await execStakingContractAndPrint(async (contract, signer) => {
-								const retTx = await contract.delegateByMessage(delegateMessage, r, s, v);
+								const retTx = await contract.delegateByActionMessage(delegateMessage, r, s, v);
 								tryFetchReceiptAndPrint(retTx);
 								return toQueryGetReceipt(retTx);
 							});
-						}}>delegateByMessage(DelegateMessage,bytes32,bytes32,uint8)</button><br />
+						}}>(delegate EIP-712) delegateByActionMessage(DelegateMessage,bytes32,bytes32,uint8)</button><br />
 						<button disabled={loading} onClick={async () => {
 							await execStakingContractAndPrint(async (contract, signer) => {
 								const retTx = await contract.undelegate(ValidatorAddress, '1000000000000000000');
@@ -346,11 +346,11 @@ export function Home() {
 							setStakingPcResult(` r = ${r} \n s = ${s} \n v = ${v}`);
 
 							await execStakingContractAndPrint(async (contract, signer) => {
-								const retTx = await contract.undelegateByMessage(undelegateMessage, r, s, v);
+								const retTx = await contract.delegateByActionMessage(undelegateMessage, r, s, v);
 								tryFetchReceiptAndPrint(retTx);
 								return toQueryGetReceipt(retTx);
 							});
-						}}>undelegateByMessage(DelegateMessage,bytes32,bytes32,uint8)</button><br />
+						}}>(undelegate EIP-712) delegateByActionMessage(DelegateMessage,bytes32,bytes32,uint8)</button><br />
 						<button disabled={true} onClick={async () => {
 							await execStakingContractAndPrint(async (contract, signer) => {
 								const retTx = await contract.redelegate(ValidatorAddress, ValidatorAddress, '1000000000000000000');
@@ -443,11 +443,11 @@ export function Home() {
 							setStakingPcResult(` r = ${r} \n s = ${s} \n v = ${v}`);
 
 							await execStakingContractAndPrint(async (contract, signer) => {
-								const retTx = await contract.redelegateByMessage(redelegateMessage, r, s, v);
+								const retTx = await contract.delegateByActionMessage(redelegateMessage, r, s, v);
 								tryFetchReceiptAndPrint(retTx);
 								return toQueryGetReceipt(retTx);
 							});
-						}}>redelegateByMessage(DelegateMessage,bytes32,bytes32,uint8)</button><br />
+						}}>(redelegate EIP-712) delegateByActionMessage(DelegateMessage,bytes32,bytes32,uint8)</button><br />
 						<button disabled={loading} onClick={async () => {
 							await execStakingContractAndPrint(async (contract, signer) => {
 								const retTx = await contract.withdrawReward(ValidatorAddress);
@@ -531,7 +531,7 @@ export function Home() {
 								tryFetchReceiptAndPrint(retTx);
 								return toQueryGetReceipt(retTx);
 							});
-						}}>withdrawRewardsByMessage(WithdrawRewardMessage,bytes32,bytes32,uint8) (one validator)</button><br />
+						}}>(one validator EIP-712) withdrawRewardsByMessage(WithdrawRewardMessage,bytes32,bytes32,uint8)</button><br />
 						<button disabled={loading} onClick={async () => {
 							const withdrawRewardMessage = {
 								delegator: account,
@@ -601,7 +601,7 @@ export function Home() {
 								tryFetchReceiptAndPrint(retTx);
 								return toQueryGetReceipt(retTx);
 							});
-						}}>withdrawRewardsByMessage(WithdrawRewardMessage,bytes32,bytes32,uint8) (all validators)</button><br />
+						}}>(all validators EIP-712) withdrawRewardsByMessage(WithdrawRewardMessage,bytes32,bytes32,uint8)</button><br />
 					</div>
 				</div>
 			)}

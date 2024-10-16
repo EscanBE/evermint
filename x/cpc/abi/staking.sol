@@ -132,6 +132,18 @@ interface IStakingCPC {
     function redelegateByMessage(DelegateMessage memory message, bytes32 r, bytes32 s, uint8 v) external returns (bool);
 
     /**
+     * @dev Delegate/Undelegate/Redelegate using EIP-712:
+     * - Delegate a `value` amount of staking coin from the caller's account to `validator`.
+     * - Undelegate a `value` amount of staking coin of the caller's account from `validator`.
+     * - Redelegate moves a `value` amount of staking coin of the caller's account from `srcValidator` to `dstValidator`.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits mixed of {Undelegate}, {Delegate}, {WithdrawReward} events.
+     */
+    function delegateByActionMessage(DelegateMessage memory message, bytes32 r, bytes32 s, uint8 v) external returns (bool);
+
+    /**
      * @dev Withdraw the caller's account staking reward from a single `validator`.
      *
      * Returns a boolean value indicating whether the operation succeeded.

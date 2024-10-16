@@ -511,6 +511,56 @@ func Test_Staking(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, bigIntOneBz, bz)
 	})
+	t.Run("delegateByActionMessage(DelegateMessage,bytes32,bytes32,uint8)", func(t *testing.T) {
+		messages := []DelegateMessage{
+			{
+				Action:       "Delegate",
+				Delegator:    common.BytesToAddress([]byte("delegator")),
+				Validator:    marker.ReplaceAbleAddress("evmvaloper1cqetlv987ntelz7s6ntvv95ltrns9qt6et40np"),
+				Amount:       big.NewInt(1),
+				Denom:        constants.BaseDenom,
+				OldValidator: delegateMessageEmptyOldValidatorValue,
+			},
+			{
+				Action:       "Undelegate",
+				Delegator:    common.BytesToAddress([]byte("delegator")),
+				Validator:    marker.ReplaceAbleAddress("evmvaloper1cqetlv987ntelz7s6ntvv95ltrns9qt6et40np"),
+				Amount:       big.NewInt(1),
+				Denom:        constants.BaseDenom,
+				OldValidator: delegateMessageEmptyOldValidatorValue,
+			},
+			{
+				Action:       "Redelegate",
+				Delegator:    common.BytesToAddress([]byte("delegator")),
+				Validator:    marker.ReplaceAbleAddress("evmvaloper1cqetlv987ntelz7s6ntvv95ltrns9qt6et40np"),
+				Amount:       big.NewInt(1),
+				Denom:        constants.BaseDenom,
+				OldValidator: marker.ReplaceAbleAddress("evmvaloper1cqetlv987ntelz7s6ntvv95ltrns9qtmyap6wn"),
+			},
+		}
+		for _, message := range messages {
+			require.Nil(t, message.Validate(addresscodec.NewBech32Codec(constants.Bech32PrefixValAddr), constants.BaseDenom))
+			bz, err := cpcInfo.ABI.Methods["delegateByActionMessage"].Inputs.Pack(message, toByte32(bigIntMaxInt64Bz), toByte32(bigIntMaxUint64Bz), uint8(math.MaxUint8))
+			require.NoError(t, err)
+
+			ret, err := cpcInfo.UnpackMethodInput(
+				"delegateByActionMessage",
+				append([]byte{0xd7, 0x3d, 0x84, 0x1b}, bz...),
+			)
+			require.NoError(t, err)
+			require.Len(t, ret, 4)
+			decodedDelegate := &DelegateMessage{}
+			require.NoError(t, decodedDelegate.FromUnpackedStruct(ret[0]))
+			require.Equal(t, message, *decodedDelegate)
+			require.Equal(t, toByte32(bigIntMaxInt64Bz), ret[1].([32]byte))
+			require.Equal(t, toByte32(bigIntMaxUint64Bz), ret[2].([32]byte))
+			require.Equal(t, uint8(math.MaxUint8), ret[3].(uint8))
+
+			bz, err = cpcInfo.PackMethodOutput("delegateByActionMessage", true)
+			require.NoError(t, err)
+			require.Equal(t, bigIntOneBz, bz)
+		}
+	})
 	t.Run("withdrawReward(address)", func(t *testing.T) {
 		ret, err := cpcInfo.UnpackMethodInput(
 			"withdrawReward",
