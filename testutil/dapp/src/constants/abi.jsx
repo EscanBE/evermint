@@ -180,7 +180,7 @@ export const StakingAbi = `[
 				"type": "uint8"
 			}
 		],
-		"name": "delegate712",
+		"name": "delegateByMessage",
 		"outputs": [
 			{
 				"internalType": "bool",

@@ -244,11 +244,11 @@ export function Home() {
 							setStakingPcResult(` r = ${r} \n s = ${s} \n v = ${v}`);
 
 							await execStakingContractAndPrint(async (contract, signer) => {
-								const retTx = await contract.delegate712(delegateMessage, r, s, v);
+								const retTx = await contract.delegateByMessage(delegateMessage, r, s, v);
 								tryFetchReceiptAndPrint(retTx);
 								return toQueryGetReceipt(retTx);
 							});
-						}}>delegate712(DelegateMessage,bytes32,bytes32,uint8)</button><br />
+						}}>delegateByMessage(DelegateMessage,bytes32,bytes32,uint8)</button><br />
 						<button disabled={loading} onClick={async () => {
 							await execStakingContractAndPrint(async (contract, signer) => {
 								const retTx = await contract.undelegate(ValidatorAddress, '1000000000000000000');

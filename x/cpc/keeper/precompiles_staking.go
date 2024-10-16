@@ -105,7 +105,7 @@ func NewStakingCustomPrecompiledContract(
 		&stakingCustomPrecompiledContractRoRewardOf{contract: contract},
 		&rewardsOfME,
 		&delegateME,
-		&stakingCustomPrecompiledContractRwDelegate712{delegate: delegateME},
+		&stakingCustomPrecompiledContractRwDelegateByMessage{delegate: delegateME},
 		&stakingCustomPrecompiledContractRwUnDelegate{contract: contract},
 		&stakingCustomPrecompiledContractRwReDelegate{contract: contract},
 		&withdrawRewardME,
@@ -757,17 +757,17 @@ func (e stakingCustomPrecompiledContractRwDelegate) ReadOnly() bool {
 	return false
 }
 
-// delegate712(DelegateMessage,bytes32,bytes32,uint8)
-// sig delivered from: delegate712((string,address,string,uint256,string),bytes32,bytes32,uint8)
+// delegateByMessage(DelegateMessage,bytes32,bytes32,uint8)
+// sig delivered from: delegateByMessage((string,address,string,uint256,string),bytes32,bytes32,uint8)
 
-var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRwDelegate712{}
+var _ ExtendedCustomPrecompiledContractMethodExecutorI = &stakingCustomPrecompiledContractRwDelegateByMessage{}
 
-type stakingCustomPrecompiledContractRwDelegate712 struct {
+type stakingCustomPrecompiledContractRwDelegateByMessage struct {
 	delegate stakingCustomPrecompiledContractRwDelegate
 }
 
-func (e stakingCustomPrecompiledContractRwDelegate712) Execute(caller corevm.ContractRef, _ common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
-	ips, err := abi.StakingCpcInfo.UnpackMethodInput("delegate712", input)
+func (e stakingCustomPrecompiledContractRwDelegateByMessage) Execute(caller corevm.ContractRef, _ common.Address, input []byte, env cpcExecutorEnv) ([]byte, error) {
+	ips, err := abi.StakingCpcInfo.UnpackMethodInput("delegateByMessage", input)
 	if err != nil {
 		return nil, err
 	}
@@ -815,18 +815,18 @@ func (e stakingCustomPrecompiledContractRwDelegate712) Execute(caller corevm.Con
 		return nil, errorsmod.Wrapf(err, "failed to emit events")
 	}
 
-	return abi.StakingCpcInfo.PackMethodOutput("delegate712", true)
+	return abi.StakingCpcInfo.PackMethodOutput("delegateByMessage", true)
 }
 
-func (e stakingCustomPrecompiledContractRwDelegate712) Method4BytesSignatures() []byte {
-	return []byte{0x7c, 0x38, 0x11, 0xc2}
+func (e stakingCustomPrecompiledContractRwDelegateByMessage) Method4BytesSignatures() []byte {
+	return []byte{0xf6, 0x03, 0x69, 0xa0}
 }
 
-func (e stakingCustomPrecompiledContractRwDelegate712) RequireGas() uint64 {
+func (e stakingCustomPrecompiledContractRwDelegateByMessage) RequireGas() uint64 {
 	return e.delegate.RequireGas() + cpctypes.GasVerifyEIP712
 }
 
-func (e stakingCustomPrecompiledContractRwDelegate712) ReadOnly() bool {
+func (e stakingCustomPrecompiledContractRwDelegateByMessage) ReadOnly() bool {
 	return e.delegate.ReadOnly()
 }
 

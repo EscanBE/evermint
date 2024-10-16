@@ -388,7 +388,7 @@ func Test_Staking(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, bigIntOneBz, bz)
 	})
-	t.Run("delegate712(DelegateMessage,bytes32,bytes32,uint8)", func(t *testing.T) {
+	t.Run("delegateByMessage(DelegateMessage,bytes32,bytes32,uint8)", func(t *testing.T) {
 		delegateStruct := DelegateMessage{
 			Action:    "Delegate",
 			Delegator: common.BytesToAddress([]byte("delegator")),
@@ -397,12 +397,12 @@ func Test_Staking(t *testing.T) {
 			Denom:     constants.BaseDenom,
 		}
 		require.Nil(t, delegateStruct.Validate(addresscodec.NewBech32Codec(constants.Bech32PrefixValAddr), constants.BaseDenom))
-		bz, err := cpcInfo.ABI.Methods["delegate712"].Inputs.Pack(delegateStruct, toByte32(bigIntMaxInt64Bz), toByte32(bigIntMaxUint64Bz), uint8(math.MaxUint8))
+		bz, err := cpcInfo.ABI.Methods["delegateByMessage"].Inputs.Pack(delegateStruct, toByte32(bigIntMaxInt64Bz), toByte32(bigIntMaxUint64Bz), uint8(math.MaxUint8))
 		require.NoError(t, err)
 
 		ret, err := cpcInfo.UnpackMethodInput(
-			"delegate712",
-			append([]byte{0x7c, 0x38, 0x11, 0xc2}, bz...),
+			"delegateByMessage",
+			append([]byte{0xf6, 0x03, 0x69, 0xa0}, bz...),
 		)
 		require.NoError(t, err)
 		require.Len(t, ret, 4)
@@ -413,7 +413,7 @@ func Test_Staking(t *testing.T) {
 		require.Equal(t, toByte32(bigIntMaxUint64Bz), ret[2].([32]byte))
 		require.Equal(t, uint8(math.MaxUint8), ret[3].(uint8))
 
-		bz, err = cpcInfo.PackMethodOutput("delegate712", true)
+		bz, err = cpcInfo.PackMethodOutput("delegateByMessage", true)
 		require.NoError(t, err)
 		require.Equal(t, bigIntOneBz, bz)
 	})

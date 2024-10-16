@@ -84,7 +84,7 @@ interface IStakingCPC {
      *
      * Emits {Delegate} + {?WithdrawReward} events.
      */
-    function delegate712(DelegateMessage memory message, bytes32 r, bytes32 s, uint8 v) external returns (bool);
+    function delegateByMessage(DelegateMessage memory message, bytes32 r, bytes32 s, uint8 v) external returns (bool);
 
     /**
      * @dev Undelegate a `value` amount of staking coin of the caller's account from `validator`.
