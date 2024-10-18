@@ -26,6 +26,7 @@ var (
 	textAbiEncodedBz  = []byte{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x20, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}
 	maxUint8Value     = uint8(math.MaxUint8)
 	maxUint8ValueBz   = common.BytesToHash([]byte{math.MaxUint8}).Bytes()
+	_32Bytes          = [32]byte{0x1, 0x2, 0x3, 0x32, 0xFF}
 )
 
 func TestCustomPrecompiledContractInfo_UnpackMethodInput(t *testing.T) {
@@ -547,6 +548,126 @@ func Test_Staking(t *testing.T) {
 		bz, err := cpcInfo.PackMethodOutput("transfer", true)
 		require.NoError(t, err)
 		require.Equal(t, bigIntOneBz, bz)
+	})
+}
+
+func Test_Bech32(t *testing.T) {
+	cpcInfo := Bech32CpcInfo
+
+	t.Run("bech32EncodeAddress(string,address)", func(t *testing.T) {
+		bz, err := cpcInfo.ABI.Methods["bech32EncodeAddress"].Inputs.Pack(text, common.BytesToAddress([]byte("account")))
+		require.NoError(t, err)
+
+		ret, err := cpcInfo.UnpackMethodInput(
+			"bech32EncodeAddress",
+			append([]byte{0xb3, 0x61, 0xcf, 0xef}, bz...),
+		)
+		require.NoError(t, err)
+		require.Len(t, ret, 2)
+		require.Equal(t, text, ret[0].(string))
+		require.Equal(t, common.BytesToAddress([]byte("account")), ret[1].(common.Address))
+
+		bz, err = cpcInfo.PackMethodOutput("bech32EncodeAddress", text, true)
+		require.NoError(t, err)
+		ops, err := cpcInfo.ABI.Methods["bech32EncodeAddress"].Outputs.Unpack(bz)
+		require.NoError(t, err)
+		require.Len(t, ops, 2)
+		require.Equal(t, text, ops[0].(string))
+		require.Equal(t, true, ops[1].(bool))
+	})
+	t.Run("bech32Encode32BytesAddress(string,bytes32)", func(t *testing.T) {
+		bz, err := cpcInfo.ABI.Methods["bech32Encode32BytesAddress"].Inputs.Pack(text, _32Bytes)
+		require.NoError(t, err)
+
+		ret, err := cpcInfo.UnpackMethodInput(
+			"bech32Encode32BytesAddress",
+			append([]byte{0xa9, 0x4b, 0x84, 0xb3}, bz...),
+		)
+		require.NoError(t, err)
+		require.Len(t, ret, 2)
+		require.Equal(t, text, ret[0].(string))
+		require.Equal(t, _32Bytes, ret[1].([32]byte))
+
+		bz, err = cpcInfo.PackMethodOutput("bech32Encode32BytesAddress", text, true)
+		require.NoError(t, err)
+		ops, err := cpcInfo.ABI.Methods["bech32Encode32BytesAddress"].Outputs.Unpack(bz)
+		require.NoError(t, err)
+		require.Len(t, ops, 2)
+		require.Equal(t, text, ops[0].(string))
+		require.Equal(t, true, ops[1].(bool))
+	})
+	t.Run("bech32EncodeBytes(string,bytes)", func(t *testing.T) {
+		bz, err := cpcInfo.ABI.Methods["bech32EncodeBytes"].Inputs.Pack(text, []byte("buffer"))
+		require.NoError(t, err)
+
+		ret, err := cpcInfo.UnpackMethodInput(
+			"bech32EncodeBytes",
+			append([]byte{0xf6, 0xe0, 0xd5, 0x03}, bz...),
+		)
+		require.NoError(t, err)
+		require.Len(t, ret, 2)
+		require.Equal(t, text, ret[0].(string))
+		require.Equal(t, []byte("buffer"), ret[1].([]byte))
+
+		bz, err = cpcInfo.PackMethodOutput("bech32EncodeBytes", text, true)
+		require.NoError(t, err)
+		ops, err := cpcInfo.ABI.Methods["bech32EncodeBytes"].Outputs.Unpack(bz)
+		require.NoError(t, err)
+		require.Len(t, ops, 2)
+		require.Equal(t, text, ops[0].(string))
+		require.Equal(t, true, ops[1].(bool))
+	})
+	t.Run("bech32Decode(string)", func(t *testing.T) {
+		bz, err := cpcInfo.ABI.Methods["bech32Decode"].Inputs.Pack(text)
+		require.NoError(t, err)
+		require.Equal(t, textAbiEncodedBz, bz)
+
+		ret, err := cpcInfo.UnpackMethodInput(
+			"bech32Decode",
+			append([]byte{0xbc, 0x42, 0x53, 0x7f}, bz...),
+		)
+		require.NoError(t, err)
+		require.Len(t, ret, 1)
+		require.Equal(t, text, ret[0].(string))
+
+		bz, err = cpcInfo.PackMethodOutput("bech32Decode", text, bigIntMaxInt64Bz, true)
+		require.NoError(t, err)
+		ops, err := cpcInfo.ABI.Methods["bech32Decode"].Outputs.Unpack(bz)
+		require.NoError(t, err)
+		require.Len(t, ops, 3)
+		require.Equal(t, text, ops[0].(string))
+		require.Equal(t, bigIntMaxInt64Bz, ops[1].([]byte))
+		require.Equal(t, true, ops[2].(bool))
+	})
+	t.Run("bech32AccountAddrPrefix()", func(t *testing.T) {
+		bz, err := cpcInfo.PackMethodOutput("bech32AccountAddrPrefix", text)
+		require.NoError(t, err)
+		require.Equal(t, textAbiEncodedBz, bz)
+	})
+	t.Run("bech32ValidatorAddrPrefix()", func(t *testing.T) {
+		bz, err := cpcInfo.PackMethodOutput("bech32ValidatorAddrPrefix", text)
+		require.NoError(t, err)
+		require.Equal(t, textAbiEncodedBz, bz)
+	})
+	t.Run("bech32ConsensusAddrPrefix()", func(t *testing.T) {
+		bz, err := cpcInfo.PackMethodOutput("bech32ConsensusAddrPrefix", text)
+		require.NoError(t, err)
+		require.Equal(t, textAbiEncodedBz, bz)
+	})
+	t.Run("bech32AccountPubPrefix()", func(t *testing.T) {
+		bz, err := cpcInfo.PackMethodOutput("bech32AccountPubPrefix", text)
+		require.NoError(t, err)
+		require.Equal(t, textAbiEncodedBz, bz)
+	})
+	t.Run("bech32ValidatorPubPrefix()", func(t *testing.T) {
+		bz, err := cpcInfo.PackMethodOutput("bech32ValidatorPubPrefix", text)
+		require.NoError(t, err)
+		require.Equal(t, textAbiEncodedBz, bz)
+	})
+	t.Run("bech32ConsensusPubPrefix()", func(t *testing.T) {
+		bz, err := cpcInfo.PackMethodOutput("bech32ConsensusPubPrefix", text)
+		require.NoError(t, err)
+		require.Equal(t, textAbiEncodedBz, bz)
 	})
 }
 
