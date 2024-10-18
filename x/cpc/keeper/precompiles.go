@@ -219,6 +219,8 @@ func NewCustomPrecompiledContract(
 		return NewErc20CustomPrecompiledContract(metadata, keeper)
 	} else if metadata.CustomPrecompiledType == cpctypes.CpcTypeStaking {
 		return NewStakingCustomPrecompiledContract(metadata, keeper)
+	} else if metadata.CustomPrecompiledType == cpctypes.CpcTypeBech32 {
+		return NewBech32CustomPrecompiledContract(metadata)
 	}
 
 	panic(fmt.Sprintf("unsupported custom precompiled type %d", metadata.CustomPrecompiledType))

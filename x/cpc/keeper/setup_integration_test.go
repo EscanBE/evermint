@@ -101,6 +101,12 @@ func (suite *CpcTestSuite) SetupStakingCPC() {
 	suite.Equal(cpctypes.CpcStakingFixedAddress, contractAddr)
 }
 
+func (suite *CpcTestSuite) SetupBech32CPC() {
+	contractAddr, err := suite.App().CpcKeeper().DeployBech32CustomPrecompiledContract(suite.Ctx())
+	suite.Require().NoError(err)
+	suite.Equal(cpctypes.CpcBech32FixedAddress, contractAddr)
+}
+
 func (suite *CpcTestSuite) EthCallApply(ctx sdk.Context, from *common.Address, contractAddress common.Address, input []byte) (*evmtypes.MsgEthereumTxResponse, error) {
 	baseFee := suite.App().EvmKeeper().GetBaseFee(ctx).BigInt()
 	args := evmtypes.TransactionArgs{
