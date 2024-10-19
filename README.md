@@ -28,12 +28,14 @@ Requires [Go 1.22+](https://golang.org/dl/)
 
 Evermint originally a fork of open source Evmos v12.1.6 plus lots of magic.
 
-Many important pieces of code was replaced by Evermint, such as:
+Many important pieces of code was replaced on Evermint, such as:
 - Replaced legacy AnteHandler with [Dual-Lane AnteHandler](https://github.com/EscanBE/evermint/pull/164).
 - Replaced legacy StateDB with [Context-based StateDB](https://github.com/EscanBE/evermint/pull/167).
 - Used go-ethereum code for [state-transition](https://github.com/EscanBE/evermint/pull/156).
 - Some project structure was replaced during upgrade to Cosmos-SDK v0.50, CometBFT v0.38, ibc-go v8.5.
 - Data structure, code logic of `MsgEthereumTx` and some proto msgs were replaced.
+
+There for, it is **NOT** recommended to use Evermint for production, as this project being used for R&D purpose only.
 
 #### Some other features provided by Evermint:
 1. Support [stateful precompiled contracts](https://github.com/EscanBE/evermint/pull/175)
