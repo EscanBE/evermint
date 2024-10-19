@@ -22,14 +22,23 @@ const (
 const (
 	CpcTypeErc20 uint32 = iota + 1
 	CpcTypeStaking
+	CpcTypeBech32
 )
 
 const (
 	cpcAddrNonceStaking byte = iota + 1
+	cpcAddrNonceBech32
 )
 
-// CpcStakingFixedAddress is the address of the staking custom precompiled contract.
-var CpcStakingFixedAddress common.Address
+const EmptyTypedMeta = "{}"
+
+var (
+	// CpcStakingFixedAddress is the address of the staking custom precompiled contract.
+	CpcStakingFixedAddress common.Address
+
+	// CpcBech32FixedAddress is the address of the bech32 custom precompiled contract.
+	CpcBech32FixedAddress common.Address
+)
 
 func (m CustomPrecompiledContractMeta) Validate(cpcV ProtocolCpc) error {
 	// basic validation
@@ -45,8 +54,10 @@ func (m CustomPrecompiledContractMeta) Validate(cpcV ProtocolCpc) error {
 
 		switch m.CustomPrecompiledType {
 		case CpcTypeErc20:
-		// valid
+			// valid
 		case CpcTypeStaking:
+			// valid
+		case CpcTypeBech32:
 			// valid
 		default:
 			panic(fmt.Sprintf("unsupported custom precompiled type %d", m.CustomPrecompiledType))
@@ -98,6 +109,10 @@ func (m CustomPrecompiledContractMeta) Validate(cpcV ProtocolCpc) error {
 			return getErrInvalidMetadata(err)
 		}
 		break
+	case CpcTypeBech32:
+		if m.TypedMeta != EmptyTypedMeta {
+			return getErrInvalidMetadata(fmt.Errorf("metadata must be empty json: %s", EmptyTypedMeta))
+		}
 	default:
 		panic(fmt.Sprintf("unimplemented validation for custom precompile type: %d", m.CustomPrecompiledType))
 	}
@@ -114,6 +129,8 @@ func WrapCustomPrecompiledContractMeta(meta CustomPrecompiledContractMeta) Wrapp
 				return "ERC20"
 			case CpcTypeStaking:
 				return "Staking"
+			case CpcTypeBech32:
+				return "Bech32"
 			default:
 				return "Unknown"
 			}
@@ -145,4 +162,5 @@ func init() {
 	}
 
 	CpcStakingFixedAddress = generateCpcAddress(cpcAddrNonceStaking)
+	CpcBech32FixedAddress = generateCpcAddress(cpcAddrNonceBech32)
 }

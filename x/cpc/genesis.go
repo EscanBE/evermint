@@ -52,5 +52,12 @@ func InitGenesis(
 		}
 	}
 
+	{ // always deploy Bech32 Custom Precompiled Contract
+		_, err := k.DeployBech32CustomPrecompiledContract(ctx)
+		if err != nil {
+			panic(fmt.Errorf("error deploying Bech32 Custom Precompiled Contract: %s", err))
+		}
+	}
+
 	return []abci.ValidatorUpdate{}
 }

@@ -70,6 +70,11 @@ var (
 	stakingJson []byte
 
 	StakingCpcInfo CustomPrecompiledContractInfo
+
+	//go:embed bech32.abi.json
+	bech32Json []byte
+
+	Bech32CpcInfo CustomPrecompiledContractInfo
 )
 
 func init() {
@@ -86,7 +91,15 @@ func init() {
 		panic(err)
 	}
 	StakingCpcInfo.Name = "Staking"
+
+	err = json.Unmarshal(bech32Json, &Bech32CpcInfo)
+	if err != nil {
+		panic(err)
+	}
+	Bech32CpcInfo.Name = "Bech32"
 }
+
+// EIP-712 typed messages
 
 var _ eip712.TypedMessage = (*StakingMessage)(nil)
 
