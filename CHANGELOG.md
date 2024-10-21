@@ -66,6 +66,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evm) [#166](https://github.com/EscanBE/evermint/pull/166) Prevent refund gas fee if sender wasn't paid for it
 - (evm) [#169](https://github.com/EscanBE/evermint/pull/169) Support 256 blocks for `GetHashFn`
 - (app) [#177](https://github.com/EscanBE/evermint/pull/177) Fix staking hooks not available in some keepers
+- (evm) [#184](https://github.com/EscanBE/evermint/pull/184) Warmup coinbase + custom-precompiled-contracts and fix some tests
 
 ### API Breaking
 
