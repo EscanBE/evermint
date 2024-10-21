@@ -101,12 +101,6 @@ func (suite *CpcTestSuite) SetupStakingCPC() {
 	suite.Equal(cpctypes.CpcStakingFixedAddress, contractAddr)
 }
 
-func (suite *CpcTestSuite) SetupBech32CPC() {
-	contractAddr, err := suite.App().CpcKeeper().DeployBech32CustomPrecompiledContract(suite.Ctx())
-	suite.Require().NoError(err)
-	suite.Equal(cpctypes.CpcBech32FixedAddress, contractAddr)
-}
-
 func (suite *CpcTestSuite) EthCallApply(ctx sdk.Context, from *common.Address, contractAddress common.Address, input []byte) (*evmtypes.MsgEthereumTxResponse, error) {
 	baseFee := suite.App().EvmKeeper().GetBaseFee(ctx).BigInt()
 	args := evmtypes.TransactionArgs{
@@ -218,6 +212,19 @@ func (suite *CpcTestSuite) hashEip712Message(msg eip712.TypedMessage, account *i
 	match, _, _ := eip712.VerifySignature(account.GetEthAddress(), msg, r, s, v, chainId)
 	suite.Require().True(match, "generated signature should be valid")
 	return
+}
+
+func (suite *CpcTestSuite) getGenesisDeployedCPCs(ctx sdk.Context) []common.Address {
+	genesisDeployedContractAddrs := []common.Address{
+		cpctypes.CpcBech32FixedAddress,
+	}
+
+	for _, genesisDeployedContractAddr := range genesisDeployedContractAddrs {
+		contractMeta := suite.App().CpcKeeper().GetCustomPrecompiledContractMeta(ctx, genesisDeployedContractAddr)
+		suite.Require().NotNilf(contractMeta, "compiled contract %s should be deployed at genesis", genesisDeployedContractAddr)
+	}
+
+	return genesisDeployedContractAddrs
 }
 
 func get4BytesSignature(methodSig string) []byte {

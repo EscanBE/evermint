@@ -13,6 +13,10 @@ import (
 )
 
 func (suite *CpcTestSuite) TestKeeper_DeployBech32CustomPrecompiledContract() {
+	if suite.App().CpcKeeper().GetCustomPrecompiledContractMeta(suite.Ctx(), cpctypes.CpcBech32FixedAddress) != nil {
+		suite.T().Skip("skipping test; contract already deployed successfully")
+	}
+
 	suite.Run("pass - can deploy", func() {
 		addr, err := suite.App().CpcKeeper().DeployBech32CustomPrecompiledContract(suite.Ctx())
 		suite.Require().NoError(err)
@@ -40,8 +44,6 @@ func (suite *CpcTestSuite) TestKeeper_DeployBech32CustomPrecompiledContract() {
 }
 
 func (suite *CpcTestSuite) TestKeeper_Bech32CustomPrecompiledContract_encode_decode() {
-	suite.SetupBech32CPC()
-
 	sampleAddress := common.BytesToAddress([]byte("sample-address"))
 	sample32BytesAddress := [32]byte{}
 	copy(sample32BytesAddress[:], sampleAddress.Bytes())
@@ -260,8 +262,6 @@ func (suite *CpcTestSuite) TestKeeper_Bech32CustomPrecompiledContract_encode_dec
 }
 
 func (suite *CpcTestSuite) TestKeeper_Bech32CustomPrecompiledContract_getters() {
-	suite.SetupBech32CPC()
-
 	tests := []struct {
 		methodSignature string
 		want            string

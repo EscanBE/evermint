@@ -111,9 +111,16 @@ func (suite *CpcTestSuite) TestKeeper_GetSetHasCustomPrecompiledContractMeta() {
 }
 
 func (suite *CpcTestSuite) TestKeeper_GetAllCustomPrecompiledContracts() {
-	suite.Run("pass - returns empty list when no precompiled contract deployed", func() {
+	genesisDeployedContractAddrs := suite.getGenesisDeployedCPCs(suite.Ctx())
+
+	suite.Run("pass - returns list of contracts deployed at genesis", func() {
 		metas := suite.App().CpcKeeper().GetAllCustomPrecompiledContractsMeta(suite.Ctx())
-		suite.Require().Empty(metas)
+		suite.Require().Len(metas, len(genesisDeployedContractAddrs))
+
+		contracts := suite.App().CpcKeeper().GetAllCustomPrecompiledContracts(suite.Ctx())
+		suite.Require().Len(contracts, len(genesisDeployedContractAddrs))
+
+		suite.Equal("*keeper.bech32CustomPrecompiledContract", fmt.Sprintf("%T", contracts[0]))
 	})
 
 	erc20Meta := cpctypes.Erc20CustomPrecompiledContractMeta{
@@ -151,12 +158,12 @@ func (suite *CpcTestSuite) TestKeeper_GetAllCustomPrecompiledContracts() {
 
 	suite.Run("pass - returns all precompiled contracts", func() {
 		metas := suite.App().CpcKeeper().GetAllCustomPrecompiledContractsMeta(suite.Ctx())
-		suite.Require().Len(metas, 2)
+		suite.Require().Len(metas, 2+len(genesisDeployedContractAddrs))
 		suite.Require().Contains(metas, meta1)
 		suite.Require().Contains(metas, meta2)
 
 		contracts := suite.App().CpcKeeper().GetAllCustomPrecompiledContracts(suite.Ctx())
-		suite.Require().Len(contracts, 2)
+		suite.Require().Len(contracts, 2+len(genesisDeployedContractAddrs))
 	})
 }
 
@@ -175,6 +182,8 @@ func (suite *CpcTestSuite) TestKeeper_GetErc20CustomPrecompiledContractAddressBy
 	var moduleNonce uint64
 
 	moduleNonce = suite.App().AccountKeeper().GetModuleAccount(suite.Ctx(), cpctypes.ModuleName).GetSequence()
+
+	genesisDeployedContractCount := len(suite.getGenesisDeployedCPCs(suite.Ctx()))
 
 	for i := moduleNonce; i < 10; i++ {
 		denom := fmt.Sprintf("pseudo%d", i)
@@ -197,7 +206,7 @@ func (suite *CpcTestSuite) TestKeeper_GetErc20CustomPrecompiledContractAddressBy
 		}
 
 		metas := suite.App().CpcKeeper().GetAllCustomPrecompiledContractsMeta(suite.Ctx())
-		suite.EqualValues(int(i)+1, len(metas))
+		suite.EqualValues(int(i)+1+genesisDeployedContractCount, len(metas))
 	}
 }
 
