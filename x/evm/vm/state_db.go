@@ -94,7 +94,7 @@ var preventCommit bool
 func (d *cStateDb) PrepareAccessList(sender common.Address, dest *common.Address, precompiles []common.Address, txAccesses ethtypes.AccessList) {
 	var coinbase common.Address // TODO ES: handle
 
-	// TODO ES: allow warmup Custom Precompiled Contracts
+	// NOTE: the `precompiles` list already contains Custom Precompiled Contracts, passed by the forked TransitionDb method.
 
 	rules := d.chainConfig.Rules(big.NewInt(d.currentCtx.BlockHeight()), true)
 

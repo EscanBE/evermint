@@ -89,7 +89,7 @@ func (k *Keeper) NewEVM(
 			metadata := contract.GetMetadata()
 			contracts = append(contracts, corevm.NewCustomPrecompiledContract(common.BytesToAddress(metadata.Address), methods, metadata.Name))
 		}
-		evm = evm.WithCustomPrecompiledContract(contracts...)
+		evm = evm.WithCustomPrecompiledContracts(contracts...)
 	}
 
 	return evm
