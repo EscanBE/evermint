@@ -152,7 +152,7 @@ func (suite *EvmTestSuite) SignTx(tx *evmtypes.MsgEthereumTx) {
 }
 
 func (suite *EvmTestSuite) StateDB() evmvm.CStateDB {
-	return evmvm.NewStateDB(suite.ctx, suite.app.EvmKeeper, suite.app.AccountKeeper, suite.app.BankKeeper)
+	return evmvm.NewStateDB(suite.ctx, common.Address{}, suite.app.EvmKeeper, suite.app.AccountKeeper, suite.app.BankKeeper)
 }
 
 func TestEvmTestSuite(t *testing.T) {

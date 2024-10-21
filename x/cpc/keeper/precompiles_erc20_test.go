@@ -22,6 +22,8 @@ func (suite *CpcTestSuite) TestKeeper_DeployErc20CustomPrecompiledContract() {
 
 	moduleNonce = suite.App().AccountKeeper().GetModuleAccount(suite.Ctx(), cpctypes.ModuleName).GetSequence()
 
+	genesisDeployedContractCount := uint64(len(suite.getGenesisDeployedCPCs(suite.Ctx())))
+
 	genPseudoDenom := func(i uint64) string {
 		return fmt.Sprintf("pseudo%d", i)
 	}
@@ -52,7 +54,7 @@ func (suite *CpcTestSuite) TestKeeper_DeployErc20CustomPrecompiledContract() {
 		address := suite.App().CpcKeeper().GetErc20CustomPrecompiledContractAddressByMinDenom(suite.Ctx(), erc20Meta.MinDenom)
 		suite.NotNil(address)
 		metas := suite.App().CpcKeeper().GetAllCustomPrecompiledContractsMeta(suite.Ctx())
-		suite.EqualValues(moduleNonce+1, len(metas))
+		suite.EqualValues(moduleNonce+1+genesisDeployedContractCount, len(metas))
 	})
 
 	suite.Run("pass - can deploy multiples", func() {
@@ -79,7 +81,7 @@ func (suite *CpcTestSuite) TestKeeper_DeployErc20CustomPrecompiledContract() {
 			suite.NotNil(address)
 
 			metas := suite.App().CpcKeeper().GetAllCustomPrecompiledContractsMeta(suite.Ctx())
-			suite.EqualValues(i+1, len(metas))
+			suite.EqualValues(i+1+genesisDeployedContractCount, len(metas))
 		}
 	})
 
@@ -136,7 +138,7 @@ func (suite *CpcTestSuite) TestKeeper_SetErc20CpcAllowance() {
 }
 
 func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
-	// TODO ES: add more test & security test
+	// TODO: add more test & security test
 	const name = constants.DisplayDenom
 	erc20Meta := cpctypes.Erc20CustomPrecompiledContractMeta{
 		Symbol:   constants.DisplayDenom,

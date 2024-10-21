@@ -727,11 +727,12 @@ func (suite *KeeperTestSuite) TestPrepareAccessList() {
 	vmdb := suite.StateDB()
 	vmdb.PrepareAccessList(suite.address, &dest, precompiles, accesses)
 
-	suite.Require().True(vmdb.AddressInAccessList(suite.address))
-	suite.Require().True(vmdb.AddressInAccessList(dest))
+	suite.Truef(vmdb.AddressInAccessList(suite.address), "sender address: %s", suite.address.Hex())
+	suite.Truef(vmdb.AddressInAccessList(dest), "dest address: %s", dest.Hex())
+	suite.Truef(vmdb.AddressInAccessList(suite.pseudoCoinBaseForWarmUpTest), "coinbase: %s", suite.pseudoCoinBaseForWarmUpTest.Hex())
 
 	for _, precompile := range precompiles {
-		suite.Require().True(vmdb.AddressInAccessList(precompile))
+		suite.Truef(vmdb.AddressInAccessList(precompile), "precompile: %s", precompile.Hex())
 	}
 
 	for _, access := range accesses {

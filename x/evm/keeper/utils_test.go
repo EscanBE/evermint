@@ -37,7 +37,7 @@ func (suite *KeeperTestSuite) Commit() {
 }
 
 func (suite *KeeperTestSuite) StateDB() evmvm.CStateDB {
-	return evmvm.NewStateDB(suite.ctx, suite.app.EvmKeeper, suite.app.AccountKeeper, suite.app.BankKeeper)
+	return evmvm.NewStateDB(suite.ctx, suite.pseudoCoinBaseForWarmUpTest, suite.app.EvmKeeper, suite.app.AccountKeeper, suite.app.BankKeeper)
 }
 
 // DeployTestContract deploy a test erc20 contract and returns the contract address

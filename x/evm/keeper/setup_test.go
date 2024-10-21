@@ -39,11 +39,12 @@ import (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	ctx         sdk.Context
-	app         *chainapp.Evermint
-	queryClient evmtypes.QueryClient
-	address     common.Address
-	consAddress sdk.ConsAddress
+	ctx                         sdk.Context
+	app                         *chainapp.Evermint
+	queryClient                 evmtypes.QueryClient
+	address                     common.Address
+	pseudoCoinBaseForWarmUpTest common.Address // a random address to use as coinbase for warm up test
+	consAddress                 sdk.ConsAddress
 
 	// for generate test tx
 	clientCtx client.Context
@@ -97,6 +98,8 @@ func (suite *KeeperTestSuite) SetupAppWithT(checkTx bool, t require.TestingT) {
 	}
 	suite.address = common.BytesToAddress(priv.PubKey().Address().Bytes())
 	suite.signer = utiltx.NewSigner(priv)
+
+	suite.pseudoCoinBaseForWarmUpTest = utiltx.GenerateAddress()
 
 	// consensus key
 	priv, err = ethsecp256k1.GenerateKey()

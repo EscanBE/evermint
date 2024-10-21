@@ -89,7 +89,7 @@ func (k *Keeper) NewEVM(
 			metadata := contract.GetMetadata()
 			contracts = append(contracts, corevm.NewCustomPrecompiledContract(common.BytesToAddress(metadata.Address), methods, metadata.Name))
 		}
-		evm = evm.WithCustomPrecompiledContract(contracts...)
+		evm = evm.WithCustomPrecompiledContracts(contracts...)
 	}
 
 	return evm
@@ -203,7 +203,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		return nil, errorsmod.Wrap(evmtypes.ErrCallDisabled, "failed to call contract")
 	}
 
-	stateDB := evmvm.NewStateDB(ctx, k, k.accountKeeper, k.bankKeeper)
+	stateDB := evmvm.NewStateDB(ctx, cfg.CoinBase, k, k.accountKeeper, k.bankKeeper)
 	// stateDB := statedb.New(ctx, k, txConfig)
 	evm := k.NewEVM(ctx, msg, cfg, tracer, stateDB)
 

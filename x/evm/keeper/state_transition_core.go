@@ -246,7 +246,8 @@ func (st *StateTransition) TransitionDb() (*core.ExecutionResult, error) {
 
 	// Set up the initial access list.
 	if rules.IsBerlin {
-		st.state.PrepareAccessList(msg.From(), msg.To(), corevm.ActivePrecompiles(rules), msg.AccessList())
+		activePrecompiles := append(corevm.ActivePrecompiles(rules), st.evm.GetCustomPrecompiledContractsAddress()...)
+		st.state.PrepareAccessList(msg.From(), msg.To(), activePrecompiles, msg.AccessList())
 	}
 	var (
 		ret   []byte
