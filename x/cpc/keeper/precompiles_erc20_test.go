@@ -138,7 +138,7 @@ func (suite *CpcTestSuite) TestKeeper_SetErc20CpcAllowance() {
 }
 
 func (suite *CpcTestSuite) TestKeeper_Erc20CustomPrecompiledContract() {
-	// TODO ES: add more test & security test
+	// TODO: add more test & security test
 	const name = constants.DisplayDenom
 	erc20Meta := cpctypes.Erc20CustomPrecompiledContractMeta{
 		Symbol:   constants.DisplayDenom,
