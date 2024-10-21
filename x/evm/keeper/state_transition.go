@@ -203,7 +203,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context,
 		return nil, errorsmod.Wrap(evmtypes.ErrCallDisabled, "failed to call contract")
 	}
 
-	stateDB := evmvm.NewStateDB(ctx, k, k.accountKeeper, k.bankKeeper)
+	stateDB := evmvm.NewStateDB(ctx, cfg.CoinBase, k, k.accountKeeper, k.bankKeeper)
 	// stateDB := statedb.New(ctx, k, txConfig)
 	evm := k.NewEVM(ctx, msg, cfg, tracer, stateDB)
 

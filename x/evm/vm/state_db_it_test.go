@@ -84,6 +84,7 @@ func (suite *StateDbIntegrationTestSuite) SkipIfDisabledTendermint() {
 func (suite *StateDbIntegrationTestSuite) newStateDB() corevm.StateDB {
 	return evmvm.NewStateDB(
 		suite.Ctx(),
+		common.Address{},
 		suite.App().EvmKeeper(),
 		*suite.App().AccountKeeper(),
 		suite.App().BankKeeper(),

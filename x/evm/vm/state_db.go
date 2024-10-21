@@ -65,9 +65,11 @@ type CStateDB interface {
 
 type cStateDb struct {
 	originalCtx sdk.Context // the original context that was passed to the constructor, do not change. Reserved for accessing committed state.
-	currentCtx  sdk.Context
-	snapshots   []RtStateDbSnapshot
-	committed   bool
+	coinbase    common.Address
+
+	currentCtx sdk.Context
+	snapshots  []RtStateDbSnapshot
+	committed  bool
 
 	evmKeeper     EvmKeeper
 	accountKeeper authkeeper.AccountKeeper
@@ -92,13 +94,9 @@ type cStateDb struct {
 var preventCommit bool
 
 func (d *cStateDb) PrepareAccessList(sender common.Address, dest *common.Address, precompiles []common.Address, txAccesses ethtypes.AccessList) {
-	var coinbase common.Address // TODO ES: handle
-
 	// NOTE: the `precompiles` list already contains Custom Precompiled Contracts, passed by the forked TransitionDb method.
-
 	rules := d.chainConfig.Rules(big.NewInt(d.currentCtx.BlockHeight()), true)
-
-	d.prepareByGoEthereum(rules, sender, coinbase, dest, precompiles, txAccesses)
+	d.Prepare(rules, sender, d.coinbase, dest, precompiles, txAccesses)
 }
 
 func (d *cStateDb) ForEachStorage(address common.Address, f func(common.Hash, common.Hash) bool) error {
@@ -109,6 +107,7 @@ func (d *cStateDb) ForEachStorage(address common.Address, f func(common.Hash, co
 //goland:noinspection GoUnusedParameter
 func NewStateDB(
 	ctx sdk.Context,
+	coinbase common.Address,
 	ethKeeper EvmKeeper,
 	accountKeeper authkeeper.AccountKeeper,
 	bankKeeper bankkeeper.Keeper,
@@ -118,6 +117,7 @@ func NewStateDB(
 
 	sdb := &cStateDb{
 		originalCtx: ctx,
+		coinbase:    coinbase,
 
 		evmKeeper:     ethKeeper,
 		accountKeeper: accountKeeper,

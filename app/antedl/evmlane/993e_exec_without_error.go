@@ -78,7 +78,6 @@ func (ed ELExecWithoutErrorDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, sim
 
 	var evm *corevm.EVM
 	{ // initialize EVM
-		stateDB := evmvm.NewStateDB(simulationCtx, &ed.ek, ed.ak, ed.bk)
 		evmParams := ed.ek.GetParams(simulationCtx)
 		evmCfg := &evmvm.EVMConfig{
 			Params:      evmParams,
@@ -87,6 +86,7 @@ func (ed ELExecWithoutErrorDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, sim
 			BaseFee:     baseFee.BigInt(),
 			NoBaseFee:   false,
 		}
+		stateDB := evmvm.NewStateDB(simulationCtx, evmCfg.CoinBase, &ed.ek, ed.ak, ed.bk)
 		evm = ed.ek.NewEVM(simulationCtx, ethCoreMsg, evmCfg, evmtypes.NewNoOpTracer(), stateDB)
 	}
 	gasPool := core.GasPool(ethCoreMsg.Gas())

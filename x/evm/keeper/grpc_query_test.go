@@ -399,7 +399,7 @@ func (suite *KeeperTestSuite) TestQueryTxLogs() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			vmdb := evmvm.NewStateDB(suite.ctx, suite.app.EvmKeeper, suite.app.AccountKeeper, suite.app.BankKeeper)
+			vmdb := evmvm.NewStateDB(suite.ctx, common.Address{}, suite.app.EvmKeeper, suite.app.AccountKeeper, suite.app.BankKeeper)
 			tc.malleate(vmdb)
 			suite.Require().NoError(vmdb.CommitMultiStore(true))
 
