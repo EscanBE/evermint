@@ -3392,6 +3392,416 @@ paths:
           type: string
       tags:
         - Query
+  /evermint/cpc/v1/custom_precompiled_contract/{address}:
+    get:
+      summary: >-
+        CustomPrecompiledContract queries the list of deployed custom
+        precompiled contract.
+      operationId: CustomPrecompiledContract
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              contract:
+                title: contract is the deployed custom precompiled contract
+                type: object
+                properties:
+                  address:
+                    type: string
+                    description: >-
+                      address is the ethereum hex address of the custom
+                      precompiled contract.
+                  type_name:
+                    type: string
+                    description: >-
+                      type_name is the friendly name of the custom precompiled
+                      contract type.
+                  meta:
+                    title: meta is the custom precompiled contract meta
+                    type: object
+                    properties:
+                      address:
+                        type: string
+                        format: byte
+                        description: address is the address of the precompiled contract.
+                      custom_precompiled_type:
+                        type: integer
+                        format: int64
+                        description: >-
+                          custom_precompiled_type presents the type of the
+                          precompiled contract, eg: erc20, staking,...
+                      name:
+                        type: string
+                        description: name of the precompiled contract.
+                      typed_meta:
+                        type: string
+                        description: >-
+                          typed_meta is the json-encoded metadata of the
+                          precompiled contract, type-based.
+                      disabled:
+                        type: boolean
+                        description: >-
+                          disabled is the flag to disable the precompiled
+                          contract.
+                    description: >-
+                      CustomPrecompiledContractMeta is metadata of the custom
+                      precompiled contract.
+
+                      It is used to define the custom precompiled contract and
+                      its metadata.
+            description: >-
+              QueryCustomPrecompiledContractResponse is the response type for
+              the Query/CustomPrecompiledContract RPC
+
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: address
+          description: >-
+            address is the ethereum hex address to query the custom precompiled
+            contract for.
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /evermint/cpc/v1/custom_precompiled_contracts:
+    get:
+      summary: >-
+        CustomPrecompiledContracts queries the list of deployed custom
+        precompiled contracts.
+      operationId: CustomPrecompiledContracts
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              contracts:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    address:
+                      type: string
+                      description: >-
+                        address is the ethereum hex address of the custom
+                        precompiled contract.
+                    type_name:
+                      type: string
+                      description: >-
+                        type_name is the friendly name of the custom precompiled
+                        contract type.
+                    meta:
+                      title: meta is the custom precompiled contract meta
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          format: byte
+                          description: address is the address of the precompiled contract.
+                        custom_precompiled_type:
+                          type: integer
+                          format: int64
+                          description: >-
+                            custom_precompiled_type presents the type of the
+                            precompiled contract, eg: erc20, staking,...
+                        name:
+                          type: string
+                          description: name of the precompiled contract.
+                        typed_meta:
+                          type: string
+                          description: >-
+                            typed_meta is the json-encoded metadata of the
+                            precompiled contract, type-based.
+                        disabled:
+                          type: boolean
+                          description: >-
+                            disabled is the flag to disable the precompiled
+                            contract.
+                      description: >-
+                        CustomPrecompiledContractMeta is metadata of the custom
+                        precompiled contract.
+
+                        It is used to define the custom precompiled contract and
+                        its metadata.
+                description: contracts is a slice of deployed custom precompiled contracts.
+              pagination:
+                description: pagination defines the pagination in the response.
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+            description: >-
+              QueryCustomPrecompiledContractsResponse is the response type for
+              the Query/CustomPrecompiledContracts RPC
+
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  /evermint/cpc/v1/erc20_custom_precompiled_contract_by_denom/{min_denom}:
+    get:
+      summary: >-
+        Erc20CustomPrecompiledContractByDenom queries the list of deployed
+        custom precompiled contract by denom.
+      operationId: Erc20CustomPrecompiledContractByDenom
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              contract:
+                type: object
+                properties:
+                  address:
+                    type: string
+                    description: >-
+                      address is the ethereum hex address of the custom
+                      precompiled contract.
+                  type_name:
+                    type: string
+                    description: >-
+                      type_name is the friendly name of the custom precompiled
+                      contract type.
+                  meta:
+                    title: meta is the custom precompiled contract meta
+                    type: object
+                    properties:
+                      address:
+                        type: string
+                        format: byte
+                        description: address is the address of the precompiled contract.
+                      custom_precompiled_type:
+                        type: integer
+                        format: int64
+                        description: >-
+                          custom_precompiled_type presents the type of the
+                          precompiled contract, eg: erc20, staking,...
+                      name:
+                        type: string
+                        description: name of the precompiled contract.
+                      typed_meta:
+                        type: string
+                        description: >-
+                          typed_meta is the json-encoded metadata of the
+                          precompiled contract, type-based.
+                      disabled:
+                        type: boolean
+                        description: >-
+                          disabled is the flag to disable the precompiled
+                          contract.
+                    description: >-
+                      CustomPrecompiledContractMeta is metadata of the custom
+                      precompiled contract.
+
+                      It is used to define the custom precompiled contract and
+                      its metadata.
+            description: >-
+              QueryErc20CustomPrecompiledContractByDenomResponse is the response
+              type for the Query/Erc20CustomPrecompiledContractByDenom RPC
+
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: min_denom
+          description: >-
+            min_denom is the minimum denomination to query the custom
+            precompiled contract for.
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /evermint/cpc/v1/params:
+    get:
+      summary: Params queries the parameters of x/cpc module.
+      operationId: CpcParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params define the cpc module parameters.
+                type: object
+                properties:
+                  protocol_version:
+                    type: integer
+                    format: int64
+                    title: protocol_version is the protocol version of the cpc module
+                  whitelisted_deployers:
+                    type: array
+                    items:
+                      type: string
+                    title: >-
+                      whitelisted_deployers is the address of the accounts
+                      permitted to deploy the Custom Precompiled Contracts
+                title: Params defines the cpc module params
+            description: >-
+              QueryParamsResponse defines the response type for querying x/cpc
+              module parameters.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Query
   /ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address:
     get:
       summary: >-
@@ -45152,6 +45562,294 @@ definitions:
                repeated Bar results = 1;
                PageResponse page = 2;
        }
+  evermint.cpc.v1.CustomPrecompiledContractMeta:
+    type: object
+    properties:
+      address:
+        type: string
+        format: byte
+        description: address is the address of the precompiled contract.
+      custom_precompiled_type:
+        type: integer
+        format: int64
+        description: >-
+          custom_precompiled_type presents the type of the precompiled contract,
+          eg: erc20, staking,...
+      name:
+        type: string
+        description: name of the precompiled contract.
+      typed_meta:
+        type: string
+        description: >-
+          typed_meta is the json-encoded metadata of the precompiled contract,
+          type-based.
+      disabled:
+        type: boolean
+        description: disabled is the flag to disable the precompiled contract.
+    description: >-
+      CustomPrecompiledContractMeta is metadata of the custom precompiled
+      contract.
+
+      It is used to define the custom precompiled contract and its metadata.
+  evermint.cpc.v1.Params:
+    type: object
+    properties:
+      protocol_version:
+        type: integer
+        format: int64
+        title: protocol_version is the protocol version of the cpc module
+      whitelisted_deployers:
+        type: array
+        items:
+          type: string
+        title: >-
+          whitelisted_deployers is the address of the accounts permitted to
+          deploy the Custom Precompiled Contracts
+    title: Params defines the cpc module params
+  evermint.cpc.v1.QueryCustomPrecompiledContractResponse:
+    type: object
+    properties:
+      contract:
+        title: contract is the deployed custom precompiled contract
+        type: object
+        properties:
+          address:
+            type: string
+            description: >-
+              address is the ethereum hex address of the custom precompiled
+              contract.
+          type_name:
+            type: string
+            description: >-
+              type_name is the friendly name of the custom precompiled contract
+              type.
+          meta:
+            title: meta is the custom precompiled contract meta
+            type: object
+            properties:
+              address:
+                type: string
+                format: byte
+                description: address is the address of the precompiled contract.
+              custom_precompiled_type:
+                type: integer
+                format: int64
+                description: >-
+                  custom_precompiled_type presents the type of the precompiled
+                  contract, eg: erc20, staking,...
+              name:
+                type: string
+                description: name of the precompiled contract.
+              typed_meta:
+                type: string
+                description: >-
+                  typed_meta is the json-encoded metadata of the precompiled
+                  contract, type-based.
+              disabled:
+                type: boolean
+                description: disabled is the flag to disable the precompiled contract.
+            description: >-
+              CustomPrecompiledContractMeta is metadata of the custom
+              precompiled contract.
+
+              It is used to define the custom precompiled contract and its
+              metadata.
+    description: >-
+      QueryCustomPrecompiledContractResponse is the response type for the
+      Query/CustomPrecompiledContract RPC
+
+      method.
+  evermint.cpc.v1.QueryCustomPrecompiledContractsResponse:
+    type: object
+    properties:
+      contracts:
+        type: array
+        items:
+          type: object
+          properties:
+            address:
+              type: string
+              description: >-
+                address is the ethereum hex address of the custom precompiled
+                contract.
+            type_name:
+              type: string
+              description: >-
+                type_name is the friendly name of the custom precompiled
+                contract type.
+            meta:
+              title: meta is the custom precompiled contract meta
+              type: object
+              properties:
+                address:
+                  type: string
+                  format: byte
+                  description: address is the address of the precompiled contract.
+                custom_precompiled_type:
+                  type: integer
+                  format: int64
+                  description: >-
+                    custom_precompiled_type presents the type of the precompiled
+                    contract, eg: erc20, staking,...
+                name:
+                  type: string
+                  description: name of the precompiled contract.
+                typed_meta:
+                  type: string
+                  description: >-
+                    typed_meta is the json-encoded metadata of the precompiled
+                    contract, type-based.
+                disabled:
+                  type: boolean
+                  description: disabled is the flag to disable the precompiled contract.
+              description: >-
+                CustomPrecompiledContractMeta is metadata of the custom
+                precompiled contract.
+
+                It is used to define the custom precompiled contract and its
+                metadata.
+        description: contracts is a slice of deployed custom precompiled contracts.
+      pagination:
+        description: pagination defines the pagination in the response.
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+    description: >-
+      QueryCustomPrecompiledContractsResponse is the response type for the
+      Query/CustomPrecompiledContracts RPC
+
+      method.
+  evermint.cpc.v1.QueryErc20CustomPrecompiledContractByDenomResponse:
+    type: object
+    properties:
+      contract:
+        type: object
+        properties:
+          address:
+            type: string
+            description: >-
+              address is the ethereum hex address of the custom precompiled
+              contract.
+          type_name:
+            type: string
+            description: >-
+              type_name is the friendly name of the custom precompiled contract
+              type.
+          meta:
+            title: meta is the custom precompiled contract meta
+            type: object
+            properties:
+              address:
+                type: string
+                format: byte
+                description: address is the address of the precompiled contract.
+              custom_precompiled_type:
+                type: integer
+                format: int64
+                description: >-
+                  custom_precompiled_type presents the type of the precompiled
+                  contract, eg: erc20, staking,...
+              name:
+                type: string
+                description: name of the precompiled contract.
+              typed_meta:
+                type: string
+                description: >-
+                  typed_meta is the json-encoded metadata of the precompiled
+                  contract, type-based.
+              disabled:
+                type: boolean
+                description: disabled is the flag to disable the precompiled contract.
+            description: >-
+              CustomPrecompiledContractMeta is metadata of the custom
+              precompiled contract.
+
+              It is used to define the custom precompiled contract and its
+              metadata.
+    description: >-
+      QueryErc20CustomPrecompiledContractByDenomResponse is the response type
+      for the Query/Erc20CustomPrecompiledContractByDenom RPC
+
+      method.
+  evermint.cpc.v1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params define the cpc module parameters.
+        type: object
+        properties:
+          protocol_version:
+            type: integer
+            format: int64
+            title: protocol_version is the protocol version of the cpc module
+          whitelisted_deployers:
+            type: array
+            items:
+              type: string
+            title: >-
+              whitelisted_deployers is the address of the accounts permitted to
+              deploy the Custom Precompiled Contracts
+        title: Params defines the cpc module params
+    description: >-
+      QueryParamsResponse defines the response type for querying x/cpc module
+      parameters.
+  evermint.cpc.v1.WrappedCustomPrecompiledContractMeta:
+    type: object
+    properties:
+      address:
+        type: string
+        description: >-
+          address is the ethereum hex address of the custom precompiled
+          contract.
+      type_name:
+        type: string
+        description: >-
+          type_name is the friendly name of the custom precompiled contract
+          type.
+      meta:
+        title: meta is the custom precompiled contract meta
+        type: object
+        properties:
+          address:
+            type: string
+            format: byte
+            description: address is the address of the precompiled contract.
+          custom_precompiled_type:
+            type: integer
+            format: int64
+            description: >-
+              custom_precompiled_type presents the type of the precompiled
+              contract, eg: erc20, staking,...
+          name:
+            type: string
+            description: name of the precompiled contract.
+          typed_meta:
+            type: string
+            description: >-
+              typed_meta is the json-encoded metadata of the precompiled
+              contract, type-based.
+          disabled:
+            type: boolean
+            description: disabled is the flag to disable the precompiled contract.
+        description: >-
+          CustomPrecompiledContractMeta is metadata of the custom precompiled
+          contract.
+
+          It is used to define the custom precompiled contract and its metadata.
   cosmos.base.v1beta1.Coin:
     type: object
     properties:
