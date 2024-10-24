@@ -60,8 +60,12 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 }
 
 // ValidateGenesis used to validate the GenesisState, given in its json.RawMessage form
-func (AppModuleBasic) ValidateGenesis(_ codec.JSONCodec, _ client.TxEncodingConfig, _ json.RawMessage) error {
-	return nil
+func (AppModuleBasic) ValidateGenesis(ctx codec.JSONCodec, _ client.TxEncodingConfig, data json.RawMessage) error {
+	var genesisState cpctypes.GenesisState
+	if err := ctx.UnmarshalJSON(data, &genesisState); err != nil {
+		return err
+	}
+	return genesisState.Validate()
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the module
@@ -114,7 +118,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
 }
 
-// InitGenesis performs genesis initialization for the evm module. It returns
+// InitGenesis performs genesis initialization for the cpc module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState cpctypes.GenesisState
@@ -123,12 +127,10 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 	return []abci.ValidatorUpdate{}
 }
 
-// ExportGenesis returns the exported genesis state as raw bytes for the evm
-// module.
+// ExportGenesis returns the exported genesis state as raw bytes for the cpc module.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	genesis := cpctypes.DefaultGenesis()
-	genesis.Params = am.keeper.GetParams(ctx)
-	return cdc.MustMarshalJSON(genesis)
+	exportedGenesisState := ExportGenesis(ctx, am.keeper)
+	return cdc.MustMarshalJSON(&exportedGenesisState)
 }
 
 // ConsensusVersion is a sequence number for state-breaking change of the module. It should be incremented on each consensus-breaking change introduced by the module. To avoid wrong/empty versions, the initial version should be set to 1
