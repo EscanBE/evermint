@@ -9,7 +9,6 @@ import (
 	"github.com/EscanBE/evermint/v12/constants"
 	cpckeeper "github.com/EscanBE/evermint/v12/x/cpc/keeper"
 	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
-	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -19,7 +18,7 @@ func InitGenesis(
 	k cpckeeper.Keeper,
 	stakingKeeper stakingkeeper.Keeper,
 	data cpctypes.GenesisState,
-) []abci.ValidatorUpdate {
+) {
 	if err := k.SetParams(ctx, data.Params); err != nil {
 		panic(err)
 	}
@@ -58,6 +57,13 @@ func InitGenesis(
 			panic(fmt.Errorf("error deploying Bech32 Custom Precompiled Contract: %s", err))
 		}
 	}
+}
 
-	return []abci.ValidatorUpdate{}
+// ExportGenesis export genesis state for cpc
+func ExportGenesis(ctx sdk.Context, k cpckeeper.Keeper) cpctypes.GenesisState {
+	return cpctypes.GenesisState{
+		Params:                k.GetParams(ctx),
+		DeployErc20Native:     false,
+		DeployStakingContract: k.HasCustomPrecompiledContract(ctx, cpctypes.CpcStakingFixedAddress),
+	}
 }

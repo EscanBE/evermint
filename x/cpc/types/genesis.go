@@ -12,5 +12,9 @@ func DefaultGenesis() *GenesisState {
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (m GenesisState) Validate() error {
-	return m.Params.Validate()
+	if err := m.Params.Validate(); err != nil {
+		return err
+	}
+
+	return nil
 }
