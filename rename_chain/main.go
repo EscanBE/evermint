@@ -187,6 +187,13 @@ func main() {
 
 	sed(path.Join("cmd", EvermintOg_ApplicationBinaryName, "root.go"), strings.ToUpper(EvermintOg_ApplicationName), strings.ToUpper(constants.ApplicationName))
 
+	{ // restore dependency in go.mod & go.sum
+		const invalidGethFork = "github.com/EscanBE/go-ethereum-for-" + constants.ApplicationName
+		const correctGethFork = "github.com/EscanBE/go-ethereum-for-evermint"
+		sed("go.mod", invalidGethFork, correctGethFork)
+		sed("go.sum", invalidGethFork, correctGethFork)
+	}
+
 	patternMarker := regexp.MustCompile(`marker\.(\w+)\("(\w+)"\)`)
 	for _, goFile := range goFiles {
 		if strings.HasSuffix(goFile, "_test.go") {
