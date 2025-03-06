@@ -15,7 +15,7 @@ const (
 
 	ApplicationHome = ".evermint"
 
-	GitHubRepo = "https://github.com/EscanBE/evermint" // must be well-formed url pattern: "https://github.com/owner/repo"
+	GitHubRepo = "https://github.com/EscanBE/" + ApplicationName // must be well-formed url pattern: "https://github.com/owner/repo"
 )
 
 // Denom

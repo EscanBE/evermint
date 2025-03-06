@@ -1,5 +1,4 @@
 //go:build renamechain
-// +build renamechain
 
 package main
 
@@ -267,6 +266,11 @@ func main() {
 	}
 
 	launchAppWithDirectStd("mv", path.Join("cmd", EvermintOg_ApplicationBinaryName), path.Join("cmd", constants.ApplicationBinaryName))
+
+	{ // fix proto for Ethermint native module
+		launchAppWithDirectStd("mv", path.Join("proto", splOgGitHub[len(splOgGitHub)-1]), path.Join("proto", splNewGitHub[len(splNewGitHub)-1]))
+		launchAppWithDirectStd("make", "proto-gen")
+	}
 }
 
 func isLinux() bool {
