@@ -1,5 +1,4 @@
 //go:build renamechain
-// +build renamechain
 
 package main
 
@@ -188,6 +187,13 @@ func main() {
 
 	sed(path.Join("cmd", EvermintOg_ApplicationBinaryName, "root.go"), strings.ToUpper(EvermintOg_ApplicationName), strings.ToUpper(constants.ApplicationName))
 
+	{ // restore dependency in go.mod & go.sum
+		const invalidGethFork = "github.com/EscanBE/go-ethereum-for-" + constants.ApplicationName
+		const correctGethFork = "github.com/EscanBE/go-ethereum-for-evermint"
+		sed("go.mod", invalidGethFork, correctGethFork)
+		sed("go.sum", invalidGethFork, correctGethFork)
+	}
+
 	patternMarker := regexp.MustCompile(`marker\.(\w+)\("(\w+)"\)`)
 	for _, goFile := range goFiles {
 		if strings.HasSuffix(goFile, "_test.go") {
@@ -267,6 +273,11 @@ func main() {
 	}
 
 	launchAppWithDirectStd("mv", path.Join("cmd", EvermintOg_ApplicationBinaryName), path.Join("cmd", constants.ApplicationBinaryName))
+
+	{ // fix proto for Ethermint native module
+		launchAppWithDirectStd("mv", path.Join("proto", splOgGitHub[len(splOgGitHub)-1]), path.Join("proto", splNewGitHub[len(splNewGitHub)-1]))
+		launchAppWithDirectStd("make", "proto-gen")
+	}
 }
 
 func isLinux() bool {
