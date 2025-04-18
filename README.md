@@ -32,7 +32,7 @@ Many important pieces of code was replaced on Evermint, such as:
 - Replaced legacy AnteHandler with [Dual-Lane AnteHandler](https://github.com/EscanBE/evermint/pull/164).
 - Replaced legacy StateDB with [Context-based StateDB](https://github.com/EscanBE/evermint/pull/167).
 - Used go-ethereum code for [state-transition](https://github.com/EscanBE/evermint/pull/156).
-- Some project structure was replaced during upgrade to Cosmos-SDK v0.50, CometBFT v0.38, ibc-go v8.5.
+- Some project structure was replaced during upgrade to Cosmos-SDK v0.50, CometBFT v0.38, ibc-go v8.7.
 - Data structure, code logic of `MsgEthereumTx` and some proto msgs were replaced.
 
 There for, it is **NOT** recommended to use Evermint for production, as this project being used for R&D purpose only.
@@ -43,8 +43,9 @@ There for, it is **NOT** recommended to use Evermint for production, as this pro
 3. [Rename chain](https://github.com/EscanBE/evermint/blob/main/RENAME_CHAIN.md)
 4. [`snapshots` command](https://github.com/EscanBE/evermint/pull/12)
 5. [`inspect` command](https://github.com/EscanBE/evermint/pull/14)
-6. [Flag `--allow-insecure-unlock`](https://github.com/EscanBE/evermint/pull/142)
-7. Command convert between 0x address and bech32 address, or any custom bech32 HRP
+6. [`genesis` command](https://github.com/EscanBE/evermint/pull/190)
+7. [Flag `--allow-insecure-unlock`](https://github.com/EscanBE/evermint/pull/142)
+8. Command convert between 0x address and bech32 address, or any custom bech32 HRP
 ```bash
 evmd convert-address evm1sv9m0g7ycejwr3s369km58h5qe7xj77hxrsmsz evmos
 # alias: "ca"
