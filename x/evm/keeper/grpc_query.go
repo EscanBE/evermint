@@ -8,6 +8,8 @@ import (
 	"math/big"
 	"time"
 
+	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
+
 	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
 
 	errorsmod "cosmossdk.io/errors"
@@ -197,6 +199,15 @@ func (k Keeper) Code(c context.Context, req *evmtypes.QueryCodeRequest) (*evmtyp
 	ctx := sdk.UnwrapSDKContext(c)
 
 	address := common.HexToAddress(req.Address)
+
+	{ // check if precompiled, returns a pseudocode to bypass logic check when importing token like Metamask
+		if k.cpcKeeper.HasCustomPrecompiledContract(ctx, address) {
+			return &evmtypes.QueryCodeResponse{
+				Code: cpctypes.PseudoCodePrecompiled,
+			}, nil
+		}
+	}
+
 	codeHash := k.GetCodeHash(ctx, address.Bytes())
 
 	var code []byte
