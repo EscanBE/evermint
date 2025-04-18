@@ -12,9 +12,9 @@ import (
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/EscanBE/evermint/v12/app/antedl/cosmoslane"
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/EscanBE/evermint/app/antedl/cosmoslane"
+	itutiltypes "github.com/EscanBE/evermint/integration_test_util/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 )
 
 func (s *CLTestSuite) Test_CLRejectAuthzMsgsDecorator() {

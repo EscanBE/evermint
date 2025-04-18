@@ -7,7 +7,7 @@ import "google/api/annotations.proto";
 import "evermint/cpc/v1/genesis.proto";
 import "evermint/cpc/v1/precompiles.proto";
 
-option go_package = "github.com/EscanBE/evermint/v12/x/cpc/types";
+option go_package = "github.com/EscanBE/evermint/x/cpc/types";
 
 // Query defines the gRPC querier service.
 service Query {

@@ -1,13 +1,13 @@
 package keeper
 
 import (
-	"github.com/EscanBE/evermint/v12/x/cpc/abi"
+	"github.com/EscanBE/evermint/x/cpc/abi"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	corevm "github.com/ethereum/go-ethereum/core/vm"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
+	cpctypes "github.com/EscanBE/evermint/x/cpc/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 

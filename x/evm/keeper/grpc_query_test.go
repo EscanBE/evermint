@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
-	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
+	evmvm "github.com/EscanBE/evermint/x/evm/vm"
 
 	storetypes "cosmossdk.io/store/types"
 
@@ -21,9 +21,9 @@ import (
 	ethlogger "github.com/ethereum/go-ethereum/eth/tracers/logger"
 	ethparams "github.com/ethereum/go-ethereum/params"
 
-	"github.com/EscanBE/evermint/v12/server/config"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/EscanBE/evermint/server/config"
+	utiltx "github.com/EscanBE/evermint/testutil/tx"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 )
 
 // Not valid Ethereum address

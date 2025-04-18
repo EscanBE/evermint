@@ -3,12 +3,12 @@ package keeper_test
 import (
 	"math/big"
 
-	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
+	evmvm "github.com/EscanBE/evermint/x/evm/vm"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
 )

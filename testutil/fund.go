@@ -2,7 +2,7 @@ package testutil
 
 import (
 	sdkmath "cosmossdk.io/math"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	sdktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"

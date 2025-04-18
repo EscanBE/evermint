@@ -5,11 +5,11 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	"github.com/EscanBE/evermint/crypto/ethsecp256k1"
+	"github.com/EscanBE/evermint/rpc/backend/mocks"
+	evertypes "github.com/EscanBE/evermint/types"
 	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"

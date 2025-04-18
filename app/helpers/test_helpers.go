@@ -23,10 +23,10 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
-	"github.com/EscanBE/evermint/v12/constants"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	chainapp "github.com/EscanBE/evermint/app"
+	cmdcfg "github.com/EscanBE/evermint/cmd/config"
+	"github.com/EscanBE/evermint/constants"
+	feemarkettypes "github.com/EscanBE/evermint/x/feemarket/types"
 )
 
 func init() {

@@ -12,9 +12,9 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/ethereum/eip712"
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	chainapp "github.com/EscanBE/evermint/app"
+	"github.com/EscanBE/evermint/ethereum/eip712"
+	evertypes "github.com/EscanBE/evermint/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 )
 

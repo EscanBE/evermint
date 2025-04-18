@@ -1,9 +1,9 @@
 package backend
 
 import (
-	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
-	rpc "github.com/EscanBE/evermint/v12/rpc/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	"github.com/EscanBE/evermint/rpc/backend/mocks"
+	rpc "github.com/EscanBE/evermint/rpc/types"
+	feemarkettypes "github.com/EscanBE/evermint/x/feemarket/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 

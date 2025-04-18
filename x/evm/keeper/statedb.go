@@ -6,7 +6,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	"cosmossdk.io/store/prefix"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 )

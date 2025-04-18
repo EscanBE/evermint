@@ -7,10 +7,10 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/EscanBE/evermint/crypto/ethsecp256k1"
+	"github.com/EscanBE/evermint/rpc/backend/mocks"
+	utiltx "github.com/EscanBE/evermint/testutil/tx"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	"github.com/cosmos/cosmos-sdk/crypto"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"

@@ -3,7 +3,7 @@ package evermint.cpc.v1;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/EscanBE/evermint/v12/x/cpc/types";
+option go_package = "github.com/EscanBE/evermint/x/cpc/types";
 
 // CustomPrecompiledContractMeta is metadata of the custom precompiled contract.
 // It is used to define the custom precompiled contract and its metadata.

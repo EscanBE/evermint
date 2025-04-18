@@ -3,11 +3,11 @@ package duallane_test
 import (
 	"math/big"
 
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/integration_test_util"
+	"github.com/EscanBE/evermint/constants"
+	"github.com/EscanBE/evermint/integration_test_util"
 
-	"github.com/EscanBE/evermint/v12/app/antedl/duallane"
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
+	"github.com/EscanBE/evermint/app/antedl/duallane"
+	itutiltypes "github.com/EscanBE/evermint/integration_test_util/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkauthante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"

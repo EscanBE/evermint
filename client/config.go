@@ -12,7 +12,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/types"
 )
 
 // InitConfig adds the chain-id, encoding and output flags to the persistent flag set.

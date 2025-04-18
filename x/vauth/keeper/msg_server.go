@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
+	vauthtypes "github.com/EscanBE/evermint/x/vauth/types"
 )
 
 var _ vauthtypes.MsgServer = msgServer{}

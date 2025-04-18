@@ -4,16 +4,16 @@ import (
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evertypes "github.com/EscanBE/evermint/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	storetypes "cosmossdk.io/store/types"
-	"github.com/EscanBE/evermint/v12/app/antedl/duallane"
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
+	"github.com/EscanBE/evermint/app/antedl/duallane"
+	itutiltypes "github.com/EscanBE/evermint/integration_test_util/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkauthante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"

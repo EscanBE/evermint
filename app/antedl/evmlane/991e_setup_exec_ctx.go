@@ -3,9 +3,9 @@ package evmlane
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	dlanteutils "github.com/EscanBE/evermint/v12/app/antedl/utils"
-	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	dlanteutils "github.com/EscanBE/evermint/app/antedl/utils"
+	evmkeeper "github.com/EscanBE/evermint/x/evm/keeper"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 )
 
 type ELSetupExecutionDecorator struct {

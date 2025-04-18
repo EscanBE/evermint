@@ -3,7 +3,7 @@ package app
 import (
 	"encoding/json"
 
-	"github.com/EscanBE/evermint/v12/app/params"
+	"github.com/EscanBE/evermint/app/params"
 )
 
 // GenesisState of the blockchain is represented here as a map of raw json

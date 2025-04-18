@@ -1,4 +1,4 @@
-module github.com/EscanBE/evermint/v12
+module github.com/EscanBE/evermint
 
 go 1.22.11
 

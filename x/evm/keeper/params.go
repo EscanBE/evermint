@@ -1,8 +1,8 @@
 package keeper
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/EscanBE/evermint/constants"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
 )

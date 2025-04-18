@@ -9,8 +9,8 @@ import (
 
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+	"github.com/EscanBE/evermint/constants"
+	"github.com/EscanBE/evermint/rename_chain/marker"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"

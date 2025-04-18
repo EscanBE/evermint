@@ -8,7 +8,7 @@ import (
 	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/types"
 )
 
 const (

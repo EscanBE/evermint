@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"

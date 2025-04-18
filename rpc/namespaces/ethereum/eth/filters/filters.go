@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/EscanBE/evermint/v12/rpc/backend"
-	"github.com/EscanBE/evermint/v12/rpc/types"
+	"github.com/EscanBE/evermint/rpc/backend"
+	"github.com/EscanBE/evermint/rpc/types"
 
 	"cosmossdk.io/log"
 	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"

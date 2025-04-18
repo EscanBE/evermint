@@ -6,7 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	vauthutils "github.com/EscanBE/evermint/v12/x/vauth/utils"
+	vauthutils "github.com/EscanBE/evermint/x/vauth/utils"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"

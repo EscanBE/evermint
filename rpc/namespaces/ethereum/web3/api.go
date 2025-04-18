@@ -1,7 +1,7 @@
 package web3
 
 import (
-	"github.com/EscanBE/evermint/v12/version"
+	"github.com/EscanBE/evermint/version"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"

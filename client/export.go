@@ -12,8 +12,8 @@ import (
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
 
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/crypto/hd"
+	"github.com/EscanBE/evermint/crypto/ethsecp256k1"
+	"github.com/EscanBE/evermint/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 )
 

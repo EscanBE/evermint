@@ -3,10 +3,10 @@ package keeper_test
 import (
 	"bytes"
 
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/x/cpc/abi"
-	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
-	cpcutils "github.com/EscanBE/evermint/v12/x/cpc/utils"
+	"github.com/EscanBE/evermint/constants"
+	"github.com/EscanBE/evermint/x/cpc/abi"
+	cpctypes "github.com/EscanBE/evermint/x/cpc/types"
+	cpcutils "github.com/EscanBE/evermint/x/cpc/utils"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"

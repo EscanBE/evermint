@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+	chainapp "github.com/EscanBE/evermint/app"
+	cmdcfg "github.com/EscanBE/evermint/cmd/config"
 )
 
 func main() {

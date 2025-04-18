@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -13,8 +13,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/stretchr/testify/require"
 
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	main "github.com/EscanBE/evermint/v12/cmd/evmd"
+	chainapp "github.com/EscanBE/evermint/app"
+	main "github.com/EscanBE/evermint/cmd/evmd"
 )
 
 func TestInitCmd(t *testing.T) {

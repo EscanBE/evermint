@@ -7,8 +7,8 @@ import (
 
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
-	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
+	evmkeeper "github.com/EscanBE/evermint/x/evm/keeper"
+	vauthtypes "github.com/EscanBE/evermint/x/vauth/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

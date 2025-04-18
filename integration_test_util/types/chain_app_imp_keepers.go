@@ -3,10 +3,10 @@ package types
 //goland:noinspection SpellCheckingInspection
 import (
 	feegrantkeeper "cosmossdk.io/x/feegrant/keeper"
-	cpckeeper "github.com/EscanBE/evermint/v12/x/cpc/keeper"
-	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
-	feemarketkeeper "github.com/EscanBE/evermint/v12/x/feemarket/keeper"
-	vauthkeeper "github.com/EscanBE/evermint/v12/x/vauth/keeper"
+	cpckeeper "github.com/EscanBE/evermint/x/cpc/keeper"
+	evmkeeper "github.com/EscanBE/evermint/x/evm/keeper"
+	feemarketkeeper "github.com/EscanBE/evermint/x/feemarket/keeper"
+	vauthkeeper "github.com/EscanBE/evermint/x/vauth/keeper"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	distkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"

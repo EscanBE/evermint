@@ -3,7 +3,7 @@ package eth_rpc_it_suite
 import (
 	"testing"
 
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
+	rpctypes "github.com/EscanBE/evermint/rpc/types"
 )
 
 func genericSetupTestSuiteForBenchmarkGetTransaction() (suite *EthRpcTestSuite, rpcTx *rpctypes.RPCTransaction, cleanup func()) {

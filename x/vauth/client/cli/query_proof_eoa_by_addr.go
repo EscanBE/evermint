@@ -1,7 +1,7 @@
 package cli
 
 import (
-	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
+	vauthtypes "github.com/EscanBE/evermint/x/vauth/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"

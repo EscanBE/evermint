@@ -1,12 +1,12 @@
 package integration_test_util
 
 import (
-	"github.com/EscanBE/evermint/v12/app/antedl"
-	"github.com/EscanBE/evermint/v12/app/antedl/duallane"
+	"github.com/EscanBE/evermint/app/antedl"
+	"github.com/EscanBE/evermint/app/antedl/duallane"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
+	itutiltypes "github.com/EscanBE/evermint/integration_test_util/types"
 )
 
 func CreateAnteIntegrationTestSuite(chain *ChainIntegrationTestSuite) *AnteIntegrationTestSuite {

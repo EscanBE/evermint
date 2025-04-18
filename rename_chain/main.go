@@ -14,7 +14,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 )
 
@@ -135,13 +135,13 @@ func main() {
 	_ = os.RemoveAll("rename_chain")
 
 	ogGitHubWithoutScheme := strings.TrimSuffix(strings.Split(EvermintOg_GitHubRepo, "://")[1], ".git")
-	ogGoModule := fmt.Sprintf("%s/v12", ogGitHubWithoutScheme)
+	ogGoModule := ogGitHubWithoutScheme
 	splOgGitHub := strings.Split(ogGitHubWithoutScheme, "/")
 	ogGitOwnerAndRepo := fmt.Sprintf("%s/%s", splOgGitHub[len(splOgGitHub)-2], splOgGitHub[len(splOgGitHub)-1])
 	ogGitHubWithoutRepo := strings.TrimSuffix(ogGitHubWithoutScheme, fmt.Sprintf("/%s", splOgGitHub[len(splOgGitHub)-1]))
 
 	newGitHubWithoutScheme := strings.TrimSuffix(strings.Split(constants.GitHubRepo, "://")[1], ".git")
-	newGoModule := fmt.Sprintf("%s/v12", newGitHubWithoutScheme)
+	newGoModule := newGitHubWithoutScheme
 	splNewGitHub := strings.Split(newGitHubWithoutScheme, "/")
 	newGitOwnerAndRepo := fmt.Sprintf("%s/%s", splNewGitHub[len(splNewGitHub)-2], splNewGitHub[len(splNewGitHub)-1])
 	newGitHubWithoutRepo := strings.TrimSuffix(newGitHubWithoutScheme, fmt.Sprintf("/%s", splNewGitHub[len(splNewGitHub)-1]))

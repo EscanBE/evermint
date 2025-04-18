@@ -12,12 +12,12 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	"github.com/stretchr/testify/require"
 
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/app/antedl"
-	"github.com/EscanBE/evermint/v12/app/antedl/duallane"
-	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
-	feemarketkeeper "github.com/EscanBE/evermint/v12/x/feemarket/keeper"
-	vauthkeeper "github.com/EscanBE/evermint/v12/x/vauth/keeper"
+	chainapp "github.com/EscanBE/evermint/app"
+	"github.com/EscanBE/evermint/app/antedl"
+	"github.com/EscanBE/evermint/app/antedl/duallane"
+	evmkeeper "github.com/EscanBE/evermint/x/evm/keeper"
+	feemarketkeeper "github.com/EscanBE/evermint/x/feemarket/keeper"
+	vauthkeeper "github.com/EscanBE/evermint/x/vauth/keeper"
 )
 
 func TestHandlerOptions_Validate(t *testing.T) {

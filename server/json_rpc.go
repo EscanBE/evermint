@@ -7,14 +7,14 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 
-	"github.com/EscanBE/evermint/v12/rpc"
+	"github.com/EscanBE/evermint/rpc"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	ethlog "github.com/ethereum/go-ethereum/log"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 
-	svrconfig "github.com/EscanBE/evermint/v12/server/config"
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	svrconfig "github.com/EscanBE/evermint/server/config"
+	evertypes "github.com/EscanBE/evermint/types"
 )
 
 // StartJSONRPC starts the JSON-RPC server

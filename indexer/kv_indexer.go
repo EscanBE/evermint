@@ -16,10 +16,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	dlanteutils "github.com/EscanBE/evermint/v12/app/antedl/utils"
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	dlanteutils "github.com/EscanBE/evermint/app/antedl/utils"
+	rpctypes "github.com/EscanBE/evermint/rpc/types"
+	evertypes "github.com/EscanBE/evermint/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 )
 
 const (

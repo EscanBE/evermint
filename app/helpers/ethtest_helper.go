@@ -6,8 +6,8 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/constants"
+	chainapp "github.com/EscanBE/evermint/app"
+	"github.com/EscanBE/evermint/constants"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 

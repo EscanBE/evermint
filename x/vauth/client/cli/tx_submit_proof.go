@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
 
 	errorsmod "cosmossdk.io/errors"
 
-	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
-	vauthutils "github.com/EscanBE/evermint/v12/x/vauth/utils"
+	vauthtypes "github.com/EscanBE/evermint/x/vauth/types"
+	vauthutils "github.com/EscanBE/evermint/x/vauth/utils"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"

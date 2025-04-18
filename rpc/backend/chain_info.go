@@ -7,10 +7,10 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	rpctypes "github.com/EscanBE/evermint/rpc/types"
+	evertypes "github.com/EscanBE/evermint/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
+	feemarkettypes "github.com/EscanBE/evermint/x/feemarket/types"
 	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
 	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"

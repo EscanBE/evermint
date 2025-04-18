@@ -21,8 +21,8 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 
-	"github.com/EscanBE/evermint/v12/rpc/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/EscanBE/evermint/rpc/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	tmcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 )
 

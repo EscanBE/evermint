@@ -1,7 +1,7 @@
 package miner
 
 import (
-	"github.com/EscanBE/evermint/v12/rpc/backend"
+	"github.com/EscanBE/evermint/rpc/backend"
 	"github.com/cosmos/cosmos-sdk/server"
 
 	"github.com/ethereum/go-ethereum/common"

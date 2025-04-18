@@ -12,14 +12,14 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"

@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
+	vauthtypes "github.com/EscanBE/evermint/x/vauth/types"
 
 	"github.com/spf13/cobra"
 

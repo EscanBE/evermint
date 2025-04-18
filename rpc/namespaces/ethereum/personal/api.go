@@ -7,12 +7,12 @@ import (
 	"path"
 	"time"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 
-	"github.com/EscanBE/evermint/v12/rpc/backend"
+	"github.com/EscanBE/evermint/rpc/backend"
 
-	cryptohd "github.com/EscanBE/evermint/v12/crypto/hd"
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	cryptohd "github.com/EscanBE/evermint/crypto/hd"
+	evertypes "github.com/EscanBE/evermint/types"
 
 	"cosmossdk.io/log"
 
@@ -24,7 +24,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 )
 
 // PrivateAccountAPI is the personal_ prefixed set of APIs in the Web3 JSON-RPC spec.

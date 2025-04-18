@@ -5,8 +5,8 @@ import (
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/EscanBE/evermint/v12/app/antedl/duallane"
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
+	"github.com/EscanBE/evermint/app/antedl/duallane"
+	itutiltypes "github.com/EscanBE/evermint/integration_test_util/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkauthante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"

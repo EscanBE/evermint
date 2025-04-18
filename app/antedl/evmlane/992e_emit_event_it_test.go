@@ -7,9 +7,9 @@ import (
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/EscanBE/evermint/v12/app/antedl/evmlane"
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/EscanBE/evermint/app/antedl/evmlane"
+	itutiltypes "github.com/EscanBE/evermint/integration_test_util/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 )
 
 func (s *ELTestSuite) Test_ELEmitEventDecorator() {

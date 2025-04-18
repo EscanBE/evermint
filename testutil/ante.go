@@ -1,7 +1,7 @@
 package testutil
 
 import (
-	chainapp "github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/app"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

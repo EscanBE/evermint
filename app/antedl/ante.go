@@ -1,14 +1,14 @@
 package antedl
 
 import (
-	"github.com/EscanBE/evermint/v12/app/antedl/cosmoslane"
+	"github.com/EscanBE/evermint/app/antedl/cosmoslane"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkauthante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 
 	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
 
-	"github.com/EscanBE/evermint/v12/app/antedl/duallane"
-	"github.com/EscanBE/evermint/v12/app/antedl/evmlane"
+	"github.com/EscanBE/evermint/app/antedl/duallane"
+	"github.com/EscanBE/evermint/app/antedl/evmlane"
 )
 
 // NewAnteHandler returns an ante handler responsible for attempting to route

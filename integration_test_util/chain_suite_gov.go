@@ -7,7 +7,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
+	itutiltypes "github.com/EscanBE/evermint/integration_test_util/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govv1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypeslegacy "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"

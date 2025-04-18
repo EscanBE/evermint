@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"math/big"
 
-	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
+	evmutils "github.com/EscanBE/evermint/x/evm/utils"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -20,9 +20,9 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/server/config"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	chainapp "github.com/EscanBE/evermint/app"
+	"github.com/EscanBE/evermint/server/config"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 )
 
 // PrepareEthTx creates an ethereum tx and signs it with the provided message and private key.

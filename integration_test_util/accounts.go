@@ -4,10 +4,10 @@ package integration_test_util
 import (
 	"testing"
 
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	etherminthd "github.com/EscanBE/evermint/v12/crypto/hd"
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+	"github.com/EscanBE/evermint/crypto/ethsecp256k1"
+	etherminthd "github.com/EscanBE/evermint/crypto/hd"
+	itutiltypes "github.com/EscanBE/evermint/integration_test_util/types"
+	"github.com/EscanBE/evermint/rename_chain/marker"
 	cosmoshd "github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/stretchr/testify/require"

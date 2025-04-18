@@ -5,14 +5,14 @@ import (
 	"context"
 	"encoding/hex"
 
-	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
+	evmutils "github.com/EscanBE/evermint/x/evm/utils"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	itutiltypes "github.com/EscanBE/evermint/integration_test_util/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	clienttx "github.com/cosmos/cosmos-sdk/client/tx"

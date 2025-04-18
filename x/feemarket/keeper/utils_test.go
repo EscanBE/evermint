@@ -6,8 +6,8 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/EscanBE/evermint/v12/app/helpers"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/app/helpers"
+	"github.com/EscanBE/evermint/constants"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
 	sdkmath "cosmossdk.io/math"
@@ -18,12 +18,12 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/testutil"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	chainapp "github.com/EscanBE/evermint/app"
+	"github.com/EscanBE/evermint/crypto/ethsecp256k1"
+	"github.com/EscanBE/evermint/testutil"
+	utiltx "github.com/EscanBE/evermint/testutil/tx"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
+	feemarkettypes "github.com/EscanBE/evermint/x/feemarket/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+	"github.com/EscanBE/evermint/rename_chain/marker"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"

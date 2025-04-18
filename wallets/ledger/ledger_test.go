@@ -1,12 +1,12 @@
 package ledger_test
 
 import (
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/ethereum/eip712"
-	"github.com/EscanBE/evermint/v12/wallets/accounts"
-	"github.com/EscanBE/evermint/v12/wallets/ledger"
+	chainapp "github.com/EscanBE/evermint/app"
+	cmdcfg "github.com/EscanBE/evermint/cmd/config"
+	"github.com/EscanBE/evermint/constants"
+	"github.com/EscanBE/evermint/ethereum/eip712"
+	"github.com/EscanBE/evermint/wallets/accounts"
+	"github.com/EscanBE/evermint/wallets/ledger"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	gethaccounts "github.com/ethereum/go-ethereum/accounts"

@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"math/big"
 
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	corevm "github.com/ethereum/go-ethereum/core/vm"

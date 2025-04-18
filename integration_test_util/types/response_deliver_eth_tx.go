@@ -1,7 +1,7 @@
 package types
 
 import (
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 )
 

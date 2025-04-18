@@ -4,7 +4,7 @@ import (
 	"context"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	"github.com/EscanBE/evermint/v12/app/keepers"
+	"github.com/EscanBE/evermint/app/keepers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )

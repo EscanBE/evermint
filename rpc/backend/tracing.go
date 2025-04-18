@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"math"
 
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	rpctypes "github.com/EscanBE/evermint/rpc/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"

@@ -11,7 +11,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

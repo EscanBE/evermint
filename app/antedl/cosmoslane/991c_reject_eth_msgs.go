@@ -2,8 +2,8 @@ package cosmoslane
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	dlanteutils "github.com/EscanBE/evermint/v12/app/antedl/utils"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	dlanteutils "github.com/EscanBE/evermint/app/antedl/utils"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )

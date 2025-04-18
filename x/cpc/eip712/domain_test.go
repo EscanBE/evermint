@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/EscanBE/evermint/v12/constants"
-	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
+	"github.com/EscanBE/evermint/constants"
+	cpctypes "github.com/EscanBE/evermint/x/cpc/types"
 	cmath "github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/stretchr/testify/require"

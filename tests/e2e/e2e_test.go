@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 )
 
 // TestUpgrade tests if out chain node can be upgraded from one version to another.

@@ -1,7 +1,7 @@
 package upgrade
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 )
 
 // The constants used in the upgrade tests are defined here

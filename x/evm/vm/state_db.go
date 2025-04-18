@@ -17,8 +17,8 @@ import (
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	ethparams "github.com/ethereum/go-ethereum/params"
 
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
+	evmutils "github.com/EscanBE/evermint/x/evm/utils"
 )
 
 var (

@@ -2,7 +2,7 @@ package integration_test_util
 
 //goland:noinspection SpellCheckingInspection
 import (
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
+	itutiltypes "github.com/EscanBE/evermint/integration_test_util/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"

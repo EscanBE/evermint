@@ -19,7 +19,7 @@ for dir in $proto_dirs; do
 done
 
 # move proto files to the right places
-cp -r github.com/EscanBE/evermint/v*/* ./
+cp -r github.com/EscanBE/evermint/* ./
 rm -rf github.com
 
 sh ./scripts/protocgen-pulsar.sh

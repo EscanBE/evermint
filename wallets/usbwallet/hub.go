@@ -10,7 +10,7 @@ import (
 	// #nosec
 	"runtime"
 
-	"github.com/EscanBE/evermint/v12/wallets/accounts"
+	"github.com/EscanBE/evermint/wallets/accounts"
 	gethaccounts "github.com/ethereum/go-ethereum/accounts"
 	usb "github.com/zondax/hid"
 )

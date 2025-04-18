@@ -16,12 +16,12 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
 
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/testutil"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
+	"github.com/EscanBE/evermint/constants"
+	"github.com/EscanBE/evermint/testutil"
+	utiltx "github.com/EscanBE/evermint/testutil/tx"
+	evertypes "github.com/EscanBE/evermint/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
+	evmvm "github.com/EscanBE/evermint/x/evm/vm"
 )
 
 func (suite *KeeperTestSuite) TestGetHashFn() {

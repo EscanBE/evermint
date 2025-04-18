@@ -5,8 +5,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	dlanteutils "github.com/EscanBE/evermint/v12/app/antedl/utils"
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	dlanteutils "github.com/EscanBE/evermint/app/antedl/utils"
+	evertypes "github.com/EscanBE/evermint/types"
 )
 
 type DLExtensionOptionsDecorator struct {

@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 
-	"github.com/EscanBE/evermint/v12/constants"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/EscanBE/evermint/constants"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 )
 
 // HasSingleEthereumMessage returns true of the transaction is an Ethereum transaction.

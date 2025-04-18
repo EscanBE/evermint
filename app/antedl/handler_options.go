@@ -18,11 +18,11 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 
-	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	feemarketkeeper "github.com/EscanBE/evermint/v12/x/feemarket/keeper"
-	vauthkeeper "github.com/EscanBE/evermint/v12/x/vauth/keeper"
-	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
+	evmkeeper "github.com/EscanBE/evermint/x/evm/keeper"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
+	feemarketkeeper "github.com/EscanBE/evermint/x/feemarket/keeper"
+	vauthkeeper "github.com/EscanBE/evermint/x/vauth/keeper"
+	vauthtypes "github.com/EscanBE/evermint/x/vauth/types"
 )
 
 // HandlerOptions defines the list of module keepers required to run this chain

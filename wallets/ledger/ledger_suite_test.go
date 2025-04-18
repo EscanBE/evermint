@@ -6,11 +6,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+	"github.com/EscanBE/evermint/rename_chain/marker"
 
 	sdkmath "cosmossdk.io/math"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 
 	"github.com/stretchr/testify/suite"
 
@@ -24,9 +24,9 @@ import (
 	auxTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/EscanBE/evermint/v12/wallets/ledger"
-	"github.com/EscanBE/evermint/v12/wallets/ledger/mocks"
-	"github.com/EscanBE/evermint/v12/wallets/usbwallet"
+	"github.com/EscanBE/evermint/wallets/ledger"
+	"github.com/EscanBE/evermint/wallets/ledger/mocks"
+	"github.com/EscanBE/evermint/wallets/usbwallet"
 )
 
 type LedgerTestSuite struct {

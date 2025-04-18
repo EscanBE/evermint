@@ -3,18 +3,18 @@ package ibc
 import (
 	"testing"
 
-	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+	cmdcfg "github.com/EscanBE/evermint/cmd/config"
 
 	sdkmath "cosmossdk.io/math"
 
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+	"github.com/EscanBE/evermint/constants"
+	"github.com/EscanBE/evermint/rename_chain/marker"
 
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	teststypes "github.com/EscanBE/evermint/v12/types/tests"
+	teststypes "github.com/EscanBE/evermint/types/tests"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"

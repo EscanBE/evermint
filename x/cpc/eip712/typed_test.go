@@ -4,7 +4,7 @@ import (
 	"math/big"
 	"testing"
 
-	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
+	cpctypes "github.com/EscanBE/evermint/x/cpc/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"

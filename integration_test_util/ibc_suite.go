@@ -8,7 +8,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
+	itutiltypes "github.com/EscanBE/evermint/integration_test_util/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 	cosmosed25519 "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
