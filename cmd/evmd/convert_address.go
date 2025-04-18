@@ -17,7 +17,8 @@ func NewConvertAddressCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "convert-address [address] [?next-bech32]",
 		Aliases: []string{"ca"},
-		Short: fmt.Sprintf(`Convert account bech32 address into hex address or vice versa.
+		Short:   "Convert account bech32 address into hex address or vice versa",
+		Long: fmt.Sprintf(`Convert account bech32 address into hex address or vice versa.
 If the second argument (next-bech32) is provided, it will convert the address into the input bech32 address.
 Eg:
 %s ca 0x830bb7a3c4c664e1c611d16dba1ef4067c697bd7 evmos
