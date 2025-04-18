@@ -4,6 +4,10 @@ import (
 	"net"
 	"time"
 
+	cmtcfg "github.com/cometbft/cometbft/config"
+	cmttypes "github.com/cometbft/cometbft/types"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+
 	// TODO update import to local pkg when rpc pkg is migrated
 	"github.com/EscanBE/evermint/v12/server/config"
 	"github.com/spf13/cobra"
@@ -98,4 +102,16 @@ func Listen(addr string, config *config.Config) (net.Listener, error) {
 		ln = netutil.LimitListener(ln, config.JSONRPC.MaxOpenConnections)
 	}
 	return ln, err
+}
+
+// GenDocProvider returns a function which returns the Comet genesis doc from the genesis file.
+func GenDocProvider(cfg *cmtcfg.Config) func() (*cmttypes.GenesisDoc, error) {
+	return func() (*cmttypes.GenesisDoc, error) {
+		appGenesis, err := genutiltypes.AppGenesisFromFile(cfg.GenesisFile())
+		if err != nil {
+			return nil, err
+		}
+
+		return appGenesis.ToGenesisDoc()
+	}
 }

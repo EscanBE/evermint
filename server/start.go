@@ -346,7 +346,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts StartOpt
 		return err
 	}
 
-	genDocProvider := cmtnode.DefaultGenesisDocProviderFunc(cfg)
+	genDocProvider := GenDocProvider(cfg)
 
 	var (
 		cmtNode  *cmtnode.Node
