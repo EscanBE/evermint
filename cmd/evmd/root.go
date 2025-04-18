@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/EscanBE/evermint/v12/cmd/evmd/genesis"
+
 	"cosmossdk.io/client/v2/autocli"
 
 	storetypes "cosmossdk.io/store/types"
@@ -216,6 +218,7 @@ You gonna get "data/application.db" unpacked
 			return snapshotCmd
 		}(),
 		inspect.Cmd(),
+		genesis.Cmd(),
 		NewConvertAddressCmd(),
 	}
 
