@@ -2,9 +2,9 @@ package types
 
 //goland:noinspection SpellCheckingInspection
 import (
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	rpctypes "github.com/EscanBE/evermint/rpc/types"
+	cpctypes "github.com/EscanBE/evermint/x/cpc/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdktxtypes "github.com/cosmos/cosmos-sdk/types/tx"

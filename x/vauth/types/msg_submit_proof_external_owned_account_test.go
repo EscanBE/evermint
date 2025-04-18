@@ -4,9 +4,9 @@ import (
 	"encoding/hex"
 	"testing"
 
-	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+	cmdcfg "github.com/EscanBE/evermint/cmd/config"
 
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+	"github.com/EscanBE/evermint/rename_chain/marker"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"

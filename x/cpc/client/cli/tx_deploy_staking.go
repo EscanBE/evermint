@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 
-	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
+	cpctypes "github.com/EscanBE/evermint/x/cpc/types"
 	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
 
 	"github.com/cosmos/cosmos-sdk/client"

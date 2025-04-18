@@ -1,7 +1,7 @@
 package cli
 
 import (
-	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
+	cpctypes "github.com/EscanBE/evermint/x/cpc/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"

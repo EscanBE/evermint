@@ -8,12 +8,12 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	vauthutils "github.com/EscanBE/evermint/v12/x/vauth/utils"
+	vauthutils "github.com/EscanBE/evermint/x/vauth/utils"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
+	vauthtypes "github.com/EscanBE/evermint/x/vauth/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"

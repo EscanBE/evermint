@@ -6,19 +6,19 @@ import (
 	"testing"
 	"time"
 
-	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+	cmdcfg "github.com/EscanBE/evermint/cmd/config"
 
 	storemetrics "cosmossdk.io/store/metrics"
 
 	"github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/runtime"
 
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
-	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	vauthkeeper "github.com/EscanBE/evermint/v12/x/vauth/keeper"
-	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
+	"github.com/EscanBE/evermint/constants"
+	"github.com/EscanBE/evermint/rename_chain/marker"
+	evmkeeper "github.com/EscanBE/evermint/x/evm/keeper"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
+	vauthkeeper "github.com/EscanBE/evermint/x/vauth/keeper"
+	vauthtypes "github.com/EscanBE/evermint/x/vauth/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/crypto"
 

@@ -5,7 +5,7 @@ import (
 	evidencetypes "cosmossdk.io/x/evidence/types"
 	"cosmossdk.io/x/feegrant"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
+	cpctypes "github.com/EscanBE/evermint/x/cpc/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -23,9 +23,9 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
+	feemarkettypes "github.com/EscanBE/evermint/x/feemarket/types"
+	vauthtypes "github.com/EscanBE/evermint/x/vauth/types"
 )
 
 func (appKeepers *AppKeepers) GenerateKeys() {

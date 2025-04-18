@@ -15,11 +15,11 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/EscanBE/evermint/v12/rpc/backend"
+	"github.com/EscanBE/evermint/rpc/backend"
 
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	rpctypes "github.com/EscanBE/evermint/rpc/types"
+	evertypes "github.com/EscanBE/evermint/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 )
 
 // EthereumAPI allows applications to connect to an Evermint node that is

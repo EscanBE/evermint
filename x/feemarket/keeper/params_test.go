@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"reflect"
 
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarkettypes "github.com/EscanBE/evermint/x/feemarket/types"
 )
 
 func (suite *KeeperTestSuite) TestGetParams() {

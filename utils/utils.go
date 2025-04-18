@@ -4,10 +4,10 @@ import (
 	"strings"
 
 	storetypes "cosmossdk.io/store/types"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
+	"github.com/EscanBE/evermint/crypto/ethsecp256k1"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"

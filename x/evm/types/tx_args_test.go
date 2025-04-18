@@ -5,14 +5,14 @@ import (
 	"math/big"
 	"testing"
 
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
+	utiltx "github.com/EscanBE/evermint/testutil/tx"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 )
 
 type TxArgsTestSuite struct {

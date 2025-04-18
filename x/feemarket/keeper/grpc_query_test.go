@@ -2,7 +2,7 @@ package keeper_test
 
 import (
 	sdkmath "cosmossdk.io/math"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarkettypes "github.com/EscanBE/evermint/x/feemarket/types"
 	ethparams "github.com/ethereum/go-ethereum/params"
 )
 

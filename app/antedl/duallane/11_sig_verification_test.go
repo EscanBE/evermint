@@ -16,9 +16,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/app/antedl/duallane"
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
+	chainapp "github.com/EscanBE/evermint/app"
+	"github.com/EscanBE/evermint/app/antedl/duallane"
+	"github.com/EscanBE/evermint/crypto/ethsecp256k1"
 )
 
 func TestConsumeSignatureVerificationGas(t *testing.T) {

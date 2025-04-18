@@ -16,7 +16,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	cmtrand "github.com/cometbft/cometbft/libs/rand"
 	cmttypes "github.com/cometbft/cometbft/types"
@@ -44,15 +44,15 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/EscanBE/evermint/v12/crypto/hd"
-	"github.com/EscanBE/evermint/v12/server/config"
-	srvflags "github.com/EscanBE/evermint/v12/server/flags"
+	"github.com/EscanBE/evermint/crypto/hd"
+	"github.com/EscanBE/evermint/server/config"
+	srvflags "github.com/EscanBE/evermint/server/flags"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evertypes "github.com/EscanBE/evermint/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 
-	appkeyring "github.com/EscanBE/evermint/v12/crypto/keyring"
-	"github.com/EscanBE/evermint/v12/testutil/network"
+	appkeyring "github.com/EscanBE/evermint/crypto/keyring"
+	"github.com/EscanBE/evermint/testutil/network"
 )
 
 var (

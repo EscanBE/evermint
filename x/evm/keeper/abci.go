@@ -6,7 +6,7 @@ import (
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/EscanBE/evermint/v12/utils"
+	"github.com/EscanBE/evermint/utils"
 )
 
 // BeginBlock sets the sdk Context and EIP155 chain id to the Keeper.

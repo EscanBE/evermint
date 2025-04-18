@@ -3,7 +3,7 @@ package backend
 import (
 	sdkmath "cosmossdk.io/math"
 
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
+	feemarkettypes "github.com/EscanBE/evermint/x/feemarket/types"
 	tmcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 )
 

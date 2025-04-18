@@ -3,8 +3,8 @@ package keepers
 import (
 	"os"
 
-	cpckeeper "github.com/EscanBE/evermint/v12/x/cpc/keeper"
-	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
+	cpckeeper "github.com/EscanBE/evermint/x/cpc/keeper"
+	cpctypes "github.com/EscanBE/evermint/x/cpc/types"
 
 	"github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -67,13 +67,13 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 
-	srvflags "github.com/EscanBE/evermint/v12/server/flags"
-	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	feemarketkeeper "github.com/EscanBE/evermint/v12/x/feemarket/keeper"
-	feemarkettypes "github.com/EscanBE/evermint/v12/x/feemarket/types"
-	vauthkeeper "github.com/EscanBE/evermint/v12/x/vauth/keeper"
-	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
+	srvflags "github.com/EscanBE/evermint/server/flags"
+	evmkeeper "github.com/EscanBE/evermint/x/evm/keeper"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
+	feemarketkeeper "github.com/EscanBE/evermint/x/feemarket/keeper"
+	feemarkettypes "github.com/EscanBE/evermint/x/feemarket/types"
+	vauthkeeper "github.com/EscanBE/evermint/x/vauth/keeper"
+	vauthtypes "github.com/EscanBE/evermint/x/vauth/types"
 )
 
 type AppKeepers struct {

@@ -3,10 +3,10 @@ package utils
 import (
 	"testing"
 
-	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+	cmdcfg "github.com/EscanBE/evermint/cmd/config"
 
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
+	"github.com/EscanBE/evermint/constants"
+	"github.com/EscanBE/evermint/rename_chain/marker"
 
 	"github.com/stretchr/testify/require"
 
@@ -16,7 +16,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
+	"github.com/EscanBE/evermint/crypto/ethsecp256k1"
 )
 
 func init() {

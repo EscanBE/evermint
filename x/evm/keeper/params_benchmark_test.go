@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"testing"
 
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 )
 
 func BenchmarkSetParams(b *testing.B) {

@@ -14,9 +14,9 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
-	rpc "github.com/EscanBE/evermint/v12/rpc/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/EscanBE/evermint/rpc/backend/mocks"
+	rpc "github.com/EscanBE/evermint/rpc/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"

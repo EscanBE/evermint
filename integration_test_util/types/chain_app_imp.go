@@ -2,7 +2,7 @@ package types
 
 //goland:noinspection SpellCheckingInspection
 import (
-	chainapp "github.com/EscanBE/evermint/v12/app"
+	chainapp "github.com/EscanBE/evermint/app"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"

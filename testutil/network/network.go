@@ -17,9 +17,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/EscanBE/evermint/v12/app/params"
+	"github.com/EscanBE/evermint/app/params"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 	sdktunetwork "github.com/cosmos/cosmos-sdk/testutil/network"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
@@ -34,8 +34,8 @@ import (
 	"google.golang.org/grpc"
 
 	pruningtypes "cosmossdk.io/store/pruning/types"
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/crypto/hd"
+	chainapp "github.com/EscanBE/evermint/app"
+	"github.com/EscanBE/evermint/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
@@ -54,8 +54,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/EscanBE/evermint/v12/server/config"
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	"github.com/EscanBE/evermint/server/config"
+	evertypes "github.com/EscanBE/evermint/types"
 )
 
 // package-wide network lock to only allow one test network at a time

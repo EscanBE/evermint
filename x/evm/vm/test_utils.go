@@ -1,7 +1,7 @@
 package vm
 
 import (
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
+	"github.com/EscanBE/evermint/crypto/ethsecp256k1"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 )

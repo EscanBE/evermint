@@ -1,13 +1,13 @@
 package keyring
 
 import (
-	"github.com/EscanBE/evermint/v12/wallets/ledger"
+	"github.com/EscanBE/evermint/wallets/ledger"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cosmosLedger "github.com/cosmos/cosmos-sdk/crypto/ledger"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/crypto/hd"
+	"github.com/EscanBE/evermint/crypto/ethsecp256k1"
+	"github.com/EscanBE/evermint/crypto/hd"
 )
 
 // LedgerAppName defines the Ledger app used for signing. Our chain uses the Ethereum app

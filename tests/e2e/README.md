@@ -145,7 +145,7 @@ In case of a successful upgrade,
 the script will print the following output (example):
 
 ```log
-ok  	github.com/EscanBE/evermint/v12/tests/e2e	174.137s.
+ok  	github.com/EscanBE/evermint/tests/e2e	174.137s.
 ```
 
 If the target node version fails to start,
@@ -165,7 +165,7 @@ Error:  Received unexpected error:
         github.com/cosmos/cosmos-sdk/baseapp.SetMinGasPrices({0xc0013563e7?, ...
             github.com/cosmos/cosmos-sdk@v0.46.16/baseapp/options.go:29 +0xd9
         main.appCreator.newApp({{{0x3399b40, 0xc000ec1db8}, {0x33ac0f8, 0xc00...
-            github.com/EscanBE/evermint/v12/cmd/evmd/root.go:243 +0x2ca
+            github.com/EscanBE/evermint/cmd/evmd/root.go:243 +0x2ca
 
         [output stream]:
 

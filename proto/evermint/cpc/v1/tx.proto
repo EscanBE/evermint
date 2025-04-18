@@ -6,7 +6,7 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "evermint/cpc/v1/genesis.proto";
 
-option go_package = "github.com/EscanBE/evermint/v12/x/cpc/types";
+option go_package = "github.com/EscanBE/evermint/x/cpc/types";
 
 // Msg defines the x/cpc Msg service.
 service Msg {

@@ -9,8 +9,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/spf13/cobra"
 
-	clientkeys "github.com/EscanBE/evermint/v12/client/keys"
-	"github.com/EscanBE/evermint/v12/crypto/hd"
+	clientkeys "github.com/EscanBE/evermint/client/keys"
+	"github.com/EscanBE/evermint/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 )
 

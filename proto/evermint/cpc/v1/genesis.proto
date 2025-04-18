@@ -3,7 +3,7 @@ package evermint.cpc.v1;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/EscanBE/evermint/v12/x/cpc/types";
+option go_package = "github.com/EscanBE/evermint/x/cpc/types";
 
 // GenesisState defines the module's genesis state.
 message GenesisState {

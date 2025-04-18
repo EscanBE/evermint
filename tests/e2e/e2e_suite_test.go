@@ -8,11 +8,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/EscanBE/evermint/v12/tests/e2e/upgrade"
+	"github.com/EscanBE/evermint/tests/e2e/upgrade"
 )
 
 const (

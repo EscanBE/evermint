@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
-	cpckeeper "github.com/EscanBE/evermint/v12/x/cpc/keeper"
+	cpckeeper "github.com/EscanBE/evermint/x/cpc/keeper"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -13,9 +13,9 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	corevm "github.com/ethereum/go-ethereum/core/vm"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
+	evertypes "github.com/EscanBE/evermint/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
+	evmvm "github.com/EscanBE/evermint/x/evm/vm"
 )
 
 // NewEVM generates a go-ethereum VM from the provided Message fields and the chain parameters

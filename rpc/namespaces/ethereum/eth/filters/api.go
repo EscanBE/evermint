@@ -19,8 +19,8 @@ import (
 	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/client"
 
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	rpctypes "github.com/EscanBE/evermint/rpc/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 )
 
 // FilterAPI gathers

@@ -2,7 +2,7 @@ package params
 
 import (
 	"cosmossdk.io/x/tx/signing"
-	cmdcfg "github.com/EscanBE/evermint/v12/cmd/config"
+	cmdcfg "github.com/EscanBE/evermint/cmd/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/address"

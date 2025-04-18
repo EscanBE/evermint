@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 
-	"github.com/EscanBE/evermint/v12/ethereum/eip712"
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	"github.com/EscanBE/evermint/ethereum/eip712"
+	evertypes "github.com/EscanBE/evermint/types"
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	"github.com/cosmos/cosmos-sdk/client"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"

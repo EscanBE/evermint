@@ -1,6 +1,6 @@
 package keeper_test
 
-import vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
+import vauthtypes "github.com/EscanBE/evermint/x/vauth/types"
 
 //goland:noinspection SpellCheckingInspection
 func (s *KeeperTestSuite) TestKeeper_GetSaveHasProofExternalOwnedAccount() {

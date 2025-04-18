@@ -9,8 +9,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	itutiltypes "github.com/EscanBE/evermint/integration_test_util/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cmtrpctypes "github.com/cometbft/cometbft/rpc/core/types"

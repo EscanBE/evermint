@@ -17,8 +17,8 @@ import (
 	servercmtlog "github.com/cosmos/cosmos-sdk/server/log"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/indexer"
+	"github.com/EscanBE/evermint/constants"
+	"github.com/EscanBE/evermint/indexer"
 	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -46,9 +46,9 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	pruningtypes "cosmossdk.io/store/pruning/types"
-	ethdebug "github.com/EscanBE/evermint/v12/rpc/namespaces/ethereum/debug"
-	servercfg "github.com/EscanBE/evermint/v12/server/config"
-	srvflags "github.com/EscanBE/evermint/v12/server/flags"
+	ethdebug "github.com/EscanBE/evermint/rpc/namespaces/ethereum/debug"
+	servercfg "github.com/EscanBE/evermint/server/config"
+	srvflags "github.com/EscanBE/evermint/server/flags"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"

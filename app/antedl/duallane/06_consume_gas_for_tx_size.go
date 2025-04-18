@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkauthante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 
-	dlanteutils "github.com/EscanBE/evermint/v12/app/antedl/utils"
+	dlanteutils "github.com/EscanBE/evermint/app/antedl/utils"
 )
 
 type DLConsumeTxSizeGasDecorator struct {

@@ -1,10 +1,10 @@
 package keeper_test
 
 import (
-	"github.com/EscanBE/evermint/v12/constants"
-	"github.com/EscanBE/evermint/v12/rename_chain/marker"
-	vauthkeeper "github.com/EscanBE/evermint/v12/x/vauth/keeper"
-	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
+	"github.com/EscanBE/evermint/constants"
+	"github.com/EscanBE/evermint/rename_chain/marker"
+	vauthkeeper "github.com/EscanBE/evermint/x/vauth/keeper"
+	vauthtypes "github.com/EscanBE/evermint/x/vauth/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/errors"
 )

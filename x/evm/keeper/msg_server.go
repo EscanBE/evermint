@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"math/big"
 
-	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
+	evmutils "github.com/EscanBE/evermint/x/evm/utils"
 
 	sdkmath "cosmossdk.io/math"
 
-	"github.com/EscanBE/evermint/v12/utils"
+	"github.com/EscanBE/evermint/utils"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -23,7 +23,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/hashicorp/go-metrics"
 
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 )
 
 var _ evmtypes.MsgServer = &Keeper{}

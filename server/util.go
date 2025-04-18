@@ -9,7 +9,7 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	// TODO update import to local pkg when rpc pkg is migrated
-	"github.com/EscanBE/evermint/v12/server/config"
+	"github.com/EscanBE/evermint/server/config"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/netutil"
 

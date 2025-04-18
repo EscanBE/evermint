@@ -4,15 +4,15 @@ import (
 	"context"
 	"encoding/json"
 
-	cpccli "github.com/EscanBE/evermint/v12/x/cpc/client/cli"
+	cpccli "github.com/EscanBE/evermint/x/cpc/client/cli"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/spf13/cobra"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
-	cpckeeper "github.com/EscanBE/evermint/v12/x/cpc/keeper"
-	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
+	cpckeeper "github.com/EscanBE/evermint/x/cpc/keeper"
+	cpctypes "github.com/EscanBE/evermint/x/cpc/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"

@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	cpctypes "github.com/EscanBE/evermint/v12/x/cpc/types"
+	cpctypes "github.com/EscanBE/evermint/x/cpc/types"
 
 	"github.com/spf13/cobra"
 

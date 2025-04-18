@@ -4,9 +4,9 @@ import (
 	"crypto/ecdsa"
 	"errors"
 
-	"github.com/EscanBE/evermint/v12/ethereum/eip712"
-	"github.com/EscanBE/evermint/v12/wallets/accounts"
-	"github.com/EscanBE/evermint/v12/wallets/ledger/mocks"
+	"github.com/EscanBE/evermint/ethereum/eip712"
+	"github.com/EscanBE/evermint/wallets/accounts"
+	"github.com/EscanBE/evermint/wallets/ledger/mocks"
 	gethaccounts "github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
 )

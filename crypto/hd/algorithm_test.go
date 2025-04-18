@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	chainapp "github.com/EscanBE/evermint/v12/app"
-	"github.com/EscanBE/evermint/v12/constants"
+	chainapp "github.com/EscanBE/evermint/app"
+	"github.com/EscanBE/evermint/constants"
 
 	"github.com/stretchr/testify/require"
 
@@ -16,8 +16,8 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 
-	cryptocodec "github.com/EscanBE/evermint/v12/crypto/codec"
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	cryptocodec "github.com/EscanBE/evermint/crypto/codec"
+	evertypes "github.com/EscanBE/evermint/types"
 )
 
 var TestCodec codec.Codec

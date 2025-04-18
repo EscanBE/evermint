@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"strings"
 
-	vauthutils "github.com/EscanBE/evermint/v12/x/vauth/utils"
+	vauthutils "github.com/EscanBE/evermint/x/vauth/utils"
 	"github.com/ethereum/go-ethereum/common"
 
 	errorsmod "cosmossdk.io/errors"

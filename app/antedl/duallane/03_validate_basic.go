@@ -11,10 +11,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdkauthante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 
-	dlanteutils "github.com/EscanBE/evermint/v12/app/antedl/utils"
-	evmkeeper "github.com/EscanBE/evermint/v12/x/evm/keeper"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
-	evmutils "github.com/EscanBE/evermint/v12/x/evm/utils"
+	dlanteutils "github.com/EscanBE/evermint/app/antedl/utils"
+	evmkeeper "github.com/EscanBE/evermint/x/evm/keeper"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
+	evmutils "github.com/EscanBE/evermint/x/evm/utils"
 )
 
 type DLValidateBasicDecorator struct {

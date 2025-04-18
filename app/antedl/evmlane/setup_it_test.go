@@ -3,14 +3,14 @@ package evmlane_test
 import (
 	"testing"
 
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	integration_test_util "github.com/EscanBE/evermint/v12/integration_test_util"
-	itutiltypes "github.com/EscanBE/evermint/v12/integration_test_util/types"
+	integration_test_util "github.com/EscanBE/evermint/integration_test_util"
+	itutiltypes "github.com/EscanBE/evermint/integration_test_util/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 )

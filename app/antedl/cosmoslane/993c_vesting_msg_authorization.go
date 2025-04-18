@@ -2,9 +2,9 @@ package cosmoslane
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	dlanteutils "github.com/EscanBE/evermint/v12/app/antedl/utils"
-	vauthkeeper "github.com/EscanBE/evermint/v12/x/vauth/keeper"
-	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
+	dlanteutils "github.com/EscanBE/evermint/app/antedl/utils"
+	vauthkeeper "github.com/EscanBE/evermint/x/vauth/keeper"
+	vauthtypes "github.com/EscanBE/evermint/x/vauth/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"

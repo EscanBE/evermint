@@ -3,8 +3,8 @@ package keeper_test
 import (
 	"strings"
 
-	vauthkeeper "github.com/EscanBE/evermint/v12/x/vauth/keeper"
-	vauthtypes "github.com/EscanBE/evermint/v12/x/vauth/types"
+	vauthkeeper "github.com/EscanBE/evermint/x/vauth/keeper"
+	vauthtypes "github.com/EscanBE/evermint/x/vauth/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 

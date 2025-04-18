@@ -5,7 +5,7 @@ import (
 
 	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
 
-	dlanteutils "github.com/EscanBE/evermint/v12/app/antedl/utils"
+	dlanteutils "github.com/EscanBE/evermint/app/antedl/utils"
 )
 
 type DLRedundantRelayDecorator struct {

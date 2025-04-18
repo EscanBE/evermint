@@ -7,8 +7,8 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	"github.com/EscanBE/evermint/v12/app/helpers"
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/app/helpers"
+	"github.com/EscanBE/evermint/constants"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmttypes "github.com/cometbft/cometbft/types"
@@ -23,7 +23,7 @@ import (
 
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 
-	evertypes "github.com/EscanBE/evermint/v12/types"
+	evertypes "github.com/EscanBE/evermint/types"
 )
 
 var DefaultTestingAppInit func(chainID string) func() (ibctesting.TestingApp, map[string]json.RawMessage) = helpers.SetupTestingApp

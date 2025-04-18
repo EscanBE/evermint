@@ -3,15 +3,15 @@ package evm_test
 import (
 	"math/big"
 
-	evmvm "github.com/EscanBE/evermint/v12/x/evm/vm"
+	evmvm "github.com/EscanBE/evermint/x/evm/vm"
 
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/EscanBE/evermint/v12/crypto/ethsecp256k1"
-	"github.com/EscanBE/evermint/v12/x/evm"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/EscanBE/evermint/crypto/ethsecp256k1"
+	"github.com/EscanBE/evermint/x/evm"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 

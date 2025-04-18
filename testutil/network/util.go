@@ -9,12 +9,12 @@ import (
 
 	"cosmossdk.io/log"
 
-	servercfg "github.com/EscanBE/evermint/v12/server/config"
+	servercfg "github.com/EscanBE/evermint/server/config"
 	cmtcfg "github.com/cometbft/cometbft/config"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	servercmtlog "github.com/cosmos/cosmos-sdk/server/log"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 
 	cmtos "github.com/cometbft/cometbft/libs/os"
 	cmtnode "github.com/cometbft/cometbft/node"
@@ -38,8 +38,8 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/EscanBE/evermint/v12/server"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/EscanBE/evermint/server"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 )
 
 func startInProcess(cfg Config, val *Validator) error {

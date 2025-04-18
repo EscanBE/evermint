@@ -3,10 +3,10 @@ package backend
 import (
 	"math/big"
 
-	"github.com/EscanBE/evermint/v12/rpc/backend/mocks"
-	rpctypes "github.com/EscanBE/evermint/v12/rpc/types"
-	utiltx "github.com/EscanBE/evermint/v12/testutil/tx"
-	evmtypes "github.com/EscanBE/evermint/v12/x/evm/types"
+	"github.com/EscanBE/evermint/rpc/backend/mocks"
+	rpctypes "github.com/EscanBE/evermint/rpc/types"
+	utiltx "github.com/EscanBE/evermint/testutil/tx"
+	evmtypes "github.com/EscanBE/evermint/x/evm/types"
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	cmtrpcclient "github.com/cometbft/cometbft/rpc/client"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"

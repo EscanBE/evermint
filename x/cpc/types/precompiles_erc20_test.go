@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/EscanBE/evermint/v12/constants"
+	"github.com/EscanBE/evermint/constants"
 )
 
 func TestErc20CustomPrecompiledContractMeta_Validate(t *testing.T) {

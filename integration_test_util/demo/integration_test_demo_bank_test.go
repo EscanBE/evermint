@@ -2,7 +2,7 @@ package demo
 
 import (
 	sdkmath "cosmossdk.io/math"
-	"github.com/EscanBE/evermint/v12/integration_test_util"
+	"github.com/EscanBE/evermint/integration_test_util"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
