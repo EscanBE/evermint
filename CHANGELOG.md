@@ -46,6 +46,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evm) [#175](https://github.com/EscanBE/evermint/pull/175) Support precompiled contract using new module `x/cpc`
 - (evm) [#178](https://github.com/EscanBE/evermint/pull/178) Staking precompiled contract ESIP-179
 - (evm) [#182](https://github.com/EscanBE/evermint/pull/182) Bech32 precompiled contract ESIP-181
+- (cli) [#190](https://github.com/EscanBE/evermint/pull/190) Introduce `genesis` CLI for improve `genesis.json`, add genesis vesting account and minor bug fix
 
 ### Improvement
 
