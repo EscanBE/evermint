@@ -112,6 +112,10 @@ if [[ $overwrite == "y" || $overwrite == "Y" ]]; then
   "$BINARY" add-genesis-account "${KEYS[1]}" "$GENESIS_BALANCE$MIN_DENOM" --keyring-backend $KEYRING --home "$HOMEDIR"
   "$BINARY" add-genesis-account "${KEYS[2]}" "$GENESIS_BALANCE$MIN_DENOM" --keyring-backend $KEYRING --home "$HOMEDIR"
   "$BINARY" add-genesis-account "${KEYS[3]}" "$GENESIS_BALANCE$MIN_DENOM" --keyring-backend $KEYRING --home "$HOMEDIR"
+  # Allocate some vesting accounts
+  # "$BINARY" genesis add-vesting-account "evm1...." "$GENESIS_BALANCE$MIN_DENOM" --home "$HOMEDIR" --continuous-vesting
+  # "$BINARY" genesis add-vesting-account "0x123..." "$GENESIS_BALANCE$MIN_DENOM" --home "$HOMEDIR" --delayed-vesting
+  # "$BINARY" genesis add-vesting-account "0x456..." "$GENESIS_BALANCE$MIN_DENOM" --home "$HOMEDIR" --permanent-locked
 
 	# bc is required to add these big numbers
 	total_supply=$(echo "${#KEYS[@]} * $GENESIS_BALANCE" | bc)
