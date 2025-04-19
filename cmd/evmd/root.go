@@ -178,7 +178,6 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 			signingCtx.AddressCodec(),
 		),
 		tmcli.NewCompletionCmd(rootCmd, true),
-		NewTestnetCmd(chainapp.ModuleBasics, banktypes.GenesisBalancesIterator{}),
 		debug.Cmd(),
 		confixcmd.ConfigCommand(),
 		pruning.Cmd(a.newApp, chainapp.DefaultNodeHome),
