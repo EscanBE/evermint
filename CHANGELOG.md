@@ -60,6 +60,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evm) [#172](https://github.com/EscanBE/evermint/pull/172) Remove unnecessary `block-max-gas` arg in some requests (continue #127)
 - (evm) [#180](https://github.com/EscanBE/evermint/pull/180) Support EIP-712 message signing for ESIP-179 Staking precompiled contract
 - (evm) [#192](https://github.com/EscanBE/evermint/pull/192) Prevent state from being overwhelmed by too many contracts created
+- (codebase) [#195](https://github.com/EscanBE/evermint/pull/195) Remove unused files and folders
 
 ### Bug Fixes
 
